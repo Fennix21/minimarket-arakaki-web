@@ -291,3 +291,31 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
   display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,0.3);
   font-size: 28px;
 }
+
+/* ---------- Ajustes responsive finos (teléfonos) ---------- */
+@media (max-width: 600px) {
+  .seccion { padding: 34px 14px; }
+
+  /* Portada: centrar video + textos (en móvil el margen 6% se ve descuadrado) */
+  .portada { padding: 40px 16px 48px; }
+  .portada-circulo { margin: 0 auto 26px; width: min(300px, 72vw); }
+  .portada h1 { margin-left: 0; text-align: center; }
+  .btn-mapa { display: block; margin: 22px auto 0; padding: 14px 30px; text-align: center; }
+
+  /* Grillas a 2 columnas (como una tienda), no 1 columna gigante */
+  .grilla-prods { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 22px; }
+  .grilla-cats { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 24px; }
+  .prod-info { padding: 11px 11px 13px; gap: 6px; }
+  .prod-nombre { font-size: 13px; }
+  .prod-precio { font-size: 16px; }
+  .btn-elegir { padding: 9px; font-size: 13px; }
+  .cat-cuerpo { padding: 13px 10px; }
+  .cat-cuerpo h3 { font-size: 15px; }
+  .cat-cuerpo .cat-cta { font-size: 12px; padding: 8px 13px; }
+
+  /* Countdown Fiestas Patrias: que las 4 cajas repartan el ancho sin desbordarse */
+  #fp-popup .fp-reloj { gap: 6px; padding: 0 12px; }
+  #fp-popup .fp-caja { min-width: 0; flex: 1; padding: 8px 3px; }
+  #fp-popup .fp-caja b { font-size: 20px; }
+  #fp-popup .fp-caja span { font-size: 8.5px; }
+}
