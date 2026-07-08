@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel | Minimarket Arakaki</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png">
+<style>
+:root { --rojo:#7c0f14; --negro:#1d1d1d; --panel:#2a2a2a; --borde:#3d3d3d; --texto:#eee; --verde:#25d366; --dorado:#d4a941; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--negro); color:var(--texto); min-height:100vh; }
+button { font-family:inherit; cursor:pointer; }
+input,textarea,select { font-family:inherit; }
+
+/* Login */
+#login { max-width:360px; margin:14vh auto; background:var(--panel); border-radius:16px; padding:30px; text-align:center; }
+#login img { width:80px; margin:0 auto 14px; display:block; border-radius:12px; }
+#login h1 { font-size:19px; margin-bottom:16px; }
+#login input { width:100%; padding:12px; border-radius:10px; border:1px solid var(--borde); background:#1a1a1a; color:#fff; font-size:15px; }
+#login button { width:100%; margin-top:12px; padding:12px; border:none; border-radius:10px; background:var(--rojo); color:#fff; font-size:15px; font-weight:700; }
+#login .err { color:#ff7b7b; font-size:13px; margin-top:10px; min-height:16px; }
+
+/* Barra */
+#app { display:none; }
+.barra { display:flex; align-items:center; gap:6px; padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--borde); position:sticky; top:0; z-index:50; flex-wrap:wrap; }
+.barra img { width:34px; border-radius:8px; }
+.barra .tit { font-weight:800; font-size:15px; margin-right:8px; }
+.tab { background:none; border:none; color:#bbb; font-size:14px; padding:8px 12px; border-radius:9px; position:relative; }
+.tab.activa { background:var(--rojo); color:#fff; }
+.tab .badge { position:absolute; top:0; right:0; background:var(--dorado); color:#000; font-size:10px; font-weight:800; border-radius:999px; padding:1px 5px; }
+.barra .esp { flex:1; }
+.barra .salir { background:none; border:none; color:#999; font-size:16px; }
+
+.vista { display:none; padding:16px; max-width:1200px; margin:0 auto; }
+.vista.activa { display:block; }
+
+/* Chats */
+#v-chats { display:none; }
+#v-chats.activa { display:grid; grid-template-columns:340px 1fr; gap:14px; height:calc(100vh - 66px); padding:14px; max-width:none; }
+@media (max-width:820px){ #v-chats.activa { grid-template-columns:1fr; height:auto; } #chat-der { display:none; } #chat-der.abierto { display:flex; position:fixed; inset:0; z-index:100; } #chat-izq.oculto { display:none; } }
+#chat-izq { background:var(--panel); border-radius:14px; overflow-y:auto; }
+#chat-izq .buscador { padding:10px; position:sticky; top:0; background:var(--panel); }
+#chat-izq .buscador input { width:100%; padding:9px 12px; border-radius:9px; border:1px solid var(--borde); background:#1a1a1a; color:#fff; }
+.lead { padding:11px 14px; border-bottom:1px solid #333; cursor:pointer; }
+.lead:hover, .lead.sel { background:#333; }
+.lead .fila1 { display:flex; justify-content:space-between; gap:8px; }
+.lead .nom { font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lead .hora { font-size:11px; color:#999; white-space:nowrap; }
+.lead .ult { font-size:12.5px; color:#aaa; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:3px; }
+.lead .chips { margin-top:5px; display:flex; gap:5px; flex-wrap:wrap; }
+.chip { font-size:10.5px; padding:2px 8px; border-radius:999px; background:#444; }
+.chip.nuevo{background:#2d6cdf} .chip.interesado{background:#b8860b} .chip.pedido{background:#c0392b} .chip.entregado{background:#1e8449} .chip.descartado{background:#555}
+.chip.bot-off{background:#7c0f14} .chip.v24{background:#1e8449} .chip.v24off{background:#555}
+#chat-der { background:var(--panel); border-radius:14px; display:flex; flex-direction:column; overflow:hidden; }
+#chat-cab { padding:12px 14px; border-bottom:1px solid var(--borde); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+#chat-cab .volver { display:none; background:none; border:none; color:#fff; font-size:18px; }
+@media (max-width:820px){ #chat-cab .volver{display:block} }
+#chat-cab b { font-size:15px; }
+#chat-cab .tel { color:#999; font-size:12.5px; }
+#chat-cab select { background:#1a1a1a; color:#fff; border:1px solid var(--borde); border-radius:8px; padding:5px 8px; font-size:12.5px; }
+#chat-cab .mini { background:#3a3a3a; border:none; color:#ddd; border-radius:8px; padding:6px 10px; font-size:12px; }
+#chat-msgs { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px; }
+.msg { max-width:75%; padding:9px 13px; border-radius:13px; font-size:14px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
+.msg.user { background:#3a3a3a; align-self:flex-start; border-bottom-left-radius:4px; }
+.msg.bot { background:#134d37; align-self:flex-end; border-bottom-right-radius:4px; }
+.msg.human { background:#0d5c63; align-self:flex-end; border-bottom-right-radius:4px; }
+.msg .meta { display:block; font-size:10.5px; opacity:.6; margin-top:4px; }
+#chat-pie { padding:12px; border-top:1px solid var(--borde); }
+#chat-plantillas { display:flex; gap:7px; overflow-x:auto; padding-bottom:9px; }
+#chat-plantillas button { background:#3a3a3a; color:#ddd; border:none; border-radius:999px; padding:6px 12px; font-size:12px; white-space:nowrap; }
+#chat-pie .envio { display:flex; gap:9px; }
+#chat-pie textarea { flex:1; background:#1a1a1a; color:#fff; border:1px solid var(--borde); border-radius:10px; padding:10px 12px; font-size:14px; resize:none; }
+#chat-pie .btn-env { background:var(--verde); color:#fff; border:none; border-radius:10px; padding:0 18px; font-size:17px; font-weight:800; }
+#chat-vacio { flex:1; display:flex; align-items:center; justify-content:center; color:#777; font-size:14px; text-align:center; padding:20px; }
+
+/* Tablas */
+table { width:100%; border-collapse:collapse; background:var(--panel); border-radius:14px; overflow:hidden; }
+th,td { padding:11px 13px; text-align:left; font-size:13.5px; border-bottom:1px solid #333; vertical-align:top; }
+th { background:#333; font-size:12px; text-transform:uppercase; letter-spacing:.7px; color:#bbb; }
+tr:hover td { background:#303030; }
+td select { background:#1a1a1a; color:#fff; border:1px solid var(--borde); border-radius:8px; padding:5px 8px; }
+td a.wa { color:var(--verde); }
+.tabla-scroll { overflow-x:auto; border-radius:14px; }
+.vacio { text-align:center; color:#888; padding:40px 20px; }
+
+/* Analíticas */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+.stat-caja { background:var(--panel); border-radius:14px; padding:18px; }
+.stat-caja h3 { font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#aaa; margin-bottom:12px; }
+.stat-fila { display:flex; justify-content:space-between; padding:5px 0; font-size:13.5px; border-bottom:1px solid #333; }
+.stat-fila b { color:var(--dorado); }
+.barras { display:flex; align-items:flex-end; gap:6px; height:120px; }
+.barras .col { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; height:100%; }
+.barras .col .b { width:100%; background:var(--rojo); border-radius:4px 4px 0 0; min-height:2px; }
+.barras .col span { font-size:9.5px; color:#999; }
+
+/* Bot */
+#v-bot textarea { width:100%; min-height:380px; background:#1a1a1a; color:#eee; border:1px solid var(--borde); border-radius:12px; padding:14px; font-size:13.5px; line-height:1.5; }
+.fila-conf { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; align-items:center; }
+.fila-conf input[type=text] { background:#1a1a1a; color:#fff; border:1px solid var(--borde); border-radius:9px; padding:9px 12px; }
+.btn { background:var(--rojo); color:#fff; border:none; border-radius:9px; padding:10px 16px; font-size:13.5px; font-weight:700; }
+.btn.gris { background:#3a3a3a; }
+.aviso { padding:10px 14px; border-radius:10px; margin:10px 0; font-size:13.5px; display:none; }
+.aviso.ok { background:#14432f; display:block; }
+.aviso.mal { background:#5b1a1a; display:block; }
+h2.tit-vista { font-size:17px; margin-bottom:14px; }
+.plantillas-edit .p-item { display:flex; gap:8px; margin-bottom:8px; }
+.plantillas-edit input { flex:0 0 160px; background:#1a1a1a; color:#fff; border:1px solid var(--borde); border-radius:8px; padding:8px 10px; }
+.plantillas-edit textarea { flex:1; background:#1a1a1a; color:#fff; border:1px solid var(--borde); border-radius:8px; padding:8px 10px; min-height:38px; }
+.plantillas-edit button.x { background:#5b1a1a; color:#fff; border:none; border-radius:8px; padding:0 12px; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <img src="https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png" alt="Arakaki">
+  <h1>Panel Minimarket Arakaki</h1>
+  <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')entrar()">
+  <button onclick="entrar()">Entrar</button>
+  <p class="err" id="login-err"></p>
+</div>
+
+<div id="app">
+  <div class="barra">
+    <img src="https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png" alt="">
+    <span class="tit">Arakaki</span>
+    <button class="tab activa" data-v="chats">💬 Chats</button>
+    <button class="tab" data-v="pedidos">🛒 Pedidos<span class="badge" id="badge-pedidos" style="display:none">0</span></button>
+    <button class="tab" data-v="club">👥 Club</button>
+    <button class="tab" data-v="stats">📊 Analíticas</button>
+    <button class="tab" data-v="bot">⚙️ Bot</button>
+    <span class="esp"></span>
+    <button class="tab" onclick="cargarTodo()" title="Actualizar">↻</button>
+    <button class="salir" onclick="salir()" title="Salir">🚪</button>
+  </div>
+
+  <!-- CHATS -->
+  <div class="vista activa" id="v-chats">
+    <div id="chat-izq">
+      <div class="buscador"><input id="buscar" placeholder="🔍 Buscar nombre o número" oninput="pintarLeads()"></div>
+      <div id="lista-leads"></div>
+    </div>
+    <div id="chat-der">
+      <div id="chat-vacio">Elige una conversación de la izquierda 💬<br><br>Cuando un cliente escriba a tu WhatsApp, aparecerá aquí.</div>
+      <div id="chat-cab" style="display:none">
+        <button class="volver" onclick="cerrarChat()">←</button>
+        <div style="flex:1;min-width:130px"><b id="c-nombre"></b><div class="tel" id="c-tel"></div></div>
+        <select id="c-status" onchange="cambiarStatus(this.value)">
+          <option value="nuevo">🔵 Nuevo</option><option value="interesado">🟡 Interesado</option>
+          <option value="pedido">🔴 Pedido</option><option value="entregado">🟢 Entregado</option>
+          <option value="descartado">⚪ Descartado</option>
+        </select>
+        <button class="mini" id="c-bot" onclick="alternarBot()">🤖 Bot: ON</button>
+        <button class="mini" onclick="renombrar()">✏️</button>
+        <button class="mini" onclick="editarNota()" id="c-nota-btn">📝</button>
+        <button class="mini" onclick="borrarChat()">🗑️</button>
+      </div>
+      <div id="chat-msgs" style="display:none"></div>
+      <div id="chat-pie" style="display:none">
+        <div id="chat-plantillas"></div>
+        <div class="envio">
+          <textarea id="c-texto" rows="2" placeholder="Escribe tu respuesta… (al enviar, el bot se pausa para este cliente)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMsg();}"></textarea>
+          <button class="btn-env" onclick="enviarMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEDIDOS -->
+  <div class="vista" id="v-pedidos">
+    <h2 class="tit-vista">🛒 Pedidos desde la web</h2>
+    <div class="tabla-scroll"><table>
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>Pedido</th><th>Total</th><th>Entrega</th><th>Estado</th></tr></thead>
+      <tbody id="tabla-pedidos"></tbody>
+    </table></div>
+    <p class="vacio" id="pedidos-vacio" style="display:none">Aún no hay pedidos desde la web.<br>Cuando alguien use el carrito 🛒 del sitio, aparecerá aquí.</p>
+  </div>
+
+  <!-- CLUB -->
+  <div class="vista" id="v-club">
+    <h2 class="tit-vista">👥 Club Arakaki (clientes registrados en la web)</h2>
+    <div class="tabla-scroll"><table>
+      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Le interesa</th><th></th></tr></thead>
+      <tbody id="tabla-club"></tbody>
+    </table></div>
+    <p class="vacio" id="club-vacio" style="display:none">Aún no hay registros del Club Arakaki.</p>
+  </div>
+
+  <!-- ANALÍTICAS -->
+  <div class="vista" id="v-stats">
+    <h2 class="tit-vista">📊 Analíticas del sitio</h2>
+    <div class="stats-grid">
+      <div class="stat-caja"><h3>Visitas últimos 7 días</h3><div class="barras" id="st-daily"></div></div>
+      <div class="stat-caja"><h3>Eventos</h3><div id="st-eventos"></div></div>
+      <div class="stat-caja"><h3>Páginas más vistas</h3><div id="st-paginas"></div></div>
+      <div class="stat-caja"><h3>De dónde llegan</h3><div id="st-refs"></div></div>
+    </div>
+  </div>
+
+  <!-- BOT -->
+  <div class="vista" id="v-bot">
+    <h2 class="tit-vista">⚙️ Cerebro del bot vendedor</h2>
+    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Estas son las instrucciones que sigue el bot al responder en tu WhatsApp. Edítalas y guarda: el cambio es inmediato, sin tocar código.</p>
+    <div class="aviso" id="bot-aviso"></div>
+    <textarea id="bot-prompt"></textarea>
+    <div class="fila-conf">
+      <button class="btn" onclick="guardarPrompt()">💾 Guardar cerebro</button>
+      <button class="btn gris" onclick="restaurarPrompt()">↩️ Restaurar original</button>
+      <span id="bot-custom" style="font-size:12px;color:#aaa"></span>
+    </div>
+    <h2 class="tit-vista" style="margin-top:26px">🔔 Avisos a tu WhatsApp</h2>
+    <div class="fila-conf">
+      <input type="text" id="conf-owner" placeholder="Tu número (ej. 51999999999)">
+      <label style="font-size:13.5px"><input type="checkbox" id="conf-notify"> Avisarme de nuevos clientes y pedidos</label>
+      <button class="btn" onclick="guardarNotify()">Guardar</button>
+    </div>
+    <h2 class="tit-vista" style="margin-top:26px">⚡ Respuestas rápidas</h2>
+    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Botones que ves encima del chat para responder en un toque.</p>
+    <div class="plantillas-edit" id="tpl-lista"></div>
+    <div class="fila-conf">
+      <button class="btn gris" onclick="agregarTpl()">+ Añadir</button>
+      <button class="btn" onclick="guardarTpls()">💾 Guardar respuestas</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var PASS = localStorage.getItem('arakaki_pass') || '';
+var LEADS = [];
+var CHAT = null;   // teléfono abierto
+var TPLS = [];
+var PROMPT_DEFAULT = '';
+
+function api(action, extra) {
+  var body = Object.assign({ pass: PASS, action: action }, extra || {});
+  return fetch('/api/crm', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Error'); return j; }); });
+}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function hora(ts) {
+  if (!ts) return '';
+  var d = new Date(ts), hoy = new Date();
+  if (d.toDateString() === hoy.toDateString()) return d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+}
+
+// ---------- Login ----------
+function entrar() {
+  var p = document.getElementById('login-pass').value;
+  if (!p) return;
+  PASS = p;
+  api('list').then(function () {
+    localStorage.setItem('arakaki_pass', PASS);
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    cargarTodo();
+  }).catch(function (e) {
+    document.getElementById('login-err').textContent = e.message;
+  });
+}
+function salir() {
+  localStorage.removeItem('arakaki_pass');
+  location.reload();
+}
+if (PASS) {
+  api('list').then(function () {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    cargarTodo();
+  }).catch(function () { localStorage.removeItem('arakaki_pass'); PASS = ''; });
+}
+
+// ---------- Tabs ----------
+var tabs = document.querySelectorAll('.tab[data-v]');
+for (var i = 0; i < tabs.length; i++) {
+  tabs[i].onclick = (function (t) { return function () { verVista(t.getAttribute('data-v')); }; })(tabs[i]);
+}
+function verVista(v) {
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('activa', tabs[i].getAttribute('data-v') === v);
+  var vistas = document.querySelectorAll('.vista');
+  for (var j = 0; j < vistas.length; j++) vistas[j].classList.toggle('activa', vistas[j].id === 'v-' + v);
+  if (v === 'pedidos') cargarPedidos();
+  if (v === 'club') cargarClub();
+  if (v === 'stats') cargarStats();
+  if (v === 'bot') cargarBot();
+}
+
+function cargarTodo() { cargarLeads(); cargarPedidos(); cargarTpls(); }
+
+// ---------- Chats ----------
+function cargarLeads() {
+  api('list').then(function (j) { LEADS = j.leads || []; pintarLeads(); }).catch(function () {});
+}
+function pintarLeads() {
+  var q = (document.getElementById('buscar').value || '').toLowerCase();
+  var cont = document.getElementById('lista-leads');
+  var ls = LEADS.filter(function (l) {
+    return !q || (l.name || '').toLowerCase().indexOf(q) >= 0 || l.phone.indexOf(q) >= 0;
+  });
+  if (!ls.length) { cont.innerHTML = '<p class="vacio">Sin conversaciones todavía.<br>Cuando un cliente escriba a tu WhatsApp, aparecerá aquí.</p>'; return; }
+  cont.innerHTML = ls.map(function (l) {
+    var v24 = l.lastUserTs && (Date.now() - l.lastUserTs < 24 * 3600 * 1000);
+    return '<div class="lead' + (CHAT === l.phone ? ' sel' : '') + '" onclick="abrirChat(\'' + l.phone + '\')">' +
+      '<div class="fila1"><span class="nom">' + esc(l.name || '+' + l.phone) + '</span><span class="hora">' + hora(l.updatedAt) + '</span></div>' +
+      '<div class="ult">' + (l.lastRole === 'user' ? '' : '↩ ') + esc((l.lastText || '').slice(0, 70)) + '</div>' +
+      '<div class="chips"><span class="chip ' + esc(l.status) + '">' + esc(l.status) + '</span>' +
+      (l.paused ? '<span class="chip bot-off">bot pausado</span>' : '') +
+      '<span class="chip ' + (v24 ? 'v24">24h ✓' : 'v24off">fuera 24h') + '</span>' +
+      (l.hasNote ? '<span class="chip">📝</span>' : '') +
+      (l.tags || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') +
+      '</div></div>';
+  }).join('');
+}
+function abrirChat(phone) {
+  CHAT = phone;
+  pintarLeads();
+  document.getElementById('chat-der').classList.add('abierto');
+  document.getElementById('chat-izq').classList.add('oculto');
+  api('get', { phone: phone }).then(function (j) {
+    var l = j.lead;
+    if (!l) return;
+    document.getElementById('chat-vacio').style.display = 'none';
+    document.getElementById('chat-cab').style.display = 'flex';
+    document.getElementById('chat-msgs').style.display = 'flex';
+    document.getElementById('chat-pie').style.display = 'block';
+    document.getElementById('c-nombre').textContent = l.name || '+' + l.phone;
+    document.getElementById('c-tel').textContent = '+' + l.phone;
+    document.getElementById('c-status').value = l.status || 'nuevo';
+    document.getElementById('c-bot').textContent = l.paused ? '🤖 Bot: OFF' : '🤖 Bot: ON';
+    document.getElementById('c-nota-btn').textContent = (l.note && l.note.trim()) ? '📝•' : '📝';
+    document.getElementById('c-nota-btn').setAttribute('data-nota', l.note || '');
+    var msgs = document.getElementById('chat-msgs');
+    msgs.innerHTML = (l.messages || []).map(function (m) {
+      var cls = m.role === 'user' ? 'user' : (m.human ? 'human' : 'bot');
+      var quien = m.role === 'user' ? '' : (m.human ? 'tú' : 'bot');
+      return '<div class="msg ' + cls + '">' + esc(m.text) +
+        '<span class="meta">' + quien + ' ' + hora(m.ts) + '</span></div>';
+    }).join('');
+    msgs.scrollTop = msgs.scrollHeight;
+  }).catch(function (e) { alert(e.message); });
+}
+function cerrarChat() {
+  document.getElementById('chat-der').classList.remove('abierto');
+  document.getElementById('chat-izq').classList.remove('oculto');
+  CHAT = null;
+  pintarLeads();
+}
+function enviarMsg() {
+  var t = document.getElementById('c-texto').value.trim();
+  if (!t || !CHAT) return;
+  document.getElementById('c-texto').value = '';
+  api('send', { phone: CHAT, text: t }).then(function () { abrirChat(CHAT); cargarLeads(); })
+    .catch(function (e) { alert(e.message); document.getElementById('c-texto').value = t; });
+}
+function cambiarStatus(s) { if (CHAT) api('status', { phone: CHAT, status: s }).then(cargarLeads); }
+function alternarBot() {
+  if (!CHAT) return;
+  var off = document.getElementById('c-bot').textContent.indexOf('OFF') >= 0;
+  api('pause', { phone: CHAT, paused: !off }).then(function () { abrirChat(CHAT); cargarLeads(); });
+}
+function renombrar() {
+  if (!CHAT) return;
+  var n = prompt('Nombre del cliente:', document.getElementById('c-nombre').textContent);
+  if (n === null) return;
+  api('rename', { phone: CHAT, name: n }).then(function () { abrirChat(CHAT); cargarLeads(); });
+}
+function editarNota() {
+  if (!CHAT) return;
+  var actual = document.getElementById('c-nota-btn').getAttribute('data-nota') || '';
+  var n = prompt('Nota privada (el cliente no la ve):', actual);
+  if (n === null) return;
+  api('note', { phone: CHAT, note: n }).then(function () { abrirChat(CHAT); cargarLeads(); });
+}
+function borrarChat() {
+  if (!CHAT) return;
+  if (!confirm('¿Eliminar este contacto y toda su conversación?')) return;
+  api('delete', { phone: CHAT }).then(function () {
+    document.getElementById('chat-cab').style.display = 'none';
+    document.getElementById('chat-msgs').style.display = 'none';
+    document.getElementById('chat-pie').style.display = 'none';
+    document.getElementById('chat-vacio').style.display = 'flex';
+    cerrarChat();
+    cargarLeads();
+  });
+}
+
+// ---------- Plantillas en el chat ----------
+function cargarTpls() {
+  api('gettemplates').then(function (j) {
+    TPLS = j.templates || [];
+    document.getElementById('chat-plantillas').innerHTML = TPLS.map(function (t, i) {
+      return '<button onclick="usarTpl(' + i + ')">' + esc(t.label) + '</button>';
+    }).join('');
+  }).catch(function () {});
+}
+function usarTpl(i) {
+  document.getElementById('c-texto').value = TPLS[i].text;
+  document.getElementById('c-texto').focus();
+}
+
+// ---------- Pedidos ----------
+function cargarPedidos() {
+  api('pedidos').then(function (j) {
+    var ps = j.pedidos || [];
+    var nuevos = ps.filter(function (p) { return p.estado === 'nuevo'; }).length;
+    var badge = document.getElementById('badge-pedidos');
+    badge.style.display = nuevos ? 'inline' : 'none';
+    badge.textContent = nuevos;
+    document.getElementById('pedidos-vacio').style.display = ps.length ? 'none' : 'block';
+    document.getElementById('tabla-pedidos').innerHTML = ps.map(function (p) {
+      var items = (p.items || []).map(function (i) { return i.qty + ' × ' + esc(i.name); }).join('<br>');
+      return '<tr><td>' + hora(p.ts) + '</td><td><b>' + esc(p.nombre) + '</b></td><td>' + items + '</td>' +
+        '<td>S/ ' + (p.total || 0) + '</td><td>' + esc(p.direccion || '—') + '</td>' +
+        '<td><select onchange="estadoPedido(\'' + p.id + '\', this.value)">' +
+        ['nuevo', 'preparando', 'enviado', 'entregado', 'cancelado'].map(function (e) {
+          return '<option' + (p.estado === e ? ' selected' : '') + '>' + e + '</option>';
+        }).join('') + '</select></td></tr>';
+    }).join('');
+  }).catch(function () {});
+}
+function estadoPedido(id, estado) { api('pedidoestado', { id: id, estado: estado }).then(cargarPedidos); }
+
+// ---------- Club ----------
+function cargarClub() {
+  api('clientes').then(function (j) {
+    var cs = j.clientes || [];
+    document.getElementById('club-vacio').style.display = cs.length ? 'none' : 'block';
+    document.getElementById('tabla-club').innerHTML = cs.map(function (c) {
+      return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre) + '</b></td>' +
+        '<td><a class="wa" href="https://wa.me/' + esc(c.telefono) + '" target="_blank">+' + esc(c.telefono) + '</a></td>' +
+        '<td>' + esc(c.interes || '—') + '</td>' +
+        '<td><button class="btn gris" onclick="borrarCliente(\'' + esc(c.telefono) + '\')">🗑️</button></td></tr>';
+    }).join('');
+  }).catch(function () {});
+}
+function borrarCliente(t) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  api('clientedel', { telefono: t }).then(cargarClub);
+}
+
+// ---------- Analíticas ----------
+function cargarStats() {
+  api('stats').then(function (j) {
+    var daily = j.daily || [];
+    var max = 1;
+    daily.forEach(function (d) { if (d.n > max) max = d.n; });
+    document.getElementById('st-daily').innerHTML = daily.map(function (d) {
+      return '<div class="col"><div class="b" style="height:' + Math.round(d.n / max * 100) + '%"></div>' +
+        '<span>' + d.day.slice(8) + '/' + d.day.slice(5, 7) + '</span><span><b>' + d.n + '</b></span></div>';
+    }).join('');
+    function filas(obj) {
+      var arr = Object.keys(obj || {}).map(function (k) { return [k, obj[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 12);
+      if (!arr.length) return '<p style="color:#888;font-size:13px">Sin datos aún.</p>';
+      return arr.map(function (x) { return '<div class="stat-fila"><span>' + esc(x[0]) + '</span><b>' + x[1] + '</b></div>'; }).join('');
+    }
+    document.getElementById('st-eventos').innerHTML = filas(j.events);
+    document.getElementById('st-paginas').innerHTML = filas(j.pages);
+    document.getElementById('st-refs').innerHTML = filas(j.refs);
+  }).catch(function (e) { alert(e.message); });
+}
+
+// ---------- Bot ----------
+function cargarBot() {
+  api('getprompt').then(function (j) {
+    PROMPT_DEFAULT = j.default || '';
+    document.getElementById('bot-prompt').value = j.prompt || '';
+    document.getElementById('bot-custom').textContent = j.isCustom ? 'Usando cerebro PERSONALIZADO (guardado en la base)' : 'Usando cerebro original del código';
+    document.getElementById('conf-owner').value = j.ownerPhone || '';
+    document.getElementById('conf-notify').checked = !!j.notify;
+  }).catch(function (e) { avisoBot(e.message, true); });
+  pintarTplsEdit();
+}
+function avisoBot(t, mal) {
+  var a = document.getElementById('bot-aviso');
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function guardarPrompt() {
+  api('setprompt', { prompt: document.getElementById('bot-prompt').value })
+    .then(function () { avisoBot('✅ Cerebro guardado. El bot ya responde con las nuevas instrucciones.'); cargarBot(); })
+    .catch(function (e) { avisoBot(e.message, true); });
+}
+function restaurarPrompt() {
+  if (!confirm('¿Restaurar el cerebro original? Se pierde lo personalizado.')) return;
+  api('resetprompt').then(function () { avisoBot('✅ Restaurado.'); cargarBot(); }).catch(function (e) { avisoBot(e.message, true); });
+}
+function guardarNotify() {
+  api('setnotify', { ownerPhone: document.getElementById('conf-owner').value, notify: document.getElementById('conf-notify').checked })
+    .then(function () { avisoBot('✅ Avisos configurados.'); })
+    .catch(function (e) { avisoBot(e.message, true); });
+}
+function pintarTplsEdit() {
+  api('gettemplates').then(function (j) {
+    TPLS = j.templates || [];
+    var cont = document.getElementById('tpl-lista');
+    cont.innerHTML = TPLS.map(function (t, i) {
+      return '<div class="p-item">' +
+        '<input value="' + esc(t.label) + '" data-i="' + i + '" data-k="label" maxlength="30">' +
+        '<textarea data-i="' + i + '" data-k="text">' + esc(t.text) + '</textarea>' +
+        '<button class="x" onclick="quitarTpl(' + i + ')">✕</button></div>';
+    }).join('');
+  }).catch(function () {});
+}
+function agregarTpl() { TPLS.push({ label: 'Nueva', text: '' }); pintarTplsLocal(); }
+function quitarTpl(i) { leerTplsDom(); TPLS.splice(i, 1); pintarTplsLocal(); }
+function pintarTplsLocal() {
+  var cont = document.getElementById('tpl-lista');
+  cont.innerHTML = TPLS.map(function (t, i) {
+    return '<div class="p-item">' +
+      '<input value="' + esc(t.label) + '" data-i="' + i + '" data-k="label" maxlength="30">' +
+      '<textarea data-i="' + i + '" data-k="text">' + esc(t.text) + '</textarea>' +
+      '<button class="x" onclick="quitarTpl(' + i + ')">✕</button></div>';
+  }).join('');
+}
+function leerTplsDom() {
+  var campos = document.querySelectorAll('#tpl-lista [data-i]');
+  for (var i = 0; i < campos.length; i++) {
+    var el = campos[i];
+    TPLS[Number(el.getAttribute('data-i'))][el.getAttribute('data-k')] = el.value;
+  }
+}
+function guardarTpls() {
+  leerTplsDom();
+  api('settemplates', { templates: TPLS })
+    .then(function () { avisoBot('✅ Respuestas rápidas guardadas.'); cargarTpls(); pintarTplsEdit(); })
+    .catch(function (e) { avisoBot(e.message, true); });
+}
+
+// Refresco suave de chats cada 30s (solo si la pestaña está visible)
+setInterval(function () {
+  if (document.hidden || !PASS || document.getElementById('app').style.display === 'none') return;
+  if (document.getElementById('v-chats').classList.contains('activa')) {
+    cargarLeads();
+    if (CHAT) abrirChat(CHAT);
+  }
+}, 30000);
+</script>
+</body>
+</html>

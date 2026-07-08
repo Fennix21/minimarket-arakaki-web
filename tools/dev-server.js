@@ -1,0 +1,30 @@
+// Servidor local para previsualizar el sitio (imita el cleanUrls de Vercel).
+// Correr con: node tools/dev-server.js  → http://localhost:3210
+// Las rutas /api/* responden un stub {ok:true} (el backend real corre en Vercel).
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const RAIZ = path.join(__dirname, '..');
+const PUERTO = 3210;
+const MIME = {
+  '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
+};
+
+http.createServer((req, res) => {
+  const url = decodeURIComponent((req.url || '/').split('?')[0]);
+  if (url.startsWith('/api/')) {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    return res.end('{"ok":true,"stub":true}');
+  }
+  let archivo = url === '/' ? '/index.html' : url;
+  if (!path.extname(archivo)) archivo += '.html'; // cleanUrls: /vinos -> vinos.html
+  const ruta = path.join(RAIZ, archivo);
+  if (!ruta.startsWith(RAIZ) || !fs.existsSync(ruta)) {
+    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+    return res.end('No encontrado: ' + url);
+  }
+  res.writeHead(200, { 'content-type': MIME[path.extname(ruta)] || 'application/octet-stream' });
+  fs.createReadStream(ruta).pipe(res);
+}).listen(PUERTO, () => console.log('Sitio en http://localhost:' + PUERTO));

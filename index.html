@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimarket Arakaki | Sonríe y date el gusto</title>
+<meta name="description" content="Minimarket Arakaki en San Isidro: licores, vinos, piscos, helados, chocolates y más con delivery. Lo que necesitas, cuando lo necesitas. Pide por WhatsApp.">
+<link rel="icon" href="https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div id="preloader">
+  <img src="https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png" alt="Minimarket Arakaki">
+  <div class="pre-barra"><span></span></div>
+  <div class="pre-texto">SONRÍE Y DATE EL GUSTO</div>
+</div>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Lo que necesitas, cuando lo necesitas</h1>
+    <p class="sub">Productos nacionales e importados · Atención personalizada</p>
+    <video src="https://d1yei2z3i6k35z.cloudfront.net/5071434/683b4385cee6d_Bienvenidosweb3.mp4" autoplay muted loop playsinline></video>
+  </section>
+
+  <!-- Cinta -->
+  <div class="cinta"><div class="cinta-rodillo" id="cinta-rodillo">
+    <span>📲 Pide por WhatsApp</span><span>🛵 Delivery disponible</span>
+    <span>🕗 Lun – Sáb 7:00 am – 9:00 pm</span><span>🕗 Domingos 8:00 am – 8:00 pm</span>
+    <span>🎉 Atendemos feriados</span>
+  </div></div>
+
+  <!-- Ubicación -->
+  <section class="seccion ubica" id="mapa">
+    <div class="interior">
+      <h2 class="titulo-seccion">Visítanos en:</h2>
+      <p class="dir">Av. Belén 265, San Isidro</p>
+      <p class="ref">(A solo 2 cuadras del Golf)</p>
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.6756713577665!2d-77.04980248960267!3d-12.105550342948039!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c848f932328b%3A0xc2974606f6e028a9!2sARAKAKI%20Minimarket!5e1!3m2!1ses-419!2spe!4v1748490736305!5m2!1ses-419!2spe"
+        loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa: Minimarket Arakaki"></iframe>
+    </div>
+  </section>
+
+  <!-- Fiestas Patrias: cuenta regresiva al 28 de julio -->
+  <section class="fp">
+    <div id="fp-antes">
+      <h2>¡Felices Fiestas Patrias! 🇵🇪</h2>
+      <p class="fp-sub">Celebremos juntos el orgullo de ser peruanos.</p>
+      <p class="fp-falta">Faltan para el 28 de Julio</p>
+      <div class="fp-reloj">
+        <div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>
+        <div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>
+        <div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>
+        <div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>
+      </div>
+    </div>
+    <div id="fp-despues" style="display:none">
+      <h2>¡Feliz 28 de Julio, Perú! 🇵🇪</h2>
+      <p class="fp-sub">Celebremos juntos el orgullo de ser peruanos.</p>
+    </div>
+    <p class="fp-sub" style="margin-top:22px">Celebra las Fiestas Patrias con lo mejor de la barra: <b>Pisco, Vino o Whisky.</b></p>
+    <div class="fp-botones">
+      <a href="/pisco">🍸 Ver opciones de Pisco ›</a>
+      <a href="/vinos">🍷 Ver Vinos ›</a>
+      <a href="/whisky">🥃 Ver opciones de Whisky ›</a>
+    </div>
+  </section>
+
+  <!-- Temporada -->
+  <section class="seccion osc" style="text-align:center">
+    <div class="interior">
+      <h2 class="titulo-seccion">Aún se siente el calorcito</h2>
+      <p class="sub-seccion">Invierno 2026</p>
+      <video src="https://d1yei2z3i6k35z.cloudfront.net/13036429/6a399148432757.53630540_MachuPicchu.mp4" autoplay muted loop playsinline
+        style="width:100%;max-width:720px;margin:26px auto 0;border-radius:14px;display:block"></video>
+    </div>
+  </section>
+
+  <!-- Categorías -->
+  <section class="seccion">
+    <div class="interior">
+      <h2 class="titulo-seccion">Nuestras Categorías</h2>
+      <p class="sub-seccion">Tenemos lo que necesitas cuando lo necesitas</p>
+      <div class="grilla-cats" id="cats-licores"></div>
+    </div>
+  </section>
+
+  <section class="seccion osc">
+    <div class="interior">
+      <h2 class="titulo-seccion">Productos Nacionales e Importados</h2>
+      <p class="sub-seccion">Atendemos todos los días de la semana, incluso en feriados</p>
+      <div class="grilla-cats" id="cats-tienda"></div>
+    </div>
+  </section>
+
+  <!-- Beneficios -->
+  <section class="seccion" style="padding-top:20px">
+    <div class="interior">
+      <h2 class="titulo-seccion">Atención Personalizada</h2>
+      <div class="benef" id="benef">
+        <img class="activa" src="https://d1yei2z3i6k35z.cloudfront.net/13036429/69ff4e51a459f3.16705349_Aniversario.png" alt="Desde 1994 a su servicio">
+        <img src="https://d1yei2z3i6k35z.cloudfront.net/13036429/6863415ba6a97_DeliveryGratis2.png" alt="Delivery gratis llegando a un monto mínimo">
+        <img src="https://d1yei2z3i6k35z.cloudfront.net/13036429/684c824aa0185_SomosPetFriendly.png" alt="Somos Pet Friendly">
+        <img src="https://d1yei2z3i6k35z.cloudfront.net/13036429/684c825b79ff6_TenemosElevador.png" alt="Tenemos Elevador">
+        <button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>
+        <button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Club Arakaki: registro de clientes -->
+  <section class="seccion roja" style="text-align:center">
+    <div class="interior">
+      <h2 class="titulo-seccion">Únete al Club Arakaki 🎁</h2>
+      <p class="sub-seccion">Déjanos tus datos y entérate primero de las ofertas, novedades y sorteos.</p>
+      <form class="club-form" id="club-form">
+        <input id="club-nombre" placeholder="Tu nombre" maxlength="60" required>
+        <input id="club-wsp" placeholder="Tu WhatsApp (ej. 999 999 999)" maxlength="15" inputmode="tel" required>
+        <select id="club-interes">
+          <option value="">¿Qué te interesa más? (opcional)</option>
+          <option>Licores y vinos</option>
+          <option>Helados y chocolates</option>
+          <option>Snacks y dulces</option>
+          <option>Todo un poco</option>
+        </select>
+        <button type="submit" data-ev="registro_club">Quiero unirme 🙌</button>
+        <p class="club-ok" id="club-ok">¡Listo! 🎉 Ya eres parte del Club Arakaki. Te avisaremos por WhatsApp de las novedades.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script src="/data/catalog.js"></script>
+<script src="/assets/site.js"></script>
+<script>
+(function () {
+  // ----- Cuenta regresiva a Fiestas Patrias (28 de julio, hora Perú UTC-5) -----
+  function tickFP() {
+    var ahora = new Date();
+    var anio = ahora.getUTCFullYear();
+    var objetivo = Date.UTC(anio, 6, 28, 5, 0, 0); // 28 jul 00:00 Perú = 05:00 UTC
+    var fin = Date.UTC(anio, 7, 1, 5, 0, 0);       // hasta el 1 de agosto se saluda
+    var t = objetivo - ahora.getTime();
+    var antes = document.getElementById('fp-antes');
+    var despues = document.getElementById('fp-despues');
+    if (t <= 0 && ahora.getTime() < fin) { antes.style.display = 'none'; despues.style.display = 'block'; return; }
+    if (t <= 0) { objetivo = Date.UTC(anio + 1, 6, 28, 5, 0, 0); t = objetivo - ahora.getTime(); }
+    antes.style.display = 'block'; despues.style.display = 'none';
+    var s = Math.floor(t / 1000);
+    document.getElementById('fp-d').textContent = Math.floor(s / 86400);
+    document.getElementById('fp-h').textContent = String(Math.floor(s % 86400 / 3600)).padStart(2, '0');
+    document.getElementById('fp-m').textContent = String(Math.floor(s % 3600 / 60)).padStart(2, '0');
+    document.getElementById('fp-s').textContent = String(s % 60).padStart(2, '0');
+  }
+  tickFP();
+  setInterval(tickFP, 1000);
+
+  // Duplicar la cinta para que el marquee sea continuo
+  var rod = document.getElementById('cinta-rodillo');
+  rod.innerHTML += rod.innerHTML;
+
+  // ----- Tarjetas de categorías con imágenes rotando -----
+  var C = window.ARAKAKI_CATALOG;
+  var LICORES = ['pisco', 'vinos', 'vinos-peruanos', 'vinos-argentinos', 'vinos-chilenos', 'whisky', 'ron',
+    'licor-frances', 'licor-italiano', 'vodka', 'tequila', 'anisado', 'licores-variados', 'refrescos', 'helados'];
+  var TIENDA = ['chocolates-importados', 'galletas', 'dulces', 'backtoschool', 'frutas-y-vegetales'];
+
+  function tarjeta(slug) {
+    var cat = C.categories[slug];
+    if (!cat) return '';
+    var prods = [];
+    cat.sections.forEach(function (s) { prods = prods.concat(s.products); });
+    var imgs = prods.slice(0, 5).map(function (p, i) {
+      return '<img loading="lazy" class="' + (i === 0 ? 'activa' : '') + '" src="' + p.img + '" alt="' + cat.title + '">';
+    }).join('');
+    var n = prods.length;
+    return '<a class="cat-card" href="/' + slug + '">' +
+      '<div class="cat-visor" data-rota>' + imgs + '</div>' +
+      '<div class="cat-cuerpo"><h3>' + cat.emoji + ' ' + cat.title + '</h3>' +
+      '<span class="cat-cta">Descubre ' + n + ' variedades ›</span></div></a>';
+  }
+  document.getElementById('cats-licores').innerHTML = LICORES.map(tarjeta).join('');
+  document.getElementById('cats-tienda').innerHTML = TIENDA.map(tarjeta).join('');
+
+  // Rotación automática de imágenes en cada tarjeta
+  var visores = document.querySelectorAll('[data-rota]');
+  setInterval(function () {
+    for (var i = 0; i < visores.length; i++) {
+      var imgs = visores[i].querySelectorAll('img');
+      if (imgs.length < 2) continue;
+      var actual = 0;
+      for (var j = 0; j < imgs.length; j++) if (imgs[j].classList.contains('activa')) { actual = j; break; }
+      imgs[actual].classList.remove('activa');
+      imgs[(actual + 1) % imgs.length].classList.add('activa');
+    }
+  }, 3000);
+
+  // ----- Carrusel de beneficios -----
+  var benef = document.getElementById('benef');
+  var bImgs = benef.querySelectorAll('img');
+  var bIdx = 0;
+  function verBenef(i) {
+    bImgs[bIdx].classList.remove('activa');
+    bIdx = (i + bImgs.length) % bImgs.length;
+    bImgs[bIdx].classList.add('activa');
+  }
+  benef.querySelector('.benef-izq').onclick = function () { verBenef(bIdx - 1); };
+  benef.querySelector('.benef-der').onclick = function () { verBenef(bIdx + 1); };
+  setInterval(function () { verBenef(bIdx + 1); }, 5000);
+
+  // ----- Formulario Club Arakaki -----
+  document.getElementById('club-form').onsubmit = function (e) {
+    e.preventDefault();
+    var nombre = document.getElementById('club-nombre').value.trim();
+    var wsp = document.getElementById('club-wsp').value.replace(/\D/g, '');
+    if (!nombre || wsp.length < 9) { alert('Escribe tu nombre y un WhatsApp válido 🙂'); return; }
+    var interes = document.getElementById('club-interes').value;
+    fetch('/api/pedido', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'registro', nombre: nombre, telefono: wsp, interes: interes }),
+    }).catch(function () {});
+    document.getElementById('club-ok').style.display = 'block';
+    this.reset();
+  };
+})();
+</script>
+<script src="/track.js" defer></script>
+</body>
+</html>
