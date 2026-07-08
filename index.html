@@ -37,7 +37,7 @@
   </div></div>
 
   <!-- Categorías -->
-  <section class="seccion">
+  <section class="seccion vino">
     <div class="interior">
       <h2 class="titulo-seccion">Nuestras Categorías</h2>
       <p class="sub-seccion">Tenemos lo que necesitas cuando lo necesitas</p>
@@ -45,7 +45,7 @@
     </div>
   </section>
 
-  <section class="seccion osc">
+  <section class="seccion vino">
     <div class="interior">
       <h2 class="titulo-seccion">Productos Nacionales e Importados</h2>
       <p class="sub-seccion">Atendemos todos los días de la semana, incluso en feriados</p>
@@ -186,41 +186,96 @@
   var rod = document.getElementById('cinta-rodillo');
   rod.innerHTML += rod.innerHTML;
 
-  // ----- Tarjetas de categorías con imágenes rotando -----
+  // ----- Carruseles premium de categorías (coverflow con acentos dorados) -----
   var C = window.ARAKAKI_CATALOG;
   var LICORES = ['pisco', 'vinos', 'vinos-peruanos', 'vinos-argentinos', 'vinos-chilenos', 'whisky', 'ron',
     'licor-frances', 'licor-italiano', 'vodka', 'tequila', 'anisado', 'licores-variados', 'refrescos', 'helados'];
   var TIENDA = ['chocolates-importados', 'galletas', 'dulces', 'backtoschool', 'frutas-y-vegetales'];
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
   function tarjeta(slug) {
     var cat = C.categories[slug];
     if (!cat) return '';
     var prods = [];
     cat.sections.forEach(function (s) { prods = prods.concat(s.products); });
-    var imgs = prods.slice(0, 5).map(function (p, i) {
-      return '<img loading="lazy" class="' + (i === 0 ? 'activa' : '') + '" src="' + p.img + '" alt="' + cat.title + '">';
+    var total = prods.length;
+    var slides = prods.slice(0, 6); // hasta 6 posters en el coverflow (imagen 3:3, sin recorte)
+    var caras = slides.map(function (p) {
+      return '<div class="cc-slide"><img loading="lazy" src="' + p.img + '" alt="' + cat.title + '"></div>';
     }).join('');
-    var n = prods.length;
-    return '<a class="cat-card" href="/' + slug + '">' +
-      '<div class="cat-visor" data-rota>' + imgs + '</div>' +
-      '<div class="cat-cuerpo"><h3>' + cat.emoji + ' ' + cat.title + '</h3>' +
-      '<span class="cat-cta">Descubre ' + n + ' variedades ›</span></div></a>';
+    var puntos = slides.map(function (p, i) {
+      return '<span' + (i === 0 ? ' class="on"' : '') + '></span>';
+    }).join('');
+    var multi = slides.length > 1;
+    return '<div class="cat-carrusel" data-carrusel>' +
+      '<div class="cc-stage">' + caras +
+        (multi ? '<button class="cc-arrow cc-prev" aria-label="Anterior">‹</button>' +
+                 '<button class="cc-arrow cc-next" aria-label="Siguiente">›</button>' : '') +
+      '</div>' +
+      (multi ? '<div class="cc-counter"><b>01</b> / ' + pad2(slides.length) + '</div>' : '') +
+      '<a class="cc-cta" href="/' + slug + '" data-ev="categoria">' + cat.emoji + ' Descubre ' + total + ' Variedades de ' + cat.title + ' ›</a>' +
+      (multi ? '<div class="cc-dots">' + puntos + '</div>' : '') +
+    '</div>';
   }
   document.getElementById('cats-licores').innerHTML = LICORES.map(tarjeta).join('');
   document.getElementById('cats-tienda').innerHTML = TIENDA.map(tarjeta).join('');
 
-  // Rotación automática de imágenes en cada tarjeta
-  var visores = document.querySelectorAll('[data-rota]');
-  setInterval(function () {
-    for (var i = 0; i < visores.length; i++) {
-      var imgs = visores[i].querySelectorAll('img');
-      if (imgs.length < 2) continue;
-      var actual = 0;
-      for (var j = 0; j < imgs.length; j++) if (imgs[j].classList.contains('activa')) { actual = j; break; }
-      imgs[actual].classList.remove('activa');
-      imgs[(actual + 1) % imgs.length].classList.add('activa');
+  // Inicializa el coverflow de cada carrusel (posición/opacidad según distancia al centro)
+  function crearCarrusel(nodo) {
+    var slides = nodo.querySelectorAll('.cc-slide');
+    var puntos = nodo.querySelectorAll('.cc-dots span');
+    var cont = nodo.querySelector('.cc-counter b');
+    var n = slides.length, idx = 0, pausa = false;
+    function pintar() {
+      for (var i = 0; i < n; i++) {
+        var off = i - idx;                 // distancia circular más corta al slide activo
+        if (off > n / 2) off -= n;
+        if (off < -n / 2) off += n;
+        var s = slides[i];
+        s.classList.remove('es-activa', 'es-lado');
+        if (off === 0) {
+          s.style.transform = 'translate(-50%,-50%) scale(1)';
+          s.style.opacity = '1'; s.style.zIndex = '5';
+          s.classList.add('es-activa');
+        } else if (off === -1) {
+          s.style.transform = 'translate(-50%,-50%) translateX(-72%) scale(0.8) rotateY(22deg)';
+          s.style.opacity = '0.5'; s.style.zIndex = '3';
+          s.classList.add('es-lado');
+        } else if (off === 1) {
+          s.style.transform = 'translate(-50%,-50%) translateX(72%) scale(0.8) rotateY(-22deg)';
+          s.style.opacity = '0.5'; s.style.zIndex = '3';
+          s.classList.add('es-lado');
+        } else {
+          s.style.transform = 'translate(-50%,-50%) scale(0.65)';
+          s.style.opacity = '0'; s.style.zIndex = '1';
+        }
+      }
+      for (var d = 0; d < puntos.length; d++) puntos[d].className = (d === idx ? 'on' : '');
+      if (cont) cont.textContent = pad2(idx + 1);
     }
-  }, 3000);
+    function ir(paso) { idx = (idx + paso + n) % n; pintar(); }
+    var prev = nodo.querySelector('.cc-prev'), next = nodo.querySelector('.cc-next');
+    if (prev) prev.onclick = function () { ir(-1); };
+    if (next) next.onclick = function () { ir(1); };
+    for (var q = 0; q < puntos.length; q++) (function (j) { puntos[j].onclick = function () { idx = j; pintar(); }; })(q);
+    nodo.onmouseenter = function () { pausa = true; };
+    nodo.onmouseleave = function () { pausa = false; };
+    pintar();
+    return { avanzar: function () { if (!pausa && n > 1) ir(1); } };
+  }
+
+  var carruseles = [], nodos = document.querySelectorAll('[data-carrusel]');
+  for (var k = 0; k < nodos.length; k++) carruseles.push(crearCarrusel(nodos[k]));
+
+  // Autoplay compartido y escalonado: cada producto cambia cada 2 s (3 fases × ~667 ms = 2000 ms)
+  var ticCat = 0;
+  setInterval(function () {
+    ticCat++;
+    for (var i = 0; i < carruseles.length; i++) {
+      if ((ticCat + i) % 3 === 0) carruseles[i].avanzar();
+    }
+  }, 667);
 
   // ----- Carrusel de beneficios -----
   var benef = document.getElementById('benef');
