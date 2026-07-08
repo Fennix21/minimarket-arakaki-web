@@ -39,6 +39,22 @@ Estados de lead: nuevo → interesado → pedido → entregado (o descartado). a
 ## Env vars (Vercel)
 WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID / WHATSAPP_VERIFY_TOKEN · ANTHROPIC_API_KEY · UPSTASH_REDIS_REST_URL/TOKEN (o KV_REST_API_*) · ARAKAKI_ADMIN_PASS · ARAKAKI_OWNER_PHONE · ARAKAKI_BOT_MODEL (def. claude-haiku-4-5-20251001) · ARAKAKI_BOT_PROMPT (opcional)
 
+## Ahorro de tokens (leer SIEMPRE)
+- **NO leer completos** `data/catalog.js` ni `data/catalog-fuente.json` (miles de líneas de datos): usar Grep por nombre de producto, o Read con offset/limit.
+- Las 20 páginas `<categoria>.html` son **idénticas** salvo el slug: leer UNA (ej. vinos.html) basta para conocerlas todas.
+- Este CLAUDE.md ya describe toda la arquitectura: no explorar con Glob/Grep para "entender el proyecto"; ir directo al archivo que indica la tabla.
+- panel.html es grande (~700 líneas): leer solo la sección relevante (login / chats / pedidos / club / stats / bot están en bloques marcados con comentarios `---------`).
+- No usar Agent/subagentes aquí: el proyecto es chico, Grep+Read directo siempre alcanza.
+
+## Recetas rápidas (hacer esto, sin explorar)
+- **Cambiar precio o producto** → Grep del nombre en `data/catalog-fuente.json` → editar → `node tools/build-catalog.js` → commit.
+- **Producto nuevo** → añadirlo al array de su página en catalog-fuente.json (`products` si la categoría tiene precios; el stream img+txt si no) → regenerar.
+- **Categoría nueva** → slug en `tools/build-pages.js` (PAGES) + `tools/build-catalog.js` (META) + `assets/site.js` (MENU) → correr ambos tools.
+- **Cambiar textos/estilo del sitio** → `assets/site.css` y `assets/site.js` (header/menú/footer/carrito se inyectan desde ahí, NO están en los HTML).
+- **Textos del bot de WhatsApp** → panel → ⚙️ Bot (Redis `config:prompt`); `api/_prompt.js` es solo el respaldo.
+- **Probar** → `node tools/dev-server.js` → localhost:3210 (los /api/* responden stub).
+- **Publicar** → `git push` a main (Vercel redeploya solo).
+
 ## Reglas de trabajo
 - **Verificar antes de commit**: `node --check` a cada .js tocado; para HTML extraer `<script>` inline y `node --check`.
 - El sitio DEBE funcionar sin env vars (wa.me links puros); el CRM/bot se activa al configurarlas.
