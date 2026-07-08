@@ -260,7 +260,7 @@
       '</section>';
 
     cat.sections.forEach(function (sec, si) {
-      html += '<section class="seccion ' + (si % 2 ? 'osc' : '') + '"><div class="interior">' +
+      html += '<section class="seccion premium"><div class="interior">' +
         '<h2 class="titulo-seccion">' + esc(sec.title) + '</h2>' +
         '<div class="grilla-prods">' +
         sec.products.map(function (p, pi) {
