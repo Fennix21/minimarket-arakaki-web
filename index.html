@@ -18,11 +18,15 @@
 </div>
 
 <main>
-  <!-- Hero -->
-  <section class="hero">
-    <h1>Lo que necesitas, cuando lo necesitas</h1>
-    <p class="sub">Productos nacionales e importados · Atención personalizada</p>
-    <video src="https://d1yei2z3i6k35z.cloudfront.net/5071434/683b4385cee6d_Bienvenidosweb3.mp4" autoplay muted loop playsinline></video>
+  <!-- Portada: fachada de la tienda + video en círculo -->
+  <section class="portada">
+    <div class="interior">
+      <div class="portada-circulo">
+        <video src="https://d1yei2z3i6k35z.cloudfront.net/5071434/683b4385cee6d_Bienvenidosweb3.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <h1>Visítanos en:<br>Av. Belén 265, San Isidro<br><span class="golf">(A solo 2 cuadras del Golf)</span></h1>
+      <button class="btn-mapa" id="btn-mapa" data-ev="mapa_click">Ver Ubicación en Mapa</button>
+    </div>
   </section>
 
   <!-- Cinta -->
@@ -31,52 +35,6 @@
     <span>🕗 Lun – Sáb 7:00 am – 9:00 pm</span><span>🕗 Domingos 8:00 am – 8:00 pm</span>
     <span>🎉 Atendemos feriados</span>
   </div></div>
-
-  <!-- Ubicación -->
-  <section class="seccion ubica" id="mapa">
-    <div class="interior">
-      <h2 class="titulo-seccion">Visítanos en:</h2>
-      <p class="dir">Av. Belén 265, San Isidro</p>
-      <p class="ref">(A solo 2 cuadras del Golf)</p>
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.6756713577665!2d-77.04980248960267!3d-12.105550342948039!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c848f932328b%3A0xc2974606f6e028a9!2sARAKAKI%20Minimarket!5e1!3m2!1ses-419!2spe!4v1748490736305!5m2!1ses-419!2spe"
-        loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa: Minimarket Arakaki"></iframe>
-    </div>
-  </section>
-
-  <!-- Fiestas Patrias: cuenta regresiva al 28 de julio -->
-  <section class="fp">
-    <div id="fp-antes">
-      <h2>¡Felices Fiestas Patrias! 🇵🇪</h2>
-      <p class="fp-sub">Celebremos juntos el orgullo de ser peruanos.</p>
-      <p class="fp-falta">Faltan para el 28 de Julio</p>
-      <div class="fp-reloj">
-        <div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>
-        <div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>
-        <div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>
-        <div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>
-      </div>
-    </div>
-    <div id="fp-despues" style="display:none">
-      <h2>¡Feliz 28 de Julio, Perú! 🇵🇪</h2>
-      <p class="fp-sub">Celebremos juntos el orgullo de ser peruanos.</p>
-    </div>
-    <p class="fp-sub" style="margin-top:22px">Celebra las Fiestas Patrias con lo mejor de la barra: <b>Pisco, Vino o Whisky.</b></p>
-    <div class="fp-botones">
-      <a href="/pisco">🍸 Ver opciones de Pisco ›</a>
-      <a href="/vinos">🍷 Ver Vinos ›</a>
-      <a href="/whisky">🥃 Ver opciones de Whisky ›</a>
-    </div>
-  </section>
-
-  <!-- Temporada -->
-  <section class="seccion osc" style="text-align:center">
-    <div class="interior">
-      <h2 class="titulo-seccion">Aún se siente el calorcito</h2>
-      <p class="sub-seccion">Invierno 2026</p>
-      <video src="https://d1yei2z3i6k35z.cloudfront.net/13036429/6a399148432757.53630540_MachuPicchu.mp4" autoplay muted loop playsinline
-        style="width:100%;max-width:720px;margin:26px auto 0;border-radius:14px;display:block"></video>
-    </div>
-  </section>
 
   <!-- Categorías -->
   <section class="seccion">
@@ -132,30 +90,97 @@
   </section>
 </main>
 
+<!-- Popup del mapa (se abre con el botón "Ver Ubicación en Mapa") -->
+<div class="modal-fondo" id="mapa-popup">
+  <div class="modal-caja">
+    <button class="modal-cerrar" aria-label="Cerrar">✕</button>
+    <h2>Visítanos en:</h2>
+    <p class="dir">Av. Belén 265, San Isidro</p>
+    <p class="ref">(A solo 2 cuadras del Golf)</p>
+    <iframe data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.6756713577665!2d-77.04980248960267!3d-12.105550342948039!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c848f932328b%3A0xc2974606f6e028a9!2sARAKAKI%20Minimarket!5e1!3m2!1ses-419!2spe!4v1748490736305!5m2!1ses-419!2spe"
+      loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa: Minimarket Arakaki"></iframe>
+  </div>
+</div>
+
+<!-- Popup Fiestas Patrias (aparece 1 vez al día, solo en julio) -->
+<div class="modal-fondo" id="fp-popup">
+  <div class="modal-caja">
+    <button class="modal-cerrar" aria-label="Cerrar">✕</button>
+    <video src="https://d1yei2z3i6k35z.cloudfront.net/13036429/6a399148432757.53630540_MachuPicchu.mp4" muted loop playsinline></video>
+    <h2>¡Felices Fiestas Patrias!</h2>
+    <p class="fp-sub">Celebremos juntos el orgullo de ser peruanos.</p>
+    <div id="fp-antes">
+      <p class="fp-falta">Faltan para el 28 de Julio</p>
+      <div class="fp-reloj">
+        <div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>
+        <div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>
+        <div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>
+        <div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>
+      </div>
+    </div>
+    <div id="fp-despues" style="display:none">
+      <p class="fp-falta">¡Feliz 28 de Julio, Perú! 🇵🇪</p>
+    </div>
+    <p class="fp-barra">Celebra las Fiestas Patrias con lo mejor de la barra: <b>Pisco</b>, <b>Vino</b> o <b>Whisky</b>.</p>
+    <div class="fp-botones">
+      <a class="fp-rojo" href="/pisco">🍸 Ver opciones de Pisco</a>
+      <a class="fp-blanco" href="/vinos">🍷 Ver Vinos</a>
+      <a class="fp-rojo" href="/whisky">🥃 Ver opciones de Whisky</a>
+    </div>
+  </div>
+</div>
+
 <script src="/data/catalog.js"></script>
 <script src="/assets/site.js"></script>
 <script>
 (function () {
-  // ----- Cuenta regresiva a Fiestas Patrias (28 de julio, hora Perú UTC-5) -----
+  // ----- Popup del mapa -----
+  var mapaPopup = document.getElementById('mapa-popup');
+  document.getElementById('btn-mapa').onclick = function () {
+    var ifr = mapaPopup.querySelector('iframe');
+    if (!ifr.src) ifr.src = ifr.getAttribute('data-src'); // carga el mapa recién al abrir
+    mapaPopup.classList.add('abierto');
+  };
+
+  // Cierre genérico de popups (X o clic fuera)
+  var fondos = document.querySelectorAll('.modal-fondo');
+  for (var i = 0; i < fondos.length; i++) {
+    (function (f) {
+      f.onclick = function (e) { if (e.target === f) f.classList.remove('abierto'); };
+      f.querySelector('.modal-cerrar').onclick = function () { f.classList.remove('abierto'); };
+    })(fondos[i]);
+  }
+
+  // ----- Popup Fiestas Patrias: 1 vez al día, solo en julio (hora Perú UTC-5) -----
   function tickFP() {
     var ahora = new Date();
     var anio = ahora.getUTCFullYear();
     var objetivo = Date.UTC(anio, 6, 28, 5, 0, 0); // 28 jul 00:00 Perú = 05:00 UTC
-    var fin = Date.UTC(anio, 7, 1, 5, 0, 0);       // hasta el 1 de agosto se saluda
     var t = objetivo - ahora.getTime();
     var antes = document.getElementById('fp-antes');
     var despues = document.getElementById('fp-despues');
-    if (t <= 0 && ahora.getTime() < fin) { antes.style.display = 'none'; despues.style.display = 'block'; return; }
-    if (t <= 0) { objetivo = Date.UTC(anio + 1, 6, 28, 5, 0, 0); t = objetivo - ahora.getTime(); }
-    antes.style.display = 'block'; despues.style.display = 'none';
+    if (t <= 0) { antes.style.display = 'none'; despues.style.display = 'block'; return; }
     var s = Math.floor(t / 1000);
     document.getElementById('fp-d').textContent = Math.floor(s / 86400);
     document.getElementById('fp-h').textContent = String(Math.floor(s % 86400 / 3600)).padStart(2, '0');
     document.getElementById('fp-m').textContent = String(Math.floor(s % 3600 / 60)).padStart(2, '0');
     document.getElementById('fp-s').textContent = String(s % 60).padStart(2, '0');
   }
-  tickFP();
-  setInterval(tickFP, 1000);
+  (function () {
+    var peru = new Date(Date.now() - 5 * 3600000);
+    if (peru.getUTCMonth() !== 6) return; // solo julio (cambiar aquí para otra campaña)
+    var hoy = peru.toISOString().slice(0, 10);
+    if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
+    localStorage.setItem('arakaki_fp_dia', hoy);
+    tickFP();
+    setInterval(tickFP, 1000);
+    setTimeout(function () {
+      var fp = document.getElementById('fp-popup');
+      fp.classList.add('abierto');
+      var v = fp.querySelector('video');
+      v.play().catch(function () {});
+    }, 1200);
+  })();
 
   // Duplicar la cinta para que el marquee sea continuo
   var rod = document.getElementById('cinta-rodillo');

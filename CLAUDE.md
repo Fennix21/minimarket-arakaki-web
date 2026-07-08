@@ -14,7 +14,7 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 ## Archivos
 | Archivo | Qué es |
 |---|---|
-| `index.html` | Home: preloader, hero+video, ubicación+mapa, cinta marquee, countdown Fiestas Patrias (28 jul, hora Perú), tarjetas de categorías con imágenes rotando, beneficios, form Club Arakaki (→ /api/pedido registro) |
+| `index.html` | Home: preloader, portada (fachada `img/fachada-principal.jpg` + video en círculo + botón que abre el POPUP del mapa), cinta marquee, tarjetas de categorías con imágenes rotando, beneficios, form Club Arakaki (→ /api/pedido registro). POPUP Fiestas Patrias: 1 vez/día (localStorage `arakaki_fp_dia`), SOLO en julio, video Machu Picchu + countdown al 28 jul |
 | `<categoria>.html` ×20 | Shells generados por `tools/build-pages.js`. Llaman `renderCategoria('<slug>')` |
 | `assets/site.css` | Estilos de todo el sitio público (marca: rojo #7c0f14, negro #262626, Montserrat/Poppins) |
 | `assets/site.js` | Preloader, header/menú/footer inyectados, carrito (localStorage `arakaki_carrito`) → mensaje wa.me + POST /api/pedido, `renderCategoria()` |
@@ -61,4 +61,5 @@ WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID / WHATSAPP_VERIFY_TOKEN · ANTHROPIC_A
 - Productos: editar `data/catalog-fuente.json` y correr `node tools/build-catalog.js` (nunca editar catalog.js a mano).
 - Página nueva de categoría: añadirla a tools/build-pages.js + META de build-catalog.js + MENU de assets/site.js.
 - Estilo: ES5-ish en frontend (var, funciones con nombre), español en comentarios y UI, emojis en labels.
-- Sin popups. El preloader es requisito del dueño (id `preloader`, lo apaga site.js en window.load con respaldo 3.5s).
+- Popups permitidos SOLO los del dueño: mapa (botón portada) y Fiestas Patrias (1/día, julio). No añadir otros. El preloader es requisito del dueño (id `preloader`, lo apaga site.js en window.load con respaldo 3.5s).
+- Color de barra superior y acentos de marca: `--naranja: #e64831` (pedido explícito del dueño). El rojo vino `--rojo` queda para fondos de secciones.

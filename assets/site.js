@@ -3,6 +3,7 @@
   var WA = '51977737199'; // WhatsApp del minimarket
   var TELS = ['012218582', '977737199', '960725996', '964295436', '933477179'];
   var LOGO = 'https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png';
+  var LOGO_BLANCO = 'https://d1yei2z3i6k35z.cloudfront.net/5071434/695182c3257c7_Dise%C3%B1osint%C3%ADtulo8.png'; // logo horizontal blanco del header
   var REDES = {
     facebook: { url: 'https://www.facebook.com/minimarketarakaki1', img: 'https://d1yei2z3i6k35z.cloudfront.net/13036429/684c4368e84b1_Facebook.png' },
     instagram: { url: 'https://www.instagram.com/arakakiminimarket', img: 'https://d1yei2z3i6k35z.cloudfront.net/13036429/684c437a7064a_Instagram.png' },
@@ -46,10 +47,9 @@
     var cab = document.createElement('header');
     cab.className = 'cab';
     cab.innerHTML =
-      '<a href="/"><img class="logo" src="' + LOGO + '" alt="Minimarket Arakaki"></a>' +
-      '<div class="lema"><b>Sonríe y date el gusto</b><span>Te lo ganaste</span></div>' +
+      '<a href="/"><img class="logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
       '<div class="esp"></div>' +
-      '<a class="btn-wa-mini" data-ev="whatsapp_click" href="https://wa.me/' + WA + '?text=' + encodeURIComponent('Hola 👋 vengo de la web del Minimarket Arakaki') + '" target="_blank" rel="noopener">Pide por WhatsApp</a>' +
+      '<div class="lema-cab">Lo que necesitas, cuando lo necesitas</div>' +
       '<button class="btn-menu" id="btn-menu" aria-label="Abrir menú">☰ Menú</button>';
     document.body.insertBefore(cab, document.body.firstChild);
 
@@ -83,7 +83,7 @@
     pie.innerHTML =
       '<div class="interior">' +
         '<div><h4>Visítanos</h4><p>Av. Belén 265, San Isidro<br>(A solo 2 cuadras del Golf)</p>' +
-          '<p style="margin-top:10px"><a href="#mapa" style="text-decoration:underline">Ver ubicación en mapa</a></p></div>' +
+          '<p style="margin-top:10px"><a href="https://www.google.com/maps/search/?api=1&amp;query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro" target="_blank" rel="noopener" style="text-decoration:underline">Ver ubicación en mapa</a></p></div>' +
         '<div class="horario"><h4>Horario de atención</h4>' +
           '<p>Lun – Sáb: 7:00 am – 9:00 pm</p><p>Domingos: 8:00 am – 8:00 pm</p>' +
           '<p>Atendemos todos los días, incluso feriados</p></div>' +
