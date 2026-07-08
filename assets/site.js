@@ -172,7 +172,7 @@
       var nom = cards[i].getAttribute('data-nombre');
       cards[i].classList.toggle('en-carrito', !!nombres[nom]);
       var b = cards[i].querySelector('.btn-elegir');
-      if (b) b.textContent = nombres[nom] ? 'Quitar del pedido ✓' : 'Elegir producto';
+      if (b) b.textContent = nombres[nom] ? 'Quitar del pedido' : 'Elegir producto';
     }
   }
   function totalCarrito(c) {
@@ -266,7 +266,8 @@
         sec.products.map(function (p, pi) {
           return '<div class="prod" data-nombre="' + esc(p.name) + '" data-sec="' + si + '" data-idx="' + pi + '">' +
             '<div class="prod-img"><img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">' +
-              '<div class="prod-elegido">Producto elegido ✓<small>toca para quitar</small></div></div>' +
+              '<div class="prod-check" aria-hidden="true">✓</div>' +
+              '<div class="prod-elegido"><span class="pe-check">✓</span>Producto elegido<small>toca para quitar</small></div></div>' +
             '<div class="prod-info">' +
               '<div class="prod-nombre">' + esc(p.name) + '</div>' +
               (p.price ? '<div class="prod-precio">S/ ' + esc(p.price) + '</div>' : '<div class="prod-precio" style="font-size:13px;opacity:.7">Precio en tienda / WhatsApp</div>') +

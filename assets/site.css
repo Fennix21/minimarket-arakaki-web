@@ -191,14 +191,37 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 /* Imagen a su ratio original (3:4 ó 1:1), sin recorte: se muestra completa */
 .prod .prod-img { position: relative; background: #0a0908; line-height: 0; }
 .prod .prod-img img { width: 100%; height: auto; display: block; }
-.prod .prod-elegido {
-  position: absolute; inset: 0; background: rgba(12,10,8,0.86); color: var(--dorado);
-  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 6px;
-  font-weight: 700; font-size: 15px; text-align: center; padding: 10px;
+/* Sello dorado persistente: de un vistazo se ve que el producto está elegido (también en móvil) */
+.prod .prod-check {
+  position: absolute; top: 12px; right: 12px; z-index: 3;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(180deg, #f6d98a 0%, #e6bd55 55%, #d4a941 100%);
+  color: #3a2708; font-size: 22px; font-weight: 900; line-height: 1;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45), 0 0 0 3px rgba(212,169,65,0.35);
 }
-.prod .prod-elegido small { color: rgba(255,255,255,0.72); font-weight: 500; }
-.prod.en-carrito .prod-elegido { display: flex; }
-.prod.en-carrito { border-color: var(--dorado); box-shadow: 0 0 0 2px rgba(212,169,65,0.5), 0 12px 30px rgba(0,0,0,0.5); }
+.prod.en-carrito .prod-check { display: flex; animation: check-in 0.3s cubic-bezier(.2,1.4,.5,1) both; }
+@keyframes check-in { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Velo de confirmación: aparece al pasar el mouse (afordancia "toca para quitar"); el sello y el borde marcan el estado siempre */
+.prod .prod-elegido {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(12,10,8,0.5) 0%, rgba(12,10,8,0.84) 100%);
+  color: #f4ebd6;
+  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 17px; text-align: center; padding: 12px;
+}
+.prod .prod-elegido .pe-check {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(180deg, #f6d98a, #d4a941); color: #3a2708;
+  font-size: 30px; font-weight: 900; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+}
+.prod .prod-elegido small { color: var(--dorado); font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 0.6px; text-transform: uppercase; }
+.prod.en-carrito:hover .prod-elegido { display: flex; }
+
+/* Tarjeta elegida: borde y glow dorado persistente (estado claro sin ocultar el producto) */
+.prod.en-carrito { border-color: var(--dorado); box-shadow: 0 0 0 2px rgba(212,169,65,0.65), 0 14px 34px rgba(0,0,0,0.55), 0 0 26px rgba(212,169,65,0.3); }
 .prod-info { padding: 18px 16px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex: 1; }
 .prod-nombre {
   font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-weight: 600;
@@ -212,7 +235,13 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
   box-shadow: 0 6px 16px rgba(0,0,0,0.35); transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 .btn-elegir:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 10px 22px rgba(0,0,0,0.42); }
-.prod.en-carrito .btn-elegir { filter: brightness(0.92); }
+/* Botón en estado elegido: se invierte (oscuro vino con borde dorado) para diferenciarlo del CTA de compra */
+.prod.en-carrito .btn-elegir {
+  background: linear-gradient(180deg, #3a1417 0%, #240c0e 100%);
+  color: #f2d894; border: 1.5px solid var(--dorado); padding: 11.5px 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+.prod.en-carrito .btn-elegir:hover { filter: none; transform: translateY(-2px); background: linear-gradient(180deg, #4a181c 0%, #2c0e11 100%); }
 
 /* Tablet: 2 productos por fila */
 @media (max-width: 900px) { .grilla-prods { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
@@ -220,12 +249,25 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 /* ---------- Carrito flotante ---------- */
 #carrito-btn {
   position: fixed; right: 18px; bottom: 18px; z-index: 800;
-  background: var(--verde-wa); color: #fff; border: none; border-radius: 999px;
-  padding: 14px 20px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3); display: none; align-items: center; gap: 9px;
+  background: linear-gradient(180deg, #2a2622 0%, #141110 100%);
+  color: #f3d98e; border: 1.5px solid var(--dorado); border-radius: 999px;
+  padding: 14px 22px; font-size: 15px; font-weight: 800; letter-spacing: 0.3px;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 22px rgba(212,169,65,0.4);
+  display: none; align-items: center; gap: 10px;
+  animation: pulso-oro 2.4s ease-in-out infinite;
 }
 #carrito-btn.visible { display: flex; }
-#carrito-btn .badge { background: #fff; color: var(--verde-wa); border-radius: 999px; min-width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; padding: 0 6px; }
+#carrito-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.5), 0 0 30px rgba(212,169,65,0.6); }
+#carrito-btn .badge {
+  background: linear-gradient(180deg, #f6d98a, #d4a941); color: #3a2708; font-weight: 900;
+  border-radius: 999px; min-width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; padding: 0 6px;
+}
+@keyframes pulso-oro {
+  0%, 100% { box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 16px rgba(212,169,65,0.32); }
+  50% { box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 30px rgba(212,169,65,0.62); }
+}
+@media (prefers-reduced-motion: reduce) { #carrito-btn { animation: none; } }
 
 #carrito-modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 950; display: none; align-items: flex-end; justify-content: center; }
 #carrito-modal-fondo.abierto { display: flex; }
