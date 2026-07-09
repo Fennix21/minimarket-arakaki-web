@@ -21,6 +21,7 @@ const META = {
   'anisado':               { title: 'Anisado',              emoji: '🥂', hero: 'Celebra a lo Grande' },
   'licores-variados':      { title: 'Más Licores',          emoji: '🍾', hero: 'Celebra a lo Grande' },
   'refrescos':             { title: 'Gaseosa en Lata',      emoji: '🥤', hero: 'Refréscate' },
+  'aguas-importadas':      { title: 'Aguas Importadas',     emoji: '💧', hero: 'Refréscate con Estilo' },
   'helados':               { title: 'Helados',              emoji: '🍦', hero: 'Engríete' },
   'chocolates-importados': { title: 'Chocolates',           emoji: '🍫', hero: 'Disfruta de un Buen Chocolate sin Culpa' },
   'dulces':                { title: 'Dulces',               emoji: '🍬', hero: 'Endúlzate' },

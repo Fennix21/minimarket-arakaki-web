@@ -9,12 +9,307 @@ const PAGES = {
   'vinos-argentinos': 'Vinos Argentinos', 'vinos-chilenos': 'Vinos Chilenos', 'whisky': 'Whisky',
   'ron': 'Ron', 'licor-frances': 'Licores Franceses', 'licor-italiano': 'Licores Italianos',
   'vodka': 'Vodka', 'tequila': 'Tequila', 'anisado': 'Anisado', 'licores-variados': 'Más Licores',
-  'refrescos': 'Gaseosas en Lata Importadas', 'helados': 'Helados', 'chocolates-importados': 'Chocolates',
+  'refrescos': 'Gaseosas en Lata Importadas', 'aguas-importadas': 'Aguas Importadas',
+  'helados': 'Helados', 'chocolates-importados': 'Chocolates',
   'dulces': 'Dulces', 'galletas': 'Galletas, Snacks y más', 'backtoschool': 'Desayuno Escolar',
   'frutas-y-vegetales': 'Frutas y Vegetales',
 };
 
 const LOGO = 'https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png';
+
+// Preloader premium (idéntico al de index.html): autocontenido, se auto-oculta en window.load con respaldo 5s.
+const PRELOADER = `<style>
+  #ap-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #262626;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+  #ap-preloader.ap-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  #ap-preloader .ap-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  #ap-preloader .ap-particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: ap-particle-rise var(--dur, 4s) ease-in var(--delay, 0s) infinite;
+  }
+  @keyframes ap-particle-rise {
+    0%   { transform: translateY(0) scale(0.4); opacity: 0; }
+    15%  { opacity: var(--max-opacity, 0.6); }
+    85%  { opacity: var(--max-opacity, 0.6); }
+    100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+  }
+  #ap-preloader .ap-ring-outer {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #ap-preloader .ap-ring-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: ap-spin 6s linear infinite;
+  }
+  @keyframes ap-spin { to { transform: rotate(360deg); } }
+  #ap-preloader .ap-ring-svg-rev {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: ap-spin-rev 4s linear infinite;
+  }
+  @keyframes ap-spin-rev { to { transform: rotate(-360deg); } }
+  #ap-preloader .ap-cat-wrap {
+    position: relative;
+    width: 170px;
+    height: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: ap-float 3s ease-in-out infinite;
+  }
+  @keyframes ap-float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-14px); }
+  }
+  #ap-preloader .ap-cat-img {
+    width: 140px;
+    height: auto;
+    position: relative;
+    z-index: 2;
+    animation: ap-cat-glow 3s ease-in-out infinite;
+  }
+  @keyframes ap-cat-glow {
+    0%, 100% {
+      filter: drop-shadow(0 0 14px rgba(255,200,80,0.5))
+              drop-shadow(0 0 32px rgba(255,160,30,0.25));
+    }
+    50% {
+      filter: drop-shadow(0 0 28px rgba(255,220,100,0.9))
+              drop-shadow(0 0 56px rgba(255,160,30,0.55));
+    }
+  }
+  #ap-preloader .ap-halo {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,200,60,0.22) 0%, transparent 70%);
+    animation: ap-halo-pulse 3s ease-in-out infinite;
+    z-index: 1;
+  }
+  @keyframes ap-halo-pulse {
+    0%, 100% { transform: scale(1);    opacity: 0.7; }
+    50%       { transform: scale(1.35); opacity: 1; }
+  }
+  #ap-preloader .ap-sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ffe066;
+    z-index: 3;
+    animation: ap-sparkle-anim var(--s-dur, 2s) ease-in-out var(--s-delay, 0s) infinite;
+  }
+  @keyframes ap-sparkle-anim {
+    0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+    40%      { opacity: 1; transform: scale(1.4) rotate(180deg); }
+    70%      { opacity: 0.6; transform: scale(0.8) rotate(300deg); }
+  }
+  #ap-preloader .ap-text-block {
+    margin-top: 20px;
+    text-align: center;
+    z-index: 5;
+  }
+  #ap-preloader .ap-brand {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ffe066, #ff9f0a, #ffe066);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: ap-shimmer-text 2.5s linear infinite;
+  }
+  @keyframes ap-shimmer-text { to { background-position: 200% center; } }
+  #ap-preloader .ap-tagline {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.38);
+    margin-top: 5px;
+  }
+  #ap-preloader .ap-progress-track {
+    width: 180px;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 18px auto 0;
+    overflow: hidden;
+  }
+  #ap-preloader .ap-progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #ffe066, #ff9f0a);
+    box-shadow: 0 0 8px rgba(255,200,60,0.8);
+    transition: width 0.1s linear;
+  }
+  #ap-preloader .ap-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  #ap-preloader .ap-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,200,60,0.5);
+    animation: ap-dot-bounce 1.2s ease-in-out infinite;
+  }
+  #ap-preloader .ap-dot:nth-child(2) { animation-delay: 0.2s; }
+  #ap-preloader .ap-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes ap-dot-bounce {
+    0%, 100% { transform: translateY(0);    background: rgba(255,200,60,0.35); }
+    50%       { transform: translateY(-6px); background: rgba(255,200,60,0.9); }
+  }
+</style>
+
+<div id="ap-preloader" role="status" aria-label="Cargando…">
+
+  <div class="ap-particles" id="ap-particles-container"></div>
+
+  <div class="ap-ring-outer">
+
+    <svg class="ap-ring-svg" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="120" cy="120" r="114" stroke="rgba(255,200,60,0.08)" stroke-width="2"/>
+      <circle cx="120" cy="120" r="114"
+        stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round"
+        stroke-dasharray="80 635" stroke-dashoffset="0"/>
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffe066" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#ff9f0a" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <svg class="ap-ring-svg-rev" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="120" cy="120" r="100" stroke="rgba(255,200,60,0.05)" stroke-width="1.5"/>
+      <circle cx="120" cy="120" r="100"
+        stroke="url(#grad2)" stroke-width="1.5" stroke-linecap="round"
+        stroke-dasharray="50 578" stroke-dashoffset="0"/>
+      <defs>
+        <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ff9f0a" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <div class="ap-cat-wrap">
+      <div class="ap-halo"></div>
+
+      <img class="ap-cat-img" src="https://d1yei2z3i6k35z.cloudfront.net/5071434/695182c3257c7_Dise%C3%B1osint%C3%ADtulo8.png" alt="Lucky Cat" onerror="this.style.display='none'"/>
+
+      <span class="ap-sparkle" style="top:8%;  left:20%;  --s-dur:2.1s; --s-delay:0s;"></span>
+      <span class="ap-sparkle" style="top:5%;  right:18%; --s-dur:1.8s; --s-delay:0.4s;"></span>
+      <span class="ap-sparkle" style="bottom:12%; left:10%;  --s-dur:2.4s; --s-delay:0.8s;"></span>
+      <span class="ap-sparkle" style="bottom:10%; right:12%; --s-dur:1.9s; --s-delay:0.2s;"></span>
+      <span class="ap-sparkle" style="top:40%; left:2%;   --s-dur:2.2s; --s-delay:1s;"></span>
+      <span class="ap-sparkle" style="top:40%; right:2%;  --s-dur:2s;   --s-delay:0.6s;"></span>
+    </div>
+
+  </div>
+
+  <div class="ap-text-block">
+    <div class="ap-brand">Sonríe y date el gusto</div>
+    <div class="ap-tagline">Te lo ganaste</div>
+    <div class="ap-progress-track">
+      <div class="ap-progress-fill" id="ap-prog-fill"></div>
+    </div>
+    <div class="ap-dots">
+      <div class="ap-dot"></div>
+      <div class="ap-dot"></div>
+      <div class="ap-dot"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var container = document.getElementById('ap-particles-container');
+  var colors = ['#ffe066','#ff9f0a','#ffcc44','#fff0a0','#ffd700'];
+  for (var i = 0; i < 28; i++) {
+    var p = document.createElement('div');
+    p.className = 'ap-particle';
+    var size = (Math.random() * 5 + 2).toFixed(1);
+    p.style.cssText = [
+      'width:'  + size + 'px',
+      'height:' + size + 'px',
+      'left:'   + (Math.random() * 100).toFixed(1) + '%',
+      'bottom:' + (Math.random() * 20).toFixed(1)  + '%',
+      'background:' + colors[Math.floor(Math.random() * colors.length)],
+      '--dur:'         + (Math.random() * 5 + 4).toFixed(1) + 's',
+      '--delay:'       + (Math.random() * 6).toFixed(1)     + 's',
+      '--max-opacity:' + (Math.random() * 0.45 + 0.15).toFixed(2),
+    ].join(';');
+    container.appendChild(p);
+  }
+
+  var fill = document.getElementById('ap-prog-fill');
+  var progress = 0;
+  var interval = setInterval(function () {
+    var step = progress < 70 ? (Math.random() * 4 + 2) : (Math.random() * 1.5 + 0.3);
+    progress = Math.min(progress + step, 95);
+    fill.style.width = progress + '%';
+  }, 100);
+
+  function hidePreloader() {
+    clearInterval(interval);
+    fill.style.width = '100%';
+    setTimeout(function () {
+      var el = document.getElementById('ap-preloader');
+      if (el) {
+        el.classList.add('ap-hidden');
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 750);
+      }
+    }, 350);
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(hidePreloader, 600);
+  } else {
+    window.addEventListener('load', function () { setTimeout(hidePreloader, 600); });
+    setTimeout(hidePreloader, 5000);
+  }
+})();
+</script>`;
 
 function plantilla(slug, titulo) {
   return `<!DOCTYPE html>
@@ -30,11 +325,7 @@ function plantilla(slug, titulo) {
 <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
-<div id="preloader">
-  <img src="${LOGO}" alt="Minimarket Arakaki">
-  <div class="pre-barra"><span></span></div>
-  <div class="pre-texto">SONRÍE Y DATE EL GUSTO</div>
-</div>
+${PRELOADER}
 
 <main id="contenido-categoria"></main>
 

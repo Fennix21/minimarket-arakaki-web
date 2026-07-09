@@ -1117,6 +1117,60 @@ window.ARAKAKI_CATALOG = {
     }
    ]
   },
+  "aguas-importadas": {
+   "slug": "aguas-importadas",
+   "title": "Aguas Importadas",
+   "emoji": "💧",
+   "hero": "Refréscate con Estilo",
+   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4ec7ec211858.09476588_AguaMinimarketArakaki.mp4",
+   "sections": [
+    {
+     "title": "Aguas Importadas",
+     "products": [
+      {
+       "name": "Agua Francesa Evian x 1.5L",
+       "price": "15.40",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d7547d16077.19538050_91.png"
+      },
+      {
+       "name": "Agua Italiana San Pellegrino x 750 ml",
+       "price": "11.32",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d7556b655a1.32541529_87.png"
+      },
+      {
+       "name": "Agua Tónica Britvic x 150 ml",
+       "price": "4.80",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d756f52b420.03556193_92.png"
+      },
+      {
+       "name": "Ginger Ale Britvic x 150 ml",
+       "price": "5.00",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d7583a27b09.22229866_93.png"
+      },
+      {
+       "name": "San Pellegrino Melograno & Arancia x 330 ml",
+       "price": "9.49",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75a9380721.83717921_88.png"
+      },
+      {
+       "name": "San Pellegrino Zero Blood Orange x 330 ml",
+       "price": "9.49",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75b9de3382.00023210_89.png"
+      },
+      {
+       "name": "San Pellegrino Zero Peach & Clementine x 330 ml",
+       "price": "9.49",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75c864c237.56068116_90.png"
+      },
+      {
+       "name": "San Pellegrino Zero Pomegranate & Orange x 330 ml",
+       "price": "9.49",
+       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75a9380721.83717921_88.png"
+      }
+     ]
+    }
+   ]
+  },
   "helados": {
    "slug": "helados",
    "title": "Helados",
@@ -2007,6 +2061,7 @@ window.ARAKAKI_CATALOG = {
   "anisado",
   "licores-variados",
   "refrescos",
+  "aguas-importadas",
   "helados",
   "chocolates-importados",
   "dulces",

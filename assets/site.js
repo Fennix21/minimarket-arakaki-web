@@ -23,7 +23,7 @@
     { grupo: 'Para engreírte', items: [
       { href: '/helados', txt: '🍦 Helados' }, { href: '/chocolates-importados', txt: '🍫 Chocolates' },
       { href: '/dulces', txt: '🍬 Dulces' }, { href: '/galletas', txt: '🍪 Galletas, Snacks y más' },
-      { href: '/refrescos', txt: '🥤 Gaseosa en Lata' },
+      { href: '/refrescos', txt: '🥤 Gaseosa en Lata' }, { href: '/aguas-importadas', txt: '💧 Aguas Importadas' },
     ] },
     { grupo: 'Para tu día a día', items: [
       { href: '/backtoschool', txt: '🎒 Desayuno Escolar' }, { href: '/frutas-y-vegetales', txt: '🥦 Frutas y Vegetales' },
@@ -33,14 +33,6 @@
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-
-  // ---------- Preloader ----------
-  function quitarPreloader() {
-    var p = document.getElementById('preloader');
-    if (p) p.classList.add('oculto');
-  }
-  window.addEventListener('load', quitarPreloader);
-  setTimeout(quitarPreloader, 3500); // respaldo: nunca dejarlo pegado
 
   // ---------- Header, menú, footer, carrito (se inyectan en cada página) ----------
   function armarBase() {
