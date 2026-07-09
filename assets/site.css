@@ -174,11 +174,11 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 
 /* ---------- Grilla de productos (tarjetas premium dark-gold) ---------- */
 /* Escritorio: 3 por fila · tablet: 2 · móvil: 1 (ver responsive) */
-/* En categorías el contenedor respira más (cards más grandes y separadas, como la referencia) */
-.seccion.premium .interior { max-width: 1240px; }
+/* Contenedor más contenido: cards más compactas y con aire, para ver imagen + botón de un vistazo (sin scroll) */
+.seccion.premium .interior { max-width: 1140px; }
 .grilla-prods {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 44px; margin-top: 40px;
+  gap: 40px; margin-top: 34px;
 }
 .prod {
   background: linear-gradient(180deg, #211d19 0%, #100e0c 100%); color: var(--blanco);
@@ -224,23 +224,23 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 
 /* Tarjeta elegida: borde y glow dorado persistente (estado claro sin ocultar el producto) */
 .prod.en-carrito { border-color: var(--dorado); box-shadow: 0 0 0 2px rgba(212,169,65,0.65), 0 14px 34px rgba(0,0,0,0.55), 0 0 26px rgba(212,169,65,0.3); }
-.prod-info { padding: 26px 24px 28px; display: flex; flex-direction: column; align-items: center; gap: 18px; flex: 1; }
+.prod-info { padding: 20px 20px 22px; display: flex; flex-direction: column; align-items: center; gap: 14px; flex: 1; }
 .prod-nombre {
-  font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 600;
-  line-height: 1.32; color: #f4ebd6; text-align: center; flex: 1;
+  font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-weight: 600;
+  line-height: 1.3; color: #f4ebd6; text-align: center; flex: 1;
 }
-.prod-precio { font-family: Georgia, 'Times New Roman', serif; font-size: 29px; font-weight: 700; letter-spacing: 0.5px; color: #e9c877; }
+.prod-precio { font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; color: #e9c877; }
 .btn-elegir {
   width: 100%; background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
-  color: #3a2708; border: none; border-radius: 16px; padding: 16px 18px;
-  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 17px; letter-spacing: 0.3px; cursor: pointer;
+  color: #3a2708; border: none; border-radius: 15px; padding: 14px 18px;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 16px; letter-spacing: 0.3px; cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,0.35); transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 .btn-elegir:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 10px 22px rgba(0,0,0,0.42); }
 /* Botón en estado elegido: se invierte (oscuro vino con borde dorado) para diferenciarlo del CTA de compra */
 .prod.en-carrito .btn-elegir {
   background: linear-gradient(180deg, #3a1417 0%, #240c0e 100%);
-  color: #f2d894; border: 1.5px solid var(--dorado); padding: 14.5px 18px;
+  color: #f2d894; border: 1.5px solid var(--dorado); padding: 12.5px 18px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.4);
 }
 .prod.en-carrito .btn-elegir:hover { filter: none; transform: translateY(-2px); background: linear-gradient(180deg, #4a181c 0%, #2c0e11 100%); }
