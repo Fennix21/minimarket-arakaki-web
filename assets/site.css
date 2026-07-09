@@ -406,12 +406,12 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
   .portada h1 { margin-left: 0; text-align: center; }
   .btn-mapa { display: block; margin: 22px auto 0; padding: 14px 30px; text-align: center; }
 
-  /* Móvil: 1 producto por fila (poster premium a todo el ancho) */
-  .grilla-prods { grid-template-columns: 1fr; gap: 22px; margin-top: 24px; }
-  .prod-info { padding: 20px 18px 22px; gap: 14px; }
-  .prod-nombre { font-size: 18px; }
-  .prod-precio { font-size: 26px; }
-  .btn-elegir { padding: 14px; font-size: 16px; }
+  /* Móvil: 1 producto por fila, card acotada y centrada (imagen 3:4 más chica, sin recorte) → se ve todo + botón de un vistazo */
+  .grilla-prods { grid-template-columns: 1fr; gap: 20px; margin: 22px auto 0; max-width: 300px; }
+  .prod-info { padding: 14px 14px 16px; gap: 10px; }
+  .prod-nombre { font-size: 16px; }
+  .prod-precio { font-size: 22px; }
+  .btn-elegir { padding: 12px; font-size: 15px; }
 
   /* Carruseles de categoría: 1 por fila, poster más grande y flechas más chicas */
   .grilla-cats { grid-template-columns: 1fr; gap: 22px; margin-top: 24px; }
