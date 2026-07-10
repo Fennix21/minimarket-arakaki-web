@@ -479,6 +479,11 @@
     'licor-frances', 'licor-italiano', 'vodka', 'tequila', 'anisado', 'licores-variados', 'refrescos', 'aguas-importadas', 'helados'];
   var TIENDA = ['chocolates-importados', 'galletas', 'dulces', 'backtoschool', 'frutas-y-vegetales'];
 
+  // Categorías cuyas fotos de producto son cuadradas (1:1, imágenes 720x720): el coverflow
+  // (card 3:4 por defecto) las recortaría, así que llevan la clase cc-cuadrado (card 1:1).
+  // El resto son posters 3:4 (1080x1440) y encajan tal cual. Verificado midiendo naturalWidth/Height.
+  var CUADRADAS = { 'refrescos': 1, 'helados': 1, 'chocolates-importados': 1, 'dulces': 1, 'galletas': 1, 'backtoschool': 1, 'frutas-y-vegetales': 1 };
+
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
   function tarjeta(slug) {
@@ -495,7 +500,7 @@
       return '<span' + (i === 0 ? ' class="on"' : '') + '></span>';
     }).join('');
     var multi = slides.length > 1;
-    return '<div class="cat-carrusel" data-carrusel>' +
+    return '<div class="cat-carrusel' + (CUADRADAS[slug] ? ' cc-cuadrado' : '') + '" data-carrusel>' +
       '<h3 class="cc-titulo">' + cat.title + '</h3>' +
       '<div class="cc-stage">' + caras +
         (multi ? '<button class="cc-arrow cc-prev" aria-label="Anterior">‹</button>' +
