@@ -6,6 +6,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["tools/dev-server.js"],
       "port": 3210
+    },
+    {
+      "name": "arakaki-web-3211",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/dev-server.js", "3211"],
+      "port": 3211
     }
   ]
 }

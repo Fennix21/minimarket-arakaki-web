@@ -6,7 +6,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Piscos",
    "emoji": "🥃",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Piscos",
@@ -14,127 +14,127 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Pisco Grimaldi Mosto Verde Mollar x 500 ml",
        "price": "105",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3379c33298.53961350_53.png"
+       "img": "/img/productos/pisco/01-pisco-grimaldi-mosto-verde-mollar-x-500-.webp"
       },
       {
        "name": "Pisco Biondi Acholado x 500 ml",
        "price": "83",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3365c9ff77.20445594_52.png"
+       "img": "/img/productos/pisco/02-pisco-biondi-acholado-x-500-ml.webp"
       },
       {
        "name": "Pisco Biondi Puro Italia x 500 ml",
        "price": "83",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3348bfea96.20710454_51.png"
+       "img": "/img/productos/pisco/03-pisco-biondi-puro-italia-x-500-ml.webp"
       },
       {
        "name": "Pisco Porton Mosto Verde Acholado x 750 ml",
        "price": "102",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3405eace08.45895474_58.png"
+       "img": "/img/productos/pisco/04-pisco-porton-mosto-verde-acholado-x-750-.webp"
       },
       {
        "name": "Pisco Porton Mosto Verde Italia x 750 ml",
        "price": "103",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c33f22b6ba9.97268524_57.png"
+       "img": "/img/productos/pisco/05-pisco-porton-mosto-verde-italia-x-750-ml.webp"
       },
       {
        "name": "Pisco Porton Mosto Verde Quebranta x 750 ml",
        "price": "102",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c33bf7c0d85.18679453_56.png"
+       "img": "/img/productos/pisco/06-pisco-porton-mosto-verde-quebranta-x-750.webp"
       },
       {
        "name": "Pisco Intipalka Mosto Verde Acholado x 750 ml",
        "price": "96",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c34179a7636.24552687_59.png"
+       "img": "/img/productos/pisco/07-pisco-intipalka-mosto-verde-acholado-x-7.webp"
       },
       {
        "name": "Pisco Cuatro Gallos Mosto Verde Quebranta x 700 ml",
        "price": "86",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c34373a0670.75790412_60.png"
+       "img": "/img/productos/pisco/08-pisco-cuatro-gallos-mosto-verde-quebrant.webp"
       },
       {
        "name": "Pisco Cuatro Gallos Mosto Verde Acholadox 700 ml",
        "price": "88",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c344a9854c6.06343991_61.png"
+       "img": "/img/productos/pisco/09-pisco-cuatro-gallos-mosto-verde-acholado.webp"
       },
       {
        "name": "Pisco Cuatro Gallos Mosto Verde Italia x 700 ml",
        "price": "86",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c345ccb2d90.32280249_62.png"
+       "img": "/img/productos/pisco/10-pisco-cuatro-gallos-mosto-verde-italia-x.webp"
       },
       {
        "name": "Pisco Cuatro Gallos Puro Quebranta x 700 ml",
        "price": "52",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c346d86dd20.63766100_63.png"
+       "img": "/img/productos/pisco/11-pisco-cuatro-gallos-puro-quebranta-x-700.webp"
       },
       {
        "name": "Pisco Cuatro Gallos Puro Italia x 700 ml",
        "price": "50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c347e8bad45.44148769_64.png"
+       "img": "/img/productos/pisco/12-pisco-cuatro-gallos-puro-italia-x-700-ml.webp"
       },
       {
        "name": "Pisco Cuatro Gallos Puro Acholado x 700 ml",
        "price": "52",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3492c096b8.15465928_65.png"
+       "img": "/img/productos/pisco/13-pisco-cuatro-gallos-puro-acholado-x-700-.webp"
       },
       {
        "name": "Pisco Ocucaje Acholado x 700 ml",
        "price": "35",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3391ebcec8.38510426_54.png"
+       "img": "/img/productos/pisco/14-pisco-ocucaje-acholado-x-700-ml.webp"
       },
       {
        "name": "Pisco Ocucaje Italia x 700 ml",
        "price": "34",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c33aef01826.39304016_55.png"
+       "img": "/img/productos/pisco/15-pisco-ocucaje-italia-x-700-ml.webp"
       },
       {
        "name": "Pisco Viiejo Tonel Moscatel x 500 ml",
        "price": "65",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c33190b0010.73419693_49.png"
+       "img": "/img/productos/pisco/16-pisco-viiejo-tonel-moscatel-x-500-ml.webp"
       },
       {
        "name": "Pisco Demonio de los Andes Acholado x 700 ml",
        "price": "51",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c34c82a46b9.85971826_66.png"
+       "img": "/img/productos/pisco/17-pisco-demonio-de-los-andes-acholado-x-70.webp"
       },
       {
        "name": "Pisco Demonio de los Andes Quebranta x 700 ml",
        "price": "47",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c34d7bc4851.67577435_67.png"
+       "img": "/img/productos/pisco/18-pisco-demonio-de-los-andes-quebranta-x-7.webp"
       },
       {
        "name": "Pisco Demonio de los Andes Italia x 700 ml",
        "price": "51",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3fe50c5bb2.72711367_68.png"
+       "img": "/img/productos/pisco/19-pisco-demonio-de-los-andes-italia-x-700-.webp"
       },
       {
        "name": "Pisco Santiago Queirolo Italia x 750 ml",
        "price": "35",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3ff51b66d5.77617208_69.png"
+       "img": "/img/productos/pisco/20-pisco-santiago-queirolo-italia-x-750-ml.webp"
       },
       {
        "name": "Pisco Santiago Queirolo Acholado x 750 ml",
        "price": "35.90",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3d8eda7c4e86.82911611_Licores5.png"
+       "img": "/img/productos/pisco/21-pisco-santiago-queirolo-acholado-x-750-m.webp"
       },
       {
        "name": "Pisco Santiago Queirolo Quebranta x 750 ml",
        "price": "34",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c401e697a31.53945423_71.png"
+       "img": "/img/productos/pisco/22-pisco-santiago-queirolo-quebranta-x-750-.webp"
       },
       {
        "name": "Pisco Sol de Ica Quebranta x 750 ml",
        "price": "26",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c33347d45b3.06073445_50.png"
+       "img": "/img/productos/pisco/23-pisco-sol-de-ica-quebranta-x-750-ml.webp"
       },
       {
        "name": "Jarabe de Goma Vargas x 750 ml",
        "price": "14",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d4c4ba49ce0.81060893_78.png"
+       "img": "/img/productos/pisco/24-jarabe-de-goma-vargas-x-750-ml.webp"
       },
       {
        "name": "Espumante Napoleon Moscato Bianco x 750 ml",
        "price": "13",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d4c87cd0130.56069265_80.png"
+       "img": "/img/productos/pisco/25-espumante-napoleon-moscato-bianco-x-750-.webp"
       }
      ]
     }
@@ -145,7 +145,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Vinos Españoles",
    "emoji": "🇪🇸",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Vinos Españoles",
@@ -153,92 +153,92 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Marqués de Riscal Sauvignon Blanc x 750 ml",
        "price": "79",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a06340b528af1.03441952_1.png"
+       "img": "/img/productos/vinos/01-marques-de-riscal-sauvignon-blanc-x-750-.webp"
       },
       {
        "name": "Marqués de Riscal Rosado x 750 ml",
        "price": "60",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a06342cd8c8d8.80141304_3.png"
+       "img": "/img/productos/vinos/02-marques-de-riscal-rosado-x-750-ml.webp"
       },
       {
        "name": "Marqués de Riscal Rueda Verdejo x 750 ml",
        "price": "59",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a06341b24fe12.58597808_2.png"
+       "img": "/img/productos/vinos/03-marques-de-riscal-rueda-verdejo-x-750-ml.webp"
       },
       {
        "name": "Marqués de Riscal Reserva x 750 ml",
        "price": "123",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a06343cd63373.08337239_4.png"
+       "img": "/img/productos/vinos/04-marques-de-riscal-reserva-x-750-ml.webp"
       },
       {
        "name": "Marqués de Riscal Tinto Tempranillo x 750 ml",
        "price": "58",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a221ed608e504.52207883_VINOSESPA%C3%91OLES.png"
+       "img": "/img/productos/vinos/05-marques-de-riscal-tinto-tempranillo-x-75.webp"
       },
       {
        "name": "Vino Lan Blanco x 750 ml",
        "price": "56",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a06345a053a73.76148490_6.png"
+       "img": "/img/productos/vinos/06-vino-lan-blanco-x-750-ml.webp"
       },
       {
        "name": "Vino Lan Crianza 2021 x 750 ml",
        "price": "79",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a06346b5986f3.53842759_7.png"
+       "img": "/img/productos/vinos/07-vino-lan-crianza-2021-x-750-ml.webp"
       },
       {
        "name": "Vino Lan Gran Reserva 2016 x 750 ml",
        "price": "179",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a063479e81d06.02391077_8.png"
+       "img": "/img/productos/vinos/08-vino-lan-gran-reserva-2016-x-750-ml.webp"
       },
       {
        "name": "Vino Lan Reserva 2018 x 750 ml",
        "price": "114",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a271b18670cb4.08355429_VINOSESPA%C3%91OLES1.png"
+       "img": "/img/productos/vinos/09-vino-lan-reserva-2018-x-750-ml.webp"
       },
       {
        "name": "Vino Protos Clarete Rosado x 750 ml",
        "price": "66",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634890c8117.54747142_9.png"
+       "img": "/img/productos/vinos/10-vino-protos-clarete-rosado-x-750-ml.webp"
       },
       {
        "name": "Vino Protos Roble 2023 x 750 ml",
        "price": "71",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634965a4146.82580289_10.png"
+       "img": "/img/productos/vinos/11-vino-protos-roble-2023-x-750-ml.webp"
       },
       {
        "name": "Vino Protos Crianza 2019 x 750 ml",
        "price": "145.60",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634a81620c7.71845972_11.png"
+       "img": "/img/productos/vinos/12-vino-protos-crianza-2019-x-750-ml.webp"
       },
       {
        "name": "Vino El Coto Blanco Semidulce 2023 x 750 ml",
        "price": "53",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634bb7706f9.25019030_12.png"
+       "img": "/img/productos/vinos/13-vino-el-coto-blanco-semidulce-2023-x-750.webp"
       },
       {
        "name": "Vino El Coto Crianza 2021 x 750 ml",
        "price": "67",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634cd654fd5.89919240_13.png"
+       "img": "/img/productos/vinos/14-vino-el-coto-crianza-2021-x-750-ml.webp"
       },
       {
        "name": "Sangre de Toro Reserva x 750 ml",
        "price": "84",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634dd6d8fc3.61230178_14.png"
+       "img": "/img/productos/vinos/15-sangre-de-toro-reserva-x-750-ml.webp"
       },
       {
        "name": "Sangre de Toro Original x 750 ml",
        "price": "62",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634ebb1e406.71860758_15.png"
+       "img": "/img/productos/vinos/16-sangre-de-toro-original-x-750-ml.webp"
       },
       {
        "name": "Pata Negra Reserva Tempranillo 2018 x 750 ml",
        "price": "61",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a0634f9c4f9e5.55013703_16.png"
+       "img": "/img/productos/vinos/17-pata-negra-reserva-tempranillo-2018-x-75.webp"
       },
       {
        "name": "Espumante Español Freixenet Cordon Negro Premium x 750 ml",
        "price": "0",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d595c636682.27136896_75.png"
+       "img": "/img/productos/vinos/18-espumante-espanol-freixenet-cordon-negro.webp"
       }
      ]
     }
@@ -249,7 +249,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Vinos Peruanos",
    "emoji": "🇵🇪",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Vinos Peruanos",
@@ -257,82 +257,82 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Intipalka Sauvignon Blanc x 750 ml",
        "price": "31",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f3b55eacc2.56125297_2.png"
+       "img": "/img/productos/vinos-peruanos/01-intipalka-sauvignon-blanc-x-750-ml.webp"
       },
       {
        "name": "Intipalka Malbec 2025 x 750 ml",
        "price": "31",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1c765ec804e2.10287049_17.png"
+       "img": "/img/productos/vinos-peruanos/02-intipalka-malbec-2025-x-750-ml.webp"
       },
       {
        "name": "Intipalka Rose Syrah x 750 ml",
        "price": "30",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f3c3507bc3.57574893_3.png"
+       "img": "/img/productos/vinos-peruanos/03-intipalka-rose-syrah-x-750-ml.webp"
       },
       {
        "name": "Intipalka Syrah 2023 x 750 ml",
        "price": "31",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f3d21f3328.30935124_4.png"
+       "img": "/img/productos/vinos-peruanos/04-intipalka-syrah-2023-x-750-ml.webp"
       },
       {
        "name": "Intipalka Tannat 2023 x 750 ml",
        "price": "32",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1c7643f2ae09.82228734_18.png"
+       "img": "/img/productos/vinos-peruanos/05-intipalka-tannat-2023-x-750-ml.webp"
       },
       {
        "name": "Intipalka Cabernet Sauvignon Petit Verdot 2022 x 750 ml",
        "price": "43",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f3f845a0f8.12681265_7.png"
+       "img": "/img/productos/vinos-peruanos/06-intipalka-cabernet-sauvignon-petit-verdo.webp"
       },
       {
        "name": "Intipalka Cabernet Sauvignon Syrah 2022 x 750 ml",
        "price": "43",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f3de8a64b8.31589105_5.png"
+       "img": "/img/productos/vinos-peruanos/07-intipalka-cabernet-sauvignon-syrah-2022-.webp"
       },
       {
        "name": "Intipalka Moscatel de Alejandría 2021 x 375 ml",
        "price": "31",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f3ea6ade50.14555553_6.png"
+       "img": "/img/productos/vinos-peruanos/08-intipalka-moscatel-de-alejandria-2021-x-.webp"
       },
       {
        "name": "Tacama Blanco de Blancos Tres Cepas x 750 ml",
        "price": "55",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1c76eff34113.67020799_15.png"
+       "img": "/img/productos/vinos-peruanos/09-tacama-blanco-de-blancos-tres-cepas-x-75.webp"
       },
       {
        "name": "Tacama Rosé Semiseco x 750 ml",
        "price": "19",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f41261ef71.48792300_9.png"
+       "img": "/img/productos/vinos-peruanos/10-tacama-rose-semiseco-x-750-ml.webp"
       },
       {
        "name": "Tacama Gran Tinto Malbec - Tannat x 750 ml",
        "price": "32",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f435937576.78214685_10.png"
+       "img": "/img/productos/vinos-peruanos/11-tacama-gran-tinto-malbec-tannat-x-750-ml.webp"
       },
       {
        "name": "Tacama Gran Blanco Tres Cepas x 750 ml",
        "price": "33",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1c7726cbf904.86304744_16.png"
+       "img": "/img/productos/vinos-peruanos/12-tacama-gran-blanco-tres-cepas-x-750-ml.webp"
       },
       {
        "name": "Tacama Tinto Semi seco x 750 ml",
        "price": "28",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1c7a646f2b08.75484288_17.png"
+       "img": "/img/productos/vinos-peruanos/13-tacama-tinto-semi-seco-x-750-ml.webp"
       },
       {
        "name": "Oporto del Abuelo Cosecha 2023 x 750 ml",
        "price": "29",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f448dc3769.85673653_11.png"
+       "img": "/img/productos/vinos-peruanos/14-oporto-del-abuelo-cosecha-2023-x-750-ml.webp"
       },
       {
        "name": "Tabernero Borgoña Semi seco x 750 ml",
        "price": "19.30",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1c77400b7241.12188236_14.png"
+       "img": "/img/productos/vinos-peruanos/15-tabernero-borgona-semi-seco-x-750-ml.webp"
       },
       {
        "name": "Tabernero Gran Rosé Sem seco Afrutado x 750 ml",
        "price": "16.90",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18f46351d610.58098128_13.png"
+       "img": "/img/productos/vinos-peruanos/16-tabernero-gran-rose-sem-seco-afrutado-x-.webp"
       }
      ]
     }
@@ -343,7 +343,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Vinos Argentinos",
    "emoji": "🇦🇷",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Vinos Argentinos",
@@ -351,132 +351,132 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Navarro Correas Pinot Noir 2024 x 750 ml",
        "price": "59",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162832f26de4.51742849_3.png"
+       "img": "/img/productos/vinos-argentinos/01-navarro-correas-pinot-noir-2024-x-750-ml.webp"
       },
       {
        "name": "Navarro Correas Syrah 2019 x 750 ml",
        "price": "59",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162b5a0e6568.31547467_6.png"
+       "img": "/img/productos/vinos-argentinos/02-navarro-correas-syrah-2019-x-750-ml.webp"
       },
       {
        "name": "Navarro Correas Sauvignon Blanc 2022 x 750 ml",
        "price": "56",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162c3f7374f5.07887886_11.png"
+       "img": "/img/productos/vinos-argentinos/03-navarro-correas-sauvignon-blanc-2022-x-7.webp"
       },
       {
        "name": "Navarro Correas Chardonnay 2023 x 750 ml",
        "price": "50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162c1f155ac6.65385781_9.png"
+       "img": "/img/productos/vinos-argentinos/04-navarro-correas-chardonnay-2023-x-750-ml.webp"
       },
       {
        "name": "Navarro Correas Cabernet Sauvignon 2023 x 750 ml",
        "price": "56",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162c2e919ae6.70938631_10.png"
+       "img": "/img/productos/vinos-argentinos/05-navarro-correas-cabernet-sauvignon-2023-.webp"
       },
       {
        "name": "Navarro Correas Cabernet Sauvignon 2024 x 750 ml",
        "price": "56",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162c087f3474.02580309_8.png"
+       "img": "/img/productos/vinos-argentinos/06-navarro-correas-cabernet-sauvignon-2024-.webp"
       },
       {
        "name": "Navarro Correas Malbec 2024 x 750 ml",
        "price": "53.90",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162affbb10e3.15441590_4.png"
+       "img": "/img/productos/vinos-argentinos/07-navarro-correas-malbec-2024-x-750-ml.webp"
       },
       {
        "name": "Navarro Correas Syrah 2024 x 750 ml",
        "price": "59",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162b7d5eb443.63401776_7.png"
+       "img": "/img/productos/vinos-argentinos/08-navarro-correas-syrah-2024-x-750-ml.webp"
       },
       {
        "name": "Navarro Correas Blend 2024 x 750 ml",
        "price": "55",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162b26f3bb38.77163300_5.png"
+       "img": "/img/productos/vinos-argentinos/09-navarro-correas-blend-2024-x-750-ml.webp"
       },
       {
        "name": "Los Árboles Chardonnay 2024 x 750 ml",
        "price": "33",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a174aa8dd0b06.46098579_13.png"
+       "img": "/img/productos/vinos-argentinos/10-los-arboles-chardonnay-2024-x-750-ml.webp"
       },
       {
        "name": "Los Árboles Red Blend 2024 x 750 ml",
        "price": "32",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a162c4d6b8519.68810501_12.png"
+       "img": "/img/productos/vinos-argentinos/11-los-arboles-red-blend-2024-x-750-ml.webp"
       },
       {
        "name": "Los Árboles Malbec 2025 x 750 ml",
        "price": "29",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a174ae268c8f5.83625370_14.png"
+       "img": "/img/productos/vinos-argentinos/12-los-arboles-malbec-2025-x-750-ml.webp"
       },
       {
        "name": "El Enemigo Malbec x 750 ml",
        "price": "130",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1627c8b96982.66869070_2.png"
+       "img": "/img/productos/vinos-argentinos/13-el-enemigo-malbec-x-750-ml.webp"
       },
       {
        "name": "El Enemigo Chardonnay 2023 x 750 ml",
        "price": "126",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a174af241bf90.77433708_15.png"
+       "img": "/img/productos/vinos-argentinos/14-el-enemigo-chardonnay-2023-x-750-ml.webp"
       },
       {
        "name": "Finca Las Moras Malbec 2024 x 750 ml",
        "price": "36",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a174b0ae40707.08011860_16.png"
+       "img": "/img/productos/vinos-argentinos/15-finca-las-moras-malbec-2024-x-750-ml.webp"
       },
       {
        "name": "Septima Gran Reserva 2023 x 750 ml",
        "price": "120",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a174b32405fa5.62725850_17.png"
+       "img": "/img/productos/vinos-argentinos/16-septima-gran-reserva-2023-x-750-ml.webp"
       },
       {
        "name": "La Linda Malbec 2024 x 750 ml",
        "price": "42",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b60b4d1c5.44164270_25.png"
+       "img": "/img/productos/vinos-argentinos/17-la-linda-malbec-2024-x-750-ml.webp"
       },
       {
        "name": "Trapiche Reserva Selected Malbec 2023 x 750 ml",
        "price": "51",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b13cee971.54019979_20.png"
+       "img": "/img/productos/vinos-argentinos/18-trapiche-reserva-selected-malbec-2023-x-.webp"
       },
       {
        "name": "Vino Seleccionado x 750 ml",
        "price": "32.50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178af1e10b89.21423529_19.png"
+       "img": "/img/productos/vinos-argentinos/19-vino-seleccionado-x-750-ml.webp"
       },
       {
        "name": "Santa Julia Reserva Malbec 2023 x 750 ml",
        "price": "72.80",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b354ca731.81638533_22.png"
+       "img": "/img/productos/vinos-argentinos/20-santa-julia-reserva-malbec-2023-x-750-ml.webp"
       },
       {
        "name": "Santa Julia Malbec 2024 x 750 ml",
        "price": "50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b444b8254.96523606_23.png"
+       "img": "/img/productos/vinos-argentinos/21-santa-julia-malbec-2024-x-750-ml.webp"
       },
       {
        "name": "Catena Malbec 2023 x 750 ml",
        "price": "103",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b6f65ff31.86388351_26.png"
+       "img": "/img/productos/vinos-argentinos/22-catena-malbec-2023-x-750-ml.webp"
       },
       {
        "name": "Nieto Senetiner Cabernet Sauvignon 2023 x 750 ml",
        "price": "51",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b25942e54.35735154_21.png"
+       "img": "/img/productos/vinos-argentinos/23-nieto-senetiner-cabernet-sauvignon-2023-.webp"
       },
       {
        "name": "Nieto Seniter Benjamin Malbec 2023 x 750 ml",
        "price": "38",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178b5332afb3.85844952_24.png"
+       "img": "/img/productos/vinos-argentinos/24-nieto-seniter-benjamin-malbec-2023-x-750.webp"
       },
       {
        "name": "Septima Emblema Malbec 2024 x 750 ml",
        "price": "58",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a178ade3346b6.57771406_18.png"
+       "img": "/img/productos/vinos-argentinos/25-septima-emblema-malbec-2024-x-750-ml.webp"
       },
       {
        "name": "Espumante Argentino Chandon Demi Sec x 750 ml",
        "price": "85.80",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d543b707334.94050513_84.png"
+       "img": "/img/productos/vinos-argentinos/26-espumante-argentino-chandon-demi-sec-x-7.webp"
       }
      ]
     }
@@ -487,7 +487,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Vinos Chilenos",
    "emoji": "🇨🇱",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Vinos Chilenos",
@@ -495,62 +495,62 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Frontera Sauvignon Blanc x 750 ml",
        "price": "27.30",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18acb5a3c324.12378631_2.png"
+       "img": "/img/productos/vinos-chilenos/01-frontera-sauvignon-blanc-x-750-ml.webp"
       },
       {
        "name": "Frontera Cabernet Sauvignon x 750 ml",
        "price": "27",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18acc48e5f28.76985364_3.png"
+       "img": "/img/productos/vinos-chilenos/02-frontera-cabernet-sauvignon-x-750-ml.webp"
       },
       {
        "name": "Frontera Malbec x 750 ml",
        "price": "27",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18acd2f21429.83907625_4.png"
+       "img": "/img/productos/vinos-chilenos/03-frontera-malbec-x-750-ml.webp"
       },
       {
        "name": "Frontera Frutal Pink Paradise x 750 ml",
        "price": "27",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18ace164a8c0.44884017_5.png"
+       "img": "/img/productos/vinos-chilenos/04-frontera-frutal-pink-paradise-x-750-ml.webp"
       },
       {
        "name": "Frontera Frutal Tropical x 750 ml",
        "price": "27",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18acee9f99a5.39301231_6.png"
+       "img": "/img/productos/vinos-chilenos/05-frontera-frutal-tropical-x-750-ml.webp"
       },
       {
        "name": "Frontera Frutal Tinto de Verano x 750 ml",
        "price": "27",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18acfc84b676.26784182_7.png"
+       "img": "/img/productos/vinos-chilenos/06-frontera-frutal-tinto-de-verano-x-750-ml.webp"
       },
       {
        "name": "Casillero del Diablo Sauvignon Blanc 2025 x 750 ml",
        "price": "43",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18ad16665325.59769099_9.png"
+       "img": "/img/productos/vinos-chilenos/07-casillero-del-diablo-sauvignon-blanc-202.webp"
       },
       {
        "name": "Casillero del Diablo Cabernet Sauvignon 2022 x 750 ml",
        "price": "41",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a18ad0a4a3fa6.80677801_8.png"
+       "img": "/img/productos/vinos-chilenos/08-casillero-del-diablo-cabernet-sauvignon-.webp"
       },
       {
        "name": "Vino Clos de Pirque Blanco x 1L",
        "price": "19.60",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c4396cdc264.83210578_74.png"
+       "img": "/img/productos/vinos-chilenos/09-vino-clos-de-pirque-blanco-x-1l.webp"
       },
       {
        "name": "Vino Clos de Pirque Tinto x 1L",
        "price": "19.60",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c43a76bab90.30660165_76.png"
+       "img": "/img/productos/vinos-chilenos/10-vino-clos-de-pirque-tinto-x-1l.webp"
       },
       {
        "name": "Vino Gato Blanco x 1L",
        "price": "19.60",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c481cdab4d3.91123942_VinoGatoNegro.png"
+       "img": "/img/productos/vinos-chilenos/11-vino-gato-blanco-x-1l.webp"
       },
       {
        "name": "Vino Gato Tinto x 1L",
        "price": "19.90",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c43c1e7e528.58665688_79.png"
+       "img": "/img/productos/vinos-chilenos/12-vino-gato-tinto-x-1l.webp"
       }
      ]
     }
@@ -561,7 +561,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Whisky",
    "emoji": "🥃",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Whisky",
@@ -569,97 +569,97 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Johnnie Walker Green Label 15 Years x 750 ml",
        "price": "379.50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a984109428.33514815_3.png"
+       "img": "/img/productos/whisky/01-johnnie-walker-green-label-15-years-x-75.webp"
       },
       {
        "name": "Johnnie Walker Gold Label Reserve x 750 ml",
        "price": "256",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a9727a57c0.90322424_2.png"
+       "img": "/img/productos/whisky/02-johnnie-walker-gold-label-reserve-x-750-.webp"
       },
       {
        "name": "Johnnie Walker Double Black x 750 ml",
        "price": "172",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a9930f88c6.32668196_4.png"
+       "img": "/img/productos/whisky/03-johnnie-walker-double-black-x-750-ml.webp"
       },
       {
        "name": "Johnnie Walker Black Label x 750 ml",
        "price": "123",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a9a0e006e0.65962562_5.png"
+       "img": "/img/productos/whisky/04-johnnie-walker-black-label-x-750-ml.webp"
       },
       {
        "name": "Johnnie Walker Red Label x 750 ml",
        "price": "59",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a9afd975f0.71914242_6.png"
+       "img": "/img/productos/whisky/05-johnnie-walker-red-label-x-750-ml.webp"
       },
       {
        "name": "Whisky Escocés Glenfiddich 12 años x 750 ml",
        "price": "220",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c2a23aad615.99428438_81.png"
+       "img": "/img/productos/whisky/06-whisky-escoces-glenfiddich-12-anos-x-750.webp"
       },
       {
        "name": "Chivas Regal Aged 15 Years x 750 ml",
        "price": "227",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a4213fd9b6.66061419_7.png"
+       "img": "/img/productos/whisky/07-chivas-regal-aged-15-years-x-750-ml.webp"
       },
       {
        "name": "Chivas Regal Aged 12 Years x 700 ml",
        "price": "96",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a430d865a5.55298520_8.png"
+       "img": "/img/productos/whisky/08-chivas-regal-aged-12-years-x-700-ml.webp"
       },
       {
        "name": "Something Special x 750 ml",
        "price": "53",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a44007c736.38804933_9.png"
+       "img": "/img/productos/whisky/09-something-special-x-750-ml.webp"
       },
       {
        "name": "Grand Old Parr Aged 12 Years x 750 ml",
        "price": "105",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a456e166b4.32749776_10.png"
+       "img": "/img/productos/whisky/10-grand-old-parr-aged-12-years-x-750-ml.webp"
       },
       {
        "name": "Ballantine's Aged 12 Years x 700 ml",
        "price": "128.80",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a4653bd9b1.29202311_11.png"
+       "img": "/img/productos/whisky/11-ballantine-s-aged-12-years-x-700-ml.webp"
       },
       {
        "name": "Ballantine's Finest Blended Scotch Whisky x 700 ml",
        "price": "51",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a31aad04d11d2.49987264_WHISKY1.png"
+       "img": "/img/productos/whisky/12-ballantine-s-finest-blended-scotch-whisk.webp"
       },
       {
        "name": "Jack Daniel's Sour Mash x 750 ml",
        "price": "122",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a47cafc458.44102090_12.png"
+       "img": "/img/productos/whisky/13-jack-daniel-s-sour-mash-x-750-ml.webp"
       },
       {
        "name": "Jack Daniel's Honey Liqueur x 750 ml",
        "price": "121",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a48e23c930.59121260_13.png"
+       "img": "/img/productos/whisky/14-jack-daniel-s-honey-liqueur-x-750-ml.webp"
       },
       {
        "name": "Jim Beam Extra Aged Bourbon x 750 ml",
        "price": "158",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a30a4a233ea16.96830221_14.png"
+       "img": "/img/productos/whisky/15-jim-beam-extra-aged-bourbon-x-750-ml.webp"
       },
       {
        "name": "Black & White Blended Scotch Whisky x 750 ml",
        "price": "29",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a31a65a66ddd9.97843327_15.png"
+       "img": "/img/productos/whisky/16-black-white-blended-scotch-whisky-x-750-.webp"
       },
       {
        "name": "Whisky Passport Selection Spirit Drink x 700 ml",
        "price": "31",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a31a686c63b72.41062193_17.png"
+       "img": "/img/productos/whisky/17-whisky-passport-selection-spirit-drink-x.webp"
       },
       {
        "name": "Jameson Triple Distilled Irish Whisky x 750 ml",
        "price": "109",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a31a669c90f63.26544053_16.png"
+       "img": "/img/productos/whisky/18-jameson-triple-distilled-irish-whisky-x-.webp"
       },
       {
        "name": "Vat 69 Blended Scotch Whisky x 700 ml",
        "price": "39",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a31a905aeb385.23781343_WHISKY.png"
+       "img": "/img/productos/whisky/19-vat-69-blended-scotch-whisky-x-700-ml.webp"
       }
      ]
     }
@@ -670,7 +670,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Ron",
    "emoji": "🍹",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Ron",
@@ -678,77 +678,77 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Ron Zacapa 23 años x 750 ml",
        "price": "320",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c32059b6e45.59772328_39.png"
+       "img": "/img/productos/ron/01-ron-zacapa-23-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Cartavio 18 años x 750",
        "price": "237",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3d8220a822e0.52102741_Licores3.png"
+       "img": "/img/productos/ron/02-ron-cartavio-18-anos-x-750.webp"
       },
       {
        "name": "Ron Flor de Caña 12 años x 750 ml",
        "price": "128",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c31f2982050.05975123_38.png"
+       "img": "/img/productos/ron/03-ron-flor-de-cana-12-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Havana Club 7 años x 750 ml",
        "price": "93",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c270edf8794.35945060_34.png"
+       "img": "/img/productos/ron/04-ron-havana-club-7-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Havana Club Blanco 3 años x 750 ml",
        "price": "44",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c49f0a253e6.49625494_Licores2.png"
+       "img": "/img/productos/ron/05-ron-havana-club-blanco-3-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Flor de Caña 7 años x 750 ml",
        "price": "91",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c31d5352548.57969126_37.png"
+       "img": "/img/productos/ron/06-ron-flor-de-cana-7-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Flor de Caña 5 años x 750 ml",
        "price": "63",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c2db5c1d556.54599128_35.png"
+       "img": "/img/productos/ron/07-ron-flor-de-cana-5-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Flor de Caña 4 años x 750 ml",
        "price": "51",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c31bd258c87.43701540_36.png"
+       "img": "/img/productos/ron/08-ron-flor-de-cana-4-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Flor de Caña Blanco 4 años x 750 ml",
        "price": "42",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c4a019f1ba8.73362523_Licores1.png"
+       "img": "/img/productos/ron/09-ron-flor-de-cana-blanco-4-anos-x-750-ml.webp"
       },
       {
        "name": "Ron Captain Morgan x 750 ml",
        "price": "53",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c321c59d876.91696694_40.png"
+       "img": "/img/productos/ron/10-ron-captain-morgan-x-750-ml.webp"
       },
       {
        "name": "Ron Bacardi Carta Blanca x 750 ml",
        "price": "49",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c26a47e8c60.97159551_32.png"
+       "img": "/img/productos/ron/11-ron-bacardi-carta-blanca-x-750-ml.webp"
       },
       {
        "name": "Ron Bacardi Carta Oro x 750 ml",
        "price": "47",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c26bf7bcfb4.91851275_33.png"
+       "img": "/img/productos/ron/12-ron-bacardi-carta-oro-x-750-ml.webp"
       },
       {
        "name": "Ron Cartavio Black x 1L",
        "price": "36",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c32dee40b62.76729283_46.png"
+       "img": "/img/productos/ron/13-ron-cartavio-black-x-1l.webp"
       },
       {
        "name": "Ron Cartavio Blanco x 250 ml",
        "price": "12.40",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3302699ad3.67879913_48.png"
+       "img": "/img/productos/ron/14-ron-cartavio-blanco-x-250-ml.webp"
       },
       {
        "name": "Ron Cartavio Rubio x 250 ml",
        "price": "13.50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3d86a8150a56.83323567_Licores4.png"
+       "img": "/img/productos/ron/15-ron-cartavio-rubio-x-250-ml.webp"
       }
      ]
     }
@@ -759,7 +759,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Licores Franceses",
    "emoji": "🇫🇷",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Licores Franceses",
@@ -767,52 +767,52 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Courvoisier Cognac Francés V.S.O.P x 750 ml",
        "price": "424",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a34569b414e61.52859797_6.png"
+       "img": "/img/productos/licor-frances/01-courvoisier-cognac-frances-v-s-o-p-x-750.webp"
       },
       {
        "name": "Grand Marnier Licor Cognac - Francia x 700 ml",
        "price": "197",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a33248fccbca4.12405388_9.png"
+       "img": "/img/productos/licor-frances/02-grand-marnier-licor-cognac-francia-x-700.webp"
       },
       {
        "name": "Cointreau - Licor Francés x 750 ml",
        "price": "165",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324a7d5e486.81134266_10.png"
+       "img": "/img/productos/licor-frances/03-cointreau-licor-frances-x-750-ml.webp"
       },
       {
        "name": "Drambuie - Licor Escocés Miel de Brezo y Hiervas x 750 ml",
        "price": "136",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324b5d957c9.96504546_11.png"
+       "img": "/img/productos/licor-frances/04-drambuie-licor-escoces-miel-de-brezo-y-h.webp"
       },
       {
        "name": "Finest Brandy Bardinet VSOP - Francia x 700 ml",
        "price": "55.30",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a33247e872f92.32367199_8.png"
+       "img": "/img/productos/licor-frances/05-finest-brandy-bardinet-vsop-francia-x-70.webp"
       },
       {
        "name": "Marie Brizard Curacao - Destilado de Naranja Francés x 700 ml",
        "price": "64",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324c61a3cb9.10333339_12.png"
+       "img": "/img/productos/licor-frances/06-marie-brizard-curacao-destilado-de-naran.webp"
       },
       {
        "name": "Marie Brizard Parfait Amour - Licor francés Exótico Sabor Dulce x 700 ml",
        "price": "64",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a345683ef2c63.42803477_5.png"
+       "img": "/img/productos/licor-frances/07-marie-brizard-parfait-amour-licor-france.webp"
       },
       {
        "name": "Marie Brizard Licor Francés Vanillé de Madagascar x 700 ml",
        "price": "64",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a34564096c430.08221427_4.png"
+       "img": "/img/productos/licor-frances/08-marie-brizard-licor-frances-vanille-de-m.webp"
       },
       {
        "name": "Demars Crema Café Francés x 700 ml",
        "price": "54.75",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3455a68142f8.04086773_3.png"
+       "img": "/img/productos/licor-frances/09-demars-crema-cafe-frances-x-700-ml.webp"
       },
       {
        "name": "Licor Marie Brizard Watermelon - Francés x 200 ml",
        "price": "28",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3455869af101.49378947_2.png"
+       "img": "/img/productos/licor-frances/10-licor-marie-brizard-watermelon-frances-x.webp"
       }
      ]
     }
@@ -823,7 +823,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Licores Italianos",
    "emoji": "🇮🇹",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Licores Italianos",
@@ -831,67 +831,67 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Amaretto Disaronno Originale - Licor Italiano x 700 ml",
        "price": "145",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324275093b5.69856526_4.png"
+       "img": "/img/productos/licor-italiano/01-amaretto-disaronno-originale-licor-itali.webp"
       },
       {
        "name": "Limoncello Di Sorrento - Licor Italiano de Limón x 700 ml",
        "price": "115",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3308f48ed927.92053700_1.png"
+       "img": "/img/productos/licor-italiano/02-limoncello-di-sorrento-licor-italiano-de.webp"
       },
       {
        "name": "Brancamenta - Licor de 27 Hiervas Italiano x 750 ml",
        "price": "110",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a33241287ff95.42731145_3.png"
+       "img": "/img/productos/licor-italiano/03-brancamenta-licor-de-27-hiervas-italiano.webp"
       },
       {
        "name": "Frangelico Licor Italiano Premium x 700 ml",
        "price": "113",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3456cd89d6d9.43007374_9.png"
+       "img": "/img/productos/licor-italiano/04-frangelico-licor-italiano-premium-x-700-.webp"
       },
       {
        "name": "Vermouth Martini Extra Dry x 750 ml",
        "price": "64",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3456aa96d2f8.50878283_7.png"
+       "img": "/img/productos/licor-italiano/05-vermouth-martini-extra-dry-x-750-ml.webp"
       },
       {
        "name": "Vermouth Martini Rosso x 750 ml",
        "price": "55",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3456bc9c6723.57362096_8.png"
+       "img": "/img/productos/licor-italiano/06-vermouth-martini-rosso-x-750-ml.webp"
       },
       {
        "name": "Aperol Licor Italiano Ricetta Originale x 750 ml",
        "price": "67",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3456e184f8a1.82346606_10.png"
+       "img": "/img/productos/licor-italiano/07-aperol-licor-italiano-ricetta-originale-.webp"
       },
       {
        "name": "Kit Aperol + Espumante Duetto Spritz de Intipalka",
        "price": "108",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c32367fc5e7.69992172_41.png"
+       "img": "/img/productos/licor-italiano/08-kit-aperol-espumante-duetto-spritz-de-in.webp"
       },
       {
        "name": "Espumante Italiano Asti Riccadonna Ruby x 750 ml",
        "price": "62.80",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c31a2e716c2.02201067_82.png"
+       "img": "/img/productos/licor-italiano/09-espumante-italiano-asti-riccadonna-ruby-.webp"
       },
       {
        "name": "Espumante Italiano Asti Riccadonna Ruby x 200 ml",
        "price": "24",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c31b453bd34.93327591_83.png"
+       "img": "/img/productos/licor-italiano/10-espumante-italiano-asti-riccadonna-ruby-.webp"
       },
       {
        "name": "Espumante Italiano Asti Riccadonna x 750 ml",
        "price": "67",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c3445ca6e27.49229347_Ricadonna.png"
+       "img": "/img/productos/licor-italiano/11-espumante-italiano-asti-riccadonna-x-750.webp"
       },
       {
        "name": "Espumante Italiano Asti Riccadonna x 200 ml",
        "price": "24",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c3214eb2873.22777477_85.png"
+       "img": "/img/productos/licor-italiano/12-espumante-italiano-asti-riccadonna-x-200.webp"
       },
       {
        "name": "Espumante Italiano Cinzano Spritz x 750 ml",
        "price": "33",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4c3235729ae3.24720007_86.png"
+       "img": "/img/productos/licor-italiano/13-espumante-italiano-cinzano-spritz-x-750-.webp"
       }
      ]
     }
@@ -902,7 +902,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Vodka",
    "emoji": "🍸",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Vodka",
@@ -910,17 +910,17 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Grey Goose Vodka Francés x 750 ml",
        "price": "230",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c25b13e69f8.88309860_31.png"
+       "img": "/img/productos/vodka/01-grey-goose-vodka-frances-x-750-ml.webp"
       },
       {
        "name": "Absolut Vodka x 700 ml",
        "price": "58",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c268c4fe6c7.61480332_30.png"
+       "img": "/img/productos/vodka/02-absolut-vodka-x-700-ml.webp"
       },
       {
        "name": "Smirnoff Voka x 700 ml",
        "price": "38",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c26798b6a39.75364324_29.png"
+       "img": "/img/productos/vodka/03-smirnoff-voka-x-700-ml.webp"
       }
      ]
     }
@@ -931,7 +931,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Tequila",
    "emoji": "🌵",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Tequila",
@@ -939,22 +939,22 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Tequila 1800 Reposado x 750 ml",
        "price": "166",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a34571c62b7f2.47127788_13.png"
+       "img": "/img/productos/tequila/01-tequila-1800-reposado-x-750-ml.webp"
       },
       {
        "name": "Tequila 1800 Silver x 750 ml",
        "price": "139",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a34572c943ab6.89079092_14.png"
+       "img": "/img/productos/tequila/02-tequila-1800-silver-x-750-ml.webp"
       },
       {
        "name": "Tequila José Cuervo Especial x 750 ml",
        "price": "85",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a34573b0af6e2.31163537_15.png"
+       "img": "/img/productos/tequila/03-tequila-jose-cuervo-especial-x-750-ml.webp"
       },
       {
        "name": "Tequila José Cuervo Blancox 750 ml",
        "price": "83",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a34574cf205c2.27519476_16.png"
+       "img": "/img/productos/tequila/04-tequila-jose-cuervo-blancox-750-ml.webp"
       }
      ]
     }
@@ -965,7 +965,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Anisado",
    "emoji": "🥂",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Anisado",
@@ -973,17 +973,17 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Anis del Mono - Anisado Español x 1L",
        "price": "122.50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3255e99c23.21995764_42.png"
+       "img": "/img/productos/anisado/01-anis-del-mono-anisado-espanol-x-1l.webp"
       },
       {
        "name": "Anis Najar Seco Especial Verde x 750 ml",
        "price": "42",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c3270c9f3f8.20355236_43.png"
+       "img": "/img/productos/anisado/02-anis-najar-seco-especial-verde-x-750-ml.webp"
       },
       {
        "name": "Anis Najar Crema Especial Rojo x 750 ml",
        "price": "45.50",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3c32816a0385.05342356_44.png"
+       "img": "/img/productos/anisado/03-anis-najar-crema-especial-rojo-x-750-ml.webp"
       }
      ]
     }
@@ -994,7 +994,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Más Licores",
    "emoji": "🍾",
    "hero": "Celebra a lo Grande",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699774a663236_Piscos.mp4",
+   "video": "/img/videos/pisco.mp4",
    "sections": [
     {
      "title": "Más Licores",
@@ -1002,37 +1002,37 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Kahlúa - Licor de Café Mexicano x 1litro",
        "price": "98",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a332463cbd779.74390224_6.png"
+       "img": "/img/productos/licores-variados/01-kahlua-licor-de-cafe-mexicano-x-1litro.webp"
       },
       {
        "name": "Baileys - Licor de Crema Irlandés x 750 ml",
        "price": "91",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a33243e1977f4.73008307_5.png"
+       "img": "/img/productos/licores-variados/02-baileys-licor-de-crema-irlandes-x-750-ml.webp"
       },
       {
        "name": "Jägermeister - Licor de Hierbas Alemán x 700 ml",
        "price": "72",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324717ae991.97933809_7.png"
+       "img": "/img/productos/licores-variados/03-jagermeister-licor-de-hierbas-aleman-x-7.webp"
       },
       {
        "name": "Drambuie - Licor Escocés Miel de Brezo y Hiervas x 750 ml",
        "price": "136",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324b5d957c9.96504546_11.png"
+       "img": "/img/productos/licor-frances/04-drambuie-licor-escoces-miel-de-brezo-y-h.webp"
       },
       {
        "name": "Jerez Tío Pepe Palomino Fino x 750 ml",
        "price": "90",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3324d60b5e71.75910611_13.png"
+       "img": "/img/productos/licores-variados/05-jerez-tio-pepe-palomino-fino-x-750-ml.webp"
       },
       {
        "name": "Beefeater London Dry Gin x 750 ml",
        "price": "82",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a3456f4a35ef6.17561839_11.png"
+       "img": "/img/productos/licores-variados/06-beefeater-london-dry-gin-x-750-ml.webp"
       },
       {
        "name": "Tanqueray London Dry Gin x 750 ml",
        "price": "113.40",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a345707eaf3c8.91084920_12.png"
+       "img": "/img/productos/licores-variados/07-tanqueray-london-dry-gin-x-750-ml.webp"
       }
      ]
     }
@@ -1043,7 +1043,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Gaseosa en Lata",
    "emoji": "🥤",
    "hero": "Refréscate",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a073cfc3e3da7.63122322_GaseosaVideoWeb5Segundos.mp4",
+   "video": "/img/videos/refrescos.mp4",
    "sections": [
     {
      "title": "Gaseosas en lata Imprtadas",
@@ -1051,67 +1051,67 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Agua Tónica Canada Dry x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696544ef3df7a_CanadadryAguaTónica-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/01-agua-tonica-canada-dry-x-355-ml.webp"
       },
       {
        "name": "Ginger Ale Canada Dry x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696544fcdd64b_CanadadryGingerAle-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/02-ginger-ale-canada-dry-x-355-ml.webp"
       },
       {
        "name": "Coca Cola Original x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6965451a1f001_CocaColaOriginal-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/03-coca-cola-original-x-355-ml.webp"
       },
       {
        "name": "Coca Cola Zero x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6965452786747_CocaColaZero-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/04-coca-cola-zero-x-355-ml.webp"
       },
       {
        "name": "Coca Cola Diet x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6965453b1242b_CocoacolaDiet-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/05-coca-cola-diet-x-355-ml.webp"
       },
       {
        "name": "Coca Cola Vainilla x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696545489f313_CocaColaVainilla-minimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/06-coca-cola-vainilla-x-355-ml.webp"
       },
       {
        "name": "Coca Cola Cherry x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6965455ca41e0_CocaColaCherry-Mnimarketarakaki.jpeg"
+       "img": "/img/productos/refrescos/07-coca-cola-cherry-x-355-ml.webp"
       },
       {
        "name": "Crush Orange x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69654570633f2_CrushOrange-Minimarketarakaki.jpeg"
+       "img": "/img/productos/refrescos/08-crush-orange-x-355-ml.webp"
       },
       {
        "name": "Crush Strawberry x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6965459ea2816_CrushStrawberry-minimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/09-crush-strawberry-x-355-ml.webp"
       },
       {
        "name": "Crush Grape x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69654593714ec_CrushGrape-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/10-crush-grape-x-355-ml.webp"
       },
       {
        "name": "Dr Pepper Original x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696545bc40200_DrPepperOriginal-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/11-dr-pepper-original-x-355-ml.webp"
       },
       {
        "name": "Dr Pepper Strawberry x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696545c8b58ee_DrPepperStrawberry-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/12-dr-pepper-strawberry-x-355-ml.webp"
       },
       {
        "name": "Antártica Guaraná x 355 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696545d76ee23_AntárticaGuaraná-MinimarketArakaki.jpeg"
+       "img": "/img/productos/refrescos/13-antartica-guarana-x-355-ml.webp"
       }
      ]
     }
@@ -1122,7 +1122,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Aguas Importadas",
    "emoji": "💧",
    "hero": "Refréscate con Estilo",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4ec7ec211858.09476588_AguaMinimarketArakaki.mp4",
+   "video": "/img/videos/aguas-importadas.mp4",
    "sections": [
     {
      "title": "Aguas Importadas",
@@ -1130,42 +1130,42 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Agua Francesa Evian x 1.5L",
        "price": "15.40",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d7547d16077.19538050_91.png"
+       "img": "/img/productos/aguas-importadas/01-agua-francesa-evian-x-1-5l.webp"
       },
       {
        "name": "Agua Italiana San Pellegrino x 750 ml",
        "price": "11.32",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d7556b655a1.32541529_87.png"
+       "img": "/img/productos/aguas-importadas/02-agua-italiana-san-pellegrino-x-750-ml.webp"
       },
       {
        "name": "Agua Tónica Britvic x 150 ml",
        "price": "4.80",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d756f52b420.03556193_92.png"
+       "img": "/img/productos/aguas-importadas/03-agua-tonica-britvic-x-150-ml.webp"
       },
       {
        "name": "Ginger Ale Britvic x 150 ml",
        "price": "5.00",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d7583a27b09.22229866_93.png"
+       "img": "/img/productos/aguas-importadas/04-ginger-ale-britvic-x-150-ml.webp"
       },
       {
        "name": "San Pellegrino Melograno & Arancia x 330 ml",
        "price": "9.49",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75a9380721.83717921_88.png"
+       "img": "/img/productos/aguas-importadas/05-san-pellegrino-melograno-arancia-x-330-m.webp"
       },
       {
        "name": "San Pellegrino Zero Blood Orange x 330 ml",
        "price": "9.49",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75b9de3382.00023210_89.png"
+       "img": "/img/productos/aguas-importadas/06-san-pellegrino-zero-blood-orange-x-330-m.webp"
       },
       {
        "name": "San Pellegrino Zero Peach & Clementine x 330 ml",
        "price": "9.49",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75c864c237.56068116_90.png"
+       "img": "/img/productos/aguas-importadas/07-san-pellegrino-zero-peach-clementine-x-3.webp"
       },
       {
        "name": "San Pellegrino Zero Pomegranate & Orange x 330 ml",
        "price": "9.49",
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a4d75a9380721.83717921_88.png"
+       "img": "/img/productos/aguas-importadas/05-san-pellegrino-melograno-arancia-x-330-m.webp"
       }
      ]
     }
@@ -1176,7 +1176,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Helados",
    "emoji": "🍦",
    "hero": "Engríete",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a074f03043ac2.56417438_HeladosVideoWeb5segundos.mp4",
+   "video": "/img/videos/helados.mp4",
    "sections": [
     {
      "title": "Helados Importados",
@@ -1184,37 +1184,37 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Helado Häagen-Dazs Cookies & Cream x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6b12ab776_1.png"
+       "img": "/img/productos/helados/01-helado-haagen-dazs-cookies-cream-x-473-m.webp"
       },
       {
        "name": "Helado Häagen- Vainilla Caramel Brownie x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6bc255f51_2.png"
+       "img": "/img/productos/helados/02-helado-haagen-vainilla-caramel-brownie-x.webp"
       },
       {
        "name": "Helado Häagen-Dazs Vainilla x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6c3dbf956_3.png"
+       "img": "/img/productos/helados/03-helado-haagen-dazs-vainilla-x-473-ml.webp"
       },
       {
        "name": "Helado Häagen-Dazs Strawberry x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6c4a15790_4.png"
+       "img": "/img/productos/helados/04-helado-haagen-dazs-strawberry-x-473-ml.webp"
       },
       {
        "name": "Helado Häagen-Dazs Chocolate Belga x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6c95717f7_5.png"
+       "img": "/img/productos/helados/05-helado-haagen-dazs-chocolate-belga-x-473.webp"
       },
       {
        "name": "Helado Häagen-Dazs Strawberry Cheesecake x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6ca23bec3_6.png"
+       "img": "/img/productos/helados/06-helado-haagen-dazs-strawberry-cheesecake.webp"
       },
       {
        "name": "Helado Häagen-Dazs Coffee x 473 ml",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/697a6cc147c09_7.png"
+       "img": "/img/productos/helados/07-helado-haagen-dazs-coffee-x-473-ml.webp"
       }
      ]
     },
@@ -1224,112 +1224,112 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "La Gelaterie Helado Artesanal Chocolate Light x 473 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697bcbe396109_1.png"
+       "img": "/img/productos/helados/08-la-gelaterie-helado-artesanal-chocolate-.webp"
       },
       {
        "name": "La Gelaterie Helado Artesanal Vainilla Light x 473 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697bcbf030d5a_2.png"
+       "img": "/img/productos/helados/09-la-gelaterie-helado-artesanal-vainilla-l.webp"
       },
       {
        "name": "La Gelaterie Helado Artesanal Lúcuma Light x 473 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697bcc40c9d37_3.png"
+       "img": "/img/productos/helados/10-la-gelaterie-helado-artesanal-lucuma-lig.webp"
       },
       {
        "name": "La Gelaterie Helado Artesanal Bombones Lúcuma & Cookies x 200 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697bcc4c70071_4.png"
+       "img": "/img/productos/helados/11-la-gelaterie-helado-artesanal-bombones-l.webp"
       },
       {
        "name": "La Gelaterie Helado Artesanal Bombones Cookies & Cream x 200 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697bcc59eec53_5.png"
+       "img": "/img/productos/helados/12-la-gelaterie-helado-artesanal-bombones-c.webp"
       },
       {
        "name": "La Gelaterie Helado Artesanal Bombones Chocolate y Almendra x 200 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697bcc6575f3b_6.png"
+       "img": "/img/productos/helados/13-la-gelaterie-helado-artesanal-bombones-c.webp"
       },
       {
        "name": "Helado PRFIT Con Proteína Maracumango x 100 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697f8fab98615_2.png"
+       "img": "/img/productos/helados/14-helado-prfit-con-proteina-maracumango-x-.webp"
       },
       {
        "name": "Helado PRFIT Con Proteína Mocca x 100 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697f8fb9454f2_1.png"
+       "img": "/img/productos/helados/15-helado-prfit-con-proteina-mocca-x-100-ml.webp"
       },
       {
        "name": "Helado PRFIT Con Proteína Arándanos x 100 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697f8fca70398_3.png"
+       "img": "/img/productos/helados/16-helado-prfit-con-proteina-arandanos-x-10.webp"
       },
       {
        "name": "Helado PRFIT Con Proteína Fresa x 100 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697f8fe74f8d5_5.png"
+       "img": "/img/productos/helados/17-helado-prfit-con-proteina-fresa-x-100-ml.webp"
       },
       {
        "name": "Helado PRFIT Con Proteína Guanábana x 100 ml.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697f8ff5efd2e_4.png"
+       "img": "/img/productos/helados/18-helado-prfit-con-proteina-guanabana-x-10.webp"
       },
       {
        "name": "Helado Paletti Gourmet Menta - Chocolate x 85 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6982423be6afe_5.png"
+       "img": "/img/productos/helados/19-helado-paletti-gourmet-menta-chocolate-x.webp"
       },
       {
        "name": "Helado Paletti Gourmet Cookies & Cream x 85 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69824252ccc20_1.png"
+       "img": "/img/productos/helados/20-helado-paletti-gourmet-cookies-cream-x-8.webp"
       },
       {
        "name": "Helado Paletti Gourmet Coco- Manjar x 120 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69824332e0198_6.png"
+       "img": "/img/productos/helados/21-helado-paletti-gourmet-coco-manjar-x-120.webp"
       },
       {
        "name": "Helado Paletti Gourmet Chocolate Bitter x 75 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6982430a1bf9d_3.png"
+       "img": "/img/productos/helados/22-helado-paletti-gourmet-chocolate-bitter-.webp"
       },
       {
        "name": "Helado Paletti Gourmet Queso Helado x 75 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6982431c11217_4.png"
+       "img": "/img/productos/helados/23-helado-paletti-gourmet-queso-helado-x-75.webp"
       },
       {
        "name": "Helado Paletti Gourmet Vainilla Con Chocolate Crocante x 90 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/698242e3a9971_2.png"
+       "img": "/img/productos/helados/24-helado-paletti-gourmet-vainilla-con-choc.webp"
       },
       {
        "name": "Helado Paletti Gourmet Fresa - Mango x 75 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/698243891371c_8.png"
+       "img": "/img/productos/helados/25-helado-paletti-gourmet-fresa-mango-x-75-.webp"
       },
       {
        "name": "Helado Paletti Gourmet Lúcuma - Chocolate x 110 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/698243a39a933_7.png"
+       "img": "/img/productos/helados/26-helado-paletti-gourmet-lucuma-chocolate-.webp"
       },
       {
        "name": "Helado Paletti Gourmet Doble Chocolate Con Almendras x 90 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6982446bbb62b_9.png"
+       "img": "/img/productos/helados/27-helado-paletti-gourmet-doble-chocolate-c.webp"
       },
       {
        "name": "Helado Paletti Gourmet Lúcuma Light x 75 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/698243b7c496a_11.png"
+       "img": "/img/productos/helados/28-helado-paletti-gourmet-lucuma-light-x-75.webp"
       },
       {
        "name": "Helado Paletti Gourmet Chocolate Light x 75 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/698243ca2928a_10.png"
+       "img": "/img/productos/helados/29-helado-paletti-gourmet-chocolate-light-x.webp"
       }
      ]
     }
@@ -1340,7 +1340,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Chocolates",
    "emoji": "🍫",
    "hero": "Disfruta de un Buen Chocolate sin Culpa",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b1ce84e6fbe_ReelChocolate.mp4",
+   "video": "/img/videos/chocolates-importados.mp4",
    "sections": [
     {
      "title": "Chocolates Importados",
@@ -1348,232 +1348,232 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Chocolate Ferrero Rocher x 12 unidades",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef3d18444f_7.png"
+       "img": "/img/productos/chocolates-importados/01-chocolate-ferrero-rocher-x-12-unidades.webp"
       },
       {
        "name": "Chocolate Ferrero Rocher x 8 unidades",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef3e79e4d1_8.png"
+       "img": "/img/productos/chocolates-importados/02-chocolate-ferrero-rocher-x-8-unidades.webp"
       },
       {
        "name": "Chocolate Ferrero Rocher x 4 unidades",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef41f0c296_9.png"
+       "img": "/img/productos/chocolates-importados/03-chocolate-ferrero-rocher-x-4-unidades.webp"
       },
       {
        "name": "Chocolate Baci Original Dark 175 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef605b09a8_35.png"
+       "img": "/img/productos/chocolates-importados/04-chocolate-baci-original-dark-175-gr.webp"
       },
       {
        "name": "Chocolate Baci Original Dark 125 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef5eebee3b_34.png"
+       "img": "/img/productos/chocolates-importados/05-chocolate-baci-original-dark-125-gr.webp"
       },
       {
        "name": "Chocolate Baci Milk x 175 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef5e05dea7_33.png"
+       "img": "/img/productos/chocolates-importados/06-chocolate-baci-milk-x-175-gr.webp"
       },
       {
        "name": "Chocolate M&N Peanut Butter x 46.2 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768b840594b_1.png"
+       "img": "/img/productos/chocolates-importados/07-chocolate-m-n-peanut-butter-x-46-2-gr.webp"
       },
       {
        "name": "M&N Milk Chocolate x 47.9 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768bddeb149_2.png"
+       "img": "/img/productos/chocolates-importados/08-m-n-milk-chocolate-x-47-9-gr.webp"
       },
       {
        "name": "Chocolate M&N Peanut x 49.3 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768c5a068f9_3.png"
+       "img": "/img/productos/chocolates-importados/09-chocolate-m-n-peanut-x-49-3-gr.webp"
       },
       {
        "name": "Hershey's Cookies & Cream x 43 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768c9981f12_7.png"
+       "img": "/img/productos/chocolates-importados/10-hershey-s-cookies-cream-x-43-gr.webp"
       },
       {
        "name": "Hershey's Almond x 41 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768ccc1125a_8.png"
+       "img": "/img/productos/chocolates-importados/11-hershey-s-almond-x-41-gr.webp"
       },
       {
        "name": "Hershey's Milk Chocolate x 43 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768cdeb9462_9.png"
+       "img": "/img/productos/chocolates-importados/12-hershey-s-milk-chocolate-x-43-gr.webp"
       },
       {
        "name": "Chocolate Milky Way Dark Caramel x 41 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69793acab13f1_10.png"
+       "img": "/img/productos/chocolates-importados/13-chocolate-milky-way-dark-caramel-x-41-gr.webp"
       },
       {
        "name": "Chocolate Con Leche Crunch x 43.9 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d04af4ad_11.png"
+       "img": "/img/productos/chocolates-importados/14-chocolate-con-leche-crunch-x-43-9-gr.webp"
       },
       {
        "name": "Chocolate Reese's x 42 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d14bc7cd_12.png"
+       "img": "/img/productos/chocolates-importados/15-chocolate-reese-s-x-42-gr.webp"
       },
       {
        "name": "Chocolate Turtles x 50 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d2329118_13.png"
+       "img": "/img/productos/chocolates-importados/16-chocolate-turtles-x-50-gr.webp"
       },
       {
        "name": "Barra de Chocolate Twix x 50 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d33e96ed_14.png"
+       "img": "/img/productos/chocolates-importados/17-barra-de-chocolate-twix-x-50-gr.webp"
       },
       {
        "name": "Snickers Barra de Chocolate con Caramelo y Almendra x 50 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d454052b_15.png"
+       "img": "/img/productos/chocolates-importados/18-snickers-barra-de-chocolate-con-caramelo.webp"
       },
       {
        "name": "Snickers Barra de Chocolate con Caramelo Peanut Butter x 50 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d5444431_16.png"
+       "img": "/img/productos/chocolates-importados/19-snickers-barra-de-chocolate-con-caramelo.webp"
       },
       {
        "name": "Snickers Barra de Chocolate con Caramelo y Maní x 52.7 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d6104a2e_17.png"
+       "img": "/img/productos/chocolates-importados/20-snickers-barra-de-chocolate-con-caramelo.webp"
       },
       {
        "name": "Kit Kat Wafer Crocante x 41.5 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d73502c5_18.png"
+       "img": "/img/productos/chocolates-importados/21-kit-kat-wafer-crocante-x-41-5-gr.webp"
       },
       {
        "name": "Kit Kat Wafer Crocante Chocolate Blanco x 41.5 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69790c1cd376a_CopiadePiezasWeb1.png"
+       "img": "/img/productos/chocolates-importados/22-kit-kat-wafer-crocante-chocolate-blanco-.webp"
       },
       {
        "name": "Chocolate Tony's Chocolonely Almendra y Miel x 180 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/69768d9e129e6_23.png"
+       "img": "/img/productos/chocolates-importados/23-chocolate-tony-s-chocolonely-almendra-y-.webp"
       },
       {
        "name": "Lindt Chocolate y Leche x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977d88b863b9_24.png"
+       "img": "/img/productos/chocolates-importados/24-lindt-chocolate-y-leche-x-100-gr.webp"
       },
       {
        "name": "Lindt Chocolate con Leche y Avellanas x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977d8a1438ee_25.png"
+       "img": "/img/productos/chocolates-importados/25-lindt-chocolate-con-leche-y-avellanas-x-.webp"
       },
       {
        "name": "Milka Oreo Chocolate con Leche 100% de los Alpes x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977d8b449899_26.png"
+       "img": "/img/productos/chocolates-importados/26-milka-oreo-chocolate-con-leche-100-de-lo.webp"
       },
       {
        "name": "Milka Chips Ahoy Chocolate con Leche 100% de los Alpes x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977d8c7ed538_27.png"
+       "img": "/img/productos/chocolates-importados/27-milka-chips-ahoy-chocolate-con-leche-100.webp"
       },
       {
        "name": "Toblerone Chocolate Suizo con Leche, Miel y Turrón de Almendra x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977d8df5b3e7_28.png"
+       "img": "/img/productos/chocolates-importados/28-toblerone-chocolate-suizo-con-leche-miel.webp"
       },
       {
        "name": "Toblerone Chocolate Suizo con Leche, Miel y Turrón de Almendra x 50 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/697913aac99eb_CopiadePiezasWeb2.png"
+       "img": "/img/productos/chocolates-importados/29-toblerone-chocolate-suizo-con-leche-miel.webp"
       },
       {
        "name": "Toblerone Chocolate Suizo con Leche, Miel y Turrón de Almendra x 35 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977d906c9481_31.png"
+       "img": "/img/productos/chocolates-importados/30-toblerone-chocolate-suizo-con-leche-miel.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Almendras Enteras x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977db573c907_35.png"
+       "img": "/img/productos/chocolates-importados/31-chocolate-ritter-sport-con-almendras-ent.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Avellanas Enteras x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977db67aae44_36.png"
+       "img": "/img/productos/chocolates-importados/32-chocolate-ritter-sport-con-avellanas-ent.webp"
       },
       {
        "name": "Chocolate Blanco Ritter Sport Con Avellanas Enteras x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e41231af6_37.png"
+       "img": "/img/productos/chocolates-importados/33-chocolate-blanco-ritter-sport-con-avella.webp"
       },
       {
        "name": "Chocolate Ritter Sport Semi Amargo Con Avellanas Enteras x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e42192f21_38.png"
+       "img": "/img/productos/chocolates-importados/34-chocolate-ritter-sport-semi-amargo-con-a.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Avellanas Y Pasas x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e43930d79_39.png"
+       "img": "/img/productos/chocolates-importados/35-chocolate-ritter-sport-con-avellanas-y-p.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Mazapán x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e44d5d47c_40.png"
+       "img": "/img/productos/chocolates-importados/36-chocolate-ritter-sport-con-mazapan-x-100.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Galleta x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e45d4f3e8_41.png"
+       "img": "/img/productos/chocolates-importados/37-chocolate-ritter-sport-con-galleta-x-100.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Praliné x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e46e464ab_42.png"
+       "img": "/img/productos/chocolates-importados/38-chocolate-ritter-sport-con-praline-x-100.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Leche De Los Alpes x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e4854f488_43.png"
+       "img": "/img/productos/chocolates-importados/39-chocolate-ritter-sport-con-leche-de-los-.webp"
       },
       {
        "name": "Chocolate Ritter Sport Con Cornflakes x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e493b151d_44.png"
+       "img": "/img/productos/chocolates-importados/40-chocolate-ritter-sport-con-cornflakes-x-.webp"
       },
       {
        "name": "Chocolate Ritter Sport Fino Con Leche x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e4a95960c_45.png"
+       "img": "/img/productos/chocolates-importados/41-chocolate-ritter-sport-fino-con-leche-x-.webp"
       },
       {
        "name": "Chocolate Ritter Sport Semi Amargo x 100 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e4b9bb335_46.png"
+       "img": "/img/productos/chocolates-importados/42-chocolate-ritter-sport-semi-amargo-x-100.webp"
       },
       {
        "name": "The Belgian Chocolate Seashells x 250 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef361388a3_3.png"
+       "img": "/img/productos/chocolates-importados/43-the-belgian-chocolate-seashells-x-250-gr.webp"
       },
       {
        "name": "The Belgian Chocolate Seashells x 65 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef5502fdbe_27.png"
+       "img": "/img/productos/chocolates-importados/44-the-belgian-chocolate-seashells-x-65-gr.webp"
       },
       {
        "name": "The Belgian Chocolate Hearts x 65 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef560cef38_28.png"
+       "img": "/img/productos/chocolates-importados/45-the-belgian-chocolate-hearts-x-65-gr.webp"
       },
       {
        "name": "Lindt Lindor Bombones Relleno Cremoso x 200 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef3bf918c1_6.png"
+       "img": "/img/productos/chocolates-importados/46-lindt-lindor-bombones-relleno-cremoso-x-.webp"
       }
      ]
     }
@@ -1584,7 +1584,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Dulces",
    "emoji": "🍬",
    "hero": "Endúlzate",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/6a1e19f4eef814.13273085_DulcesArakaki.mp4",
+   "video": "/img/videos/dulces.mp4",
    "sections": [
     {
      "title": "Dulces Importados y Nacionales",
@@ -1592,52 +1592,52 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Cavendish & Harvey Real Juice Sour Cherry x 200 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef68c23d3f_41.png"
+       "img": "/img/productos/dulces/01-cavendish-harvey-real-juice-sour-cherry-.webp"
       },
       {
        "name": "Cavendish & Harvey Real Juice Coffee Deluxe x 175 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef65f53c89_40.png"
+       "img": "/img/productos/dulces/02-cavendish-harvey-real-juice-coffee-delux.webp"
       },
       {
        "name": "Cavendish & Harvey Real Juice Mixed Fruit x 200 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef69bd026e_42.png"
+       "img": "/img/productos/dulces/03-cavendish-harvey-real-juice-mixed-fruit-.webp"
       },
       {
        "name": "Cavendish & Harvey Real Juice Wild Berry x 175 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef6405d980_38.png"
+       "img": "/img/productos/dulces/04-cavendish-harvey-real-juice-wild-berry-x.webp"
       },
       {
        "name": "Cavendish & Harvey Real Citrus Fruit x 200 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef64f1d165_39.png"
+       "img": "/img/productos/dulces/05-cavendish-harvey-real-citrus-fruit-x-200.webp"
       },
       {
        "name": "Cavendish & Harvey Real Juice Tropical Fruit x 200 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef632745d5_37.png"
+       "img": "/img/productos/dulces/06-cavendish-harvey-real-juice-tropical-fru.webp"
       },
       {
        "name": "Cavendish & Harvey Real Juice Berry Selection x 300 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/696ef6195209a_36.png"
+       "img": "/img/productos/dulces/07-cavendish-harvey-real-juice-berry-select.webp"
       },
       {
        "name": "Skittles Caramelos Sour Masticables x 61.5 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e51db0643_4.png"
+       "img": "/img/productos/dulces/08-skittles-caramelos-sour-masticables-x-61.webp"
       },
       {
        "name": "Skittles Caramelos Masticables Original x 61.5 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e549b105e_5.png"
+       "img": "/img/productos/dulces/09-skittles-caramelos-masticables-original-.webp"
       },
       {
        "name": "Skittles Caramelos Wild Berry Masticables x 61.5 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6977e5582b1d8_6.png"
+       "img": "/img/productos/dulces/10-skittles-caramelos-wild-berry-masticable.webp"
       }
      ]
     }
@@ -1648,7 +1648,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Galletas, Snacks y más",
    "emoji": "🍪",
    "hero": "Disfruta de una Buena Galleta o Snack sin Culpa",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b8a5151864a7.63699919_ReelGalletasySnacks.mp4",
+   "video": "/img/videos/galletas.mp4",
    "sections": [
     {
      "title": "Galletas, Snacks y más",
@@ -1656,92 +1656,92 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Galleta Giselle Cachitos de Almendra x 420 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89a94ad3046.68051320_12.png"
+       "img": "/img/productos/galletas/01-galleta-giselle-cachitos-de-almendra-x-4.webp"
       },
       {
        "name": "Galleta Giselle Surtidas x 420 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89ab3f0c613.95949476_10.png"
+       "img": "/img/productos/galletas/02-galleta-giselle-surtidas-x-420-gr.webp"
       },
       {
        "name": "Galleta Giselle Lengua de Gato x 320 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89ac9dade03.79963509_11.png"
+       "img": "/img/productos/galletas/03-galleta-giselle-lengua-de-gato-x-320-gr.webp"
       },
       {
        "name": "Galletas Paciencia Sra. Buendía x 150 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89b37bc3a75.84866818_2.png"
+       "img": "/img/productos/galletas/04-galletas-paciencia-sra-buendia-x-150-gr.webp"
       },
       {
        "name": "Galletas Crocantes Trenzada de Ica x 200 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89b80f12e78.41012482_3.png"
+       "img": "/img/productos/galletas/05-galletas-crocantes-trenzada-de-ica-x-200.webp"
       },
       {
        "name": "Galletas Crocantes Besitos de Ica x 140 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89bf2d3e8c0.09756451_4.png"
+       "img": "/img/productos/galletas/06-galletas-crocantes-besitos-de-ica-x-140-.webp"
       },
       {
        "name": "Kamish - Galleta con Mermelada de Fresa x 80 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89e2871f7d5.61284665_5.png"
+       "img": "/img/productos/galletas/07-kamish-galleta-con-mermelada-de-fresa-x-.webp"
       },
       {
        "name": "Kamish - Galleta con Mermelada de Fresa x 230 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89e46a4e265.62281465_6.png"
+       "img": "/img/productos/galletas/08-kamish-galleta-con-mermelada-de-fresa-x-.webp"
       },
       {
        "name": "Galleta con Higo Edith x 230 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89e603e1408.06430974_7.png"
+       "img": "/img/productos/galletas/09-galleta-con-higo-edith-x-230-gr.webp"
       },
       {
        "name": "No Convido Chips Crocantes de Yuca con Albahaca x 140 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89e8f950ca2.87140287_8.png"
+       "img": "/img/productos/galletas/10-no-convido-chips-crocantes-de-yuca-con-a.webp"
       },
       {
        "name": "No Convido Chips Crocantes de Yuca con x 140 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89ea0198bc0.32083366_9.png"
+       "img": "/img/productos/galletas/11-no-convido-chips-crocantes-de-yuca-con-x.webp"
       },
       {
        "name": "Galletas Tejanas Sayon x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89ebb5d20b0.04833030_13.png"
+       "img": "/img/productos/galletas/12-galletas-tejanas-sayon-x-400-gr.webp"
       },
       {
        "name": "Galletas Marini Italianas con Almendra Cantuccini x 200 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89ee44abbf4.62633044_17.png"
+       "img": "/img/productos/galletas/13-galletas-marini-italianas-con-almendra-c.webp"
       },
       {
        "name": "Galletas Belli Italianas con Almendra Cantuccini x 250 gr",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89ef77f8b19.09141295_16.png"
+       "img": "/img/productos/galletas/14-galletas-belli-italianas-con-almendra-ca.webp"
       },
       {
        "name": "Chips Crocantes de Arroz Sin Gluten, No Frito x 100 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89f0c7efd88.97732836_15.png"
+       "img": "/img/productos/galletas/15-chips-crocantes-de-arroz-sin-gluten-no-f.webp"
       },
       {
        "name": "Rolls Crocantes Rellenos de Crema de Avellana x 100 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89f299fe7d7.87428504_14.png"
+       "img": "/img/productos/galletas/16-rolls-crocantes-rellenos-de-crema-de-ave.webp"
       },
       {
        "name": "Turrón Español con Almendra La Confitería de La Viuda x 150 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89f44ed6f43.80639069_19.png"
+       "img": "/img/productos/galletas/17-turron-espanol-con-almendra-la-confiteri.webp"
       },
       {
        "name": "Turrón Español con Almendra El Almendro x 150 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b89f55e308a2.96557309_18.png"
+       "img": "/img/productos/galletas/18-turron-espanol-con-almendra-el-almendro-.webp"
       }
      ]
     }
@@ -1752,7 +1752,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Desayuno Escolar",
    "emoji": "🎒",
    "hero": "Arma tu Lonchera y te la Llevamos a Casa",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8c76e63224_Delivery.mp4",
+   "video": "/img/videos/backtoschool.mp4",
    "sections": [
     {
      "title": "Productos Esenciales Para el Cole",
@@ -1760,227 +1760,227 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "Cheerios",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d4520a013_40.png"
+       "img": "/img/productos/backtoschool/01-cheerios.webp"
       },
       {
        "name": "Cinnamon Toast Crunch",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d5046f1ed_39.png"
+       "img": "/img/productos/backtoschool/02-cinnamon-toast-crunch.webp"
       },
       {
        "name": "Müsli Arándanos",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d548dc605_32.png"
+       "img": "/img/productos/backtoschool/03-musli-arandanos.webp"
       },
       {
        "name": "Müsli Manzana",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d6e1d4e62_33.png"
+       "img": "/img/productos/backtoschool/04-musli-manzana.webp"
       },
       {
        "name": "Nestle Fitness",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d705b77c0_36.png"
+       "img": "/img/productos/backtoschool/05-nestle-fitness.webp"
       },
       {
        "name": "Nestle Cornflakes Sin Gluten",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d72d2eb67_41.png"
+       "img": "/img/productos/backtoschool/06-nestle-cornflakes-sin-gluten.webp"
       },
       {
        "name": "Kellogg's Zucaritas",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d4ddea19d_35.png"
+       "img": "/img/productos/backtoschool/07-kellogg-s-zucaritas.webp"
       },
       {
        "name": "Kellogg's Froot Loops",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d4c25a044_34.png"
+       "img": "/img/productos/backtoschool/08-kellogg-s-froot-loops.webp"
       },
       {
        "name": "Kellogg's Choco Krispis",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d7ce41797_37.png"
+       "img": "/img/productos/backtoschool/09-kellogg-s-choco-krispis.webp"
       },
       {
        "name": "Chocapic de Nestle",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d7ecd0f87_38.png"
+       "img": "/img/productos/backtoschool/10-chocapic-de-nestle.webp"
       },
       {
        "name": "Granola Unión con Granos Andinos",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d83c0f0cd_3.png"
+       "img": "/img/productos/backtoschool/11-granola-union-con-granos-andinos.webp"
       },
       {
        "name": "Granola Unión con Miel de Abeja",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d85e71ad6_1.png"
+       "img": "/img/productos/backtoschool/12-granola-union-con-miel-de-abeja.webp"
       },
       {
        "name": "Granola Unión con Pasas y Almendras",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d87ce46d5_2.png"
+       "img": "/img/productos/backtoschool/13-granola-union-con-pasas-y-almendras.webp"
       },
       {
        "name": "Barra de Cereal con Proteína - Peanut, Almonds - Dark Chocolate",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d8a97653f_6.png"
+       "img": "/img/productos/backtoschool/14-barra-de-cereal-con-proteina-peanut-almo.webp"
       },
       {
        "name": "Barra de Cereal Roasted Almond",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d8eeda421_4.png"
+       "img": "/img/productos/backtoschool/15-barra-de-cereal-roasted-almond.webp"
       },
       {
        "name": "Barra de cereal Fruit & Nut",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d96b8d2c3_5.png"
+       "img": "/img/productos/backtoschool/16-barra-de-cereal-fruit-nut.webp"
       },
       {
        "name": "Pan Vital Masa Madre Linaza y Chía",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d9aca0a0e_9.png"
+       "img": "/img/productos/backtoschool/17-pan-vital-masa-madre-linaza-y-chia.webp"
       },
       {
        "name": "Pan Vital Masa Madre Avena y Girasol",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8d9e72d7f1_8.png"
+       "img": "/img/productos/backtoschool/18-pan-vital-masa-madre-avena-y-girasol.webp"
       },
       {
        "name": "Pan Vital Masa Madre Mix de Quinuas",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8da0dbac07_7.png"
+       "img": "/img/productos/backtoschool/19-pan-vital-masa-madre-mix-de-quinuas.webp"
       },
       {
        "name": "Pan Don Mamino Sin Corteza Blanco - Integral",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8da38accc3_11.png"
+       "img": "/img/productos/backtoschool/20-pan-don-mamino-sin-corteza-blanco-integr.webp"
       },
       {
        "name": "Tostadas Salmas",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69a8da66d6005_13.png"
+       "img": "/img/productos/backtoschool/21-tostadas-salmas.webp"
       },
       {
        "name": "Queso Edam Laive",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0a3c0af2e_14.png"
+       "img": "/img/productos/backtoschool/22-queso-edam-laive.webp"
       },
       {
        "name": "Queso Gouda Braedt",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0a6896062_15.png"
+       "img": "/img/productos/backtoschool/23-queso-gouda-braedt.webp"
       },
       {
        "name": "Queso Edam Braedt",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0a8855870_16.png"
+       "img": "/img/productos/backtoschool/24-queso-edam-braedt.webp"
       },
       {
        "name": "Queso Edam President",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0abb5fbc7_17.png"
+       "img": "/img/productos/backtoschool/25-queso-edam-president.webp"
       },
       {
        "name": "Queso Maasdam President",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0ad15b343_18.png"
+       "img": "/img/productos/backtoschool/26-queso-maasdam-president.webp"
       },
       {
        "name": "Queso Gouda President",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0af0d3be4_19.png"
+       "img": "/img/productos/backtoschool/27-queso-gouda-president.webp"
       },
       {
        "name": "Jamón Otto Kunz Inglés",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0b1204b25_20.png"
+       "img": "/img/productos/backtoschool/28-jamon-otto-kunz-ingles.webp"
       },
       {
        "name": "Jamón Inglés Casa Europa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0b39ac25f_22.png"
+       "img": "/img/productos/backtoschool/29-jamon-ingles-casa-europa.webp"
       },
       {
        "name": "Jamón del País Casa Europa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0b6448d6a_23.png"
+       "img": "/img/productos/backtoschool/30-jamon-del-pais-casa-europa.webp"
       },
       {
        "name": "Jamón Crocante Casa Europa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0c5b1e804_24.png"
+       "img": "/img/productos/backtoschool/31-jamon-crocante-casa-europa.webp"
       },
       {
        "name": "Jamón Artesano Casa Europa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0ca2c25a6_21.png"
+       "img": "/img/productos/backtoschool/32-jamon-artesano-casa-europa.webp"
       },
       {
        "name": "Tocino Ahumado Casa Europa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0cd29081a_25.png"
+       "img": "/img/productos/backtoschool/33-tocino-ahumado-casa-europa.webp"
       },
       {
        "name": "Jugo de Aloe Vera",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0d45c3e0e_31.png"
+       "img": "/img/productos/backtoschool/34-jugo-de-aloe-vera.webp"
       },
       {
        "name": "Jugo Kero Exotic Fruits",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0d69613fe_26.png"
+       "img": "/img/productos/backtoschool/35-jugo-kero-exotic-fruits.webp"
       },
       {
        "name": "Chicha Morada Naturale",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0dc56d277_27.png"
+       "img": "/img/productos/backtoschool/36-chicha-morada-naturale.webp"
       },
       {
        "name": "Jugo Selva Durazno",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0deb471f7_28.png"
+       "img": "/img/productos/backtoschool/37-jugo-selva-durazno.webp"
       },
       {
        "name": "Jugo Selva Piña",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0e0edd2ea_29.png"
+       "img": "/img/productos/backtoschool/38-jugo-selva-pina.webp"
       },
       {
        "name": "Jugo Selva Naranja",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0e2db6009_30.png"
+       "img": "/img/productos/backtoschool/39-jugo-selva-naranja.webp"
       },
       {
        "name": "Shake Capuccino Gloria",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0e598f5cd_46.png"
+       "img": "/img/productos/backtoschool/40-shake-capuccino-gloria.webp"
       },
       {
        "name": "Bebida con Proteínas Caramel Macchito sin Lactosa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0e7d0bafa_45.png"
+       "img": "/img/productos/backtoschool/41-bebida-con-proteinas-caramel-macchito-si.webp"
       },
       {
        "name": "Shake Mocaccino Gloria",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0ef7a2775_47.png"
+       "img": "/img/productos/backtoschool/42-shake-mocaccino-gloria.webp"
       },
       {
        "name": "Yofresh Gloria de Fresa",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0f479a741_44.png"
+       "img": "/img/productos/backtoschool/43-yofresh-gloria-de-fresa.webp"
       },
       {
        "name": "Yofresh Gloria de Lúcuma",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0f57ddd96_42.png"
+       "img": "/img/productos/backtoschool/44-yofresh-gloria-de-lucuma.webp"
       },
       {
        "name": "Yofresh Gloria de Vainilla",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69aa0f6609d5b_43.png"
+       "img": "/img/productos/backtoschool/45-yofresh-gloria-de-vainilla.webp"
       }
      ]
     }
@@ -1991,7 +1991,7 @@ window.ARAKAKI_CATALOG = {
    "title": "Frutas y Vegetales",
    "emoji": "🥦",
    "hero": "Come Bien sin Perder Tiempo",
-   "video": "https://d1yei2z3i6k35z.cloudfront.net/13036429/69b1d0ba10e9d_ReelsCortosWeb.mp4",
+   "video": "/img/videos/frutas-y-vegetales.mp4",
    "sections": [
     {
      "title": "FRUTAS Y VEGETALES",
@@ -1999,47 +1999,47 @@ window.ARAKAKI_CATALOG = {
       {
        "name": "El Frutero Mix Selecto Fresa, Papaya y Piña x 1 kg.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6984f12c0f67e_3.png"
+       "img": "/img/productos/frutas-y-vegetales/01-el-frutero-mix-selecto-fresa-papaya-y-pi.webp"
       },
       {
        "name": "Green Food - Frambuesas Enteras Premium x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6984f7ce69568_5.png"
+       "img": "/img/productos/frutas-y-vegetales/02-green-food-frambuesas-enteras-premium-x-.webp"
       },
       {
        "name": "Green Food - Frutas del Bosque premium x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6984f7ba2f49c_4.png"
+       "img": "/img/productos/frutas-y-vegetales/03-green-food-frutas-del-bosque-premium-x-4.webp"
       },
       {
        "name": "Green Food - Espinaca Finamente Picada Premium x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6984f7f4720fb_7.png"
+       "img": "/img/productos/frutas-y-vegetales/04-green-food-espinaca-finamente-picada-pre.webp"
       },
       {
        "name": "Green Food - Papa Recta Lista para Freir x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6984f81ed6e33_8.png"
+       "img": "/img/productos/frutas-y-vegetales/05-green-food-papa-recta-lista-para-freir-x.webp"
       },
       {
        "name": "Green Food - Arverja Precosida Premium x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/5071434/6984f82e97e0b_9.png"
+       "img": "/img/productos/frutas-y-vegetales/06-green-food-arverja-precosida-premium-x-4.webp"
       },
       {
        "name": "Green Food - Mix para Ensalada Rusa x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699395ae06802_10.png"
+       "img": "/img/productos/frutas-y-vegetales/07-green-food-mix-para-ensalada-rusa-x-400-.webp"
       },
       {
        "name": "Green Food - Zanahoria Precocida en Cubos x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699395d8179af_2.png"
+       "img": "/img/productos/frutas-y-vegetales/08-green-food-zanahoria-precocida-en-cubos-.webp"
       },
       {
        "name": "Green Food - Choclo Precocido en Grano x 400 gr.",
        "price": null,
-       "img": "https://d1yei2z3i6k35z.cloudfront.net/13036429/699395f2a1594_4.png"
+       "img": "/img/productos/frutas-y-vegetales/09-green-food-choclo-precocido-en-grano-x-4.webp"
       }
      ]
     }

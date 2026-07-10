@@ -2,12 +2,12 @@
 (function () {
   var WA = '51977737199'; // WhatsApp del minimarket
   var TELS = ['012218582', '977737199', '960725996', '964295436', '933477179'];
-  var LOGO = 'https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png';
-  var LOGO_BLANCO = 'https://d1yei2z3i6k35z.cloudfront.net/5071434/695182c3257c7_Dise%C3%B1osint%C3%ADtulo8.png'; // logo horizontal blanco del header
+  var LOGO = '/img/logo-arakaki.webp';
+  var LOGO_BLANCO = '/img/logo-gato.png'; // logo horizontal blanco del header (gato de la suerte)
   var REDES = {
-    facebook: { url: 'https://www.facebook.com/minimarketarakaki1', img: 'https://d1yei2z3i6k35z.cloudfront.net/13036429/684c4368e84b1_Facebook.png' },
-    instagram: { url: 'https://www.instagram.com/arakakiminimarket', img: 'https://d1yei2z3i6k35z.cloudfront.net/13036429/684c437a7064a_Instagram.png' },
-    youtube: { url: 'https://www.youtube.com/@arakakiminimarket', img: 'https://d1yei2z3i6k35z.cloudfront.net/13036429/684c43875cfee_Youtube.png' },
+    facebook: { url: 'https://www.facebook.com/minimarketarakaki1', img: '/img/redes/facebook.png' },
+    instagram: { url: 'https://www.instagram.com/arakakiminimarket', img: '/img/redes/instagram.png' },
+    youtube: { url: 'https://www.youtube.com/@arakakiminimarket', img: '/img/redes/youtube.png' },
   };
   var MENU = [
     { grupo: 'Inicio', items: [{ href: '/', txt: '🏠 Página principal' }] },

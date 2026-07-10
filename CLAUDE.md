@@ -7,14 +7,14 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 - **Vercel serverless** + Node **CommonJS**. SIN package.json, SIN build, SIN dependencias. `fetch` global.
 - BD = **Upstash Redis** vía REST (helper `redis(cmd)` duplicado en cada api/*.js).
 - Frontend = HTML sueltos. Las 20 páginas de categoría son shells que renderizan desde `data/catalog.js` con `assets/site.js`.
-- `vercel.json`: cleanUrls, maxDuration 30 para whatsapp.js.
+- `vercel.json`: cleanUrls, maxDuration 30 para whatsapp.js, headers de caché (7d para /img, 5min+SWR para /assets y /data).
 - **Deploy = `git push` a main** (repo GitHub conectado a Vercel).
-- WhatsApp del negocio: **51977737199**. Imágenes/videos hotlinkeados al CloudFront de Systeme.io (migrar después si se cancela Systeme).
+- WhatsApp del negocio: **51977737199**. Imágenes y videos YA MIGRADOS al repo (jul 2026): fotos de producto en `img/productos/<slug>/` (WebP ≤640px q80), videos en `img/videos/` (540p H.264 sin audio), beneficios/logo/redes en `img/`. Cero dependencia del CloudFront de Systeme (las URLs cloudfront que quedan en catalog-fuente.json son elementos que el build descarta).
 
 ## Archivos
 | Archivo | Qué es |
 |---|---|
-| `index.html` | Home: preloader, portada (fachada `img/fachada-principal.jpg` + video en círculo + botón que abre el POPUP del mapa), cinta marquee, tarjetas de categorías con imágenes rotando, beneficios, form Club Arakaki (→ /api/pedido registro). POPUP Fiestas Patrias: 1 vez/día (localStorage `arakaki_fp_dia`), SOLO en julio, video Machu Picchu + countdown al 28 jul |
+| `index.html` | Home: preloader, portada (fachada `img/fachada-principal.webp` + video en círculo + botón que abre el POPUP del mapa), cinta marquee, tarjetas de categorías con imágenes rotando, beneficios, form Club Arakaki (→ /api/pedido registro). POPUP Fiestas Patrias: 1 vez/día (localStorage `arakaki_fp_dia`), SOLO en julio, video Machu Picchu + countdown al 28 jul |
 | `<categoria>.html` ×20 | Shells generados por `tools/build-pages.js`. Llaman `renderCategoria('<slug>')` |
 | `assets/site.css` | Estilos de todo el sitio público (marca: rojo #7c0f14, negro #262626, Montserrat/Poppins) |
 | `assets/site.js` | Preloader, header/menú/footer inyectados, carrito (localStorage `arakaki_carrito`) → mensaje wa.me + POST /api/pedido, `renderCategoria()` |
@@ -22,7 +22,7 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 | `data/catalog-fuente.json` | Datos extraídos del sitio original (fuente de verdad para regenerar) |
 | `tools/build-catalog.js` | catalog-fuente.json → data/catalog.js |
 | `tools/build-pages.js` | Genera las 20 páginas de categoría |
-| `tools/dev-server.js` | Preview local con cleanUrls (puerto 3210); /api/* responde stub |
+| `tools/dev-server.js` | Preview local con cleanUrls (`node tools/dev-server.js [puerto]`, def. 3210); /api/* responde stub |
 | `panel.html` | CRM del dueño (pass = ARAKAKI_ADMIN_PASS): 💬 Chats, 🛒 Pedidos, 👥 Club, 📊 Analíticas, ⚙️ Bot (prompt editable + avisos + respuestas rápidas) |
 | `track.js` | Mini analítica (pageview + clicks) → /api/track |
 | `api/whatsapp.js` | Webhook Meta (GET verify, POST). Idempotencia msg.id → guarda lead → autoStatus → notifica dueño → si paused NO responde → bot Claude (getPrompt de Redis) |
@@ -48,7 +48,7 @@ WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID / WHATSAPP_VERIFY_TOKEN · ANTHROPIC_A
 
 ## Recetas rápidas (hacer esto, sin explorar)
 - **Cambiar precio o producto** → Grep del nombre en `data/catalog-fuente.json` → editar → `node tools/build-catalog.js` → commit.
-- **Producto nuevo** → añadirlo al array de su página en catalog-fuente.json (`products` si la categoría tiene precios; el stream img+txt si no) → regenerar.
+- **Producto nuevo** → convertir su foto a WebP ≤640px (q80) y guardarla en `img/productos/<slug>/` → añadirlo al array de su página en catalog-fuente.json con `img` = ruta local (`products` si la categoría tiene precios; el stream img+txt si no) → regenerar. NO hotlinkear imágenes externas.
 - **Categoría nueva** → slug en `tools/build-pages.js` (PAGES) + `tools/build-catalog.js` (META) + `assets/site.js` (MENU) → correr ambos tools.
 - **Cambiar textos/estilo del sitio** → `assets/site.css` y `assets/site.js` (header/menú/footer/carrito se inyectan desde ahí, NO están en los HTML).
 - **Textos del bot de WhatsApp** → panel → ⚙️ Bot (Redis `config:prompt`); `api/_prompt.js` es solo el respaldo.

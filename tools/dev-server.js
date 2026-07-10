@@ -1,15 +1,16 @@
 // Servidor local para previsualizar el sitio (imita el cleanUrls de Vercel).
-// Correr con: node tools/dev-server.js  → http://localhost:3210
+// Correr con: node tools/dev-server.js [puerto]  → http://localhost:3210
 // Las rutas /api/* responden un stub {ok:true} (el backend real corre en Vercel).
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
 const RAIZ = path.join(__dirname, '..');
-const PUERTO = 3210;
+const PUERTO = +process.argv[2] || 3210;
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
+  '.webp': 'image/webp', '.mp4': 'video/mp4',
 };
 
 http.createServer((req, res) => {
