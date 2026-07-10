@@ -23,16 +23,18 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 | `tools/build-catalog.js` | catalog-fuente.json → data/catalog.js |
 | `tools/build-pages.js` | Genera las 20 páginas de categoría |
 | `tools/dev-server.js` | Preview local con cleanUrls (`node tools/dev-server.js [puerto]`, def. 3210); /api/* responde stub |
-| `panel.html` | CRM del dueño (pass = ARAKAKI_ADMIN_PASS): 💬 Chats, 🛒 Pedidos, 👥 Club, 📊 Analíticas, ⚙️ Bot (prompt editable + avisos + respuestas rápidas) |
+| `panel.html` | CRM del dueño (pass = ARAKAKI_ADMIN_PASS): 💬 Chats, 🛒 Pedidos, 💰 Precios (overrides en vivo), 👥 Club, 📊 Analíticas, ⚙️ Bot (prompt editable + avisos + respuestas rápidas). Carga /data/catalog.js para la tabla de precios |
 | `track.js` | Mini analítica (pageview + clicks) → /api/track |
-| `api/whatsapp.js` | Webhook Meta (GET verify, POST). Idempotencia msg.id → guarda lead → autoStatus → notifica dueño → si paused NO responde → bot Claude (getPrompt de Redis) |
-| `api/crm.js` | Backend del panel: list/get/send/status/rename/note/tags/pause/clearchat/delete/pedidos/pedidoestado/clientes/clientedel/stats/getprompt/setprompt/resetprompt/setnotify/gettemplates/settemplates |
+| `api/whatsapp.js` | Webhook Meta (GET verify, POST). Si escribe EL DUEÑO (config:ownerphone) → asistente ADMIN de precios (Claude + tools buscar/cambiar/quitar precio sobre config:precios; sin API key hay comando fijo `precio <prod> [monto]`). Resto: idempotencia msg.id → guarda lead → autoStatus → notifica dueño → si paused NO responde → bot Claude (getPrompt de Redis) |
+| `api/precios.js` | GET público: overrides de precios (config:precios) con caché CDN 60s. Lo consume site.js al renderizar categorías |
+| `api/_catalogo.js` | GENERADO por build-catalog: índice liviano [{c,n,p}] de productos para whatsapp.js/crm.js. No editar a mano |
+| `api/crm.js` | Backend del panel: list/get/send/status/rename/note/tags/pause/clearchat/delete/pedidos/pedidoestado/clientes/clientedel/stats/getprompt/setprompt/resetprompt/setnotify/gettemplates/settemplates/getprecios/setprecio |
 | `api/pedido.js` | SIN pass (solo escribe): action 'pedido' (carrito web → LPUSH pedidos) y 'registro' (Club → cliente:<tel>). Notifica al dueño por WhatsApp |
 | `api/track.js` | Suma contadores stat:* en Redis |
 | `api/_prompt.js` | DEFAULT_PROMPT del bot vendedor. ⚠️ El prompt VIVO está en Redis `config:prompt` (panel → ⚙️ Bot) |
 
 ## Claves Redis
-`lead:<phone>` {phone,name,status,paused,note,tags[],messages[≤300],lastMsgId} · `leads` ZSET · `pedidos` LIST (≤500, {id,nombre,direccion,items,total,pagina,ts,estado}) · `cliente:<tel>` {nombre,telefono,interes,club,creado} · `clientes` ZSET · `config:{prompt,templates,ownerphone,notify}` · `stat:*` (analítica)
+`lead:<phone>` {phone,name,status,paused,note,tags[],messages[≤300],lastMsgId} · `leads` ZSET · `pedidos` LIST (≤500, {id,nombre,direccion,items,total,pagina,ts,estado}) · `cliente:<tel>` {nombre,telefono,interes,club,creado} · `clientes` ZSET · `config:{prompt,templates,ownerphone,notify}` · `config:precios` JSON {"<slug>|<nombre exacto>": "85"} (overrides que PISAN los precios de catalog.js; los lee /api/precios) · `stat:*` (analítica)
 
 Estados de lead: nuevo → interesado → pedido → entregado (o descartado). autoStatus solo avanza.
 
@@ -47,7 +49,8 @@ WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID / WHATSAPP_VERIFY_TOKEN · ANTHROPIC_A
 - No usar Agent/subagentes aquí: el proyecto es chico, Grep+Read directo siempre alcanza.
 
 ## Recetas rápidas (hacer esto, sin explorar)
-- **Cambiar precio o producto** → Grep del nombre en `data/catalog-fuente.json` → editar → `node tools/build-catalog.js` → commit.
+- **Cambiar precio** → el dueño lo hace SOLO desde panel → 💰 Precios o por WhatsApp (override en Redis, sin deploy). En código: editar `data/catalog-fuente.json` → `node tools/build-catalog.js` → commit; OJO: un override en `config:precios` pisa lo que diga el catálogo (consolidar con `node tools/aplicar-precios.js [--borrar]`, necesita las env de Upstash).
+- **Cambiar producto (nombre/foto)** → Grep del nombre en `data/catalog-fuente.json` → editar → `node tools/build-catalog.js` → commit.
 - **Producto nuevo** → convertir su foto a WebP ≤640px (q80) y guardarla en `img/productos/<slug>/` → añadirlo al array de su página en catalog-fuente.json con `img` = ruta local (`products` si la categoría tiene precios; el stream img+txt si no) → regenerar. NO hotlinkear imágenes externas.
 - **Categoría nueva** → slug en `tools/build-pages.js` (PAGES) + `tools/build-catalog.js` (META) + `assets/site.js` (MENU) → correr ambos tools.
 - **Cambiar textos/estilo del sitio** → `assets/site.css` y `assets/site.js` (header/menú/footer/carrito se inyectan desde ahí, NO están en los HTML).

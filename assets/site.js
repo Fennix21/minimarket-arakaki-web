@@ -280,6 +280,22 @@
       })(cards[i]);
     }
     marcarProds();
+
+    // Precios "en vivo": los overrides (panel 💰 / WhatsApp del dueño) pisan los del catálogo.
+    // Si falla o responde el stub del dev-server, se quedan los precios base.
+    fetch('/api/precios').then(function (r) { return r.json(); }).then(function (data) {
+      if (!data || !data.p) return;
+      cat.sections.forEach(function (sec, si) {
+        sec.products.forEach(function (p, pi) {
+          var nuevo = data.p[slug + '|' + p.name];
+          if (nuevo === undefined || nuevo === p.price) return;
+          p.price = nuevo; // el carrito captura este objeto al elegir
+          var card = cont.querySelector('.prod[data-sec="' + si + '"][data-idx="' + pi + '"]');
+          var el = card && card.querySelector('.prod-precio');
+          if (el) { el.textContent = 'S/ ' + nuevo; el.removeAttribute('style'); }
+        });
+      });
+    }).catch(function () {});
   };
 
   // ---------- Arranque ----------

@@ -11,8 +11,10 @@
 //   stats                     -> analítica del sitio
 //   getprompt / setprompt / resetprompt / setnotify
 //   gettemplates / settemplates -> respuestas rápidas
+//   getprecios / setprecio { clave, precio } -> precios en vivo (overrides sobre el catálogo)
 
 const { DEFAULT_PROMPT } = require('./_prompt');
+const { PRODUCTOS } = require('./_catalogo');
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -246,6 +248,34 @@ module.exports = async (req, res) => {
       await redis(['SET', 'config:ownerphone', ownerPhone]);
       await redis(['SET', 'config:notify', b.notify ? '1' : '0']);
       return res.status(200).json({ ok: true, ownerPhone });
+    }
+
+    // --- Precios en vivo (overrides sobre data/catalog.js; los lee /api/precios) ---
+    if (b.action === 'getprecios') {
+      const raw = await redis(['GET', 'config:precios']);
+      let p = {};
+      if (raw) { try { p = JSON.parse(raw); } catch (e) {} }
+      return res.status(200).json({ p });
+    }
+    if (b.action === 'setprecio') {
+      const clave = (b.clave || '').toString().slice(0, 200);
+      if (!PRODUCTOS.some((pr) => pr.c + '|' + pr.n === clave)) {
+        return res.status(400).json({ error: 'Producto no encontrado en el catálogo.' });
+      }
+      const raw = await redis(['GET', 'config:precios']);
+      let p = {};
+      if (raw) { try { p = JSON.parse(raw); } catch (e) {} }
+      const val = (b.precio === null || b.precio === undefined) ? '' : String(b.precio).replace(',', '.').trim();
+      if (val === '') {
+        delete p[clave]; // sin override -> vuelve el precio base del catálogo
+      } else {
+        if (!/^\d+(\.\d{1,2})?$/.test(val) || Number(val) <= 0) {
+          return res.status(400).json({ error: 'Precio inválido. Ejemplos: 85 o 85.50' });
+        }
+        p[clave] = String(Number(val));
+      }
+      await redis(['SET', 'config:precios', JSON.stringify(p)]);
+      return res.status(200).json({ ok: true, p });
     }
 
     // --- Analítica del sitio ---
