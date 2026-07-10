@@ -496,6 +496,7 @@
     }).join('');
     var multi = slides.length > 1;
     return '<div class="cat-carrusel" data-carrusel>' +
+      '<h3 class="cc-titulo">' + cat.title + '</h3>' +
       '<div class="cc-stage">' + caras +
         (multi ? '<button class="cc-arrow cc-prev" aria-label="Anterior">‹</button>' +
                  '<button class="cc-arrow cc-next" aria-label="Siguiente">›</button>' : '') +
