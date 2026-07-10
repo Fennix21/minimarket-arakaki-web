@@ -30,7 +30,7 @@ h1, h2, h3 { font-family: 'Poppins', 'Montserrat', sans-serif; }
   display: flex; align-items: center; gap: 14px;
   padding: 12px 26px; box-shadow: var(--sombra);
 }
-.cab img.logo { height: 62px; width: auto; }
+.cab img.logo { height: 74px; width: auto; }
 .cab .lema-cab { font-size: clamp(16px, 2.4vw, 26px); font-weight: 400; white-space: nowrap; }
 .cab .esp { flex: 1; }
 .btn-menu {
@@ -41,7 +41,7 @@ h1, h2, h3 { font-family: 'Poppins', 'Montserrat', sans-serif; }
 @media (max-width: 700px) {
   .cab { gap: 8px; padding: 8px 12px; }
   .cab .lema-cab { display: none; }
-  .cab img.logo { height: 46px; }
+  .cab img.logo { height: 55px; }
 }
 
 /* ---------- Menú lateral ---------- */
