@@ -15,7 +15,7 @@ const PAGES = {
   'frutas-y-vegetales': 'Frutas y Vegetales',
 };
 
-const LOGO = 'https://d1yei2z3i6k35z.cloudfront.net/13036429/686355140e0a3_SitioWebLogoColorArakaki.png';
+const FAVICON = '/img/favicon.png';
 
 // Preloader premium (idéntico al de index.html): autocontenido, se auto-oculta en window.load con respaldo 5s.
 const PRELOADER = `<style>
@@ -319,7 +319,8 @@ function plantilla(slug, titulo) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${titulo} | Minimarket Arakaki</title>
 <meta name="description" content="${titulo} con delivery en San Isidro. Pide por WhatsApp al Minimarket Arakaki: lo que necesitas, cuando lo necesitas.">
-<link rel="icon" href="${LOGO}">
+<link rel="icon" type="image/png" href="${FAVICON}">
+<link rel="apple-touch-icon" href="${FAVICON}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/site.css">
