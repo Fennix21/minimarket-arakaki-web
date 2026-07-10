@@ -183,7 +183,7 @@ h2.tit-vista { font-size:17px; margin-bottom:14px; }
   <!-- PRECIOS -->
   <div class="vista" id="v-precios">
     <h2 class="tit-vista">💰 Precios de la web</h2>
-    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Cambia el precio que se ve en la web al instante (~1 minuto), sin tocar código. La fila dorada ⭐ tiene precio especial guardado; deja el campo vacío y guarda (o usa ↩) para volver al precio base del catálogo. También puedes cambiar precios escribiéndole al WhatsApp del negocio desde tu número.</p>
+    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Cambia el precio que se ve en la web al instante (~1 minuto), sin tocar código. La fila dorada ⭐ tiene precio especial guardado; deja el campo vacío y guarda (o usa ↩) para volver al precio base del catálogo. También se pueden cambiar precios escribiéndole al WhatsApp del negocio desde los números autorizados (⚙️ Bot → Números autorizados).</p>
     <div class="aviso" id="pr-aviso"></div>
     <div class="fila-conf" style="margin-bottom:12px">
       <select id="pr-cat"></select>
@@ -227,10 +227,11 @@ h2.tit-vista { font-size:17px; margin-bottom:14px; }
       <button class="btn gris" onclick="restaurarPrompt()">↩️ Restaurar original</button>
       <span id="bot-custom" style="font-size:12px;color:#aaa"></span>
     </div>
-    <h2 class="tit-vista" style="margin-top:26px">🔔 Avisos a tu WhatsApp</h2>
+    <h2 class="tit-vista" style="margin-top:26px">🔔 Números autorizados y avisos</h2>
+    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Hasta 6 números de WhatsApp separados por coma (con código de país, ej. 51999999999). TODOS reciben los avisos de nuevos clientes/pedidos y TODOS pueden consultar y cambiar precios escribiéndole al WhatsApp del negocio. Puedes agregarlos o quitarlos cuando quieras: el cambio es inmediato.</p>
     <div class="fila-conf">
-      <input type="text" id="conf-owner" placeholder="Tu número (ej. 51999999999)">
-      <label style="font-size:13.5px"><input type="checkbox" id="conf-notify"> Avisarme de nuevos clientes y pedidos</label>
+      <input type="text" id="conf-owner" placeholder="51999999999, 51988888888, ..." style="flex:1;min-width:240px">
+      <label style="font-size:13.5px"><input type="checkbox" id="conf-notify"> Avisar de nuevos clientes y pedidos</label>
       <button class="btn" onclick="guardarNotify()">Guardar</button>
     </div>
     <h2 class="tit-vista" style="margin-top:26px">⚡ Respuestas rápidas</h2>
@@ -556,7 +557,7 @@ function cargarBot() {
     PROMPT_DEFAULT = j.default || '';
     document.getElementById('bot-prompt').value = j.prompt || '';
     document.getElementById('bot-custom').textContent = j.isCustom ? 'Usando cerebro PERSONALIZADO (guardado en la base)' : 'Usando cerebro original del código';
-    document.getElementById('conf-owner').value = j.ownerPhone || '';
+    document.getElementById('conf-owner').value = (j.ownerPhone || '').split(',').filter(Boolean).join(', ');
     document.getElementById('conf-notify').checked = !!j.notify;
   }).catch(function (e) { avisoBot(e.message, true); });
   pintarTplsEdit();
@@ -578,7 +579,11 @@ function restaurarPrompt() {
 }
 function guardarNotify() {
   api('setnotify', { ownerPhone: document.getElementById('conf-owner').value, notify: document.getElementById('conf-notify').checked })
-    .then(function () { avisoBot('✅ Avisos configurados.'); })
+    .then(function (j) {
+      var lista = (j.ownerPhone || '').split(',').filter(Boolean);
+      document.getElementById('conf-owner').value = lista.join(', ');
+      avisoBot(lista.length ? '✅ ' + lista.length + ' número(s) con acceso y avisos.' : '✅ Guardado (sin números: nadie recibe avisos ni cambia precios por WhatsApp).');
+    })
     .catch(function (e) { avisoBot(e.message, true); });
 }
 function pintarTplsEdit() {

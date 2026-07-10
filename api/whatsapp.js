@@ -7,7 +7,9 @@
 // Variables de entorno:
 //   WHATSAPP_VERIFY_TOKEN, WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, ANTHROPIC_API_KEY
 //   ARAKAKI_BOT_MODEL  (opcional; por defecto claude-haiku-4-5-20251001)
-//   ARAKAKI_OWNER_PHONE (avisos de nuevos clientes/pedidos a tu WhatsApp)
+//   ARAKAKI_OWNER_PHONE (respaldo de config:ownerphone: números del dueño/encargados,
+//                        varios separados por coma; todos reciben avisos y todos pueden
+//                        cambiar precios con el asistente admin)
 //   UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (activan CRM/memoria)
 
 const MODEL = process.env.ARAKAKI_BOT_MODEL || 'claude-haiku-4-5-20251001';
@@ -105,15 +107,26 @@ async function sendWhatsApp(to, body) {
   if (!r.ok) console.error('WhatsApp send error', await r.text());
 }
 
-// Aviso a tu WhatsApp personal (config en /panel → ⚙️). No se avisa a sí mismo.
+// config:ownerphone admite VARIOS números (dueño + encargados) separados por coma.
+// Se separa por coma/punto y coma y recién se limpia cada número (así "+51 977 737 199" no se parte).
+function listaDuenos(raw) {
+  return String(raw || '').split(/[,;\n]+/)
+    .map((s) => s.replace(/\D/g, ''))
+    .filter((n) => n.length >= 9);
+}
+
+// Aviso al WhatsApp de todos los números autorizados (config en /panel → ⚙️).
+// Al que originó el evento no se le avisa (no avisarse a sí mismo).
 async function notifyOwner(text, from) {
   try {
     if (!HAS_REDIS) return;
     if ((await redis(['GET', 'config:notify'])) === '0') return;
-    const owner = ((await redis(['GET', 'config:ownerphone'])) || process.env.ARAKAKI_OWNER_PHONE || '').replace(/\D/g, '');
-    if (!owner) return;
-    if (from && from.replace(/\D/g, '') === owner) return;
-    await sendWhatsApp(owner, text);
+    const duenos = listaDuenos((await redis(['GET', 'config:ownerphone'])) || process.env.ARAKAKI_OWNER_PHONE || '');
+    const remitente = (from || '').replace(/\D/g, '');
+    for (const d of duenos) {
+      if (d === remitente) continue;
+      await sendWhatsApp(d, text);
+    }
   } catch (e) { console.error('notifyOwner error', e); }
 }
 
@@ -282,9 +295,9 @@ module.exports = async (req, res) => {
     if (msg.type === 'image') { media = { id: msg.image?.id, type: 'image' }; caption = msg.image?.caption || ''; }
     else if (msg.type === 'document') { media = { id: msg.document?.id, type: 'document' }; caption = msg.document?.caption || ''; }
 
-    // ----- Rama ADMIN: si escribe el dueño, atiende el asistente de precios -----
-    const ownerRaw = ((HAS_REDIS ? await redis(['GET', 'config:ownerphone']) : null) || process.env.ARAKAKI_OWNER_PHONE || '');
-    const esDueno = ownerRaw && from.replace(/\D/g, '') === ownerRaw.replace(/\D/g, '');
+    // ----- Rama ADMIN: si escribe un número autorizado, atiende el asistente de precios -----
+    const duenos = listaDuenos((HAS_REDIS ? await redis(['GET', 'config:ownerphone']) : null) || process.env.ARAKAKI_OWNER_PHONE || '');
+    const esDueno = duenos.includes(from.replace(/\D/g, ''));
     if (esDueno && text !== null) {
       if (!HAS_REDIS) {
         await sendWhatsApp(from, '⚠️ Falta configurar la base de datos (Upstash) para manejar precios.');
@@ -377,3 +390,4 @@ module.exports = async (req, res) => {
 // Para pruebas locales (node): no afecta al handler de Vercel.
 module.exports.buscarProducto = buscarProducto;
 module.exports.adminSinIA = adminSinIA;
+module.exports.listaDuenos = listaDuenos;

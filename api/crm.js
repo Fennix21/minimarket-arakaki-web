@@ -244,7 +244,11 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, prompt: DEFAULT_PROMPT });
     }
     if (b.action === 'setnotify') {
-      const ownerPhone = (b.ownerPhone || '').toString().replace(/\D/g, '').slice(0, 15);
+      // Hasta 6 números (dueño + encargados) separados por coma: TODOS reciben avisos
+      // y TODOS pueden usar el asistente de precios por WhatsApp.
+      const nums = (b.ownerPhone || '').toString().split(/[,;\n]+/)
+        .map((s) => s.replace(/\D/g, '').slice(0, 15)).filter((n) => n.length >= 9).slice(0, 6);
+      const ownerPhone = Array.from(new Set(nums)).join(',');
       await redis(['SET', 'config:ownerphone', ownerPhone]);
       await redis(['SET', 'config:notify', b.notify ? '1' : '0']);
       return res.status(200).json({ ok: true, ownerPhone });

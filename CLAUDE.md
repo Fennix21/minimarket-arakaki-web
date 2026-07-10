@@ -25,7 +25,7 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 | `tools/dev-server.js` | Preview local con cleanUrls (`node tools/dev-server.js [puerto]`, def. 3210); /api/* responde stub |
 | `panel.html` | CRM del dueño (pass = ARAKAKI_ADMIN_PASS): 💬 Chats, 🛒 Pedidos, 💰 Precios (overrides en vivo), 👥 Club, 📊 Analíticas, ⚙️ Bot (prompt editable + avisos + respuestas rápidas). Carga /data/catalog.js para la tabla de precios |
 | `track.js` | Mini analítica (pageview + clicks) → /api/track |
-| `api/whatsapp.js` | Webhook Meta (GET verify, POST). Si escribe EL DUEÑO (config:ownerphone) → asistente ADMIN de precios (Claude + tools buscar/cambiar/quitar precio sobre config:precios; sin API key hay comando fijo `precio <prod> [monto]`). Resto: idempotencia msg.id → guarda lead → autoStatus → notifica dueño → si paused NO responde → bot Claude (getPrompt de Redis) |
+| `api/whatsapp.js` | Webhook Meta (GET verify, POST). Si escribe un NÚMERO AUTORIZADO (config:ownerphone, lista separada por comas) → asistente ADMIN de precios (Claude + tools buscar/cambiar/quitar precio sobre config:precios; sin API key hay comando fijo `precio <prod> [monto]`). Resto: idempotencia msg.id → guarda lead → autoStatus → notifica dueño → si paused NO responde → bot Claude (getPrompt de Redis) |
 | `api/precios.js` | GET público: overrides de precios (config:precios) con caché CDN 60s. Lo consume site.js al renderizar categorías |
 | `api/_catalogo.js` | GENERADO por build-catalog: índice liviano [{c,n,p}] de productos para whatsapp.js/crm.js. No editar a mano |
 | `api/crm.js` | Backend del panel: list/get/send/status/rename/note/tags/pause/clearchat/delete/pedidos/pedidoestado/clientes/clientedel/stats/getprompt/setprompt/resetprompt/setnotify/gettemplates/settemplates/getprecios/setprecio |
@@ -34,7 +34,7 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 | `api/_prompt.js` | DEFAULT_PROMPT del bot vendedor. ⚠️ El prompt VIVO está en Redis `config:prompt` (panel → ⚙️ Bot) |
 
 ## Claves Redis
-`lead:<phone>` {phone,name,status,paused,note,tags[],messages[≤300],lastMsgId} · `leads` ZSET · `pedidos` LIST (≤500, {id,nombre,direccion,items,total,pagina,ts,estado}) · `cliente:<tel>` {nombre,telefono,interes,club,creado} · `clientes` ZSET · `config:{prompt,templates,ownerphone,notify}` · `config:precios` JSON {"<slug>|<nombre exacto>": "85"} (overrides que PISAN los precios de catalog.js; los lee /api/precios) · `stat:*` (analítica)
+`lead:<phone>` {phone,name,status,paused,note,tags[],messages[≤300],lastMsgId} · `leads` ZSET · `pedidos` LIST (≤500, {id,nombre,direccion,items,total,pagina,ts,estado}) · `cliente:<tel>` {nombre,telefono,interes,club,creado} · `clientes` ZSET · `config:{prompt,templates,notify}` · `config:ownerphone` hasta 6 números separados por coma (TODOS reciben avisos y usan el asistente de precios; editable en panel → ⚙️ Bot) · `config:precios` JSON {"<slug>|<nombre exacto>": "85"} (overrides que PISAN los precios de catalog.js; los lee /api/precios) · `stat:*` (analítica)
 
 Estados de lead: nuevo → interesado → pedido → entregado (o descartado). autoStatus solo avanza.
 
