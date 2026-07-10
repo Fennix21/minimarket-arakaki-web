@@ -236,8 +236,8 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 /* ---------- Carrito flotante ---------- */
 #carrito-btn {
   position: fixed; right: 18px; bottom: 18px; z-index: 800;
-  background: linear-gradient(180deg, #2a2622 0%, #141110 100%);
-  color: #f3d98e; border: 1.5px solid var(--dorado); border-radius: 999px;
+  background: linear-gradient(180deg, #f6d98a 0%, #e6bd55 55%, #d4a941 100%);
+  color: var(--negro); border: 1.5px solid #b8892b; border-radius: 999px;
   padding: 14px 22px; font-size: 15px; font-weight: 800; letter-spacing: 0.3px;
   cursor: pointer; font-family: inherit;
   box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 22px rgba(212,169,65,0.4);
@@ -247,7 +247,7 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 #carrito-btn.visible { display: flex; }
 #carrito-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.5), 0 0 30px rgba(212,169,65,0.6); }
 #carrito-btn .badge {
-  background: linear-gradient(180deg, #f6d98a, #d4a941); color: #3a2708; font-weight: 900;
+  background: linear-gradient(180deg, #2a2622 0%, #141110 100%); color: #f6d98a; font-weight: 900;
   border-radius: 999px; min-width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; padding: 0 6px;
 }
 @keyframes pulso-oro {
