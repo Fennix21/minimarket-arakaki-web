@@ -23,7 +23,7 @@ Sitio de la bodega + carrito → WhatsApp + CRM de WhatsApp + base de clientes. 
 | `tools/build-catalog.js` | catalog-fuente.json → data/catalog.js |
 | `tools/build-pages.js` | Genera las 20 páginas de categoría |
 | `tools/dev-server.js` | Preview local con cleanUrls (`node tools/dev-server.js [puerto]`, def. 3210); /api/* responde stub |
-| `panel.html` | CRM del dueño (pass = ARAKAKI_ADMIN_PASS): 💬 Chats, 🛒 Pedidos, 💰 Precios (overrides en vivo), 👥 Club, 📊 Analíticas, ⚙️ Bot (prompt editable + avisos + respuestas rápidas). Carga /data/catalog.js para la tabla de precios |
+| `panel.html` | CRM del dueño (pass = ARAKAKI_ADMIN_PASS): 🏠 Inicio (dashboard: tarjetas-resumen + últimos pedidos/chats + guía), 💬 Chats, 🛒 Pedidos, 💰 Precios (overrides en vivo), 👥 Club, 📊 Analíticas, ⚙️ Bot (prompt editable + avisos + respuestas rápidas). Menú lateral en escritorio / barra inferior en móvil. Carga /data/catalog.js para la tabla de precios |
 | `track.js` | Mini analítica (pageview + clicks) → /api/track |
 | `api/whatsapp.js` | Webhook Meta (GET verify, POST). Si escribe un NÚMERO AUTORIZADO (config:ownerphone, lista separada por comas) → asistente ADMIN de precios (Claude + tools buscar/cambiar/quitar precio sobre config:precios; sin API key hay comando fijo `precio <prod> [monto]`). Resto: idempotencia msg.id → guarda lead → autoStatus → notifica dueño → si paused NO responde → bot Claude (getPrompt de Redis) |
 | `api/precios.js` | GET público: overrides de precios (config:precios) con caché CDN 60s. Lo consume site.js al renderizar categorías |
@@ -45,7 +45,7 @@ WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID / WHATSAPP_VERIFY_TOKEN · ANTHROPIC_A
 - **NO leer completos** `data/catalog.js` ni `data/catalog-fuente.json` (miles de líneas de datos): usar Grep por nombre de producto, o Read con offset/limit.
 - Las 20 páginas `<categoria>.html` son **idénticas** salvo el slug: leer UNA (ej. vinos.html) basta para conocerlas todas.
 - Este CLAUDE.md ya describe toda la arquitectura: no explorar con Glob/Grep para "entender el proyecto"; ir directo al archivo que indica la tabla.
-- panel.html es grande (~700 líneas): leer solo la sección relevante (login / chats / pedidos / club / stats / bot están en bloques marcados con comentarios `---------`).
+- panel.html es grande (~900 líneas): leer solo la sección relevante (login / tabs / inicio / chats / precios / pedidos / club / stats / bot están en bloques marcados con comentarios `---------`).
 - No usar Agent/subagentes aquí: el proyecto es chico, Grep+Read directo siempre alcanza.
 
 ## Recetas rápidas (hacer esto, sin explorar)
