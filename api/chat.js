@@ -51,8 +51,9 @@ const SUFIJO_WEB = `
 # IMPORTANTE: ahora estás en el CHAT DE LA PÁGINA WEB (no en WhatsApp)
 El cliente te escribe desde www.minimarketarakaki.com y tu objetivo es CERRAR su pedido aquí mismo.
 - buscar_productos: úsala SIEMPRE antes de dar un precio o confirmar que algo hay. Sus precios son los vigentes; NUNCA inventes precios ni productos. Si un producto sale sin precio, di que ese se cotiza en tienda o por WhatsApp.
-- registrar_pedido: cuando el cliente CONFIRME qué lleva, pídele nombre y dirección de entrega (y su celular si te lo quiere dejar) y registra el pedido. Nunca lo uses sin confirmación del cliente.
-- Tras registrar, confirma así: "✅ ¡Listo <nombre>! Tu pedido quedó registrado. Te contactamos al toque para coordinar la entrega y el pago (Yape, Plin o efectivo contra entrega) 🙌".
+- registrar_pedido: cuando el cliente CONFIRME qué lleva, pídele nombre y dirección de entrega (y su celular si te lo quiere dejar) y registra el pedido. Nunca lo uses sin confirmación del cliente. En items usa el nombre EXACTO que devolvió buscar_productos, y SOLO de los productos que el cliente confirmó en ESTE pedido (no otros mencionados antes en la conversación).
+- El resultado de registrar_pedido te dice qué productos y total quedaron registrados: VERIFÍCALOS antes de confirmar al cliente. Si registraste algo distinto a lo pedido, llama registrar_pedido de nuevo con los items correctos: en la misma conversación el nuevo registro REEMPLAZA al anterior (no se duplica). Lo mismo si el cliente cambia de opinión o agrega algo después de registrar.
+- Tras registrar (y verificar), confirma así: "✅ ¡Listo <nombre>! Tu pedido quedó registrado. Te contactamos al toque para coordinar la entrega y el pago (Yape, Plin o efectivo contra entrega) 🙌".
 - Sugiere máximo 3-4 productos por mensaje, con su precio.
 - Las categorías tienen página propia: escribe la ruta tal cual (ej. /pisco, /whisky, /helados) y el chat la convierte en link.
 - Mensajes CORTOS (2-6 líneas). *Negrita* con asteriscos simples; sin títulos ni listas largas.`;
@@ -115,7 +116,25 @@ async function notifyOwner(text) {
   } catch (e) { console.error('notifyOwner error', e); }
 }
 
-async function registrarPedido(input) {
+// Si esta misma conversación ya registró un pedido pendiente hace poco, el nuevo
+// lo REEMPLAZA (corrección o cambio de opinión) en vez de duplicar el aviso al dueño.
+async function reemplazarPedidoDeSesion(sid, nuevo) {
+  if (!sid) return false;
+  const raw = await redis(['LRANGE', 'pedidos', '0', '49']);
+  if (!Array.isArray(raw)) return false;
+  for (let i = 0; i < raw.length; i++) {
+    let p;
+    try { p = JSON.parse(raw[i]); } catch (e) { continue; }
+    if (p.sid === sid && p.estado === 'nuevo' && Date.now() - p.ts < 2 * 3600 * 1000) {
+      nuevo.id = p.id; // mismo pedido, corregido
+      await redis(['LSET', 'pedidos', String(i), JSON.stringify(nuevo)]);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function registrarPedido(input, sid) {
   const nombre = limpio(input.nombre, 60);
   const { ok: items, noEncontrados } = await resolverItems(input.items);
   if (!nombre || nombre.length < 2) return { error: 'Falta el nombre del cliente.' };
@@ -131,19 +150,32 @@ async function registrarPedido(input) {
     items,
     total,
     pagina: 'chat-web',
+    sid: sid || '',
     ts: Date.now(),
     estado: 'nuevo',
   };
-  await redis(['LPUSH', 'pedidos', JSON.stringify(pedido)]);
-  await redis(['LTRIM', 'pedidos', '0', '499']);
-  await redis(['INCR', 'stat:chatweb_pedido']);
+  const corregido = await reemplazarPedidoDeSesion(sid, pedido);
+  if (!corregido) {
+    await redis(['LPUSH', 'pedidos', JSON.stringify(pedido)]);
+    await redis(['LTRIM', 'pedidos', '0', '499']);
+    await redis(['INCR', 'stat:chatweb_pedido']);
+  }
   const lineas = items.map((i) => '• ' + i.qty + ' x ' + i.name).join('\n');
-  await notifyOwner('🤖🛒 *Pedido cerrado por el CHAT de la web*\n👤 ' + nombre +
+  await notifyOwner((corregido
+    ? '🔁 *Pedido CORREGIDO desde el CHAT de la web* (reemplaza el aviso anterior)\n👤 '
+    : '🤖🛒 *Pedido cerrado por el CHAT de la web*\n👤 ') + nombre +
     (pedido.telefono ? ' (' + pedido.telefono + ')' : '') +
     (pedido.direccion ? '\n📍 ' + pedido.direccion : '') +
     '\n\n' + lineas + '\n\n💰 Total aprox: S/ ' + total + (sinPrecio ? ' + productos por cotizar' : '') +
     '\n\nMíralo en el panel 👉 /panel');
-  return { ok: true, id: pedido.id, total: 'S/ ' + total + (sinPrecio ? ' (hay productos por cotizar)' : ''), no_encontrados: noEncontrados };
+  return {
+    ok: true,
+    id: pedido.id,
+    corregido: corregido || undefined,
+    productos_registrados: items.map((i) => i.qty + ' x ' + i.name + (i.price ? ' — S/ ' + i.price : ' (por cotizar)')),
+    total: 'S/ ' + total + (sinPrecio ? ' (hay productos por cotizar)' : ''),
+    no_encontrados: noEncontrados,
+  };
 }
 
 const HERRAMIENTAS = [
@@ -171,14 +203,14 @@ const HERRAMIENTAS = [
   },
 ];
 
-async function ejecutarHerramienta(nombre, input) {
+async function ejecutarHerramienta(nombre, input, sid) {
   if (nombre === 'buscar_productos') return { resultados: await buscarProductos(input.texto) };
-  if (nombre === 'registrar_pedido') return registrarPedido(input || {});
+  if (nombre === 'registrar_pedido') return registrarPedido(input || {}, sid);
   return { error: 'Herramienta desconocida: ' + nombre };
 }
 
 // Conversación con Claude + herramientas (loop tool_use → tool_result, como el asistente admin).
-async function venderConClaude(messages, systemPrompt) {
+async function venderConClaude(messages, systemPrompt, sid) {
   for (let vuelta = 0; vuelta < 5; vuelta++) {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -199,7 +231,7 @@ async function venderConClaude(messages, systemPrompt) {
     for (const b of data.content) {
       if (b.type !== 'tool_use') continue;
       let out;
-      try { out = await ejecutarHerramienta(b.name, b.input || {}); }
+      try { out = await ejecutarHerramienta(b.name, b.input || {}, sid); }
       catch (e) { out = { error: String((e && e.message) || e) }; }
       results.push({ type: 'tool_result', tool_use_id: b.id, content: JSON.stringify(out) });
     }
@@ -240,10 +272,10 @@ module.exports = async (req, res) => {
     let b = req.body;
     if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } }
     b = b || {};
+    const sid = String(b.sid || '').replace(/[^a-z0-9]/gi, '').slice(0, 40) || 'anon';
 
     // Freno anti-abuso: tope por sesión y por IP cada hora (el endpoint es público).
     if (HAS_REDIS) {
-      const sid = String(b.sid || '').replace(/[^a-z0-9]/gi, '').slice(0, 40) || 'anon';
       const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
       const hora = Math.floor(Date.now() / 3600000);
       const nSid = await redis(['INCR', 'chatrl:s:' + hora + ':' + sid]);
@@ -259,7 +291,7 @@ module.exports = async (req, res) => {
     const messages = sanearMensajes(b.mensajes);
     if (!messages.length) return res.status(400).json({ error: 'Sin mensaje.' });
 
-    const reply = await venderConClaude(messages, (await getPrompt()) + SUFIJO_WEB);
+    const reply = await venderConClaude(messages, (await getPrompt()) + SUFIJO_WEB, sid);
     return res.status(200).json({ reply });
   } catch (e) {
     console.error('chat error', e);
