@@ -8,29 +8,43 @@
     instagram: { url: 'https://www.instagram.com/arakakiminimarket', img: '/img/redes/instagram.png' },
     youtube: { url: 'https://www.youtube.com/@arakakiminimarket', img: '/img/redes/youtube.png' },
   };
+  // Menú de categorías. ico = emoji, txt = nombre limpio (se buscan por separado);
+  // tag opcional ('top'/'new') pinta un badge de social proof. El dueño puede ajustar
+  // los badges y los DESTACADOS aquí sin tocar nada más.
   var MENU = [
-    { grupo: 'Inicio', items: [{ href: '/', txt: '🏠 Página principal' }] },
+    { grupo: 'Inicio', items: [{ href: '/', ico: '🏠', txt: 'Página principal' }] },
     { grupo: 'Licores', items: [
-      { href: '/pisco', txt: '🥃 Piscos' }, { href: '/vinos', txt: '🇪🇸 Vinos Españoles' },
-      { href: '/vinos-peruanos', txt: '🇵🇪 Vinos Peruanos' }, { href: '/vinos-argentinos', txt: '🇦🇷 Vinos Argentinos' },
-      { href: '/vinos-chilenos', txt: '🇨🇱 Vinos Chilenos' }, { href: '/whisky', txt: '🥃 Whisky' },
-      { href: '/ron', txt: '🍹 Ron' }, { href: '/licor-frances', txt: '🇫🇷 Licores Franceses' },
-      { href: '/licor-italiano', txt: '🇮🇹 Licores Italianos' }, { href: '/vodka', txt: '🍸 Vodka' },
-      { href: '/tequila', txt: '🌵 Tequila' }, { href: '/anisado', txt: '🥂 Anisado' },
-      { href: '/licores-variados', txt: '🍾 Más Licores' },
+      { href: '/pisco', ico: '🥃', txt: 'Piscos', tag: 'top' }, { href: '/vinos', ico: '🇪🇸', txt: 'Vinos Españoles', tag: 'top' },
+      { href: '/vinos-peruanos', ico: '🇵🇪', txt: 'Vinos Peruanos' }, { href: '/vinos-argentinos', ico: '🇦🇷', txt: 'Vinos Argentinos' },
+      { href: '/vinos-chilenos', ico: '🇨🇱', txt: 'Vinos Chilenos' }, { href: '/whisky', ico: '🥃', txt: 'Whisky', tag: 'top' },
+      { href: '/ron', ico: '🍹', txt: 'Ron' }, { href: '/licor-frances', ico: '🇫🇷', txt: 'Licores Franceses' },
+      { href: '/licor-italiano', ico: '🇮🇹', txt: 'Licores Italianos' }, { href: '/vodka', ico: '🍸', txt: 'Vodka' },
+      { href: '/tequila', ico: '🌵', txt: 'Tequila' }, { href: '/anisado', ico: '🥂', txt: 'Anisado' },
+      { href: '/licores-variados', ico: '🍾', txt: 'Más Licores' },
     ] },
     { grupo: 'Para engreírte', items: [
-      { href: '/helados', txt: '🍦 Helados' }, { href: '/chocolates-importados', txt: '🍫 Chocolates' },
-      { href: '/dulces', txt: '🍬 Dulces' }, { href: '/galletas', txt: '🍪 Galletas, Snacks y más' },
-      { href: '/refrescos', txt: '🥤 Gaseosa en Lata' }, { href: '/aguas-importadas', txt: '💧 Aguas Importadas' },
+      { href: '/helados', ico: '🍦', txt: 'Helados' }, { href: '/chocolates-importados', ico: '🍫', txt: 'Chocolates', tag: 'new' },
+      { href: '/dulces', ico: '🍬', txt: 'Dulces' }, { href: '/galletas', ico: '🍪', txt: 'Galletas, Snacks y más' },
+      { href: '/refrescos', ico: '🥤', txt: 'Gaseosa en Lata' }, { href: '/aguas-importadas', ico: '💧', txt: 'Aguas Importadas' },
     ] },
     { grupo: 'Para tu día a día', items: [
-      { href: '/backtoschool', txt: '🎒 Desayuno Escolar' }, { href: '/frutas-y-vegetales', txt: '🥦 Frutas y Vegetales' },
+      { href: '/backtoschool', ico: '🎒', txt: 'Desayuno Escolar' }, { href: '/frutas-y-vegetales', ico: '🥦', txt: 'Frutas y Vegetales' },
     ] },
+  ];
+  // Fila "Favoritos de la casa" al tope del menú (Von Restorff + prueba social).
+  var DESTACADOS = [
+    { href: '/pisco', ico: '🥃', txt: 'Piscos' }, { href: '/whisky', ico: '🥃', txt: 'Whisky' },
+    { href: '/vinos', ico: '🍷', txt: 'Vinos' }, { href: '/chocolates-importados', ico: '🍫', txt: 'Chocolates' },
   ];
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  // Normaliza para buscar: minúsculas y sin acentos ("Engreírte" → "engreirte").
+  function norm(s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
+      .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u').replace(/ñ/g, 'n');
   }
 
   // ---------- Textos editables del sitio (lema del header + footer) ----------
@@ -101,27 +115,71 @@
       '<a href="/"><img class="logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
       '<div class="esp"></div>' +
       '<div class="lema-cab">' + esc(SITIO_DEF.lema) + '</div>' +
-      '<button class="btn-menu" id="btn-menu" aria-label="Abrir menú">☰ Menú</button>';
+      '<button class="btn-menu" id="btn-menu" aria-label="Ver categorías" aria-haspopup="true">☰ Categorías</button>';
     document.body.insertBefore(cab, document.body.firstChild);
 
     var fondo = document.createElement('div');
     fondo.id = 'menu-fondo';
     var panel = document.createElement('nav');
     panel.id = 'menu-panel';
-    var html = '<button class="menu-cerrar" aria-label="Cerrar">✕</button>';
-    MENU.forEach(function (g) {
-      html += '<div class="menu-grupo">' + g.grupo + '</div>';
+    panel.setAttribute('aria-label', 'Categorías de productos');
+    var idx = 0; // índice global para la cascada de aparición
+    var html = '<button class="menu-cerrar" aria-label="Cerrar">✕</button>' +
+      '<div class="menu-cab"><div class="menu-titulo">Nuestras categorías</div>' +
+      '<div class="menu-sub">Elige tu antojo y arma tu pedido 🛒</div></div>' +
+      '<div class="menu-buscar"><span class="mb-ico">🔍</span>' +
+      '<input type="search" id="menu-q" placeholder="Buscar producto o categoría…" autocomplete="off" aria-label="Buscar categoría"></div>';
+
+    html += '<div class="menu-dest-tit">⭐ Favoritos de la casa</div><div class="menu-dest">';
+    DESTACADOS.forEach(function (d) {
+      html += '<a class="dest" href="' + d.href + '" style="--i:' + (idx++) + '">' +
+        '<span class="d-ico">' + d.ico + '</span><span class="d-txt">' + esc(d.txt) + '</span></a>';
+    });
+    html += '</div>';
+
+    html += '<div class="menu-lista">';
+    MENU.forEach(function (g, gi) {
+      html += '<div class="menu-grupo" data-g="' + gi + '">' + esc(g.grupo) + '</div>';
       g.items.forEach(function (it) {
-        var activo = location.pathname === it.href || location.pathname === it.href + '.html' ? ' class="activo"' : '';
-        html += '<a href="' + it.href + '"' + activo + '>' + it.txt + '</a>';
+        var here = location.pathname === it.href || location.pathname === it.href + '.html';
+        var badge = it.tag === 'top' ? '<span class="mi-badge top">🔥 Top</span>' :
+                    it.tag === 'new' ? '<span class="mi-badge new">✨ Nuevo</span>' : '';
+        html += '<a class="menu-item' + (here ? ' activo' : '') + '" href="' + it.href + '"' +
+          ' data-g="' + gi + '" data-nombre="' + esc(norm(it.txt)) + '" style="--i:' + (idx++) + '">' +
+          '<span class="mi-coin">' + it.ico + '</span>' +
+          '<span class="mi-txt">' + esc(it.txt) + '</span>' + badge +
+          '<span class="mi-chevron">›</span></a>';
       });
     });
+    html += '</div>';
+    html += '<div class="menu-vacio">No encontramos esa categoría. Escríbenos y te ayudamos 💬</div>';
+    html += '<div class="menu-pie"><a href="https://wa.me/' + WA + '" target="_blank" rel="noopener">💬 ¿No lo encuentras? Pídelo por WhatsApp</a></div>';
+
     panel.innerHTML = html;
     document.body.appendChild(fondo);
     document.body.appendChild(panel);
+
+    var q = document.getElementById('menu-q');
+    var vacio = panel.querySelector('.menu-vacio');
+    var items = panel.querySelectorAll('.menu-item');
+    var grupos = panel.querySelectorAll('.menu-grupo');
+    if (q) q.addEventListener('input', function () {
+      var term = norm(this.value.trim());
+      panel.classList.toggle('buscando', term.length > 0);
+      var vistosPorGrupo = {}, total = 0;
+      items.forEach(function (a) {
+        var ok = !term || a.getAttribute('data-nombre').indexOf(term) !== -1;
+        a.style.display = ok ? '' : 'none';
+        if (ok) { total++; vistosPorGrupo[a.getAttribute('data-g')] = 1; }
+      });
+      grupos.forEach(function (g) { g.style.display = vistosPorGrupo[g.getAttribute('data-g')] ? '' : 'none'; });
+      vacio.style.display = total ? 'none' : 'block';
+    });
+
     document.getElementById('btn-menu').onclick = function () { document.body.classList.add('menu-abierto'); };
     fondo.onclick = cerrarMenu;
     panel.querySelector('.menu-cerrar').onclick = cerrarMenu;
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrarMenu(); });
     function cerrarMenu() { document.body.classList.remove('menu-abierto'); }
 
     // Footer (contenido editable desde el panel → 📝 Sitio; ver footerHTML/aplicarSitio)
