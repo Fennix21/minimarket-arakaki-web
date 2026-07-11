@@ -385,21 +385,27 @@
       caja.classList.add('abierto');
       fab.classList.add('oculto');
       if (window.arkTrack) window.arkTrack('chatweb_abierto');
-      if (!st.msgs.length) {
+      // En móvil NUNCA se enfoca el campo automáticamente: abriría el teclado
+      // y taparía/empujaría la bienvenida (el cliente toca el campo cuando quiere escribir)
+      var esMovil = window.innerWidth <= 600;
+      // Mientras el cliente no haya escrito nada, cada apertura repite la bienvenida animada
+      var sinConversar = !st.msgs.length || (st.msgs.length === 1 && st.msgs[0].r === 'b');
+      if (sinConversar) {
         // Bienvenida animada: "escribiendo…" → saludo → recién ahí los botones
-        st.msgs.push({ r: 'b', t: saludo });
+        st.msgs = [{ r: 'b', t: saludo }];
         st.sug = botonesIni;
         chatGuardar(st);
         msgs.innerHTML = '';
+        pintarQuick([]);
         ocupado = true;
         revelarBot(saludo, function () {
           ocupado = false;
           pintarQuick(botonesIni);
-          if (window.innerWidth > 600) input.focus();
+          if (!esMovil) input.focus();
         });
       } else {
         pintarHistorial();
-        input.focus();
+        if (!esMovil) input.focus();
       }
     }
     function cerrar() {
