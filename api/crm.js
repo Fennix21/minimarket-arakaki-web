@@ -7,6 +7,7 @@
 //   pause  { phone, paused }  -> activas/pausas el bot para ese lead
 //   rename / note / tags / clearchat / delete
 //   pedidos                   -> pedidos hechos desde la web  · pedidoestado { id, estado }
+//   consultas                 -> preguntas que el chat web no pudo responder · consultadel { id }
 //   clientes                  -> registros del Club Arakaki   · clientedel { telefono }
 //   stats                     -> analítica del sitio
 //   getprompt / setprompt / resetprompt / setnotify
@@ -185,6 +186,25 @@ module.exports = async (req, res) => {
         }
       }
       return res.status(404).json({ error: 'Pedido no encontrado.' });
+    }
+
+    // --- Consultas que el chat de la web no pudo responder (las registra api/chat.js) ---
+    if (b.action === 'consultas') {
+      const raws = (await redis(['LRANGE', 'consultas', '0', '199'])) || [];
+      const consultas = [];
+      for (const r of raws) { try { consultas.push(JSON.parse(r)); } catch (e) {} }
+      return res.status(200).json({ consultas });
+    }
+    if (b.action === 'consultadel') {
+      const raws = (await redis(['LRANGE', 'consultas', '0', '199'])) || [];
+      for (const r of raws) {
+        let c; try { c = JSON.parse(r); } catch (e) { continue; }
+        if (c.id === b.id) {
+          await redis(['LREM', 'consultas', '1', r]);
+          return res.status(200).json({ ok: true });
+        }
+      }
+      return res.status(404).json({ error: 'Consulta no encontrada.' });
     }
 
     // --- Clientes del Club Arakaki ---

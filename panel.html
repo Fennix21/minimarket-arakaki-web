@@ -214,6 +214,7 @@ td a.wa { color:var(--verde); text-decoration:none; }
       <button class="tab activa" data-v="inicio"><span class="ico">🏠</span><span class="eti">Inicio</span></button>
       <button class="tab" data-v="chats"><span class="ico">💬</span><span class="eti">Chats</span><span class="badge" id="badge-chats" style="display:none">0</span></button>
       <button class="tab" data-v="pedidos"><span class="ico">🛒</span><span class="eti">Pedidos</span><span class="badge" id="badge-pedidos" style="display:none">0</span></button>
+      <button class="tab" data-v="consultas"><span class="ico">❓</span><span class="eti">Consultas</span><span class="badge" id="badge-consultas" style="display:none">0</span></button>
       <button class="tab" data-v="precios"><span class="ico">💰</span><span class="eti">Precios</span></button>
       <button class="tab" data-v="club"><span class="ico">👥</span><span class="eti">Club</span></button>
       <button class="tab" data-v="stats"><span class="ico">📊</span><span class="eti">Analíticas</span></button>
@@ -293,6 +294,17 @@ td a.wa { color:var(--verde); text-decoration:none; }
       <tbody id="tabla-pedidos"></tbody>
     </table></div>
     <p class="vacio" id="pedidos-vacio" style="display:none">Aún no hay pedidos desde la web.<br>Cuando alguien use el carrito 🛒 del sitio, aparecerá aquí.</p>
+  </div>
+
+  <!-- CONSULTAS del chat web -->
+  <div class="vista" id="v-consultas">
+    <h2 class="tit-vista">❓ Consultas del chat de la web</h2>
+    <p class="sub-vista">Preguntas que el asistente de la web no pudo responder (un producto que no encontró o un dato que no tenía). Úsalas para completar el catálogo o el prompt del bot, y toca ✓ cuando ya la revisaste.</p>
+    <div class="tabla-scroll"><table>
+      <thead><tr><th>Fecha</th><th>Producto</th><th>Pregunta del cliente</th><th></th></tr></thead>
+      <tbody id="tabla-consultas"></tbody>
+    </table></div>
+    <p class="vacio" id="consultas-vacio" style="display:none">No hay consultas pendientes 🎉<br>Cuando el chat de la web no sepa responder algo, aparecerá aquí (y te llega aviso por WhatsApp).</p>
   </div>
 
   <!-- PRECIOS -->
@@ -421,13 +433,14 @@ function verVista(v) {
   for (var j = 0; j < vistas.length; j++) vistas[j].classList.toggle('activa', vistas[j].id === 'v-' + v);
   if (v === 'inicio') cargarInicio();
   if (v === 'pedidos') cargarPedidos();
+  if (v === 'consultas') cargarConsultas();
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
   if (v === 'bot') cargarBot();
 }
 
-function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarTpls(); }
+function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarConsultas(); cargarTpls(); }
 
 // ---------- Inicio (resumen del negocio) ----------
 function actualizarBadgeChats() {
@@ -602,6 +615,23 @@ function cargarPedidos() {
   }).catch(function () {});
 }
 function estadoPedido(id, estado) { api('pedidoestado', { id: id, estado: estado }).then(cargarPedidos); }
+
+// ---------- Consultas del chat web (las registra el bot cuando no sabe responder) ----------
+function cargarConsultas() {
+  api('consultas').then(function (j) {
+    var cs = j.consultas || [];
+    var badge = document.getElementById('badge-consultas');
+    badge.style.display = cs.length ? 'inline' : 'none';
+    badge.textContent = cs.length;
+    document.getElementById('consultas-vacio').style.display = cs.length ? 'none' : 'block';
+    document.getElementById('tabla-consultas').innerHTML = cs.map(function (c) {
+      return '<tr><td>' + hora(c.ts) + '</td><td>' + esc(c.producto || '—') + '</td>' +
+        '<td>' + esc(c.pregunta || '') + '</td>' +
+        '<td><button class="mini" title="Marcar como revisada (se quita de la lista)" onclick="revisarConsulta(\'' + c.id + '\')">✓</button></td></tr>';
+    }).join('');
+  }).catch(function () {});
+}
+function revisarConsulta(id) { api('consultadel', { id: id }).then(cargarConsultas); }
 
 // ---------- Precios ----------
 var PRECIOS = {};        // overrides vivos { 'slug|nombre': '85' }
