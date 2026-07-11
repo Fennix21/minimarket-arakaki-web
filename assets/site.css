@@ -436,32 +436,31 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 /* El protagonista es el Asistente Arakaki (gato de la suerte): mascota que flota,
    saluda cada ciclo y brilla en oro, con su burbuja de saludo siempre visible */
 #chat-fab {
-  position: fixed; right: 18px; bottom: 18px; z-index: 810;
+  position: fixed; left: 18px; bottom: 18px; z-index: 810;
   background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
-  display: flex; flex-direction: column; align-items: flex-end; gap: 9px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
   transition: transform 0.15s;
 }
 #chat-fab:hover { transform: scale(1.06); }
 #chat-fab.oculto { display: none; }
-/* El botón del carrito ocupa la esquina cuando hay productos: el chat sube */
-body.hay-carrito #chat-fab { bottom: 78px; }
+/* El chat vive en la esquina izquierda: no compite con "Ver mi pedido" (derecha) */
 
 /* Paleta pastel del chat (pedido del dueño: nada de contrastes duros negro/oro):
    oro pastel #d9c288 / #e9d5a2, cremas #fdfaf2 / #f7f1e4, "negro" suavizado #4a4336/#332d24
    y textos marrón cálido #3f3729 / #6b5327, legibles para todas las edades. */
 #chat-fab .fab-burbuja {
-  position: relative; margin-right: 4px;
+  position: relative; margin-left: 4px;
   background: linear-gradient(180deg, #fdf8ec 0%, #f4ead2 100%);
   color: #6b5327; border: 1.5px solid #d9c288;
-  border-radius: 14px 14px 4px 14px; padding: 10px 15px;
+  border-radius: 14px 14px 14px 4px; padding: 10px 15px;
   font-size: 14px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap;
   box-shadow: 0 8px 22px rgba(58,48,30,0.28), 0 0 14px rgba(217,194,136,0.35);
   animation: burbuja-salta 3s ease-in-out infinite;
 }
-#chat-fab .fab-burbuja::after { /* colita apuntando al gato */
-  content: ''; position: absolute; right: 20px; bottom: -7.5px;
+#chat-fab .fab-burbuja::after { /* colita apuntando al gato (abajo-izquierda) */
+  content: ''; position: absolute; left: 20px; bottom: -7.5px;
   width: 12px; height: 12px; background: #f4ead2; transform: rotate(45deg);
-  border-right: 1.5px solid #d9c288; border-bottom: 1.5px solid #d9c288;
+  border-left: 1.5px solid #d9c288; border-bottom: 1.5px solid #d9c288;
 }
 #chat-fab .fab-gato {
   width: 66px; height: 66px; display: block; border-radius: 50%;
@@ -489,7 +488,7 @@ body.hay-carrito #chat-fab { bottom: 78px; }
 }
 
 #chat-caja {
-  position: fixed; right: 18px; bottom: 18px; z-index: 940;
+  position: fixed; left: 18px; bottom: 18px; z-index: 940;
   width: min(370px, calc(100vw - 36px)); height: min(560px, calc(100dvh - 90px));
   display: none; flex-direction: column; overflow: hidden;
   background: #fdfaf2; border: 1.5px solid #d9c288; border-radius: 18px;
