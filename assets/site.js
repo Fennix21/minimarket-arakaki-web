@@ -274,16 +274,21 @@
 
   function iniciarChat() {
     fetch('/api/chat').then(function (r) { return r.json(); }).then(function (d) {
-      if (d && d.on === true) montarChat();
+      if (d && d.on === true) montarChat(d);
     }).catch(function () {});
   }
 
-  function montarChat() {
+  // cfg = textos editables desde el panel (💬 Chat de la web); si faltan, defaults del código
+  function montarChat(cfg) {
+    cfg = cfg || {};
+    var saludo = cfg.saludo || CHAT_SALUDO;
+    var botonesIni = (cfg.botones && cfg.botones.length) ? cfg.botones : CHAT_SUG_INICIAL;
+
     var fab = document.createElement('button');
     fab.id = 'chat-fab';
     fab.setAttribute('aria-label', 'Chatear con el asistente');
     fab.innerHTML =
-      '<span class="fab-burbuja">¿Te ayudo con tu pedido?</span>' +
+      '<span class="fab-burbuja">' + esc(cfg.invitacion || '¿Te ayudo con tu pedido?') + '</span>' +
       '<img class="fab-gato" src="/img/asistente-arakaki.png" alt="Asistente Arakaki">';
     document.body.appendChild(fab);
 
@@ -292,7 +297,7 @@
     caja.innerHTML =
       '<div class="chat-cab">' +
         '<img class="chat-avatar" src="/img/asistente-arakaki.png" alt="">' +
-        '<div class="chat-tit"><b>Asistente Arakaki</b><small>Pide aquí mismo, sin salir de la web</small></div>' +
+        '<div class="chat-tit"><b>Asistente Arakaki</b><small>' + esc(cfg.subtitulo || 'Pide aquí mismo, sin salir de la web') + '</small></div>' +
         '<button class="chat-cerrar" aria-label="Cerrar">✕</button>' +
       '</div>' +
       '<div id="chat-msgs"></div>' +
@@ -335,11 +340,12 @@
 
     function pintarQuick(labels) {
       quick.innerHTML = '';
-      (labels || []).forEach(function (lbl) {
+      (labels || []).forEach(function (lbl, i) {
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'chat-opt';
         b.textContent = lbl;
+        b.style.animationDelay = (i * 80) + 'ms'; // aparecen en cascada
         b.onclick = function () { enviar(lbl); };
         quick.appendChild(b);
       });
@@ -378,14 +384,23 @@
     function abrir() {
       caja.classList.add('abierto');
       fab.classList.add('oculto');
-      if (!st.msgs.length) {
-        st.msgs.push({ r: 'b', t: CHAT_SALUDO });
-        st.sug = CHAT_SUG_INICIAL;
-        chatGuardar(st);
-      }
-      pintarHistorial();
       if (window.arkTrack) window.arkTrack('chatweb_abierto');
-      input.focus();
+      if (!st.msgs.length) {
+        // Bienvenida animada: "escribiendo…" → saludo → recién ahí los botones
+        st.msgs.push({ r: 'b', t: saludo });
+        st.sug = botonesIni;
+        chatGuardar(st);
+        msgs.innerHTML = '';
+        ocupado = true;
+        revelarBot(saludo, function () {
+          ocupado = false;
+          pintarQuick(botonesIni);
+          if (window.innerWidth > 600) input.focus();
+        });
+      } else {
+        pintarHistorial();
+        input.focus();
+      }
     }
     function cerrar() {
       caja.classList.remove('abierto');

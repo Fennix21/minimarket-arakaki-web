@@ -151,6 +151,7 @@ td a.wa { color:var(--verde); text-decoration:none; }
 
 /* ---------- Bot / formularios ---------- */
 #v-bot textarea { width:100%; min-height:380px; background:var(--campo); color:#eee; border:1px solid var(--borde); border-radius:14px; padding:14px; font-size:13.5px; line-height:1.5; }
+.lbl-web { display:block; font-size:13px; color:#c9b273; margin:14px 0 6px; }
 .fila-conf { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; align-items:center; }
 .fila-conf input[type=text] { background:var(--campo); color:#fff; border:1px solid var(--borde); border-radius:10px; padding:10px 13px; font-size:13.5px; }
 .fila-conf select { background:var(--campo); color:#fff; border:1px solid var(--borde); border-radius:10px; padding:10px 13px; font-size:13.5px; }
@@ -369,6 +370,24 @@ td a.wa { color:var(--verde); text-decoration:none; }
     <div class="fila-conf">
       <button class="btn gris" onclick="agregarTpl()">+ Añadir</button>
       <button class="btn" onclick="guardarTpls()">💾 Guardar respuestas</button>
+    </div>
+
+    <h2 class="tit-vista" style="margin-top:26px">💬 Chat de la web</h2>
+    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Textos y cerebro PROPIOS del chat de la página, independientes del bot de WhatsApp: aquí puedes probar un enfoque distinto (orientativo, vendedor…) sin tocar WhatsApp. Deja un campo vacío para volver al texto por defecto. Los cambios se ven en la web en ~1 minuto.</p>
+    <div class="aviso" id="web-aviso"></div>
+    <label class="lbl-web">👋 Mensaje de bienvenida (sale animado al abrir el chat; una línea en blanco = mensaje aparte)</label>
+    <textarea id="web-saludo" style="min-height:80px" placeholder="¡Hola! 👋 Soy el asistente del *Minimarket Arakaki*. Dime qué buscas y te armo el pedido aquí mismo, sin salir de la página 🛒"></textarea>
+    <label class="lbl-web">🔘 Botones iniciales (uno por línea, máx. 4; aparecen después de la bienvenida)</label>
+    <textarea id="web-botones" style="min-height:80px" placeholder="🍷 ¿Qué vinos tienen?&#10;🛒 Quiero hacer un pedido&#10;🛵 ¿Hacen delivery?"></textarea>
+    <div class="fila-conf">
+      <input type="text" id="web-invitacion" maxlength="60" placeholder="Burbuja del gato: ¿Te ayudo con tu pedido?" style="flex:1;min-width:220px">
+      <input type="text" id="web-subtitulo" maxlength="60" placeholder="Subtítulo: Pide aquí mismo, sin salir de la web" style="flex:1;min-width:220px">
+    </div>
+    <label class="lbl-web">🧠 Cerebro propio del chat web (vacío = usa el mismo de WhatsApp con enfoque vendedor)</label>
+    <textarea id="web-prompt" style="min-height:220px" placeholder="Ej.: Eres el asistente ORIENTATIVO del Minimarket Arakaki: guías al cliente, resuelves dudas y recomiendas productos del catálogo sin presionar la venta. Cálido, español peruano, mensajes cortos…"></textarea>
+    <div class="fila-conf">
+      <button class="btn" onclick="guardarWebchat()">💾 Guardar chat web</button>
+      <span id="web-estado" style="font-size:12px;color:#aaa"></span>
     </div>
   </div>
 
@@ -753,6 +772,38 @@ function cargarBot() {
     document.getElementById('conf-webchat').checked = j.webchat !== false;
   }).catch(function (e) { avisoBot(e.message, true); });
   pintarTplsEdit();
+  cargarWebchat();
+}
+// --- Chat de la web (textos + cerebro propio, independiente de WhatsApp) ---
+function cargarWebchat() {
+  api('getwebchat').then(function (j) {
+    document.getElementById('web-saludo').value = j.saludo || '';
+    document.getElementById('web-botones').value = (j.botones || []).join('\n');
+    document.getElementById('web-invitacion').value = j.invitacion || '';
+    document.getElementById('web-subtitulo').value = j.subtitulo || '';
+    document.getElementById('web-prompt').value = j.prompt || '';
+    document.getElementById('web-estado').textContent = j.prompt
+      ? 'Cerebro PROPIO: el chat web es independiente de WhatsApp'
+      : 'Usando el cerebro de WhatsApp (enfoque vendedor)';
+  }).catch(function () {});
+}
+function avisoWeb(t, mal) {
+  var a = document.getElementById('web-aviso');
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function guardarWebchat() {
+  api('setwebchat', {
+    saludo: document.getElementById('web-saludo').value,
+    botones: document.getElementById('web-botones').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean),
+    invitacion: document.getElementById('web-invitacion').value,
+    subtitulo: document.getElementById('web-subtitulo').value,
+    prompt: document.getElementById('web-prompt').value,
+  }).then(function (j) {
+    avisoWeb('✅ Guardado. La web lo toma en ~1 minuto. Cerebro: ' + (j.usaWhatsapp ? 'el de WhatsApp (vendedor)' : 'PROPIO del chat web'));
+    cargarWebchat();
+  }).catch(function (e) { avisoWeb(e.message, true); });
 }
 function avisoBot(t, mal) {
   var a = document.getElementById('bot-aviso');

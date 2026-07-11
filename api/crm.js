@@ -10,7 +10,7 @@
 //   consultas                 -> preguntas que el chat web no pudo responder · consultadel { id }
 //   clientes                  -> registros del Club Arakaki   · clientedel { telefono }
 //   stats                     -> analítica del sitio
-//   getprompt / setprompt / resetprompt / setnotify
+//   getprompt / setprompt / resetprompt / setnotify / getwebchat / setwebchat
 //   gettemplates / settemplates -> respuestas rápidas
 //   getprecios / setprecio { clave, precio } -> precios en vivo (overrides sobre el catálogo)
 
@@ -265,6 +265,41 @@ module.exports = async (req, res) => {
       await redis(['DEL', 'config:prompt']);
       return res.status(200).json({ ok: true, prompt: DEFAULT_PROMPT });
     }
+    // --- Chat de la web: textos del widget (config:webchatui) y cerebro PROPIO
+    // (config:webprompt; vacío = el chat web usa el cerebro de WhatsApp) ---
+    if (b.action === 'getwebchat') {
+      const raw = await redis(['GET', 'config:webchatui']);
+      let ui = {};
+      if (raw) { try { ui = JSON.parse(raw) || {}; } catch (e) {} }
+      const webprompt = await redis(['GET', 'config:webprompt']);
+      return res.status(200).json({
+        saludo: ui.saludo || '',
+        botones: Array.isArray(ui.botones) ? ui.botones : [],
+        invitacion: ui.invitacion || '',
+        subtitulo: ui.subtitulo || '',
+        prompt: webprompt || '',
+      });
+    }
+    if (b.action === 'setwebchat') {
+      const txt = (s, n) => (s == null ? '' : String(s)).trim().slice(0, n);
+      const ui = {};
+      const saludo = txt(b.saludo, 500);
+      const invitacion = txt(b.invitacion, 60);
+      const subtitulo = txt(b.subtitulo, 60);
+      const botones = (Array.isArray(b.botones) ? b.botones : []).map((s) => txt(s, 48)).filter(Boolean).slice(0, 4);
+      if (saludo) ui.saludo = saludo;
+      if (botones.length) ui.botones = botones;
+      if (invitacion) ui.invitacion = invitacion;
+      if (subtitulo) ui.subtitulo = subtitulo;
+      // Campo vacío = la web vuelve a su texto por defecto (nada queda guardado de más)
+      if (Object.keys(ui).length) await redis(['SET', 'config:webchatui', JSON.stringify(ui)]);
+      else await redis(['DEL', 'config:webchatui']);
+      const webprompt = txt(b.prompt, 20000);
+      if (webprompt) await redis(['SET', 'config:webprompt', webprompt]);
+      else await redis(['DEL', 'config:webprompt']);
+      return res.status(200).json({ ok: true, usaWhatsapp: !webprompt });
+    }
+
     if (b.action === 'setnotify') {
       // Hasta 6 números (dueño + encargados) separados por coma: TODOS reciben avisos
       // y TODOS pueden usar el asistente de precios por WhatsApp.

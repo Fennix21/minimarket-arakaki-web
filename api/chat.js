@@ -1,7 +1,8 @@
 // Chat vendedor DENTRO de la web (widget flotante de assets/site.js).
-//   GET  -> { on: true|false }   ¿el widget debe mostrarse? (hay API key y no está apagado en /panel)
+//   GET  -> { on, saludo?, botones?, invitacion?, subtitulo? }  ¿se muestra? + textos editables
 //   POST { sid, mensajes:[{role,text}] } -> { reply, sugerencias:[...] } (botones de respuesta rápida)
-// Usa el MISMO cerebro que el bot de WhatsApp (Redis config:prompt) más tres herramientas:
+// Cerebro INDEPENDIENTE del de WhatsApp si el dueño escribió uno (Redis config:webprompt,
+// panel → 💬 Chat de la web); si no, usa el de WhatsApp (config:prompt). Tres herramientas:
 // buscar_productos (catálogo por texto y/o categoría + precios en vivo de config:precios),
 // registrar_pedido (guarda en la lista `pedidos` como /api/pedido y avisa al dueño por
 // WhatsApp) y registrar_consulta (preguntas que el bot no pudo responder → lista `consultas`
@@ -42,20 +43,30 @@ async function getPreciosVivos() {
   return {};
 }
 
-// Mismo cerebro que el bot de WhatsApp: editable en /panel → ⚙️ Bot.
-async function getPrompt() {
+// Cerebro del chat web, INDEPENDIENTE del de WhatsApp (panel → ⚙️ Bot → 💬 Chat de la web):
+// si hay config:webprompt, ese texto manda el tono (orientativo, vendedor, lo que el dueño
+// quiera probar); si está vacío, usa el cerebro de WhatsApp + el objetivo vendedor de siempre.
+async function getPromptWeb() {
   if (HAS_REDIS) {
+    const propio = await redis(['GET', 'config:webprompt']);
+    if (propio) return propio + REGLAS_WEB;
     const custom = await redis(['GET', 'config:prompt']);
-    if (custom) return custom;
+    if (custom) return custom + OBJETIVO_VENTA + REGLAS_WEB;
   }
-  return process.env.ARAKAKI_BOT_PROMPT || DEFAULT_PROMPT;
+  return (process.env.ARAKAKI_BOT_PROMPT || DEFAULT_PROMPT) + OBJETIVO_VENTA + REGLAS_WEB;
 }
 
-// Capa extra SOLO para el chat web: aquí el bot vende y registra el pedido él mismo.
-const SUFIJO_WEB = `
+// Solo cuando el chat web usa el cerebro de WhatsApp (que es un prompt vendedor).
+const OBJETIVO_VENTA = `
 
 # IMPORTANTE: ahora estás en el CHAT DE LA PÁGINA WEB (no en WhatsApp)
-El cliente te escribe desde www.minimarketarakaki.com y tu objetivo es CERRAR su pedido aquí mismo.
+El cliente te escribe desde www.minimarketarakaki.com y tu objetivo es CERRAR su pedido aquí mismo.`;
+
+// Reglas técnicas del chat web: se cumplen SIEMPRE, sea cual sea la personalidad del cerebro.
+const REGLAS_WEB = `
+
+# Reglas del chat web (obligatorias, sea cual sea tu personalidad)
+El cliente te escribe desde el chat de www.minimarketarakaki.com.
 
 ## Catálogo (tu ÚNICA fuente de verdad)
 - buscar_productos: úsala SIEMPRE antes de hablar de un producto, confirmar que algo hay o dar un precio. Busca por palabras (texto) y/o lista una categoría completa (categoria).
@@ -378,11 +389,29 @@ function extraerSugerencias(texto) {
 
 module.exports = async (req, res) => {
   // GET: ¿el widget se muestra? (hay IA y el dueño no lo apagó en /panel → ⚙️ Bot)
+  // Además manda los textos editables del widget (config:webchatui, panel → 💬 Chat de la web):
+  // saludo (bienvenida animada), botones (respuestas rápidas iniciales), invitacion (burbuja
+  // del gato) y subtitulo (cabecera). Si falta alguno, site.js usa sus textos por defecto.
   if (req.method === 'GET') {
     let on = !!process.env.ANTHROPIC_API_KEY;
     if (on && HAS_REDIS && (await redis(['GET', 'config:webchat'])) === '0') on = false;
+    const out = { on };
+    if (on && HAS_REDIS) {
+      const raw = await redis(['GET', 'config:webchatui']);
+      if (raw) {
+        try {
+          const ui = JSON.parse(raw);
+          if (ui.saludo) out.saludo = String(ui.saludo).slice(0, 500);
+          if (Array.isArray(ui.botones) && ui.botones.length) {
+            out.botones = ui.botones.map((s) => String(s).slice(0, 48)).filter(Boolean).slice(0, 4);
+          }
+          if (ui.invitacion) out.invitacion = String(ui.invitacion).slice(0, 60);
+          if (ui.subtitulo) out.subtitulo = String(ui.subtitulo).slice(0, 60);
+        } catch (e) {}
+      }
+    }
     res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
-    return res.status(200).json({ on });
+    return res.status(200).json(out);
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -413,7 +442,7 @@ module.exports = async (req, res) => {
     const messages = sanearMensajes(b.mensajes);
     if (!messages.length) return res.status(400).json({ error: 'Sin mensaje.' });
 
-    const texto = await venderConClaude(messages, (await getPrompt()) + SUFIJO_WEB, sid);
+    const texto = await venderConClaude(messages, await getPromptWeb(), sid);
     const { reply, sugerencias } = extraerSugerencias(texto);
     return res.status(200).json({ reply: reply || '¿Me repites porfa? 🙏', sugerencias });
   } catch (e) {
