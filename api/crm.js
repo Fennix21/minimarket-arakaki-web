@@ -272,7 +272,9 @@ module.exports = async (req, res) => {
       let ui = {};
       if (raw) { try { ui = JSON.parse(raw) || {}; } catch (e) {} }
       const webprompt = await redis(['GET', 'config:webprompt']);
+      const webchat = await redis(['GET', 'config:webchat']);
       return res.status(200).json({
+        on: webchat !== '0',
         saludo: ui.saludo || '',
         botones: Array.isArray(ui.botones) ? ui.botones : [],
         invitacion: ui.invitacion || '',
@@ -297,7 +299,10 @@ module.exports = async (req, res) => {
       const webprompt = txt(b.prompt, 20000);
       if (webprompt) await redis(['SET', 'config:webprompt', webprompt]);
       else await redis(['DEL', 'config:webprompt']);
-      return res.status(200).json({ ok: true, usaWhatsapp: !webprompt });
+      // El interruptor on/off del chat web ahora vive aquí (antes en setnotify)
+      const on = b.on !== false;
+      await redis(['SET', 'config:webchat', on ? '1' : '0']);
+      return res.status(200).json({ ok: true, on, usaWhatsapp: !webprompt });
     }
 
     if (b.action === 'setnotify') {
@@ -308,7 +313,7 @@ module.exports = async (req, res) => {
       const ownerPhone = Array.from(new Set(nums)).join(',');
       await redis(['SET', 'config:ownerphone', ownerPhone]);
       await redis(['SET', 'config:notify', b.notify ? '1' : '0']);
-      await redis(['SET', 'config:webchat', b.webchat ? '1' : '0']); // chat vendedor de la web (/api/chat)
+      // El on/off del chat web se maneja en setwebchat (panel → 💬 Chat de la web), no aquí.
       return res.status(200).json({ ok: true, ownerPhone });
     }
 
