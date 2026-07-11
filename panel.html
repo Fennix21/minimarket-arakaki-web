@@ -260,6 +260,7 @@ td a.wa { color:var(--verde); text-decoration:none; }
       <button class="tab" data-v="precios"><span class="ico">💰</span><span class="eti">Precios</span></button>
       <button class="tab" data-v="club"><span class="ico">👥</span><span class="eti">Club</span></button>
       <button class="tab" data-v="stats"><span class="ico">📊</span><span class="eti">Analíticas</span></button>
+      <button class="tab" data-v="sitio"><span class="ico">📝</span><span class="eti">Sitio</span></button>
       <button class="tab" data-v="bot"><span class="ico">⚙️</span><span class="eti">Bot</span></button>
     </nav>
     <div class="menu-pie">
@@ -492,6 +493,103 @@ td a.wa { color:var(--verde); text-decoration:none; }
     </div>
   </div>
 
+  <!-- SITIO: textos editables del header y del footer -->
+  <div class="vista" id="v-sitio">
+    <h2 class="tit-vista">📝 Textos del sitio</h2>
+    <p class="sub-vista">Edita el lema del encabezado y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
+    <div class="aviso" id="sitio-aviso"></div>
+
+    <div class="caja-bot">
+      <h3>🔝 Encabezado</h3>
+      <div class="campo-bloque">
+        <label>Lema (junto al logo)</label>
+        <div class="hint">Se oculta solo en pantallas de celular por espacio.</div>
+        <input type="text" id="sitio-lema" maxlength="80" placeholder="Lo que necesitas, cuando lo necesitas" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>📍 Pie: Visítanos</h3>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="sitio-vtit" maxlength="40" placeholder="Visítanos" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Dirección</label>
+        <input type="text" id="sitio-dir" maxlength="160" placeholder="Av. Belén 265, San Isidro" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Referencia</label>
+        <input type="text" id="sitio-ref" maxlength="120" placeholder="A solo 2 cuadras del Golf" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Texto del enlace al mapa</label>
+        <div class="hint">El enlace abre tu ubicación en Google Maps. Aquí solo cambias el texto.</div>
+        <input type="text" id="sitio-maplabel" maxlength="60" placeholder="Ver ubicación en el mapa" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>🕗 Pie: Horario</h3>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="sitio-htit" maxlength="40" placeholder="Horario de atención" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Líneas del horario</label>
+        <div class="hint">Una línea por renglón.</div>
+        <textarea id="sitio-horario" style="min-height:92px" placeholder="Lun – Sáb · 7:00 am – 9:00 pm&#10;Domingos · 8:00 am – 8:00 pm&#10;Abierto todos los días, incluso feriados"></textarea>
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>📞 Pie: Contáctanos</h3>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="sitio-ctit" maxlength="40" placeholder="Contáctanos" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Teléfonos</label>
+        <div class="hint">Un número por renglón. Cada uno queda tocable para llamar.</div>
+        <textarea id="sitio-tels" style="min-height:110px" placeholder="012218582&#10;977737199&#10;960725996"></textarea>
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>📲 Pie: Redes</h3>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="sitio-rtit" maxlength="60" placeholder="Síguenos" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Facebook (URL)</label>
+        <div class="hint">Deja vacío para ocultar ese ícono.</div>
+        <input type="text" id="sitio-fb" maxlength="300" placeholder="https://www.facebook.com/minimarketarakaki1" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Instagram (URL)</label>
+        <input type="text" id="sitio-ig" maxlength="300" placeholder="https://www.instagram.com/arakakiminimarket" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>YouTube (URL)</label>
+        <input type="text" id="sitio-yt" maxlength="300" placeholder="https://www.youtube.com/@arakakiminimarket" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>©️ Pie: Copyright</h3>
+      <div class="campo-bloque">
+        <label>Línea final</label>
+        <div class="hint">Escribe <b>{año}</b> donde quieras el año actual (se pone solo).</div>
+        <input type="text" id="sitio-copy" maxlength="200" placeholder="Minimarket Arakaki {año} — Todos los derechos reservados" style="width:100%">
+      </div>
+    </div>
+
+    <div class="fila-conf">
+      <button class="btn" onclick="guardarSitio()">💾 Guardar textos del sitio</button>
+    </div>
+  </div>
+
   </main>
 </div>
 
@@ -557,6 +655,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
+  if (v === 'sitio') cargarSitio();
   if (v === 'bot') cargarBot();
 }
 
@@ -918,6 +1017,39 @@ function guardarWebchat() {
       'Cerebro: ' + (j.usaWhatsapp ? 'el de WhatsApp (vendedor)' : 'PROPIO del chat web') + '. Se ve en ~1 min.');
     cargarWebchat();
   }).catch(function (e) { avisoWeb(e.message, true); });
+}
+// --- Textos del sitio (lema del header + footer): config:sitio, los lee /api/sitio ---
+var SITIO_CAMPOS = {
+  lema: 'sitio-lema', visitanosTit: 'sitio-vtit', direccion: 'sitio-dir', referencia: 'sitio-ref',
+  mapLabel: 'sitio-maplabel', horarioTit: 'sitio-htit', horario: 'sitio-horario',
+  contactoTit: 'sitio-ctit', telefonos: 'sitio-tels', redesTit: 'sitio-rtit',
+  facebook: 'sitio-fb', instagram: 'sitio-ig', youtube: 'sitio-yt', copy: 'sitio-copy',
+};
+function cargarSitio() {
+  api('getsitio').then(function (j) {
+    var s = j.s || {};
+    for (var k in SITIO_CAMPOS) {
+      var el = document.getElementById(SITIO_CAMPOS[k]);
+      if (el) el.value = s[k] || '';
+    }
+  }).catch(function () {});
+}
+function avisoSitio(t, mal) {
+  var a = document.getElementById('sitio-aviso');
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function guardarSitio() {
+  var extra = {};
+  for (var k in SITIO_CAMPOS) {
+    var el = document.getElementById(SITIO_CAMPOS[k]);
+    extra[k] = el ? el.value : '';
+  }
+  api('setsitio', extra).then(function () {
+    avisoSitio('✅ Guardado. Se ve en la web en ~1 minuto.');
+    cargarSitio();
+  }).catch(function (e) { avisoSitio(e.message, true); });
 }
 function avisoBot(t, mal) {
   var a = document.getElementById('bot-aviso');

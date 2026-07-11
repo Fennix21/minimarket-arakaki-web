@@ -13,6 +13,7 @@
 //   getprompt / setprompt / resetprompt / setnotify / getwebchat / setwebchat
 //   gettemplates / settemplates -> respuestas rápidas
 //   getprecios / setprecio { clave, precio } -> precios en vivo (overrides sobre el catálogo)
+//   getsitio / setsitio        -> textos editables del sitio (lema + footer; los lee /api/sitio)
 
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
@@ -303,6 +304,30 @@ module.exports = async (req, res) => {
       const on = b.on !== false;
       await redis(['SET', 'config:webchat', on ? '1' : '0']);
       return res.status(200).json({ ok: true, on, usaWhatsapp: !webprompt });
+    }
+
+    // --- Textos editables del sitio (lema del header + footer): config:sitio ---
+    // Los lee /api/sitio (público) y los aplica assets/site.js sobre sus defaults.
+    if (b.action === 'getsitio') {
+      const raw = await redis(['GET', 'config:sitio']);
+      let s = {};
+      if (raw) { try { s = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ s });
+    }
+    if (b.action === 'setsitio') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const url = (v) => { const u = txt(v, 300); return /^https?:\/\//i.test(u) ? u : ''; };
+      const s = {};
+      const campos = {
+        lema: 80, visitanosTit: 40, direccion: 160, referencia: 120, mapLabel: 60,
+        horarioTit: 40, horario: 300, contactoTit: 40, telefonos: 300, redesTit: 60, copy: 200,
+      };
+      Object.keys(campos).forEach((k) => { const v = txt(b[k], campos[k]); if (v) s[k] = v; });
+      ['facebook', 'instagram', 'youtube'].forEach((k) => { const v = url(b[k]); if (v) s[k] = v; });
+      // Campo vacío = vuelve al texto por defecto de site.js (no se guarda nada de más)
+      if (Object.keys(s).length) await redis(['SET', 'config:sitio', JSON.stringify(s)]);
+      else await redis(['DEL', 'config:sitio']);
+      return res.status(200).json({ ok: true, s });
     }
 
     if (b.action === 'setnotify') {

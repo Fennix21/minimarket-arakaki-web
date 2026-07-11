@@ -1,7 +1,6 @@
 // Minimarket Arakaki — JS compartido: preloader, header/menú/footer, carrito → WhatsApp.
 (function () {
   var WA = '51977737199'; // WhatsApp del minimarket
-  var TELS = ['012218582', '977737199', '960725996', '964295436', '933477179'];
   var LOGO = '/img/logo-arakaki.webp';
   var LOGO_BLANCO = '/img/logo-gato.png'; // logo horizontal blanco del header (gato de la suerte)
   var REDES = {
@@ -34,6 +33,66 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // ---------- Textos editables del sitio (lema del header + footer) ----------
+  // Valores por defecto: el sitio se ve bien sin backend. El dueño los edita en
+  // /panel → 📝 Sitio (Redis config:sitio); /api/sitio los sirve y aquí se aplican.
+  var MAP_URL = 'https://www.google.com/maps/search/?api=1&query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro';
+  var SITIO_DEF = {
+    lema: 'Lo que necesitas, cuando lo necesitas',
+    visitanosTit: 'Visítanos',
+    direccion: 'Av. Belén 265, San Isidro',
+    referencia: 'A solo 2 cuadras del Golf',
+    mapLabel: 'Ver ubicación en el mapa',
+    horarioTit: 'Horario de atención',
+    horario: 'Lun – Sáb · 7:00 am – 9:00 pm\nDomingos · 8:00 am – 8:00 pm\nAbierto todos los días, incluso feriados',
+    contactoTit: 'Contáctanos',
+    telefonos: '012218582\n977737199\n960725996\n964295436\n933477179',
+    redesTit: 'Síguenos',
+    facebook: REDES.facebook.url,
+    instagram: REDES.instagram.url,
+    youtube: REDES.youtube.url,
+    copy: 'Minimarket Arakaki {año} — Todos los derechos reservados',
+  };
+  function lineas(t) {
+    return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  }
+  function footerHTML(cfg) {
+    var telsHtml = lineas(cfg.telefonos).map(function (t) {
+      return '<a class="tel" href="tel:' + esc(t.replace(/[^\d+]/g, '')) + '"><span class="tel-ico">📞</span>' + esc(t) + '</a>';
+    }).join('');
+    var horarioHtml = lineas(cfg.horario).map(function (l) { return '<p>' + esc(l) + '</p>'; }).join('');
+    var redes = [['facebook', cfg.facebook], ['instagram', cfg.instagram], ['youtube', cfg.youtube]];
+    var redesHtml = redes.filter(function (r) { return r[1]; }).map(function (r) {
+      return '<a href="' + esc(r[1]) + '" target="_blank" rel="noopener" aria-label="' + r[0] + '"><img src="' + REDES[r[0]].img + '" alt="' + r[0] + '"></a>';
+    }).join('');
+    var copy = String(cfg.copy || '').replace(/\{a[nñ]o\}/gi, new Date().getFullYear());
+    return '<div class="interior">' +
+        '<div class="pie-col"><h4>' + esc(cfg.visitanosTit) + '</h4>' +
+          '<p class="pie-dir">' + esc(cfg.direccion) + '</p>' +
+          (cfg.referencia ? '<p class="pie-ref">' + esc(cfg.referencia) + '</p>' : '') +
+          (cfg.mapLabel ? '<p class="pie-mapa"><a href="' + MAP_URL + '" target="_blank" rel="noopener">📍 ' + esc(cfg.mapLabel) + '</a></p>' : '') +
+        '</div>' +
+        '<div class="pie-col"><h4>' + esc(cfg.horarioTit) + '</h4><div class="pie-horario">' + horarioHtml + '</div></div>' +
+        '<div class="pie-col"><h4>' + esc(cfg.contactoTit) + '</h4><div class="pie-tels">' + telsHtml + '</div></div>' +
+        '<div class="pie-col"><h4>' + esc(cfg.redesTit) + '</h4><div class="redes">' + redesHtml + '</div></div>' +
+      '</div>' +
+      '<p class="copy">' + esc(copy) + '</p>';
+  }
+  function aplicarSitio(cfg) {
+    var lema = document.querySelector('.cab .lema-cab');
+    if (lema) lema.textContent = cfg.lema || '';
+    var pie = document.querySelector('footer.pie');
+    if (pie) pie.innerHTML = footerHTML(cfg);
+  }
+  function cargarSitio() {
+    fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.s || typeof j.s !== 'object') return;
+      var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
+      for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
+      aplicarSitio(m);
+    }).catch(function () {});
+  }
+
   // ---------- Header, menú, footer, carrito (se inyectan en cada página) ----------
   function armarBase() {
     var cab = document.createElement('header');
@@ -41,7 +100,7 @@
     cab.innerHTML =
       '<a href="/"><img class="logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
       '<div class="esp"></div>' +
-      '<div class="lema-cab">Lo que necesitas, cuando lo necesitas</div>' +
+      '<div class="lema-cab">' + esc(SITIO_DEF.lema) + '</div>' +
       '<button class="btn-menu" id="btn-menu" aria-label="Abrir menú">☰ Menú</button>';
     document.body.insertBefore(cab, document.body.firstChild);
 
@@ -65,25 +124,12 @@
     panel.querySelector('.menu-cerrar').onclick = cerrarMenu;
     function cerrarMenu() { document.body.classList.remove('menu-abierto'); }
 
-    // Footer
+    // Footer (contenido editable desde el panel → 📝 Sitio; ver footerHTML/aplicarSitio)
     var pie = document.createElement('footer');
     pie.className = 'pie';
-    var telsHtml = TELS.map(function (t, i) { return '<a class="tel" href="tel:' + t + '">📞 Línea ' + (i + 1) + ': ' + t + '</a>'; }).join('');
-    var redesHtml = Object.keys(REDES).map(function (k) {
-      return '<a href="' + REDES[k].url + '" target="_blank" rel="noopener" aria-label="' + k + '"><img src="' + REDES[k].img + '" alt="' + k + '"></a>';
-    }).join('');
-    pie.innerHTML =
-      '<div class="interior">' +
-        '<div><h4>Visítanos</h4><p>Av. Belén 265, San Isidro<br>(A solo 2 cuadras del Golf)</p>' +
-          '<p style="margin-top:10px"><a href="https://www.google.com/maps/search/?api=1&amp;query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro" target="_blank" rel="noopener" style="text-decoration:underline">Ver ubicación en mapa</a></p></div>' +
-        '<div class="horario"><h4>Horario de atención</h4>' +
-          '<p>Lun – Sáb: 7:00 am – 9:00 pm</p><p>Domingos: 8:00 am – 8:00 pm</p>' +
-          '<p>Atendemos todos los días, incluso feriados</p></div>' +
-        '<div><h4>Contáctanos</h4>' + telsHtml + '</div>' +
-        '<div><h4>Síguenos en nuestras redes</h4><div class="redes">' + redesHtml + '</div></div>' +
-      '</div>' +
-      '<p class="copy">Minimarket Arakaki ' + new Date().getFullYear() + ' — Todos los derechos reservados</p>';
     document.body.appendChild(pie);
+    aplicarSitio(SITIO_DEF); // render inmediato con los textos por defecto (el lema y el pie)
+    cargarSitio();           // y luego los del panel, si el dueño los editó
 
     // Carrito flotante + modal
     var btn = document.createElement('button');
