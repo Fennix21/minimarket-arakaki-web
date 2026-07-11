@@ -46,6 +46,30 @@
       .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
       .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u').replace(/ñ/g, 'n');
   }
+  // ¿el token del usuario coincide con alguna palabra del producto? Tolera erratas
+  // leves por prefijo común ("johnny"→"johnnie", "coca"→"cocacola").
+  function palabraCoincide(tok, palabras) {
+    var pref = tok.slice(0, 4);
+    for (var i = 0; i < palabras.length; i++) {
+      var w = palabras[i];
+      if (w.indexOf(tok) === 0) return true;                                       // la palabra empieza con lo tipeado
+      if (w.length >= 3 && tok.indexOf(w) === 0) return true;                       // lo tipeado empieza con la palabra (w≥3 evita unidades "gr"/"ml")
+      if (w.length >= 3 && pref.length >= 3 && w.indexOf(pref) === 0) return true;  // errata por prefijo común (johnny→johnnie)
+    }
+    return false;
+  }
+  // Un producto coincide si TODAS las palabras buscadas aciertan (orden libre).
+  function productoCoincide(toks, palabras) {
+    for (var i = 0; i < toks.length; i++) if (!palabraCoincide(toks[i], palabras)) return false;
+    return true;
+  }
+  // Palabras "útiles" de un producto para el índice: fuera unidades, números y ruido.
+  var STOP_BUSCA = { x: 1, ml: 1, gr: 1, g: 1, kg: 1, cc: 1, lt: 1, l: 1, un: 1, oz: 1, de: 1, con: 1, la: 1, el: 1, y: 1 };
+  function palabrasProducto(name) {
+    return norm(name).split(/[^a-z0-9]+/).filter(function (w) {
+      return w && w.length >= 2 && !/^\d+$/.test(w) && !STOP_BUSCA[w];
+    });
+  }
 
   // ---------- Textos editables del sitio (lema del header + footer) ----------
   // Valores por defecto: el sitio se ve bien sin backend. El dueño los edita en
@@ -147,7 +171,8 @@
         html += '<a class="menu-item' + (here ? ' activo' : '') + '" href="' + it.href + '"' +
           ' data-g="' + gi + '" data-nombre="' + esc(norm(it.txt)) + '" style="--i:' + (idx++) + '">' +
           '<span class="mi-coin">' + it.ico + '</span>' +
-          '<span class="mi-txt">' + esc(it.txt) + '</span>' + badge +
+          '<span class="mi-main"><span class="mi-txt">' + esc(it.txt) + '</span>' +
+          '<span class="mi-hint"></span></span>' + badge +
           '<span class="mi-chevron">›</span></a>';
       });
     });
@@ -159,17 +184,44 @@
     document.body.appendChild(fondo);
     document.body.appendChild(panel);
 
+    // Índice de PRODUCTOS por categoría (para buscar productos, no solo categorías).
+    // Se arma desde el catálogo cargado en la página (window.ARAKAKI_CATALOG).
+    var PROD_IDX = {};
+    try {
+      var cats = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories) || {};
+      Object.keys(cats).forEach(function (slug) {
+        var lista = [];
+        (cats[slug].sections || []).forEach(function (s) {
+          (s.products || []).forEach(function (p) {
+            if (p && p.name) lista.push({ w: palabrasProducto(p.name), d: p.name });
+          });
+        });
+        PROD_IDX['/' + slug] = lista;
+      });
+    } catch (e) {}
+
     var q = document.getElementById('menu-q');
     var vacio = panel.querySelector('.menu-vacio');
     var items = panel.querySelectorAll('.menu-item');
     var grupos = panel.querySelectorAll('.menu-grupo');
     if (q) q.addEventListener('input', function () {
       var term = norm(this.value.trim());
-      panel.classList.toggle('buscando', term.length > 0);
+      var toks = term ? term.split(/\s+/).filter(Boolean) : [];
+      panel.classList.toggle('buscando', toks.length > 0);
       var vistosPorGrupo = {}, total = 0;
       items.forEach(function (a) {
-        var ok = !term || a.getAttribute('data-nombre').indexOf(term) !== -1;
+        var porNombre = !toks.length || a.getAttribute('data-nombre').indexOf(term) !== -1;
+        var hint = '';
+        if (!porNombre && toks.length) { // no calzó la categoría: ¿algún producto suyo?
+          var prods = PROD_IDX[a.getAttribute('href')] || [];
+          for (var i = 0; i < prods.length; i++) {
+            if (productoCoincide(toks, prods[i].w)) { hint = prods[i].d; break; }
+          }
+        }
+        var ok = porNombre || !!hint;
         a.style.display = ok ? '' : 'none';
+        var he = a.querySelector('.mi-hint');
+        if (he) { he.textContent = hint; he.style.display = hint ? 'block' : 'none'; }
         if (ok) { total++; vistosPorGrupo[a.getAttribute('data-g')] = 1; }
       });
       grupos.forEach(function (g) { g.style.display = vistosPorGrupo[g.getAttribute('data-g')] ? '' : 'none'; });

@@ -136,7 +136,10 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
   flex: 0 0 auto; width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 19px;
   background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03)); border: 1px solid rgba(212,169,65,0.25); transition: .18s;
 }
-#menu-panel .mi-txt { flex: 1; font-size: 14.5px; font-weight: 500; }
+#menu-panel .mi-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#menu-panel .mi-txt { font-size: 14.5px; font-weight: 500; }
+#menu-panel .mi-hint { display: none; font-size: 11.5px; font-weight: 500; color: var(--dorado); opacity: .85; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#menu-panel .mi-hint::before { content: '🔎 '; }
 #menu-panel .mi-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; letter-spacing: .3px; white-space: nowrap; }
 #menu-panel .mi-badge.top { background: linear-gradient(180deg,#ff8a3d,#e64831); color: #fff; box-shadow: 0 2px 8px rgba(230,72,49,0.4); }
 #menu-panel .mi-badge.new { background: linear-gradient(180deg,#f7dc8f,#d4a941); color: #3a0d0a; }
