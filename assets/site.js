@@ -278,13 +278,16 @@
     var fab = document.createElement('button');
     fab.id = 'chat-fab';
     fab.setAttribute('aria-label', 'Chatear con el asistente');
-    fab.innerHTML = '💬 <span>¿Te ayudo con tu pedido?</span>';
+    fab.innerHTML =
+      '<span class="fab-burbuja">¿Te ayudo con tu pedido?</span>' +
+      '<img class="fab-gato" src="/img/asistente-arakaki.png" alt="Asistente Arakaki">';
     document.body.appendChild(fab);
 
     var caja = document.createElement('div');
     caja.id = 'chat-caja';
     caja.innerHTML =
       '<div class="chat-cab">' +
+        '<img class="chat-avatar" src="/img/asistente-arakaki.png" alt="">' +
         '<div class="chat-tit"><b>Asistente Arakaki</b><small>Pide aquí mismo, sin salir de la web</small></div>' +
         '<button class="chat-cerrar" aria-label="Cerrar">✕</button>' +
       '</div>' +
