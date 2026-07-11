@@ -17,6 +17,7 @@ const GRAPH = 'https://graph.facebook.com/v21.0';
 
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
+const { pushDuenos } = require('./_push.js');
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -121,6 +122,11 @@ async function notifyOwner(text, from) {
   try {
     if (!HAS_REDIS) return;
     if ((await redis(['GET', 'config:notify'])) === '0') return;
+    // Además del WhatsApp, push a los dispositivos del negocio (gratis; ver api/_push.js)
+    try {
+      const lin = text.replace(/\*/g, '').split('\n');
+      await pushDuenos(lin[0], lin.slice(1).join('\n').trim());
+    } catch (e) {}
     const duenos = listaDuenos((await redis(['GET', 'config:ownerphone'])) || process.env.ARAKAKI_OWNER_PHONE || '');
     const remitente = (from || '').replace(/\D/g, '');
     for (const d of duenos) {

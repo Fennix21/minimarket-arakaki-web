@@ -3,6 +3,8 @@
 //   POST { action:'registro', nombre, telefono, interes }   (Club Arakaki)
 // Guarda en Redis y avisa al dueño por WhatsApp.
 
+const { pushDuenos } = require('./_push.js');
+
 const GRAPH = 'https://graph.facebook.com/v21.0';
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -19,8 +21,13 @@ async function redis(cmd) {
 
 async function notifyOwner(text) {
   try {
-    if (!process.env.WHATSAPP_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) return;
     if ((await redis(['GET', 'config:notify'])) === '0') return;
+    // Además del WhatsApp, push a los dispositivos del negocio (gratis; ver api/_push.js)
+    try {
+      const lin = text.replace(/\*/g, '').split('\n');
+      await pushDuenos(lin[0], lin.slice(1).join('\n').trim());
+    } catch (e) {}
+    if (!process.env.WHATSAPP_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) return;
     // config:ownerphone puede traer VARIOS números separados por coma: se avisa a todos
     const duenos = ((await redis(['GET', 'config:ownerphone'])) || process.env.ARAKAKI_OWNER_PHONE || '')
       .split(/[,;\n]+/).map((s) => s.replace(/\D/g, '')).filter((n) => n.length >= 9);

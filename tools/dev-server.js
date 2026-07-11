@@ -10,7 +10,7 @@ const PUERTO = +process.argv[2] || 3210;
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
-  '.webp': 'image/webp', '.mp4': 'video/mp4',
+  '.webp': 'image/webp', '.mp4': 'video/mp4', '.webmanifest': 'application/manifest+json',
 };
 
 http.createServer((req, res) => {
@@ -26,6 +26,8 @@ http.createServer((req, res) => {
           })
         : '{"on":true}');
     }
+    // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
+    if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
     return res.end('{"ok":true,"stub":true}');
   }
   let archivo = url === '/' ? '/index.html' : url;

@@ -104,6 +104,9 @@
       return '<a href="' + esc(r[1]) + '" target="_blank" rel="noopener" aria-label="' + r[0] + '"><img src="' + REDES[r[0]].img + '" alt="' + r[0] + '"></a>';
     }).join('');
     var copy = String(cfg.copy || '').replace(/\{a[nñ]o\}/gi, new Date().getFullYear());
+    // Botón de notificaciones push (ofertas). Vive en el footer porque este se
+    // re-renderiza (aplicarSitio): el click se maneja por delegación en initPush().
+    var pushBtn = '<p class="pie-push"><button type="button" id="push-ofertas-btn">🔔 Avísame de las ofertas</button></p>';
     return '<div class="interior">' +
         '<div class="pie-col"><h4>' + esc(cfg.visitanosTit) + '</h4>' +
           '<p class="pie-dir">' + esc(cfg.direccion) + '</p>' +
@@ -114,6 +117,7 @@
         '<div class="pie-col"><h4>' + esc(cfg.contactoTit) + '</h4><div class="pie-tels">' + telsHtml + '</div></div>' +
         '<div class="pie-col"><h4>' + esc(cfg.redesTit) + '</h4><div class="redes">' + redesHtml + '</div></div>' +
       '</div>' +
+      pushBtn +
       '<p class="copy">' + esc(copy) + '</p>';
   }
   function aplicarSitio(cfg) {
@@ -121,6 +125,7 @@
     if (lema) lema.textContent = cfg.lema || '';
     var pie = document.querySelector('footer.pie');
     if (pie) pie.innerHTML = footerHTML(cfg);
+    pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
   }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
@@ -130,6 +135,93 @@
       aplicarSitio(m);
     }).catch(function () {});
   }
+
+  // ---------- Notificaciones push (ofertas para clientes) ----------
+  // Web Push estándar: sw.js + /api/push (VAPID). En iPhone SOLO funciona si el
+  // usuario instala la web (Compartir → Agregar a inicio); ahí se le muestra la guía.
+  var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad moderno
+  var PUSH_OK = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+  function pushRegistrarSW() {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function () {});
+  }
+  // La clave pública VAPID llega en base64url: el navegador la quiere como Uint8Array
+  function b64aBytes(b64) {
+    var pad = '='.repeat((4 - (b64.length % 4)) % 4);
+    var raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    var arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+  function pushPintarBtn() {
+    var btn = document.getElementById('push-ofertas-btn');
+    if (!btn) return;
+    if (!PUSH_OK && !IOS) { btn.parentNode.style.display = 'none'; return; } // navegador viejo: fuera
+    if (PUSH_OK && Notification.permission === 'denied') {
+      btn.textContent = '🔕 Avisos bloqueados en tu navegador';
+      btn.disabled = true;
+      return;
+    }
+    if (!PUSH_OK) { btn.textContent = '🔔 Avísame de las ofertas'; return; } // iOS sin instalar: guía al tocar
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      return reg ? reg.pushManager.getSubscription() : null;
+    }).then(function (sub) {
+      btn.textContent = sub ? '🔔 Avisos activados ✓' : '🔔 Avísame de las ofertas';
+      btn.classList.toggle('activo', !!sub);
+    }).catch(function () {});
+  }
+  function pushGuiaIOS() {
+    var viejo = document.getElementById('push-guia-ios');
+    if (viejo) viejo.parentNode.removeChild(viejo);
+    var d = document.createElement('div');
+    d.id = 'push-guia-ios';
+    d.innerHTML = '<div class="pg-caja"><button class="pg-x" aria-label="Cerrar">✕</button>' +
+      '<div class="pg-ico">📲</div><h4>Actívalo en tu iPhone</h4>' +
+      '<p>Para recibir nuestras ofertas, primero agrega la web a tu pantalla de inicio:</p>' +
+      '<ol><li>Toca <b>Compartir</b> <span class="pg-share">⎋</span> abajo en Safari</li>' +
+      '<li>Elige <b>“Agregar a inicio”</b></li>' +
+      '<li>Abre la web desde el nuevo ícono 🐱 y toca este botón otra vez</li></ol></div>';
+    d.addEventListener('click', function (e) {
+      if (e.target === d || e.target.className === 'pg-x') d.parentNode.removeChild(d);
+    });
+    document.body.appendChild(d);
+  }
+  function pushSuscribir(btn) {
+    if (!PUSH_OK) { if (IOS) pushGuiaIOS(); return; }
+    btn.disabled = true;
+    fetch('/api/push?key').then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.key) throw new Error('sin-clave');
+      return navigator.serviceWorker.register('/sw.js').then(function (reg) {
+        return navigator.serviceWorker.ready.then(function () { return reg.pushManager.getSubscription().then(function (sub) {
+          if (sub) { // ya estaba activado: tocar de nuevo lo apaga
+            return sub.unsubscribe().then(function () {
+              return fetch('/api/push', { method: 'POST', headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ action: 'unsubscribe', rol: 'clientes', endpoint: sub.endpoint }) });
+            }).then(function () { return 'off'; });
+          }
+          return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aBytes(j.key) })
+            .then(function (nueva) {
+              return fetch('/api/push', { method: 'POST', headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ action: 'subscribe', rol: 'clientes', subscription: nueva.toJSON() }) });
+            }).then(function () { return 'on'; });
+        }); });
+      });
+    }).then(function (estado) {
+      btn.disabled = false;
+      pushPintarBtn();
+      if (estado === 'on') btn.textContent = '🎉 ¡Listo! Te avisaremos de las ofertas';
+    }).catch(function (e) {
+      btn.disabled = false;
+      pushPintarBtn();
+      if (String(e && e.message) === 'sin-clave') btn.textContent = '🔔 Avisos disponibles muy pronto';
+    });
+  }
+  // Delegación: el footer se re-renderiza y recrea el botón, el listener vive en document
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.id === 'push-ofertas-btn' ? e.target : null;
+    if (btn && !btn.disabled) pushSuscribir(btn);
+  });
 
   // ---------- Header, menú, footer, carrito (se inyectan en cada página) ----------
   function armarBase() {
@@ -683,4 +775,5 @@
   // ---------- Arranque ----------
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', armarBase);
   else armarBase();
+  pushRegistrarSW(); // SW listo en todas las páginas (recibe los push aunque la web esté cerrada)
 })();

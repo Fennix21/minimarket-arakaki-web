@@ -1,0 +1,16 @@
+{
+  "name": "Minimarket Arakaki",
+  "short_name": "Arakaki",
+  "description": "Licores, vinos, piscos, helados, chocolates y más con delivery en San Isidro.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#262626",
+  "theme_color": "#e64831",
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

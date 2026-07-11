@@ -15,6 +15,7 @@ const GRAPH = 'https://graph.facebook.com/v21.0';
 
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
+const { pushDuenos } = require('./_push.js');
 
 // Categorías del catálogo (en orden de aparición), para que el bot conozca TODO el surtido.
 const CATEGORIAS = [];
@@ -172,8 +173,13 @@ function listaDuenos(raw) {
 
 async function notifyOwner(text) {
   try {
-    if (!process.env.WHATSAPP_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) return;
     if ((await redis(['GET', 'config:notify'])) === '0') return;
+    // Además del WhatsApp, push a los dispositivos del negocio (gratis; ver api/_push.js)
+    try {
+      const lin = text.replace(/\*/g, '').split('\n');
+      await pushDuenos(lin[0], lin.slice(1).join('\n').trim());
+    } catch (e) {}
+    if (!process.env.WHATSAPP_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) return;
     const duenos = listaDuenos((await redis(['GET', 'config:ownerphone'])) || process.env.ARAKAKI_OWNER_PHONE || '');
     for (const d of duenos) {
       await fetch(`${GRAPH}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {

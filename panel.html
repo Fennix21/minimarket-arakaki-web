@@ -6,7 +6,9 @@
 <title>Panel | Minimarket Arakaki</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/png" href="/img/favicon.png">
-<link rel="apple-touch-icon" href="/img/favicon.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#e64831">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -488,6 +490,42 @@ td a.wa { color:var(--verde); text-decoration:none; }
         <label class="check-fila"><input type="checkbox" id="conf-notify"> Avisarme de nuevos clientes y pedidos</label>
         <div class="fila-conf">
           <button class="btn" onclick="guardarNotify()">💾 Guardar</button>
+        </div>
+      </div>
+
+      <div class="caja-bot">
+        <h3>📲 Avisos push en este dispositivo</h3>
+        <p class="desc">Recibe una notificación en este celular o computadora cada vez que entre un pedido o un cliente nuevo — sin depender de WhatsApp (que pronto cobrará por mensaje).</p>
+        <div class="aviso" id="push-aviso"></div>
+        <details class="ayuda">
+          <summary>¿Cómo funciona? (iPhone lee esto)</summary>
+          <div class="cuerpo">Toca <b>Activar</b> y acepta el permiso: este dispositivo quedará suscrito. Actívalo en cada celu/PC donde quieras los avisos. En <b>iPhone</b> primero instala el panel: Safari → Compartir → <b>Agregar a inicio</b>, y ábrelo desde el ícono. Requiere configurar las claves VAPID en Vercel.</div>
+        </details>
+        <div class="fila-conf">
+          <button class="btn" onclick="activarPushPanel()">🔔 Activar en este dispositivo</button>
+          <button class="btn gris" onclick="pruebaPush()">📤 Enviar prueba</button>
+          <span id="push-estado" style="font-size:12px;color:#aaa"></span>
+        </div>
+      </div>
+
+      <div class="caja-bot">
+        <h3>📣 Notificación push a tus clientes</h3>
+        <p class="desc">Mándales una oferta o novedad a todos los que activaron "🔔 Avísame de las ofertas" en la web. Les llega como notificación al celular o la computadora, gratis.</p>
+        <div class="campo-bloque">
+          <label>Título</label>
+          <input type="text" id="push-titulo" maxlength="80" placeholder="🍷 ¡Vinos con 20% de descuento!" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Mensaje</label>
+          <textarea id="push-texto" maxlength="240" style="min-height:70px" placeholder="Solo por hoy: 2x1 en vinos chilenos. Pide con delivery gratis 🛵"></textarea>
+        </div>
+        <div class="campo-bloque">
+          <label>Link al tocarla (opcional)</label>
+          <input type="text" id="push-url" maxlength="300" placeholder="/vinos-chilenos" style="width:100%">
+        </div>
+        <div class="fila-conf">
+          <button class="btn" onclick="enviarPush()">📣 Enviar a mis clientes</button>
+          <span id="push-subs" style="font-size:12px;color:#aaa"></span>
         </div>
       </div>
     </div>
@@ -983,6 +1021,7 @@ function cargarBot() {
   }).catch(function (e) { avisoBot(e.message, true); });
   pintarTplsEdit();
   cargarWebchat();
+  cargarPush();
 }
 // --- Chat de la web (on/off + textos + cerebro propio, independiente de WhatsApp) ---
 function cargarWebchat() {
@@ -1080,6 +1119,77 @@ function guardarNotify() {
       avisoAv(lista.length ? '✅ ' + lista.length + ' número(s) con acceso y avisos.' : '✅ Guardado (sin números: nadie recibe avisos ni cambia precios por WhatsApp).');
     })
     .catch(function (e) { avisoAv(e.message, true); });
+}
+// --- Notificaciones push (avisos al dueño + broadcast a clientes; ver /api/push) ---
+function apiPush(extra) {
+  var body = Object.assign({ pass: PASS }, extra || {});
+  return fetch('/api/push', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Error'); return j; }); });
+}
+function avisoPush(t, mal) {
+  var a = document.getElementById('push-aviso');
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 5000);
+}
+function cargarPush() {
+  apiPush({ action: 'count' }).then(function (j) {
+    document.getElementById('push-subs').textContent = '🔔 ' + (j.clientes || 0) + ' cliente(s) suscritos';
+    document.getElementById('push-estado').textContent = j.configurado
+      ? (j.duenos || 0) + ' dispositivo(s) del negocio con avisos'
+      : '⚠️ Faltan las claves VAPID en Vercel';
+  }).catch(function () {});
+}
+function activarPushPanel() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    var esIphone = /iP(hone|ad|od)/.test(navigator.userAgent);
+    return avisoPush(esIphone
+      ? 'En iPhone primero instala el panel: Safari → Compartir → "Agregar a inicio", y ábrelo desde el ícono.'
+      : 'Este navegador no soporta notificaciones push.', true);
+  }
+  fetch('/api/push?key').then(function (r) { return r.json(); }).then(function (j) {
+    if (!j || !j.key) throw new Error('Faltan las claves VAPID en Vercel (mira la guía de configuración).');
+    return navigator.serviceWorker.register('/sw.js').then(function (reg) {
+      return navigator.serviceWorker.ready.then(function () {
+        var arr = (function (b64) {
+          var pad = '='.repeat((4 - (b64.length % 4)) % 4);
+          var raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+          var u = new Uint8Array(raw.length);
+          for (var i = 0; i < raw.length; i++) u[i] = raw.charCodeAt(i);
+          return u;
+        })(j.key);
+        return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: arr });
+      });
+    });
+  }).then(function (sub) {
+    return apiPush({ action: 'subscribe', rol: 'duenos', subscription: sub.toJSON() });
+  }).then(function () {
+    avisoPush('✅ Este dispositivo ya recibe los avisos del negocio. Manda una prueba para verlo.');
+    cargarPush();
+  }).catch(function (e) {
+    avisoPush(Notification && Notification.permission === 'denied'
+      ? 'Bloqueaste las notificaciones para esta web: actívalas en la configuración del navegador.'
+      : (e.message || 'No se pudo activar.'), true);
+  });
+}
+function pruebaPush() {
+  apiPush({ action: 'test' }).then(function (j) {
+    avisoPush(j.enviados ? '📤 Prueba enviada a ' + j.enviados + ' dispositivo(s). Debe sonarte ya.' : 'No hay dispositivos suscritos todavía: toca "Activar" primero.', !j.enviados);
+  }).catch(function (e) { avisoPush(e.message, true); });
+}
+function enviarPush() {
+  var titulo = document.getElementById('push-titulo').value.trim();
+  var texto = document.getElementById('push-texto').value.trim();
+  if (!titulo || !texto) return avisoPush('Escribe el título y el mensaje.', true);
+  if (!confirm('¿Enviar esta notificación a TODOS tus clientes suscritos?\n\n' + titulo + '\n' + texto)) return;
+  apiPush({ action: 'send', target: 'clientes', title: titulo, body: texto, url: document.getElementById('push-url').value.trim() })
+    .then(function (j) {
+      avisoPush('📣 Enviada a ' + j.enviados + ' cliente(s).' + (j.podados ? ' (' + j.podados + ' suscripciones vencidas se limpiaron)' : ''));
+      document.getElementById('push-titulo').value = '';
+      document.getElementById('push-texto').value = '';
+      document.getElementById('push-url').value = '';
+      cargarPush();
+    }).catch(function (e) { avisoPush(e.message, true); });
 }
 function pintarTplsEdit() {
   api('gettemplates').then(function (j) {
