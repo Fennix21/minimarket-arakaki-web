@@ -348,6 +348,7 @@ td a.wa { color:var(--verde); text-decoration:none; }
     <div class="fila-conf">
       <input type="text" id="conf-owner" placeholder="51999999999, 51988888888, ..." style="flex:1;min-width:240px">
       <label style="font-size:13.5px"><input type="checkbox" id="conf-notify"> Avisar de nuevos clientes y pedidos</label>
+      <label style="font-size:13.5px"><input type="checkbox" id="conf-webchat"> 💬 Chat vendedor en la web (cierra pedidos en la página)</label>
       <button class="btn" onclick="guardarNotify()">Guardar</button>
     </div>
     <h2 class="tit-vista" style="margin-top:26px">⚡ Respuestas rápidas</h2>
@@ -719,6 +720,7 @@ function cargarBot() {
     document.getElementById('bot-custom').textContent = j.isCustom ? 'Usando cerebro PERSONALIZADO (guardado en la base)' : 'Usando cerebro original del código';
     document.getElementById('conf-owner').value = (j.ownerPhone || '').split(',').filter(Boolean).join(', ');
     document.getElementById('conf-notify').checked = !!j.notify;
+    document.getElementById('conf-webchat').checked = j.webchat !== false;
   }).catch(function (e) { avisoBot(e.message, true); });
   pintarTplsEdit();
 }
@@ -738,7 +740,7 @@ function restaurarPrompt() {
   api('resetprompt').then(function () { avisoBot('✅ Restaurado.'); cargarBot(); }).catch(function (e) { avisoBot(e.message, true); });
 }
 function guardarNotify() {
-  api('setnotify', { ownerPhone: document.getElementById('conf-owner').value, notify: document.getElementById('conf-notify').checked })
+  api('setnotify', { ownerPhone: document.getElementById('conf-owner').value, notify: document.getElementById('conf-notify').checked, webchat: document.getElementById('conf-webchat').checked })
     .then(function (j) {
       var lista = (j.ownerPhone || '').split(',').filter(Boolean);
       document.getElementById('conf-owner').value = lista.join(', ');

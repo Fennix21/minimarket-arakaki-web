@@ -114,6 +114,7 @@
     document.getElementById('car-vaciar').onclick = function () { guardarCarrito([]); pintarCarrito(); pintarBadge(); marcarProds(); };
     document.getElementById('car-enviar').onclick = enviarPedido;
     pintarBadge();
+    iniciarChat();
   }
 
   // ---------- Carrito (localStorage) ----------
@@ -154,6 +155,7 @@
     c.forEach(function (p) { n += p.qty; });
     btn.querySelector('.badge').textContent = n;
     btn.classList.toggle('visible', n > 0);
+    document.body.classList.toggle('hay-carrito', n > 0); // el chat flotante se corre hacia arriba
   }
   function marcarProds() {
     var c = leerCarrito();
@@ -238,6 +240,118 @@
       pintarBadge(); marcarProds(); cerrarCarrito();
       window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msj), '_blank');
     }, 250);
+  }
+
+  // ---------- Chat vendedor flotante (→ /api/chat) ----------
+  // Solo aparece si el backend confirma que el bot está activo (API key + no apagado en /panel).
+  var CHAT_KEY = 'arakaki_chat';
+  var CHAT_SALUDO = '¡Hola! 👋 Soy el asistente del *Minimarket Arakaki*. Dime qué buscas y te armo el pedido aquí mismo, sin salir de la página 🛒';
+  var CHAT_ERROR = 'Uy, no pude responder 🙏 Escríbenos por WhatsApp y te atendemos al toque 📲';
+
+  function chatEstado() {
+    try {
+      var st = JSON.parse(sessionStorage.getItem(CHAT_KEY) || 'null');
+      if (st && st.sid && st.msgs) return st;
+    } catch (e) {}
+    return { sid: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10), msgs: [] };
+  }
+  function chatGuardar(st) {
+    if (st.msgs.length > 30) st.msgs = st.msgs.slice(-30);
+    try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  // Texto del bot → HTML seguro: *negrita*, rutas /categoria como link y saltos de línea
+  function chatHtml(t) {
+    var s = esc(t);
+    s = s.replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+    s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(/(^|[\s(])(\/[a-z][a-z0-9-]+)(?=$|[\s).,;:!?])/gm, '$1<a href="$2">$2</a>');
+    return s.replace(/\n/g, '<br>');
+  }
+
+  function iniciarChat() {
+    fetch('/api/chat').then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.on === true) montarChat();
+    }).catch(function () {});
+  }
+
+  function montarChat() {
+    var fab = document.createElement('button');
+    fab.id = 'chat-fab';
+    fab.setAttribute('aria-label', 'Chatear con el asistente');
+    fab.innerHTML = '💬 <span>¿Te ayudo con tu pedido?</span>';
+    document.body.appendChild(fab);
+
+    var caja = document.createElement('div');
+    caja.id = 'chat-caja';
+    caja.innerHTML =
+      '<div class="chat-cab">' +
+        '<div class="chat-tit"><b>Asistente Arakaki</b><small>Pide aquí mismo, sin salir de la web</small></div>' +
+        '<button class="chat-cerrar" aria-label="Cerrar">✕</button>' +
+      '</div>' +
+      '<div id="chat-msgs"></div>' +
+      '<form id="chat-form" autocomplete="off">' +
+        '<input id="chat-in" placeholder="Escribe tu consulta o pedido…" maxlength="500">' +
+        '<button type="submit" id="chat-enviar" aria-label="Enviar">➤</button>' +
+      '</form>';
+    document.body.appendChild(caja);
+
+    var st = chatEstado();
+    var ocupado = false;
+
+    function pintarMsgs() {
+      var cont = document.getElementById('chat-msgs');
+      cont.innerHTML = st.msgs.map(function (m) {
+        return '<div class="chat-msg ' + (m.r === 'b' ? 'bot' : 'yo') + '">' + chatHtml(m.t) + '</div>';
+      }).join('') + (ocupado ? '<div class="chat-msg bot escribiendo"><span></span><span></span><span></span></div>' : '');
+      cont.scrollTop = cont.scrollHeight;
+    }
+
+    function abrir() {
+      caja.classList.add('abierto');
+      fab.classList.add('oculto');
+      if (!st.msgs.length) { st.msgs.push({ r: 'b', t: CHAT_SALUDO }); chatGuardar(st); }
+      pintarMsgs();
+      if (window.arkTrack) window.arkTrack('chatweb_abierto');
+      document.getElementById('chat-in').focus();
+    }
+    function cerrar() {
+      caja.classList.remove('abierto');
+      fab.classList.remove('oculto');
+    }
+    fab.onclick = abrir;
+    caja.querySelector('.chat-cerrar').onclick = cerrar;
+
+    document.getElementById('chat-form').onsubmit = function (e) {
+      e.preventDefault();
+      if (ocupado) return;
+      var input = document.getElementById('chat-in');
+      var txt = (input.value || '').trim();
+      if (!txt) return;
+      input.value = '';
+      st.msgs.push({ r: 'u', t: txt });
+      chatGuardar(st);
+      ocupado = true;
+      pintarMsgs();
+      if (window.arkTrack) window.arkTrack('chatweb_msg');
+
+      var hist = st.msgs.slice(-12).map(function (m) { return { role: m.r === 'b' ? 'assistant' : 'user', text: m.t }; });
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sid: st.sid, mensajes: hist }),
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        recibir((j && j.reply) || CHAT_ERROR + '\nhttps://wa.me/' + WA);
+      }).catch(function () {
+        recibir(CHAT_ERROR + '\nhttps://wa.me/' + WA);
+      });
+    };
+
+    function recibir(texto) {
+      ocupado = false;
+      st.msgs.push({ r: 'b', t: texto });
+      chatGuardar(st);
+      pintarMsgs();
+    }
   }
 
   // ---------- Render de página de categoría ----------

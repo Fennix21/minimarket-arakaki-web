@@ -17,6 +17,12 @@ http.createServer((req, res) => {
   const url = decodeURIComponent((req.url || '/').split('?')[0]);
   if (url.startsWith('/api/')) {
     res.writeHead(200, { 'content-type': 'application/json' });
+    // Stub del chat web: permite ver el widget en local (el bot real corre en Vercel)
+    if (url === '/api/chat') {
+      return res.end(req.method === 'POST'
+        ? JSON.stringify({ reply: 'Respuesta de prueba del dev-server 🤖 (el bot real corre en Vercel con ANTHROPIC_API_KEY). Mira /pisco o /whisky.' })
+        : '{"on":true}');
+    }
     return res.end('{"ok":true,"stub":true}');
   }
   let archivo = url === '/' ? '/index.html' : url;

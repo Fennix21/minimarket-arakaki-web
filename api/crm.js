@@ -225,12 +225,14 @@ module.exports = async (req, res) => {
       const custom = await redis(['GET', 'config:prompt']);
       const ownerPhone = await redis(['GET', 'config:ownerphone']);
       const notify = await redis(['GET', 'config:notify']);
+      const webchat = await redis(['GET', 'config:webchat']);
       return res.status(200).json({
         prompt: custom || DEFAULT_PROMPT,
         isCustom: !!custom,
         default: DEFAULT_PROMPT,
         ownerPhone: ownerPhone || '',
         notify: notify !== '0',
+        webchat: webchat !== '0',
       });
     }
     if (b.action === 'setprompt') {
@@ -251,6 +253,7 @@ module.exports = async (req, res) => {
       const ownerPhone = Array.from(new Set(nums)).join(',');
       await redis(['SET', 'config:ownerphone', ownerPhone]);
       await redis(['SET', 'config:notify', b.notify ? '1' : '0']);
+      await redis(['SET', 'config:webchat', b.webchat ? '1' : '0']); // chat vendedor de la web (/api/chat)
       return res.status(200).json({ ok: true, ownerPhone });
     }
 

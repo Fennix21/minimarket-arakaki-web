@@ -393,6 +393,65 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
   font-size: 28px;
 }
 
+/* ---------- Chat vendedor flotante (premium negro-oro; el verde es solo de WhatsApp) ---------- */
+#chat-fab {
+  position: fixed; right: 18px; bottom: 18px; z-index: 810;
+  background: linear-gradient(180deg, #2a2622 0%, #141110 100%);
+  color: #f2d894; border: 1.5px solid var(--dorado); border-radius: 999px;
+  padding: 13px 20px; font-size: 14.5px; font-weight: 800; letter-spacing: 0.3px;
+  cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; gap: 9px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 18px rgba(212,169,65,0.35);
+  animation: pulso-oro 2.4s ease-in-out infinite;
+  transition: transform 0.15s;
+}
+#chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.5), 0 0 30px rgba(212,169,65,0.6); }
+#chat-fab.oculto { display: none; }
+/* El botón del carrito ocupa la esquina cuando hay productos: el chat sube */
+body.hay-carrito #chat-fab { bottom: 78px; }
+@media (prefers-reduced-motion: reduce) { #chat-fab { animation: none; } }
+
+#chat-caja {
+  position: fixed; right: 18px; bottom: 18px; z-index: 940;
+  width: min(370px, calc(100vw - 36px)); height: min(560px, calc(100dvh - 90px));
+  display: none; flex-direction: column; overflow: hidden;
+  background: #fffdf9; border: 1.5px solid var(--dorado); border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212,169,65,0.25);
+}
+#chat-caja.abierto { display: flex; }
+.chat-cab {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 16px; background: linear-gradient(180deg, #2a2622 0%, #141110 100%);
+  border-bottom: 1.5px solid var(--dorado);
+}
+.chat-cab .chat-tit b { display: block; color: #f2d894; font-family: Georgia, 'Times New Roman', serif; font-size: 16.5px; letter-spacing: 0.5px; }
+.chat-cab .chat-tit small { color: rgba(255,255,255,0.75); font-size: 11.5px; }
+.chat-cerrar { background: none; border: none; color: #f2d894; font-size: 18px; cursor: pointer; padding: 4px 6px; }
+#chat-msgs { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 9px; }
+.chat-msg { max-width: 84%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.45; word-wrap: break-word; }
+.chat-msg.bot { align-self: flex-start; background: #f3ede0; color: var(--negro); border: 1px solid rgba(212,169,65,0.35); border-bottom-left-radius: 4px; }
+.chat-msg.yo { align-self: flex-end; background: linear-gradient(180deg, #34302b 0%, #1c1815 100%); color: #f7f3ea; border-bottom-right-radius: 4px; }
+.chat-msg a { color: #8a6510; text-decoration: underline; font-weight: 700; }
+.chat-msg.yo a { color: #f2d894; }
+.chat-msg.escribiendo { display: flex; gap: 5px; padding: 12px 15px; }
+.chat-msg.escribiendo span { width: 7px; height: 7px; border-radius: 50%; background: #b8892b; animation: chat-punto 1.1s ease-in-out infinite; }
+.chat-msg.escribiendo span:nth-child(2) { animation-delay: 0.18s; }
+.chat-msg.escribiendo span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes chat-punto { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+#chat-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(212,169,65,0.4); background: #fff; }
+#chat-in { flex: 1; padding: 10px 13px; border: 1.5px solid #ccc; border-radius: 999px; font-family: inherit; font-size: 14px; }
+#chat-in:focus { outline: none; border-color: var(--dorado); }
+#chat-enviar {
+  width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid #b8892b; cursor: pointer;
+  background: linear-gradient(180deg, #f6d98a 0%, #e6bd55 55%, #d4a941 100%);
+  color: var(--negro); font-size: 17px; font-weight: 800; flex: none;
+}
+@media (max-width: 600px) {
+  #chat-fab span { display: none; }
+  #chat-fab { padding: 0; width: 56px; height: 56px; justify-content: center; font-size: 24px; }
+  #chat-caja { right: 10px; left: 10px; width: auto; bottom: 10px; height: min(520px, calc(100dvh - 70px)); }
+}
+
 /* ---------- Ajustes responsive finos (teléfonos) ---------- */
 @media (max-width: 600px) {
   .seccion { padding: 34px 14px; }
