@@ -1,9 +1,11 @@
 // Chat vendedor DENTRO de la web (widget flotante de assets/site.js).
 //   GET  -> { on: true|false }   ¿el widget debe mostrarse? (hay API key y no está apagado en /panel)
 //   POST { sid, mensajes:[{role,text}] } -> { reply }
-// Usa el MISMO cerebro que el bot de WhatsApp (Redis config:prompt) más dos herramientas:
-// buscar_productos (catálogo + precios en vivo de config:precios) y registrar_pedido
-// (guarda en la lista `pedidos` como /api/pedido y avisa al dueño por WhatsApp).
+// Usa el MISMO cerebro que el bot de WhatsApp (Redis config:prompt) más tres herramientas:
+// buscar_productos (catálogo por texto y/o categoría + precios en vivo de config:precios),
+// registrar_pedido (guarda en la lista `pedidos` como /api/pedido y avisa al dueño por
+// WhatsApp) y registrar_consulta (preguntas que el bot no pudo responder → lista `consultas`
+// + aviso al dueño, para que el equipo las revise).
 // Así el bot CIERRA la venta sin que el cliente salga de la página.
 // La conversación vive en el navegador (sessionStorage): aquí no se guarda el historial.
 
@@ -12,6 +14,10 @@ const GRAPH = 'https://graph.facebook.com/v21.0';
 
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
+
+// Categorías del catálogo (en orden de aparición), para que el bot conozca TODO el surtido.
+const CATEGORIAS = [];
+PRODUCTOS.forEach((pr) => { if (CATEGORIAS.indexOf(pr.c) < 0) CATEGORIAS.push(pr.c); });
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -50,27 +56,73 @@ const SUFIJO_WEB = `
 
 # IMPORTANTE: ahora estás en el CHAT DE LA PÁGINA WEB (no en WhatsApp)
 El cliente te escribe desde www.minimarketarakaki.com y tu objetivo es CERRAR su pedido aquí mismo.
-- buscar_productos: úsala SIEMPRE antes de dar un precio o confirmar que algo hay. Sus precios son los vigentes; NUNCA inventes precios ni productos. Si un producto sale sin precio, di que ese se cotiza en tienda o por WhatsApp.
+
+## Catálogo (tu ÚNICA fuente de verdad)
+- buscar_productos: úsala SIEMPRE antes de hablar de un producto, confirmar que algo hay o dar un precio. Busca por palabras (texto) y/o lista una categoría completa (categoria).
+- Categorías del catálogo: ${CATEGORIAS.join(', ')}.
+- De un producto del catálogo puedes comentar lo evidente por su nombre y lo muy conocido de su marca (tipo de producto, uso típico). PROHIBIDO inventar especificaciones, ingredientes, tamaños, stock o cualquier dato que no conozcas con certeza.
+
+## Precios: NUNCA inventes ni estimes un monto
+- El único precio válido es el que devuelve buscar_productos. Si da un monto, comunícalo tal cual.
+- Si precio = null, ese producto NO tiene precio publicado en la web. Dile al cliente que por el momento el precio de ese producto no está disponible desde la página web, y que puede pedir una cotización inmediata escribiendo a cualquiera de nuestras líneas de atención por WhatsApp (977 737 199). JAMÁS des un monto aproximado. Si igual lo quiere, puede ir en su pedido como "por cotizar".
+
+## Si no sabes algo, dilo (regla de oro)
+- Es preferible admitir que no sabes antes que inventar. Si no encuentras un producto o te preguntan un dato que no tienes, reconócelo con honestidad.
+- En ese caso usa registrar_consulta: la pregunta queda registrada para que el equipo la revise. Dile al cliente que su consulta quedó registrada y que escribiéndonos por WhatsApp recibe una respuesta personalizada al toque.
+
+## Pedidos
 - registrar_pedido: cuando el cliente CONFIRME qué lleva, pídele nombre y dirección de entrega (y su celular si te lo quiere dejar) y registra el pedido. Nunca lo uses sin confirmación del cliente. En items usa el nombre EXACTO que devolvió buscar_productos, y SOLO de los productos que el cliente confirmó en ESTE pedido (no otros mencionados antes en la conversación).
 - El resultado de registrar_pedido te dice qué productos y total quedaron registrados: VERIFÍCALOS antes de confirmar al cliente. Si registraste algo distinto a lo pedido, llama registrar_pedido de nuevo con los items correctos: en la misma conversación el nuevo registro REEMPLAZA al anterior (no se duplica). Lo mismo si el cliente cambia de opinión o agrega algo después de registrar.
 - Tras registrar (y verificar), confirma así: "✅ ¡Listo <nombre>! Tu pedido quedó registrado. Te contactamos al toque para coordinar la entrega y el pago (Yape, Plin o efectivo contra entrega) 🙌".
-- Sugiere máximo 3-4 productos por mensaje, con su precio.
+
+## Estilo
+- Sugiere máximo 3-4 productos por mensaje, con su precio (o "precio por WhatsApp" si no lo hay).
 - Las categorías tienen página propia: escribe la ruta tal cual (ej. /pisco, /whisky, /helados) y el chat la convierte en link.
 - Mensajes CORTOS (2-6 líneas). *Negrita* con asteriscos simples; sin títulos ni listas largas.`;
 
 // ---------- Herramientas del vendedor ----------
 
-async function buscarProductos(texto) {
+// Precio vigente de un producto: override en vivo (config:precios) > catálogo.
+// Devuelve null si NO hay precio publicado (incluye "0" o vacío): eso se cotiza por WhatsApp.
+function precioDe(pr, vivos) {
+  const v = vivos[pr.c + '|' + pr.n];
+  const p = (v == null || v === '') ? pr.p : v;
+  return (p && Number(p) > 0) ? p : null;
+}
+
+// ¿La palabra buscada aparece en el texto? Tolera plural simple ("helados" encuentra "helado").
+function coincide(base, w) {
+  if (base.indexOf(w) >= 0) return true;
+  return w.length > 3 && w.charAt(w.length - 1) === 's' && base.indexOf(w.slice(0, -1)) >= 0;
+}
+
+// Busca por palabras del nombre/categoría y/o lista una categoría completa.
+async function buscarProductos(texto, categoria) {
+  let lista = PRODUCTOS;
+  if (categoria) {
+    const slug = normalizar(categoria).replace(/^\//, '').trim().replace(/\s+/g, '-');
+    if (CATEGORIAS.indexOf(slug) < 0) return { error: 'La categoría "' + categoria + '" no existe.', categorias: CATEGORIAS };
+    lista = lista.filter((pr) => pr.c === slug);
+  }
   const palabras = normalizar(texto).split(/\s+/).filter(Boolean);
-  if (!palabras.length) return [];
-  const vivos = HAS_REDIS ? await getPreciosVivos() : {};
-  return PRODUCTOS
-    .filter((pr) => { const n = normalizar(pr.n); return palabras.every((w) => n.indexOf(w) >= 0); })
-    .slice(0, 10)
-    .map((pr) => {
-      const precio = vivos[pr.c + '|' + pr.n] || pr.p;
-      return { nombre: pr.n, pagina: '/' + pr.c, precio: precio ? 'S/ ' + precio : null };
+  if (!categoria && !palabras.length) return { error: 'Manda texto (palabras del producto) o categoria.', categorias: CATEGORIAS };
+  if (palabras.length) {
+    lista = lista.filter((pr) => {
+      const base = normalizar(pr.n + ' ' + pr.c.replace(/-/g, ' '));
+      return palabras.every((w) => coincide(base, w));
     });
+  }
+  const vivos = HAS_REDIS ? await getPreciosVivos() : {};
+  const tope = categoria ? 30 : 10;
+  const out = {
+    resultados: lista.slice(0, tope).map((pr) => {
+      const precio = precioDe(pr, vivos);
+      return { nombre: pr.n, pagina: '/' + pr.c, precio: precio ? 'S/ ' + precio : null };
+    }),
+  };
+  if (lista.length > tope) out.nota = 'Hay ' + (lista.length - tope) + ' productos más en la página de la categoría.';
+  if (!out.resultados.length) { out.sin_resultados = true; out.categorias = CATEGORIAS; }
+  return out;
 }
 
 // Resuelve cada item contra el catálogo (precio del servidor, no del modelo).
@@ -87,7 +139,7 @@ async function resolverItems(items) {
       if (matches.length === 1) prod = matches[0];
     }
     if (!prod) { noEncontrados.push(it.producto); continue; }
-    const precio = vivos[prod.c + '|' + prod.n] || prod.p;
+    const precio = precioDe(prod, vivos);
     ok.push({ name: prod.n, price: precio ? Number(precio) : null, qty: Math.max(1, Math.min(99, Number(it.cantidad) || 1)) });
   }
   return { ok, noEncontrados };
@@ -178,11 +230,57 @@ async function registrarPedido(input, sid) {
   };
 }
 
+// Deja registrada una pregunta que el bot no pudo responder (lista `consultas` en Redis)
+// y avisa a los dueños, para que el equipo la revise y complete el catálogo o el prompt.
+async function registrarConsulta(input, sid) {
+  const pregunta = limpio(input.pregunta, 300);
+  if (!pregunta) return { error: 'Falta la pregunta del cliente.' };
+  const producto = limpio(input.producto, 120);
+  const consulta = {
+    id: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    pregunta,
+    producto,
+    sid: sid || '',
+    ts: Date.now(),
+  };
+  await redis(['LPUSH', 'consultas', JSON.stringify(consulta)]);
+  await redis(['LTRIM', 'consultas', '0', '199']);
+  await redis(['INCR', 'stat:chatweb_consulta']);
+  // Máximo 3 avisos por sesión para no bombardear al dueño desde un endpoint público.
+  const n = await redis(['INCR', 'chatrl:q:' + sid]);
+  if (Number(n) === 1) await redis(['EXPIRE', 'chatrl:q:' + sid, '7200']);
+  if (Number(n || 0) <= 3) {
+    await notifyOwner('❓ *Consulta sin respuesta en el CHAT de la web*' +
+      (producto ? '\n📦 ' + producto : '') +
+      '\n💬 "' + pregunta + '"' +
+      '\n\nSi el cliente escribe por WhatsApp, ya sabes qué busca 📲');
+  }
+  return { ok: true, registrada: true, mensaje: 'Consulta registrada para revisión del equipo. Dile al cliente que quedó registrada y que por WhatsApp le damos respuesta personalizada.' };
+}
+
 const HERRAMIENTAS = [
   {
     name: 'buscar_productos',
-    description: 'Busca productos del catálogo por palabras del nombre (sin importar tildes/mayúsculas). Devuelve nombre exacto, página de su categoría y precio vigente (null = se cotiza en tienda).',
-    input_schema: { type: 'object', properties: { texto: { type: 'string', description: 'Palabras del producto, ej. "pisco porton"' } }, required: ['texto'] },
+    description: 'Busca en el catálogo por palabras (texto) y/o lista los productos de una categoría (categoria). Devuelve nombre exacto, página y precio vigente. precio null = SIN precio publicado en la web: se cotiza por WhatsApp, NUNCA inventes un monto.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        texto: { type: 'string', description: 'Palabras del producto, ej. "pisco porton" (opcional si mandas categoria)' },
+        categoria: { type: 'string', description: 'Slug de la categoría, ej. "helados" (opcional)' },
+      },
+    },
+  },
+  {
+    name: 'registrar_consulta',
+    description: 'Registra una pregunta que NO pudiste responder con el catálogo (producto no encontrado o dato que desconoces) para que el equipo la revise. Úsala antes de responder que no tienes esa información.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        pregunta: { type: 'string', description: 'La pregunta o pedido del cliente, tal cual la hizo' },
+        producto: { type: 'string', description: 'Producto al que se refiere, si aplica (opcional)' },
+      },
+      required: ['pregunta'],
+    },
   },
   {
     name: 'registrar_pedido',
@@ -204,8 +302,9 @@ const HERRAMIENTAS = [
 ];
 
 async function ejecutarHerramienta(nombre, input, sid) {
-  if (nombre === 'buscar_productos') return { resultados: await buscarProductos(input.texto) };
+  if (nombre === 'buscar_productos') return buscarProductos(input.texto, input.categoria);
   if (nombre === 'registrar_pedido') return registrarPedido(input || {}, sid);
+  if (nombre === 'registrar_consulta') return registrarConsulta(input || {}, sid);
   return { error: 'Herramienta desconocida: ' + nombre };
 }
 
