@@ -63,7 +63,8 @@ h1, h2, h3 { font-family: 'Poppins', 'Montserrat', sans-serif; }
 /* ---------- Menú de categorías (drawer premium dark-gold) ---------- */
 #menu-fondo { position: fixed; inset: 0; background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); z-index: 900; opacity: 0; visibility: hidden; transition: 0.3s; }
 #menu-panel {
-  position: fixed; top: 0; right: 0; bottom: 0; width: 344px; max-width: 88vw; z-index: 901;
+  position: fixed; top: 0; right: 0; bottom: 0; width: 396px; max-width: 90vw; z-index: 901;
+  scrollbar-gutter: stable;
   background: radial-gradient(130% 55% at 100% 0%, #2d2720 0%, #1d1a17 55%, #161311 100%);
   color: #f4ede0; padding: 0 0 26px;
   transform: translateX(102%); transition: transform 0.36s cubic-bezier(.22,.61,.36,1);
@@ -109,13 +110,13 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 #menu-panel .menu-dest { display: flex; gap: 9px; overflow-x: auto; padding: 0 18px 15px; scrollbar-width: none; }
 #menu-panel .menu-dest::-webkit-scrollbar { display: none; }
 #menu-panel .menu-dest .dest {
-  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  min-width: 80px; padding: 13px 10px; border-radius: 14px;
+  flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 0; padding: 13px 6px; border-radius: 14px;
   background: linear-gradient(160deg, rgba(212,169,65,0.16), rgba(212,169,65,0.04));
   border: 1px solid rgba(212,169,65,0.3); transition: .18s;
 }
-#menu-panel .menu-dest .dest .d-ico { font-size: 25px; line-height: 1; }
-#menu-panel .menu-dest .dest .d-txt { font-size: 11.5px; font-weight: 600; text-align: center; opacity: .92; }
+#menu-panel .menu-dest .dest .d-ico { font-size: 24px; line-height: 1; }
+#menu-panel .menu-dest .dest .d-txt { font-size: 11px; font-weight: 600; text-align: center; opacity: .92; white-space: nowrap; }
 #menu-panel .menu-dest .dest:hover { transform: translateY(-3px); border-color: var(--dorado); box-shadow: 0 8px 18px rgba(0,0,0,0.35); background: linear-gradient(160deg, rgba(212,169,65,0.3), rgba(212,169,65,0.08)); }
 
 /* Grupos */
