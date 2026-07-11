@@ -402,3 +402,4 @@ module.exports = async (req, res) => {
 module.exports.buscarProductos = buscarProductos;
 module.exports.resolverItems = resolverItems;
 module.exports.sanearMensajes = sanearMensajes;
+module.exports.registrarConsulta = registrarConsulta;
