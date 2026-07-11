@@ -20,7 +20,10 @@ http.createServer((req, res) => {
     // Stub del chat web: permite ver el widget en local (el bot real corre en Vercel)
     if (url === '/api/chat') {
       return res.end(req.method === 'POST'
-        ? JSON.stringify({ reply: 'Respuesta de prueba del dev-server 🤖 (el bot real corre en Vercel con ANTHROPIC_API_KEY). Mira /pisco o /whisky.' })
+        ? JSON.stringify({
+            reply: 'Respuesta de prueba del dev-server 🤖 (el bot real corre en Vercel con ANTHROPIC_API_KEY).\n\nCada párrafo sale como mensaje aparte, con su "escribiendo…" delante. Mira /pisco o /whisky.',
+            sugerencias: ['Ver piscos', 'Quiero hacer un pedido', '¿Hacen delivery?'],
+          })
         : '{"on":true}');
     }
     return res.end('{"ok":true,"stub":true}');

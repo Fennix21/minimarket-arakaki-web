@@ -1,6 +1,6 @@
 // Chat vendedor DENTRO de la web (widget flotante de assets/site.js).
 //   GET  -> { on: true|false }   ¿el widget debe mostrarse? (hay API key y no está apagado en /panel)
-//   POST { sid, mensajes:[{role,text}] } -> { reply }
+//   POST { sid, mensajes:[{role,text}] } -> { reply, sugerencias:[...] } (botones de respuesta rápida)
 // Usa el MISMO cerebro que el bot de WhatsApp (Redis config:prompt) más tres herramientas:
 // buscar_productos (catálogo por texto y/o categoría + precios en vivo de config:precios),
 // registrar_pedido (guarda en la lista `pedidos` como /api/pedido y avisa al dueño por
@@ -78,7 +78,13 @@ El cliente te escribe desde www.minimarketarakaki.com y tu objetivo es CERRAR su
 ## Estilo
 - Sugiere máximo 3-4 productos por mensaje, con su precio (o "precio por WhatsApp" si no lo hay).
 - Las categorías tienen página propia: escribe la ruta tal cual (ej. /pisco, /whisky, /helados) y el chat la convierte en link.
-- Mensajes CORTOS (2-6 líneas). *Negrita* con asteriscos simples; sin títulos ni listas largas.`;
+- Mensajes CORTOS (2-6 líneas). *Negrita* con asteriscos simples; sin títulos ni listas largas.
+- Separa las ideas con una línea en blanco: la web muestra cada párrafo como un mensaje aparte (como en WhatsApp). Máximo 3 párrafos por respuesta.
+
+## Botones de respuesta rápida (última línea de CADA respuesta)
+- Termina SIEMPRE con una línea que empiece con >>> y 2-3 opciones separadas por |, escritas como las diría el CLIENTE (son botones que él toca y se envían como su mensaje). Ej: >>> Quiero el Portón | Ver más piscos | ¿Hacen delivery?
+- Las opciones deben EMPUJAR la venta al siguiente paso: elegir un producto concreto de los que acabas de mostrar, confirmar el pedido, o resolver la duda que naturalmente sigue. Nada genérico ni repetido.
+- ÚNICA excepción: cuando le pidas sus datos (nombre, dirección, teléfono), no pongas la línea >>>.`;
 
 // ---------- Herramientas del vendedor ----------
 
@@ -353,6 +359,23 @@ function sanearMensajes(lista) {
   return msgs;
 }
 
+// La última línea ">>> op1 | op2 | op3" de la respuesta son los botones de respuesta
+// rápida del widget: se separa del texto y viaja aparte como `sugerencias`.
+function extraerSugerencias(texto) {
+  const lineas = String(texto || '').split('\n');
+  let sugerencias = [];
+  while (lineas.length) {
+    const l = lineas[lineas.length - 1].trim();
+    if (!l) { lineas.pop(); continue; }
+    if (l.indexOf('>>>') === 0) {
+      sugerencias = l.slice(3).split('|').map((s) => s.trim()).filter(Boolean).slice(0, 3).map((s) => s.slice(0, 48));
+      lineas.pop();
+    }
+    break;
+  }
+  return { reply: lineas.join('\n').trim(), sugerencias };
+}
+
 module.exports = async (req, res) => {
   // GET: ¿el widget se muestra? (hay IA y el dueño no lo apagó en /panel → ⚙️ Bot)
   if (req.method === 'GET') {
@@ -390,8 +413,9 @@ module.exports = async (req, res) => {
     const messages = sanearMensajes(b.mensajes);
     if (!messages.length) return res.status(400).json({ error: 'Sin mensaje.' });
 
-    const reply = await venderConClaude(messages, (await getPrompt()) + SUFIJO_WEB, sid);
-    return res.status(200).json({ reply });
+    const texto = await venderConClaude(messages, (await getPrompt()) + SUFIJO_WEB, sid);
+    const { reply, sugerencias } = extraerSugerencias(texto);
+    return res.status(200).json({ reply: reply || '¿Me repites porfa? 🙏', sugerencias });
   } catch (e) {
     console.error('chat error', e);
     return res.status(200).json({ reply: APAGADO });
@@ -403,3 +427,4 @@ module.exports.buscarProductos = buscarProductos;
 module.exports.resolverItems = resolverItems;
 module.exports.sanearMensajes = sanearMensajes;
 module.exports.registrarConsulta = registrarConsulta;
+module.exports.extraerSugerencias = extraerSugerencias;

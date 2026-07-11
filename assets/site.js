@@ -244,8 +244,12 @@
 
   // ---------- Chat vendedor flotante (→ /api/chat) ----------
   // Solo aparece si el backend confirma que el bot está activo (API key + no apagado en /panel).
+  // Mecánica conversacional estilo WHAPE: "escribiendo…" antes de cada mensaje, párrafos
+  // revelados uno a uno (el bot separa ideas con \n\n) y botones de respuesta rápida
+  // (sugerencias que manda /api/chat) que se envían como si el cliente los escribiera.
   var CHAT_KEY = 'arakaki_chat';
   var CHAT_SALUDO = '¡Hola! 👋 Soy el asistente del *Minimarket Arakaki*. Dime qué buscas y te armo el pedido aquí mismo, sin salir de la página 🛒';
+  var CHAT_SUG_INICIAL = ['🍷 ¿Qué vinos tienen?', '🛒 Quiero hacer un pedido', '🛵 ¿Hacen delivery?'];
   var CHAT_ERROR = 'Uy, no pude responder 🙏 Escríbenos por WhatsApp y te atendemos al toque 📲';
 
   function chatEstado() {
@@ -292,30 +296,96 @@
         '<button class="chat-cerrar" aria-label="Cerrar">✕</button>' +
       '</div>' +
       '<div id="chat-msgs"></div>' +
+      '<div id="chat-quick"></div>' +
       '<form id="chat-form" autocomplete="off">' +
-        '<input id="chat-in" placeholder="Escribe tu consulta o pedido…" maxlength="500">' +
+        '<textarea id="chat-in" rows="1" placeholder="Escribe tu consulta o pedido…" maxlength="500"></textarea>' +
         '<button type="submit" id="chat-enviar" aria-label="Enviar">➤</button>' +
       '</form>';
     document.body.appendChild(caja);
 
     var st = chatEstado();
     var ocupado = false;
+    var msgs = document.getElementById('chat-msgs');
+    var quick = document.getElementById('chat-quick');
+    var input = document.getElementById('chat-in');
+    var sinAnim = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function pintarMsgs() {
-      var cont = document.getElementById('chat-msgs');
-      cont.innerHTML = st.msgs.map(function (m) {
-        return '<div class="chat-msg ' + (m.r === 'b' ? 'bot' : 'yo') + '">' + chatHtml(m.t) + '</div>';
-      }).join('') + (ocupado ? '<div class="chat-msg bot escribiendo"><span></span><span></span><span></span></div>' : '');
-      cont.scrollTop = cont.scrollHeight;
+    function bajar() { msgs.scrollTop = msgs.scrollHeight; }
+    function fila(html) {
+      var d = document.createElement('div');
+      d.innerHTML = html;
+      var f = d.firstChild;
+      msgs.appendChild(f);
+      bajar();
+      return f;
+    }
+    // quieto = sin animación de entrada (para repintar historial ya visto)
+    function burbujaBot(t, quieto) {
+      fila('<div class="chat-fila bot' + (quieto ? ' quieto' : '') + '"><img class="chat-mini" src="/img/asistente-arakaki.png" alt="">' +
+        '<div class="chat-msg bot">' + chatHtml(t) + '</div></div>');
+    }
+    function burbujaYo(t, quieto) {
+      fila('<div class="chat-fila yo' + (quieto ? ' quieto' : '') + '"><div class="chat-msg yo">' + chatHtml(t) + '</div></div>');
+    }
+    function verEscribiendo() {
+      fila('<div class="chat-fila bot" id="chat-typing"><img class="chat-mini" src="/img/asistente-arakaki.png" alt="">' +
+        '<div class="chat-msg bot escribiendo"><span></span><span></span><span></span></div></div>');
+    }
+    function quitarEscribiendo() { var t = document.getElementById('chat-typing'); if (t) t.remove(); }
+
+    function pintarQuick(labels) {
+      quick.innerHTML = '';
+      (labels || []).forEach(function (lbl) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chat-opt';
+        b.textContent = lbl;
+        b.onclick = function () { enviar(lbl); };
+        quick.appendChild(b);
+      });
+    }
+
+    // Repinta el historial guardado sin animaciones (al abrir o tras cambiar de página).
+    // Cada párrafo (\n\n) del bot es una burbuja aparte, como cuando llegó en vivo.
+    function pintarHistorial() {
+      msgs.innerHTML = '';
+      st.msgs.forEach(function (m) {
+        if (m.r === 'b') {
+          m.t.split(/\n\n+/).forEach(function (p) { if (p.trim()) burbujaBot(p.trim(), true); });
+        } else burbujaYo(m.t, true);
+      });
+      pintarQuick(st.sug);
+    }
+
+    // Revela la respuesta párrafo a párrafo, cada uno precedido por "escribiendo…"
+    function revelarBot(texto, fin) {
+      var partes = String(texto).split(/\n\n+/).filter(function (p) { return p.trim(); });
+      if (!partes.length) partes = [String(texto)];
+      var i = 0;
+      function paso() {
+        verEscribiendo();
+        setTimeout(function () {
+          quitarEscribiendo();
+          burbujaBot(partes[i].trim());
+          i++;
+          if (i < partes.length) setTimeout(paso, sinAnim ? 0 : 300);
+          else fin();
+        }, sinAnim ? 0 : (i === 0 ? 500 : 550));
+      }
+      paso();
     }
 
     function abrir() {
       caja.classList.add('abierto');
       fab.classList.add('oculto');
-      if (!st.msgs.length) { st.msgs.push({ r: 'b', t: CHAT_SALUDO }); chatGuardar(st); }
-      pintarMsgs();
+      if (!st.msgs.length) {
+        st.msgs.push({ r: 'b', t: CHAT_SALUDO });
+        st.sug = CHAT_SUG_INICIAL;
+        chatGuardar(st);
+      }
+      pintarHistorial();
       if (window.arkTrack) window.arkTrack('chatweb_abierto');
-      document.getElementById('chat-in').focus();
+      input.focus();
     }
     function cerrar() {
       caja.classList.remove('abierto');
@@ -324,17 +394,18 @@
     fab.onclick = abrir;
     caja.querySelector('.chat-cerrar').onclick = cerrar;
 
-    document.getElementById('chat-form').onsubmit = function (e) {
-      e.preventDefault();
-      if (ocupado) return;
-      var input = document.getElementById('chat-in');
-      var txt = (input.value || '').trim();
-      if (!txt) return;
+    function enviar(txt) {
+      txt = (txt || '').trim();
+      if (!txt || ocupado) return;
       input.value = '';
+      crecer();
       st.msgs.push({ r: 'u', t: txt });
+      st.sug = [];
       chatGuardar(st);
       ocupado = true;
-      pintarMsgs();
+      pintarQuick([]);
+      burbujaYo(txt);
+      verEscribiendo();
       if (window.arkTrack) window.arkTrack('chatweb_msg');
 
       var hist = st.msgs.slice(-12).map(function (m) { return { role: m.r === 'b' ? 'assistant' : 'user', text: m.t }; });
@@ -343,18 +414,35 @@
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ sid: st.sid, mensajes: hist }),
       }).then(function (r) { return r.json(); }).then(function (j) {
-        recibir((j && j.reply) || CHAT_ERROR + '\nhttps://wa.me/' + WA);
+        recibir((j && j.reply) || CHAT_ERROR + '\nhttps://wa.me/' + WA, (j && j.sugerencias) || []);
       }).catch(function () {
-        recibir(CHAT_ERROR + '\nhttps://wa.me/' + WA);
+        recibir(CHAT_ERROR + '\nhttps://wa.me/' + WA, []);
       });
-    };
-
-    function recibir(texto) {
-      ocupado = false;
-      st.msgs.push({ r: 'b', t: texto });
-      chatGuardar(st);
-      pintarMsgs();
     }
+
+    function recibir(texto, sugerencias) {
+      quitarEscribiendo();
+      st.msgs.push({ r: 'b', t: texto });
+      st.sug = sugerencias;
+      chatGuardar(st);
+      revelarBot(texto, function () {
+        ocupado = false;
+        pintarQuick(sugerencias);
+        // En móvil no se devuelve el foco: abriría el teclado tapando la respuesta
+        if (caja.classList.contains('abierto') && window.innerWidth > 600) input.focus();
+      });
+    }
+
+    // Composer: crece con el texto; Enter envía, Shift+Enter salto de línea, Esc cierra
+    function crecer() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 110) + 'px'; }
+    input.addEventListener('input', crecer);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(input.value); }
+    });
+    document.getElementById('chat-form').onsubmit = function (e) { e.preventDefault(); enviar(input.value); };
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && caja.classList.contains('abierto')) cerrar();
+    });
   }
 
   // ---------- Render de página de categoría ----------
