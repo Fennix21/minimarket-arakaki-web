@@ -226,6 +226,19 @@ td a.wa { color:var(--verde); text-decoration:none; }
   main#contenido { margin-left:0; padding:68px 14px 84px; }
   #v-chats.activa { height:auto; }
 }
+
+/* Compositor push: buscador de imágenes del catálogo + vista previa de la notificación */
+#push-img-res { display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+#push-img-res .pi-item { display:flex; align-items:center; gap:10px; padding:6px 8px; background:var(--campo); border:1px solid var(--borde); border-radius:8px; cursor:pointer; font-size:13px; }
+#push-img-res .pi-item:hover { background:var(--hover); }
+#push-img-res .pi-item img { width:34px; height:34px; object-fit:contain; border-radius:6px; background:#fff; flex:none; }
+.notif-mock { background:var(--card); border:1px solid var(--borde); border-radius:12px; padding:12px 14px; max-width:360px; }
+.notif-mock .nm-head { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--sub); margin-bottom:6px; }
+.notif-mock .nm-head img { width:16px; height:16px; border-radius:4px; }
+.notif-mock .nm-tit { font-weight:700; font-size:13.5px; }
+.notif-mock .nm-body { font-size:13px; color:var(--sub); margin-top:2px; white-space:pre-wrap; }
+.notif-mock .nm-img { width:100%; border-radius:8px; margin-top:8px; display:block; }
+.notif-mock .nm-vacio { font-style:italic; opacity:.55; }
 </style>
 </head>
 <body>
@@ -513,15 +526,31 @@ td a.wa { color:var(--verde); text-decoration:none; }
         <p class="desc">Mándales una oferta o novedad a todos los que activaron "🔔 Avísame de las ofertas" en la web. Les llega como notificación al celular o la computadora, gratis.</p>
         <div class="campo-bloque">
           <label>Título</label>
-          <input type="text" id="push-titulo" maxlength="80" placeholder="🍷 ¡Vinos con 20% de descuento!" style="width:100%">
+          <input type="text" id="push-titulo" maxlength="80" placeholder="🍷 ¡Vinos con 20% de descuento!" style="width:100%" oninput="pintarPreviewPush()">
         </div>
         <div class="campo-bloque">
           <label>Mensaje</label>
-          <textarea id="push-texto" maxlength="240" style="min-height:70px" placeholder="Solo por hoy: 2x1 en vinos chilenos. Pide con delivery gratis 🛵"></textarea>
+          <textarea id="push-texto" maxlength="240" style="min-height:70px" placeholder="Solo por hoy: 2x1 en vinos chilenos. Pide con delivery gratis 🛵" oninput="pintarPreviewPush()"></textarea>
         </div>
         <div class="campo-bloque">
           <label>Link al tocarla (opcional)</label>
           <input type="text" id="push-url" maxlength="300" placeholder="/vinos-chilenos" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Imagen (opcional, estilo banner)</label>
+          <div class="hint">Detiene el scroll: se ve grande en Android y PC (iPhone y Firefox la ignoran y muestran solo el texto). Busca una foto de tu catálogo o pega la URL de cualquier imagen de tu web.</div>
+          <input type="text" id="push-img-buscar" placeholder="🔍 Buscar producto del catálogo…" style="width:100%" autocomplete="off" oninput="buscarImgPush()">
+          <div id="push-img-res"></div>
+          <input type="text" id="push-img" maxlength="400" placeholder="/img/productos/… o https://…" style="width:100%;margin-top:8px" oninput="pintarPreviewPush()">
+        </div>
+        <div class="campo-bloque">
+          <label>Vista previa (así se verá la notificación)</label>
+          <div class="notif-mock">
+            <div class="nm-head"><img src="/img/icon-192.png" alt=""><span>Minimarket Arakaki · ahora</span></div>
+            <div class="nm-tit" id="nm-tit"></div>
+            <div class="nm-body" id="nm-body"></div>
+            <img class="nm-img" id="nm-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
+          </div>
         </div>
         <div class="fila-conf">
           <button class="btn" onclick="enviarPush()">📣 Enviar a mis clientes</button>
@@ -1139,6 +1168,52 @@ function cargarPush() {
       ? (j.duenos || 0) + ' dispositivo(s) del negocio con avisos'
       : '⚠️ Faltan las claves VAPID en Vercel';
   }).catch(function () {});
+  pintarPreviewPush();
+}
+// Buscador de fotos del catálogo para el banner de la notificación
+var PUSH_IMG_LISTA = null, PUSH_IMG_RES = [];
+function pushImgLista() {
+  if (PUSH_IMG_LISTA) return PUSH_IMG_LISTA;
+  PUSH_IMG_LISTA = [];
+  var C = window.ARAKAKI_CATALOG;
+  if (C) C.order.forEach(function (slug) {
+    var cat = C.categories[slug];
+    if (!cat) return;
+    cat.sections.forEach(function (s) {
+      s.products.forEach(function (p) { if (p.img && p.name) PUSH_IMG_LISTA.push({ n: p.name, img: p.img }); });
+    });
+  });
+  return PUSH_IMG_LISTA;
+}
+function buscarImgPush() {
+  var q = document.getElementById('push-img-buscar').value.trim().toLowerCase();
+  var cont = document.getElementById('push-img-res');
+  if (q.length < 2) { cont.innerHTML = ''; return; }
+  PUSH_IMG_RES = pushImgLista().filter(function (p) { return p.n.toLowerCase().indexOf(q) !== -1; }).slice(0, 6);
+  cont.innerHTML = PUSH_IMG_RES.map(function (p, i) {
+    return '<div class="pi-item" onclick="elegirImgPush(' + i + ')"><img src="' + esc(p.img) + '" loading="lazy"><span>' + esc(p.n) + '</span></div>';
+  }).join('') || '<div style="font-size:12px;color:var(--sub);padding:4px 2px">Sin resultados en el catálogo</div>';
+}
+function elegirImgPush(i) {
+  var p = PUSH_IMG_RES[i];
+  if (!p) return;
+  document.getElementById('push-img').value = p.img;
+  document.getElementById('push-img-res').innerHTML = '';
+  document.getElementById('push-img-buscar').value = '';
+  pintarPreviewPush();
+}
+function pintarPreviewPush() {
+  var tit = document.getElementById('nm-tit'), body = document.getElementById('nm-body'), img = document.getElementById('nm-img');
+  if (!tit) return;
+  var t = document.getElementById('push-titulo').value.trim();
+  var x = document.getElementById('push-texto').value.trim();
+  var im = document.getElementById('push-img').value.trim();
+  tit.textContent = t || 'Escribe el título…';
+  tit.className = 'nm-tit' + (t ? '' : ' nm-vacio');
+  body.textContent = x || 'Y aquí va tu mensaje.';
+  body.className = 'nm-body' + (x ? '' : ' nm-vacio');
+  if (im && /^(\/|https:\/\/)/.test(im)) { img.style.display = 'block'; img.src = im; }
+  else { img.style.display = 'none'; img.removeAttribute('src'); }
 }
 function activarPushPanel() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -1181,13 +1256,15 @@ function enviarPush() {
   var titulo = document.getElementById('push-titulo').value.trim();
   var texto = document.getElementById('push-texto').value.trim();
   if (!titulo || !texto) return avisoPush('Escribe el título y el mensaje.', true);
-  if (!confirm('¿Enviar esta notificación a TODOS tus clientes suscritos?\n\n' + titulo + '\n' + texto)) return;
-  apiPush({ action: 'send', target: 'clientes', title: titulo, body: texto, url: document.getElementById('push-url').value.trim() })
+  var imagen = document.getElementById('push-img').value.trim();
+  if (!confirm('¿Enviar esta notificación a TODOS tus clientes suscritos?\n\n' + titulo + '\n' + texto + (imagen ? '\n🖼️ Con imagen' : ''))) return;
+  apiPush({ action: 'send', target: 'clientes', title: titulo, body: texto, url: document.getElementById('push-url').value.trim(), image: imagen })
     .then(function (j) {
       avisoPush('📣 Enviada a ' + j.enviados + ' cliente(s).' + (j.podados ? ' (' + j.podados + ' suscripciones vencidas se limpiaron)' : ''));
       document.getElementById('push-titulo').value = '';
       document.getElementById('push-texto').value = '';
       document.getElementById('push-url').value = '';
+      document.getElementById('push-img').value = '';
       cargarPush();
     }).catch(function (e) { avisoPush(e.message, true); });
 }

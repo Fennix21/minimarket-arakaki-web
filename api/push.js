@@ -3,7 +3,7 @@
 //   POST { action:'subscribe', rol:'clientes', subscription }          (público: opt-in del visitante)
 //   POST { action:'subscribe', rol:'duenos', subscription, pass }      (panel: requiere contraseña)
 //   POST { action:'unsubscribe', rol, endpoint [, pass si duenos] }
-//   POST { action:'send', pass, target, title, body, url }             (broadcast del panel)
+//   POST { action:'send', pass, target, title, body, url, image }      (broadcast del panel; image = banner opcional)
 //   POST { action:'test', pass }                                       (prueba: solo a los dueños)
 //   POST { action:'count', pass }                                      (contadores para el panel)
 // Suscripciones en HASH push:clientes / push:duenos (ver api/_push.js).
@@ -88,7 +88,9 @@ module.exports = async (req, res) => {
       if (!title || !body) return res.status(400).json({ error: 'Falta el título o el texto.' });
       let url = limpio(b.url, 300) || '/';
       if (!/^(\/|https:\/\/)/.test(url)) url = '/';
-      const r2 = await pushTo(target, { title, body, url, tag: 'arakaki-promo' });
+      let image = limpio(b.image, 400);
+      if (image && !/^(\/|https:\/\/)/.test(image)) image = '';
+      const r2 = await pushTo(target, { title, body, url, image: image || undefined, tag: 'arakaki-promo' });
       try { await redis(['INCRBY', 'stat:push_enviados', String(r2.enviados)]); } catch (e) {}
       return res.status(200).json({ ok: true, enviados: r2.enviados, podados: r2.podados });
     }
