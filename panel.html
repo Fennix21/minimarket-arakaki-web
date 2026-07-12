@@ -239,6 +239,27 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .notif-mock .nm-body { font-size:13px; color:var(--sub); margin-top:2px; white-space:pre-wrap; }
 .notif-mock .nm-img { width:100%; border-radius:8px; margin-top:8px; display:block; }
 .notif-mock .nm-vacio { font-style:italic; opacity:.55; }
+
+/* Promociones guardadas + historial de envíos + contadores del compositor */
+.cont-chars { float:right; font-size:11px; color:var(--sub); font-weight:400; }
+.cont-chars.pasado { color:#e6a23c; }
+#push-promos { display:flex; flex-direction:column; gap:6px; }
+.promo-card { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--campo); border:1px solid var(--borde); border-radius:10px; cursor:pointer; }
+.promo-card:hover { background:var(--hover); }
+.promo-card.activa { border-color:#7a8cff; }
+.promo-card img, .promo-card .pc-noimg { width:38px; height:38px; border-radius:8px; object-fit:contain; background:#fff; flex:none; }
+.promo-card .pc-noimg { background:var(--card); display:flex; align-items:center; justify-content:center; font-size:17px; }
+.promo-card .pc-txt { flex:1; min-width:0; display:flex; flex-direction:column; }
+.promo-card .pc-txt b { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.promo-card .pc-txt span { font-size:12px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.promo-card .x { flex:none; background:none; border:none; color:var(--sub); font-size:14px; cursor:pointer; padding:4px 6px; }
+.promo-card .x:hover { color:#ff7a7a; }
+#push-editando { font-size:12px; color:#7a8cff; background:rgba(122,140,255,.08); border:1px solid rgba(122,140,255,.35); border-radius:8px; padding:6px 10px; margin-bottom:10px; }
+#push-freq { color:#e6a23c; margin-bottom:8px; }
+.hist-fila { padding:8px 2px; border-bottom:1px solid var(--borde); }
+.hist-fila:last-child { border-bottom:none; }
+.hist-fila .hf-tit { font-size:13px; font-weight:600; }
+.hist-fila .hf-meta { font-size:12px; color:var(--sub); margin-top:2px; }
 </style>
 </head>
 <body>
@@ -486,8 +507,96 @@ td a.wa { color:var(--verde); text-decoration:none; }
       </div>
     </div>
 
-    <!-- ===== Sub-panel: avisos y números ===== -->
+    <!-- ===== Sub-panel: avisos push y números ===== -->
     <div class="subpanel" id="sp-avisos">
+
+      <!-- 1. Promociones a clientes (lo más usado, arriba) -->
+      <div class="caja-bot">
+        <h3>📣 Promociones push a tus clientes</h3>
+        <p class="desc">Escribe la promo (o carga una guardada), <b>pruébala en tu dispositivo</b> y recién ahí envíala. <span id="push-subs">…</span></p>
+        <div class="aviso" id="push-aviso"></div>
+
+        <details class="ayuda">
+          <summary>💡 Estrategias que funcionan (léelo una vez)</summary>
+          <div class="cuerpo">
+            <b>🕐 Hora:</b> 11am–1pm y 6–8pm son horas de antojo; domingo por la tarde también rinde.<br>
+            <b>✍️ Título:</b> máximo ~40 caracteres y con número concreto: "2x1", "–20%", "desde S/ 25".<br>
+            <b>⏳ Urgencia real:</b> "solo hoy", "hasta las 9 pm", "quedan 12".<br>
+            <b>🖼️ Imagen:</b> ancha tipo portada (2:1, ej. 1000×500): producto + precio grande. En iPhone no se ve, así que el título debe vender solo.<br>
+            <b>🎯 Link:</b> a la categoría de la promo, no a la página de inicio.<br>
+            <b>📅 Frecuencia:</b> 1–2 por semana MÁXIMO. Saturar = bloqueos y pierdes al suscriptor para siempre.<br>
+            <b>📱 Regla de oro:</b> pruébala en tu dispositivo antes de cada envío masivo.
+          </div>
+        </details>
+
+        <div class="campo-bloque">
+          <label>💾 Mis promociones guardadas</label>
+          <div id="push-promos"><span class="hint">Aún no guardas ninguna: escribe abajo y toca "💾 Guardar".</span></div>
+        </div>
+
+        <div id="push-editando" style="display:none"></div>
+
+        <div class="campo-bloque">
+          <label>Título <span class="cont-chars" id="push-tit-cont"></span></label>
+          <input type="text" id="push-titulo" maxlength="80" placeholder="🍷 ¡Vinos con 20% de descuento!" style="width:100%" oninput="pintarPreviewPush()">
+        </div>
+        <div class="campo-bloque">
+          <label>Mensaje <span class="cont-chars" id="push-txt-cont"></span></label>
+          <textarea id="push-texto" maxlength="240" style="min-height:70px" placeholder="Solo por hoy: 2x1 en vinos chilenos. Pide con delivery gratis 🛵" oninput="pintarPreviewPush()"></textarea>
+        </div>
+        <div class="campo-bloque">
+          <label>Link al tocarla (opcional)</label>
+          <input type="text" id="push-url" maxlength="300" placeholder="/vinos-chilenos" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Imagen (opcional, estilo banner)</label>
+          <div class="hint">Detiene el scroll: se ve grande en Android y PC (iPhone y Firefox muestran solo el texto). Busca una foto de tu catálogo o pega la URL de cualquier imagen de tu web.</div>
+          <input type="text" id="push-img-buscar" placeholder="🔍 Buscar producto del catálogo…" style="width:100%" autocomplete="off" oninput="buscarImgPush()">
+          <div id="push-img-res"></div>
+          <input type="text" id="push-img" maxlength="400" placeholder="/img/productos/… o https://…" style="width:100%;margin-top:8px" oninput="pintarPreviewPush()">
+        </div>
+        <div class="campo-bloque">
+          <label>Vista previa (así se verá la notificación)</label>
+          <div class="notif-mock">
+            <div class="nm-head"><img src="/img/icon-192.png" alt=""><span>Minimarket Arakaki · ahora</span></div>
+            <div class="nm-tit" id="nm-tit"></div>
+            <div class="nm-body" id="nm-body"></div>
+            <img class="nm-img" id="nm-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
+          </div>
+        </div>
+        <div class="hint" id="push-freq" style="display:none"></div>
+        <div class="fila-conf">
+          <button class="btn gris" onclick="nuevaPromo()">➕ Nueva</button>
+          <button class="btn gris" onclick="guardarPromo()">💾 Guardar</button>
+          <button class="btn gris" onclick="probarPromo()">📱 Probar en mis dispositivos</button>
+          <button class="btn" onclick="enviarPush()">📣 Enviar a todos</button>
+        </div>
+      </div>
+
+      <!-- 2. Historial de campañas -->
+      <div class="caja-bot">
+        <h3>📜 Últimos envíos</h3>
+        <p class="desc">Qué mandaste, a cuántos llegó y cuántos lo tocaron.</p>
+        <div id="push-historial"><span class="hint">Todavía no envías ninguna promoción.</span></div>
+      </div>
+
+      <!-- 3. Avisos del negocio en este dispositivo -->
+      <div class="caja-bot">
+        <h3>📲 Avisos push en este dispositivo</h3>
+        <p class="desc">Recibe una notificación en este celular o computadora cada vez que entre un pedido o un cliente nuevo — sin depender de WhatsApp (que pronto cobrará por mensaje).</p>
+        <div class="aviso" id="disp-aviso"></div>
+        <details class="ayuda">
+          <summary>¿Cómo funciona? (iPhone lee esto)</summary>
+          <div class="cuerpo">Toca <b>Activar</b> y acepta el permiso: este dispositivo quedará suscrito. Actívalo en cada celu/PC donde quieras los avisos. En <b>iPhone</b> primero instala el panel: Safari → Compartir → <b>Agregar a inicio</b>, y ábrelo desde el ícono. Requiere configurar las claves VAPID en Vercel.</div>
+        </details>
+        <div class="fila-conf">
+          <button class="btn" onclick="activarPushPanel()">🔔 Activar en este dispositivo</button>
+          <button class="btn gris" onclick="pruebaPush()">📤 Notificación de prueba</button>
+          <span id="push-estado" style="font-size:12px;color:#aaa"></span>
+        </div>
+      </div>
+
+      <!-- 4. Números autorizados (WhatsApp) -->
       <div class="caja-bot">
         <h3>🔔 Números autorizados</h3>
         <p class="desc">Quién recibe los avisos y puede cambiar precios por WhatsApp.</p>
@@ -503,58 +612,6 @@ td a.wa { color:var(--verde); text-decoration:none; }
         <label class="check-fila"><input type="checkbox" id="conf-notify"> Avisarme de nuevos clientes y pedidos</label>
         <div class="fila-conf">
           <button class="btn" onclick="guardarNotify()">💾 Guardar</button>
-        </div>
-      </div>
-
-      <div class="caja-bot">
-        <h3>📲 Avisos push en este dispositivo</h3>
-        <p class="desc">Recibe una notificación en este celular o computadora cada vez que entre un pedido o un cliente nuevo — sin depender de WhatsApp (que pronto cobrará por mensaje).</p>
-        <div class="aviso" id="push-aviso"></div>
-        <details class="ayuda">
-          <summary>¿Cómo funciona? (iPhone lee esto)</summary>
-          <div class="cuerpo">Toca <b>Activar</b> y acepta el permiso: este dispositivo quedará suscrito. Actívalo en cada celu/PC donde quieras los avisos. En <b>iPhone</b> primero instala el panel: Safari → Compartir → <b>Agregar a inicio</b>, y ábrelo desde el ícono. Requiere configurar las claves VAPID en Vercel.</div>
-        </details>
-        <div class="fila-conf">
-          <button class="btn" onclick="activarPushPanel()">🔔 Activar en este dispositivo</button>
-          <button class="btn gris" onclick="pruebaPush()">📤 Enviar prueba</button>
-          <span id="push-estado" style="font-size:12px;color:#aaa"></span>
-        </div>
-      </div>
-
-      <div class="caja-bot">
-        <h3>📣 Notificación push a tus clientes</h3>
-        <p class="desc">Mándales una oferta o novedad a todos los que activaron "🔔 Avísame de las ofertas" en la web. Les llega como notificación al celular o la computadora, gratis.</p>
-        <div class="campo-bloque">
-          <label>Título</label>
-          <input type="text" id="push-titulo" maxlength="80" placeholder="🍷 ¡Vinos con 20% de descuento!" style="width:100%" oninput="pintarPreviewPush()">
-        </div>
-        <div class="campo-bloque">
-          <label>Mensaje</label>
-          <textarea id="push-texto" maxlength="240" style="min-height:70px" placeholder="Solo por hoy: 2x1 en vinos chilenos. Pide con delivery gratis 🛵" oninput="pintarPreviewPush()"></textarea>
-        </div>
-        <div class="campo-bloque">
-          <label>Link al tocarla (opcional)</label>
-          <input type="text" id="push-url" maxlength="300" placeholder="/vinos-chilenos" style="width:100%">
-        </div>
-        <div class="campo-bloque">
-          <label>Imagen (opcional, estilo banner)</label>
-          <div class="hint">Detiene el scroll: se ve grande en Android y PC (iPhone y Firefox la ignoran y muestran solo el texto). Busca una foto de tu catálogo o pega la URL de cualquier imagen de tu web.</div>
-          <input type="text" id="push-img-buscar" placeholder="🔍 Buscar producto del catálogo…" style="width:100%" autocomplete="off" oninput="buscarImgPush()">
-          <div id="push-img-res"></div>
-          <input type="text" id="push-img" maxlength="400" placeholder="/img/productos/… o https://…" style="width:100%;margin-top:8px" oninput="pintarPreviewPush()">
-        </div>
-        <div class="campo-bloque">
-          <label>Vista previa (así se verá la notificación)</label>
-          <div class="notif-mock">
-            <div class="nm-head"><img src="/img/icon-192.png" alt=""><span>Minimarket Arakaki · ahora</span></div>
-            <div class="nm-tit" id="nm-tit"></div>
-            <div class="nm-body" id="nm-body"></div>
-            <img class="nm-img" id="nm-img" src="" alt="" style="display:none" onerror="this.style.display='none'">
-          </div>
-        </div>
-        <div class="fila-conf">
-          <button class="btn" onclick="enviarPush()">📣 Enviar a mis clientes</button>
-          <span id="push-subs" style="font-size:12px;color:#aaa"></span>
         </div>
       </div>
     </div>
@@ -1155,20 +1212,127 @@ function apiPush(extra) {
   return fetch('/api/push', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
     .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Error'); return j; }); });
 }
-function avisoPush(t, mal) {
-  var a = document.getElementById('push-aviso');
+function avisoPushEn(id, t, mal) {
+  var a = document.getElementById(id);
   a.textContent = t;
   a.className = 'aviso ' + (mal ? 'mal' : 'ok');
-  setTimeout(function () { a.className = 'aviso'; }, 5000);
+  setTimeout(function () { a.className = 'aviso'; }, 6000);
 }
+function avisoPush(t, mal) { avisoPushEn('push-aviso', t, mal); }   // caja de promociones
+function avisoDisp(t, mal) { avisoPushEn('disp-aviso', t, mal); }   // caja "este dispositivo"
+
+var PUSH_PROMOS = [], PUSH_HIST = [], PUSH_EDIT_ID = null;
 function cargarPush() {
   apiPush({ action: 'count' }).then(function (j) {
-    document.getElementById('push-subs').textContent = '🔔 ' + (j.clientes || 0) + ' cliente(s) suscritos';
+    document.getElementById('push-subs').textContent = 'Suscritos ahora: 🔔 ' + (j.clientes || 0) + ' cliente(s).';
     document.getElementById('push-estado').textContent = j.configurado
       ? (j.duenos || 0) + ' dispositivo(s) del negocio con avisos'
       : '⚠️ Faltan las claves VAPID en Vercel';
+    PUSH_PROMOS = j.promos || [];
+    PUSH_HIST = j.historial || [];
+    pintarPromos();
+    pintarHistorial();
+    // Anti-saturación: avisar si el último envío fue hace menos de 24 h
+    var freq = document.getElementById('push-freq');
+    if (PUSH_HIST[0] && Date.now() - PUSH_HIST[0].ts < 24 * 3600e3) {
+      freq.style.display = 'block';
+      freq.textContent = '🕐 Tu último envío fue ' + fmtHace(PUSH_HIST[0].ts) + '. Recomendado: 1–2 promos por semana para no saturar.';
+    } else { freq.style.display = 'none'; }
   }).catch(function () {});
   pintarPreviewPush();
+}
+function fmtHace(ts) {
+  var m = Math.round((Date.now() - ts) / 60000);
+  if (m < 60) return 'hace ' + Math.max(1, m) + ' min';
+  if (m < 48 * 60) return 'hace ' + Math.round(m / 60) + ' h';
+  return 'el ' + new Date(ts).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+}
+// --- Promociones guardadas (Redis config:pushpromos vía /api/push) ---
+function pintarPromos() {
+  var cont = document.getElementById('push-promos');
+  if (!PUSH_PROMOS.length) {
+    cont.innerHTML = '<span class="hint">Aún no guardas ninguna: escribe abajo y toca "💾 Guardar".</span>';
+  } else {
+    cont.innerHTML = PUSH_PROMOS.map(function (p) {
+      return '<div class="promo-card' + (p.id === PUSH_EDIT_ID ? ' activa' : '') + '" onclick="editarPromo(\'' + p.id + '\')">' +
+        (p.image ? '<img src="' + esc(p.image) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' : '<div class="pc-noimg">📣</div>') +
+        '<div class="pc-txt"><b>' + esc(p.nombre || p.title) + '</b><span>' + esc(p.title) + '</span></div>' +
+        '<button class="x" onclick="event.stopPropagation();borrarPromo(\'' + p.id + '\')" title="Borrar esta promoción">✕</button></div>';
+    }).join('');
+  }
+  var chip = document.getElementById('push-editando');
+  var prom = null;
+  for (var i = 0; i < PUSH_PROMOS.length; i++) if (PUSH_PROMOS[i].id === PUSH_EDIT_ID) prom = PUSH_PROMOS[i];
+  if (prom) { chip.style.display = 'block'; chip.textContent = '✏️ Editando "' + (prom.nombre || prom.title) + '" — al guardar la actualizas; "➕ Nueva" para empezar de cero.'; }
+  else chip.style.display = 'none';
+}
+function editarPromo(id) {
+  var p = null;
+  for (var i = 0; i < PUSH_PROMOS.length; i++) if (PUSH_PROMOS[i].id === id) p = PUSH_PROMOS[i];
+  if (!p) return;
+  PUSH_EDIT_ID = id;
+  document.getElementById('push-titulo').value = p.title || '';
+  document.getElementById('push-texto').value = p.body || '';
+  document.getElementById('push-url').value = p.url || '';
+  document.getElementById('push-img').value = p.image || '';
+  pintarPromos();
+  pintarPreviewPush();
+}
+function nuevaPromo() {
+  PUSH_EDIT_ID = null;
+  ['push-titulo', 'push-texto', 'push-url', 'push-img', 'push-img-buscar'].forEach(function (id) { document.getElementById(id).value = ''; });
+  document.getElementById('push-img-res').innerHTML = '';
+  pintarPromos();
+  pintarPreviewPush();
+}
+function guardarPromo() {
+  var titulo = document.getElementById('push-titulo').value.trim();
+  var texto = document.getElementById('push-texto').value.trim();
+  if (!titulo || !texto) return avisoPush('Escribe el título y el mensaje antes de guardar.', true);
+  var actual = null;
+  for (var i = 0; i < PUSH_PROMOS.length; i++) if (PUSH_PROMOS[i].id === PUSH_EDIT_ID) actual = PUSH_PROMOS[i];
+  var nombre = prompt('Nombre corto para reconocerla (ej. "2x1 vinos"):', (actual && actual.nombre) || titulo.slice(0, 40));
+  if (nombre === null) return;
+  apiPush({ action: 'savepromo', promo: {
+    id: PUSH_EDIT_ID || '', nombre: nombre.trim(), title: titulo, body: texto,
+    url: document.getElementById('push-url').value.trim(), image: document.getElementById('push-img').value.trim(),
+  } }).then(function (j) {
+    PUSH_PROMOS = j.promos || [];
+    PUSH_EDIT_ID = j.id;
+    pintarPromos();
+    avisoPush('💾 Promoción guardada. Puedes editarla o enviarla cuando quieras.');
+  }).catch(function (e) { avisoPush(e.message, true); });
+}
+function borrarPromo(id) {
+  var p = null;
+  for (var i = 0; i < PUSH_PROMOS.length; i++) if (PUSH_PROMOS[i].id === id) p = PUSH_PROMOS[i];
+  if (!confirm('¿Borrar la promoción guardada "' + ((p && (p.nombre || p.title)) || '') + '"?')) return;
+  apiPush({ action: 'delpromo', id: id }).then(function (j) {
+    PUSH_PROMOS = j.promos || [];
+    if (PUSH_EDIT_ID === id) PUSH_EDIT_ID = null;
+    pintarPromos();
+    avisoPush('🗑️ Promoción borrada.');
+  }).catch(function (e) { avisoPush(e.message, true); });
+}
+function probarPromo() {
+  var titulo = document.getElementById('push-titulo').value.trim();
+  var texto = document.getElementById('push-texto').value.trim();
+  if (!titulo || !texto) return avisoPush('Escribe el título y el mensaje para probarla.', true);
+  apiPush({ action: 'test', title: titulo, body: texto,
+    url: document.getElementById('push-url').value.trim(), image: document.getElementById('push-img').value.trim() })
+    .then(function (j) {
+      avisoPush(j.enviados
+        ? '📱 Enviada SOLO a tus ' + j.enviados + ' dispositivo(s). Revísala tal cual la verán tus clientes.'
+        : 'No tienes dispositivos del negocio suscritos: actívalos en la caja de abajo.', !j.enviados);
+    }).catch(function (e) { avisoPush(e.message, true); });
+}
+function pintarHistorial() {
+  var cont = document.getElementById('push-historial');
+  if (!PUSH_HIST.length) { cont.innerHTML = '<span class="hint">Todavía no envías ninguna promoción.</span>'; return; }
+  cont.innerHTML = PUSH_HIST.map(function (h) {
+    return '<div class="hist-fila"><div class="hf-tit">' + esc(h.title) + (h.img ? ' 🖼️' : '') + '</div>' +
+      '<div class="hf-meta">' + fmtHace(h.ts) + ' · 👥 ' + (h.enviados || 0) + ' enviados · 👆 ' + (h.clicks || 0) + ' clics</div></div>';
+  }).join('');
 }
 // Buscador de fotos del catálogo para el banner de la notificación
 var PUSH_IMG_LISTA = null, PUSH_IMG_RES = [];
@@ -1214,11 +1378,20 @@ function pintarPreviewPush() {
   body.className = 'nm-body' + (x ? '' : ' nm-vacio');
   if (im && /^(\/|https:\/\/)/.test(im)) { img.style.display = 'block'; img.src = im; }
   else { img.style.display = 'none'; img.removeAttribute('src'); }
+  // Contadores con el largo recomendado (más allá se corta en pantallas chicas)
+  contadorPush('push-tit-cont', t.length, 40);
+  contadorPush('push-txt-cont', x.length, 120);
+}
+function contadorPush(id, n, max) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = n + '/' + max + (n > max ? ' — se puede cortar' : '');
+  el.className = 'cont-chars' + (n > max ? ' pasado' : '');
 }
 function activarPushPanel() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     var esIphone = /iP(hone|ad|od)/.test(navigator.userAgent);
-    return avisoPush(esIphone
+    return avisoDisp(esIphone
       ? 'En iPhone primero instala el panel: Safari → Compartir → "Agregar a inicio", y ábrelo desde el ícono.'
       : 'Este navegador no soporta notificaciones push.', true);
   }
@@ -1239,33 +1412,32 @@ function activarPushPanel() {
   }).then(function (sub) {
     return apiPush({ action: 'subscribe', rol: 'duenos', subscription: sub.toJSON() });
   }).then(function () {
-    avisoPush('✅ Este dispositivo ya recibe los avisos del negocio. Manda una prueba para verlo.');
+    avisoDisp('✅ Este dispositivo ya recibe los avisos del negocio. Manda una prueba para verlo.');
     cargarPush();
   }).catch(function (e) {
-    avisoPush(Notification && Notification.permission === 'denied'
+    avisoDisp(Notification && Notification.permission === 'denied'
       ? 'Bloqueaste las notificaciones para esta web: actívalas en la configuración del navegador.'
       : (e.message || 'No se pudo activar.'), true);
   });
 }
 function pruebaPush() {
   apiPush({ action: 'test' }).then(function (j) {
-    avisoPush(j.enviados ? '📤 Prueba enviada a ' + j.enviados + ' dispositivo(s). Debe sonarte ya.' : 'No hay dispositivos suscritos todavía: toca "Activar" primero.', !j.enviados);
-  }).catch(function (e) { avisoPush(e.message, true); });
+    avisoDisp(j.enviados ? '📤 Prueba enviada a ' + j.enviados + ' dispositivo(s). Debe sonarte ya.' : 'No hay dispositivos suscritos todavía: toca "Activar" primero.', !j.enviados);
+  }).catch(function (e) { avisoDisp(e.message, true); });
 }
 function enviarPush() {
   var titulo = document.getElementById('push-titulo').value.trim();
   var texto = document.getElementById('push-texto').value.trim();
   if (!titulo || !texto) return avisoPush('Escribe el título y el mensaje.', true);
   var imagen = document.getElementById('push-img').value.trim();
-  if (!confirm('¿Enviar esta notificación a TODOS tus clientes suscritos?\n\n' + titulo + '\n' + texto + (imagen ? '\n🖼️ Con imagen' : ''))) return;
+  var alerta = (PUSH_HIST[0] && Date.now() - PUSH_HIST[0].ts < 24 * 3600e3)
+    ? '\n\n🕐 OJO: ya enviaste una ' + fmtHace(PUSH_HIST[0].ts) + '. Saturar hace perder suscriptores.' : '';
+  if (!confirm('¿Enviar esta notificación a TODOS tus clientes suscritos?\n\n' + titulo + '\n' + texto + (imagen ? '\n🖼️ Con imagen' : '') + alerta)) return;
   apiPush({ action: 'send', target: 'clientes', title: titulo, body: texto, url: document.getElementById('push-url').value.trim(), image: imagen })
     .then(function (j) {
-      avisoPush('📣 Enviada a ' + j.enviados + ' cliente(s).' + (j.podados ? ' (' + j.podados + ' suscripciones vencidas se limpiaron)' : ''));
-      document.getElementById('push-titulo').value = '';
-      document.getElementById('push-texto').value = '';
-      document.getElementById('push-url').value = '';
-      document.getElementById('push-img').value = '';
-      cargarPush();
+      avisoPush('📣 Enviada a ' + j.enviados + ' cliente(s).' + (j.podados ? ' (' + j.podados + ' suscripciones vencidas se limpiaron.)' : '') +
+        ' La promo sigue aquí: guárdala 💾 para reusarla cuando quieras.');
+      cargarPush(); // refresca historial y contadores; los campos NO se borran
     }).catch(function (e) { avisoPush(e.message, true); });
 }
 function pintarTplsEdit() {

@@ -3,10 +3,16 @@
 //   POST { action:'subscribe', rol:'clientes', subscription }          (público: opt-in del visitante)
 //   POST { action:'subscribe', rol:'duenos', subscription, pass }      (panel: requiere contraseña)
 //   POST { action:'unsubscribe', rol, endpoint [, pass si duenos] }
-//   POST { action:'send', pass, target, title, body, url, image }      (broadcast del panel; image = banner opcional)
-//   POST { action:'test', pass }                                       (prueba: solo a los dueños)
-//   POST { action:'count', pass }                                      (contadores para el panel)
+//   POST { action:'send', pass, target, title, body, url, image }      (broadcast del panel; image = banner opcional;
+//                                                                       registra la campaña en pushlog con id para contar clics)
+//   POST { action:'test', pass [, title, body, url, image] }           (prueba SOLO a los dueños; sin campos usa un texto fijo,
+//                                                                       con campos manda la promo tal cual para revisarla antes)
+//   POST { action:'count', pass }                                      (todo lo del panel: contadores + promos guardadas + historial)
+//   POST { action:'savepromo', pass, promo }                           (guarda/actualiza una promoción reutilizable, máx 20)
+//   POST { action:'delpromo', pass, id }                               (borra una promoción guardada)
 // Suscripciones en HASH push:clientes / push:duenos (ver api/_push.js).
+// Promos guardadas en config:pushpromos (JSON array) · historial en LIST pushlog (≤50)
+// · clics por campaña en stat:evp:push_click:/<id> (los suma sw.js vía /api/track).
 
 const { pushTo } = require('./_push.js');
 
@@ -69,15 +75,63 @@ module.exports = async (req, res) => {
     if (b.action === 'count') {
       const clientes = Number(await redis(['HLEN', 'push:clientes'])) || 0;
       const duenos = Number(await redis(['HLEN', 'push:duenos'])) || 0;
-      return res.status(200).json({ clientes, duenos, configurado: !!process.env.VAPID_PUBLIC_KEY });
+      let promos = [];
+      try { promos = JSON.parse((await redis(['GET', 'config:pushpromos'])) || '[]'); } catch (e) {}
+      if (!Array.isArray(promos)) promos = [];
+      const crudo = (await redis(['LRANGE', 'pushlog', '0', '19'])) || [];
+      const historial = [];
+      for (const c of crudo) { try { historial.push(JSON.parse(c)); } catch (e) {} }
+      if (historial.length) { // clics por campaña (los suma sw.js en stat:evp:push_click:/<id>)
+        const claves = historial.map((h) => 'stat:evp:push_click:/' + h.id);
+        const clics = (await redis(['MGET', ...claves])) || [];
+        historial.forEach((h, i) => { h.clicks = Number(clics[i]) || 0; });
+      }
+      return res.status(200).json({ clientes, duenos, configurado: !!process.env.VAPID_PUBLIC_KEY, promos, historial });
+    }
+
+    if (b.action === 'savepromo') {
+      const p = b.promo || {};
+      const promo = {
+        id: limpio(p.id, 20) || 'pr' + Date.now().toString(36),
+        nombre: limpio(p.nombre, 40),
+        title: limpio(p.title, 80),
+        body: limpio(p.body, 240),
+        url: limpio(p.url, 300),
+        image: limpio(p.image, 400),
+        ts: Date.now(),
+      };
+      if (!promo.title || !promo.body) return res.status(400).json({ error: 'Falta el título o el texto.' });
+      let promos = [];
+      try { promos = JSON.parse((await redis(['GET', 'config:pushpromos'])) || '[]'); } catch (e) {}
+      if (!Array.isArray(promos)) promos = [];
+      const i = promos.findIndex((x) => x && x.id === promo.id);
+      if (i >= 0) promos[i] = promo;
+      else {
+        if (promos.length >= 20) return res.status(400).json({ error: 'Máximo 20 promociones guardadas: borra alguna primero.' });
+        promos.unshift(promo);
+      }
+      await redis(['SET', 'config:pushpromos', JSON.stringify(promos)]);
+      return res.status(200).json({ ok: true, promos, id: promo.id });
+    }
+
+    if (b.action === 'delpromo') {
+      let promos = [];
+      try { promos = JSON.parse((await redis(['GET', 'config:pushpromos'])) || '[]'); } catch (e) {}
+      if (!Array.isArray(promos)) promos = [];
+      promos = promos.filter((x) => x && x.id !== b.id);
+      await redis(['SET', 'config:pushpromos', JSON.stringify(promos)]);
+      return res.status(200).json({ ok: true, promos });
     }
 
     if (b.action === 'test') {
-      const r2 = await pushTo('duenos', {
-        title: '🔔 Prueba del Minimarket Arakaki',
-        body: 'Los avisos push funcionan en este dispositivo. ¡Todo listo!',
-        url: '/panel', tag: 'arakaki-test',
-      });
+      // Sin campos = prueba de conexión; con campos = ensayo de la promo real antes del envío masivo
+      const title = limpio(b.title, 80) || '🔔 Prueba del Minimarket Arakaki';
+      const body = limpio(b.body, 240) || 'Los avisos push funcionan en este dispositivo. ¡Todo listo!';
+      let url = limpio(b.url, 300) || '/panel';
+      if (!/^(\/|https:\/\/)/.test(url)) url = '/panel';
+      let image = limpio(b.image, 400);
+      if (image && !/^(\/|https:\/\/)/.test(image)) image = '';
+      const r2 = await pushTo('duenos', { title, body, url, image: image || undefined, tag: 'arakaki-test' });
       return res.status(200).json({ ok: true, enviados: r2.enviados, podados: r2.podados });
     }
 
@@ -90,8 +144,13 @@ module.exports = async (req, res) => {
       if (!/^(\/|https:\/\/)/.test(url)) url = '/';
       let image = limpio(b.image, 400);
       if (image && !/^(\/|https:\/\/)/.test(image)) image = '';
-      const r2 = await pushTo(target, { title, body, url, image: image || undefined, tag: 'arakaki-promo' });
-      try { await redis(['INCRBY', 'stat:push_enviados', String(r2.enviados)]); } catch (e) {}
+      const cid = 'c' + Date.now().toString(36); // id de campaña: agrupa los clics en las stats
+      const r2 = await pushTo(target, { title, body, url, image: image || undefined, tag: 'arakaki-promo', cid });
+      try {
+        await redis(['INCRBY', 'stat:push_enviados', String(r2.enviados)]);
+        await redis(['LPUSH', 'pushlog', JSON.stringify({ id: cid, ts: Date.now(), title, enviados: r2.enviados, img: image ? 1 : 0 })]);
+        await redis(['LTRIM', 'pushlog', '0', '49']);
+      } catch (e) {}
       return res.status(200).json({ ok: true, enviados: r2.enviados, podados: r2.podados });
     }
 

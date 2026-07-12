@@ -17,7 +17,7 @@ self.addEventListener('push', function (e) {
     badge: '/img/icon-192.png',
     tag: data.tag || 'arakaki',
     renotify: true,
-    data: { url: data.url || '/' },
+    data: { url: data.url || '/', cid: data.cid || '' },
   };
   if (data.image) opts.image = data.image;
   e.waitUntil(self.registration.showNotification(title, opts));
@@ -25,15 +25,22 @@ self.addEventListener('push', function (e) {
 
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
-  var url = (e.notification.data && e.notification.data.url) || '/';
-  e.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (tabs) {
-      for (var i = 0; i < tabs.length; i++) {
-        var t = tabs[i];
-        // Si ya hay una pestaña del sitio abierta, la enfocamos y navegamos ahí
-        if ('focus' in t) { t.focus(); if (t.navigate && url !== '/') return t.navigate(url); return; }
-      }
-      return self.clients.openWindow(url);
-    })
-  );
+  var d = e.notification.data || {};
+  var url = d.url || '/';
+  var abrir = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (tabs) {
+    for (var i = 0; i < tabs.length; i++) {
+      var t = tabs[i];
+      // Si ya hay una pestaña del sitio abierta, la enfocamos y navegamos ahí
+      if ('focus' in t) { t.focus(); if (t.navigate && url !== '/') return t.navigate(url); return; }
+    }
+    return self.clients.openWindow(url);
+  });
+  var tareas = [abrir];
+  // Conteo de clics por campaña (stat:evp:push_click:/<cid>, lo lee el panel)
+  if (d.cid) tareas.push(fetch('/api/track', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ev: 'push_click', p: '/' + d.cid }),
+  }).catch(function () {}));
+  e.waitUntil(Promise.all(tareas));
 });
