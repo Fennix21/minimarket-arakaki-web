@@ -21,8 +21,9 @@ http.createServer((req, res) => {
     if (url === '/api/chat') {
       return res.end(req.method === 'POST'
         ? JSON.stringify({
-            reply: 'Respuesta de prueba del dev-server 🤖 (el bot real corre en Vercel con ANTHROPIC_API_KEY).\n\nCada párrafo sale como mensaje aparte, con su "escribiendo…" delante. Mira /pisco o /whisky.',
-            sugerencias: ['Ver piscos', 'Quiero hacer un pedido', '¿Hacen delivery?'],
+            reply: 'Respuesta de prueba del dev-server 🤖 (el bot real corre en Vercel con ANTHROPIC_API_KEY).\n\n¡Activa nuestros *avisos gratis* 🔔 y déjame tu WhatsApp o correo para enterarte primero de las ofertas!',
+            sugerencias: ['Te dejo mi WhatsApp', 'Ver productos', '¿Qué ofertas hay?'],
+            push: true,
           })
         : '{"on":true}');
     }

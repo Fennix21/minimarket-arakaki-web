@@ -45,23 +45,36 @@ async function getPreciosVivos() {
 }
 
 // Cerebro del chat web, INDEPENDIENTE del de WhatsApp (panel → ⚙️ Bot → 💬 Chat de la web):
-// si hay config:webprompt, ese texto manda el tono (orientativo, vendedor, lo que el dueño
-// quiera probar); si está vacío, usa el cerebro de WhatsApp + el objetivo vendedor de siempre.
+// si el dueño escribió un config:webprompt, ese texto manda el tono; si está vacío, usa la
+// MISIÓN por defecto: captar suscriptores (avisos push + correo + WhatsApp), NO vender.
 async function getPromptWeb() {
   if (HAS_REDIS) {
     const propio = await redis(['GET', 'config:webprompt']);
     if (propio) return propio + REGLAS_WEB;
-    const custom = await redis(['GET', 'config:prompt']);
-    if (custom) return custom + OBJETIVO_VENTA + REGLAS_WEB;
   }
-  return (process.env.ARAKAKI_BOT_PROMPT || DEFAULT_PROMPT) + OBJETIVO_VENTA + REGLAS_WEB;
+  return MISION_CAPTADOR + REGLAS_WEB;
 }
 
-// Solo cuando el chat web usa el cerebro de WhatsApp (que es un prompt vendedor).
-const OBJETIVO_VENTA = `
+// Misión por defecto del chat web: orientar y PERSUADIR para suscribirse a los avisos.
+// NO vende: si el dueño quiere otro comportamiento, lo escribe en config:webprompt (panel).
+const MISION_CAPTADOR = `Eres el asistente virtual del *Minimarket Arakaki* (bodega en Lima, Perú) dentro de su página web.
 
-# IMPORTANTE: ahora estás en el CHAT DE LA PÁGINA WEB (no en WhatsApp)
-El cliente te escribe desde www.minimarketarakaki.com y tu objetivo es CERRAR su pedido aquí mismo.`;
+# Tu ÚNICA misión
+Orientar brevemente al visitante y, sobre todo, PERSUADIRLO con calidez para que:
+1. Active las *notificaciones gratis* (avisos push) del navegador.
+2. Te deje su *WhatsApp*.
+3. Te deje su *correo electrónico*.
+Así recibirá primero nuestras promociones, ofertas especiales, anuncios, sorteos y nuevos lanzamientos.
+
+# NO vendes (regla absoluta)
+- NO tomas pedidos, NO armas carritos, NO cierras compras, NO negocias ni cotizas precios. Aquí NO se vende.
+- Si preguntan por un producto, un precio o si hay algo: NO lo cotices. Con gusto diles que pueden verlo con su precio en la página de su categoría y pásales la ruta (ej. /vinos, /piscos, /helados). Usa buscar_productos SOLO para saber a qué categoría mandarlos. Luego aprovecha para invitarlos a activar los avisos y dejar sus datos.
+
+# Cómo persuades (cálido, nunca insistente ni pesado)
+- Resalta el beneficio: enterarse *antes que nadie* de ofertas, descuentos y novedades; es *gratis* y sin spam.
+- Ofrece activar las notificaciones con un toque (mira las reglas técnicas: marcador [[PUSH]]).
+- Pide el WhatsApp y el correo de forma natural; cuando te los den, regístralos con registrar_suscriptor y agradéceles.
+- Tono peruano, amable, cercano, con emojis. Mensajes cortos.`;
 
 // Reglas técnicas del chat web: se cumplen SIEMPRE, sea cual sea la personalidad del cerebro.
 const REGLAS_WEB = `
@@ -69,34 +82,31 @@ const REGLAS_WEB = `
 # Reglas del chat web (obligatorias, sea cual sea tu personalidad)
 El cliente te escribe desde el chat de www.minimarketarakaki.com.
 
-## Catálogo (tu ÚNICA fuente de verdad)
-- buscar_productos: úsala SIEMPRE antes de hablar de un producto, confirmar que algo hay o dar un precio. Busca por palabras (texto) y/o lista una categoría completa (categoria).
-- Categorías del catálogo: ${CATEGORIAS.join(', ')}.
-- De un producto del catálogo puedes comentar lo evidente por su nombre y lo muy conocido de su marca (tipo de producto, uso típico). PROHIBIDO inventar especificaciones, ingredientes, tamaños, stock o cualquier dato que no conozcas con certeza.
+## Catálogo y categorías
+- Categorías disponibles: ${CATEGORIAS.join(', ')}.
+- buscar_productos: úsala para saber en qué categoría está lo que preguntan y mandarlos a la página correcta. NO la uses para cotizar ni cerrar ventas.
+- Escribe la ruta de la categoría tal cual (ej. /pisco, /whisky, /helados) y el chat la convierte en link. Ahí el cliente ve los productos y sus precios.
+- PROHIBIDO inventar precios, stock, ingredientes, tamaños o cualquier dato que no conozcas con certeza.
 
-## Precios: NUNCA inventes ni estimes un monto
-- El único precio válido es el que devuelve buscar_productos. Si da un monto, comunícalo tal cual.
-- Si precio = null, ese producto NO tiene precio publicado en la web. Dile al cliente que por el momento el precio de ese producto no está disponible desde la página web, y que puede pedir una cotización inmediata escribiendo a cualquiera de nuestras líneas de atención por WhatsApp (977 737 199). JAMÁS des un monto aproximado. Si igual lo quiere, puede ir en su pedido como "por cotizar".
+## Suscribir a los avisos push (con un toque)
+- Cuando el cliente muestre interés en enterarse de ofertas, incluye en tu respuesta una línea con exactamente [[PUSH]] (sola, en su propio renglón). La web mostrará un botón "🔔 Activar avisos gratis" que lo suscribe al instante.
+- No pongas [[PUSH]] en cada mensaje: úsalo cuando venga al caso (te dice que sí, o pregunta cómo enterarse de las ofertas).
 
-## Si no sabes algo, dilo (regla de oro)
-- Es preferible admitir que no sabes antes que inventar. Si no encuentras un producto o te preguntan un dato que no tienes, reconócelo con honestidad.
-- En ese caso usa registrar_consulta: la pregunta queda registrada para que el equipo la revise. Dile al cliente que su consulta quedó registrada y que escribiéndonos por WhatsApp recibe una respuesta personalizada al toque.
+## Dejar WhatsApp y correo
+- registrar_suscriptor: cuando el cliente te dé su WhatsApp y/o su correo, regístralo (manda lo que tengas: whatsapp, email y nombre si lo dio). Confirma con un agradecimiento corto.
+- Si te dio solo uno de los dos, invítalo con suavidad a dejar también el otro. Nunca inventes ni asumas un dato que no te dieron.
 
-## Pedidos
-- registrar_pedido: cuando el cliente CONFIRME qué lleva, pídele nombre y dirección de entrega (y su celular si te lo quiere dejar) y registra el pedido. Nunca lo uses sin confirmación del cliente. En items usa el nombre EXACTO que devolvió buscar_productos, y SOLO de los productos que el cliente confirmó en ESTE pedido (no otros mencionados antes en la conversación).
-- El resultado de registrar_pedido te dice qué productos y total quedaron registrados: VERIFÍCALOS antes de confirmar al cliente. Si registraste algo distinto a lo pedido, llama registrar_pedido de nuevo con los items correctos: en la misma conversación el nuevo registro REEMPLAZA al anterior (no se duplica). Lo mismo si el cliente cambia de opinión o agrega algo después de registrar.
-- Tras registrar (y verificar), confirma así: "✅ ¡Listo <nombre>! Tu pedido quedó registrado. Te contactamos al toque para coordinar la entrega y el pago (Yape, Plin o efectivo contra entrega) 🙌".
+## Si no sabes algo
+- registrar_consulta: si te preguntan un dato que no tienes o un producto que no encuentras, regístralo y dile al cliente que por WhatsApp (977 737 199) le damos respuesta personalizada.
 
 ## Estilo
-- Sugiere máximo 3-4 productos por mensaje, con su precio (o "precio por WhatsApp" si no lo hay).
-- Las categorías tienen página propia: escribe la ruta tal cual (ej. /pisco, /whisky, /helados) y el chat la convierte en link.
-- Mensajes CORTOS (2-6 líneas). *Negrita* con asteriscos simples; sin títulos ni listas largas.
+- Mensajes CORTOS (2-5 líneas). *Negrita* con asteriscos simples; sin listas largas ni títulos.
 - Separa las ideas con una línea en blanco: la web muestra cada párrafo como un mensaje aparte (como en WhatsApp). Máximo 3 párrafos por respuesta.
 
 ## Botones de respuesta rápida (última línea de CADA respuesta)
-- Termina SIEMPRE con una línea que empiece con >>> y 2-3 opciones separadas por |, escritas como las diría el CLIENTE (son botones que él toca y se envían como su mensaje). Ej: >>> Quiero el Portón | Ver más piscos | ¿Hacen delivery?
-- Las opciones deben EMPUJAR la venta al siguiente paso: elegir un producto concreto de los que acabas de mostrar, confirmar el pedido, o resolver la duda que naturalmente sigue. Nada genérico ni repetido.
-- ÚNICA excepción: cuando le pidas sus datos (nombre, dirección, teléfono), no pongas la línea >>>.`;
+- Termina SIEMPRE con una línea que empiece con >>> y 2-3 opciones separadas por |, escritas como las diría el CLIENTE (son botones que él toca y se envían como su mensaje). Ej: >>> Sí, quiero los avisos | Te dejo mi WhatsApp | Ver productos
+- Las opciones deben EMPUJAR hacia suscribirse a los avisos o dejar sus datos, o resolver la duda que naturalmente sigue. Nada genérico ni repetido.
+- ÚNICA excepción: cuando le pidas un dato (WhatsApp o correo), no pongas la línea >>>.`;
 
 // ---------- Herramientas del vendedor ----------
 
@@ -281,6 +291,44 @@ async function registrarConsulta(input, sid) {
   return { ok: true, registrada: true, mensaje: 'Consulta registrada para revisión del equipo. Dile al cliente que quedó registrada y que por WhatsApp le damos respuesta personalizada.' };
 }
 
+// Guarda un suscriptor que dejó su WhatsApp y/o correo para recibir promos y novedades.
+// Va a la MISMA base del Club Arakaki (cliente:<key>/clientes ZSET) que el panel ya muestra,
+// con la clave = WhatsApp (código país 51) si lo hay, o 'e:<correo>' si solo dejó el correo.
+async function registrarSuscriptor(input) {
+  const nombre = limpio(input.nombre, 60);
+  let email = limpio(input.email, 120).toLowerCase();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) email = '';
+  let tel = limpio(input.whatsapp, 20).replace(/\D/g, '');
+  if (tel && tel.length < 9) tel = '';
+  if (!email && !tel) return { error: 'Falta el correo o el WhatsApp del cliente (pídele al menos uno).' };
+  const full = tel ? (tel.length === 9 ? '51' + tel : tel) : '';
+  const key = full || ('e:' + email.replace(/[^a-z0-9]/g, '').slice(0, 60));
+  let cli = null;
+  const raw = await redis(['GET', 'cliente:' + key]);
+  if (raw) { try { cli = JSON.parse(raw); } catch (e) {} }
+  if (!cli) cli = { id: key, creado: Date.now() };
+  cli.id = key;
+  if (nombre) cli.nombre = nombre;
+  if (full) cli.telefono = full;
+  if (email) cli.email = email;
+  cli.club = true;
+  cli.origen = cli.origen || 'chat-web';
+  cli.actualizado = Date.now();
+  await redis(['SET', 'cliente:' + key, JSON.stringify(cli)]);
+  await redis(['ZADD', 'clientes', String(Date.now()), key]);
+  await redis(['INCR', 'stat:chatweb_suscriptor']);
+  await notifyOwner('📩 *Nuevo suscriptor desde el CHAT de la web*\n👤 ' + (nombre || '(sin nombre)') +
+    (full ? '\n📱 +' + full : '') + (email ? '\n✉️ ' + email : '') +
+    '\n\nMíralo en el panel 👉 /panel (👥 Club)');
+  return {
+    ok: true,
+    guardado: true,
+    tiene_whatsapp: !!full,
+    tiene_correo: !!email,
+    mensaje: 'Suscriptor registrado. Agradécele corto. Si falta el correo o el WhatsApp, invítalo con suavidad a dejar también el otro.',
+  };
+}
+
 const HERRAMIENTAS = [
   {
     name: 'buscar_productos',
@@ -306,27 +354,22 @@ const HERRAMIENTAS = [
     },
   },
   {
-    name: 'registrar_pedido',
-    description: 'Registra el pedido confirmado por el cliente: llega al panel del dueño y se le avisa por WhatsApp. Usa los nombres EXACTOS que devolvió buscar_productos.',
+    name: 'registrar_suscriptor',
+    description: 'Registra al cliente que dejó su WhatsApp y/o correo para recibir promociones, ofertas y novedades. Manda lo que te haya dado (whatsapp, email, nombre). Necesita al menos el WhatsApp o el correo.',
     input_schema: {
       type: 'object',
       properties: {
-        nombre: { type: 'string', description: 'Nombre del cliente' },
-        direccion: { type: 'string', description: 'Dirección de entrega (calle, distrito, referencia)' },
-        telefono: { type: 'string', description: 'Celular del cliente si lo dio (opcional)' },
-        items: {
-          type: 'array',
-          items: { type: 'object', properties: { producto: { type: 'string' }, cantidad: { type: 'number' } }, required: ['producto'] },
-        },
+        nombre: { type: 'string', description: 'Nombre del cliente si lo dio (opcional)' },
+        whatsapp: { type: 'string', description: 'Número de WhatsApp del cliente (solo dígitos), si lo dio' },
+        email: { type: 'string', description: 'Correo electrónico del cliente, si lo dio' },
       },
-      required: ['nombre', 'items'],
     },
   },
 ];
 
 async function ejecutarHerramienta(nombre, input, sid) {
   if (nombre === 'buscar_productos') return buscarProductos(input.texto, input.categoria);
-  if (nombre === 'registrar_pedido') return registrarPedido(input || {}, sid);
+  if (nombre === 'registrar_suscriptor') return registrarSuscriptor(input || {});
   if (nombre === 'registrar_consulta') return registrarConsulta(input || {}, sid);
   return { error: 'Herramienta desconocida: ' + nombre };
 }
@@ -449,8 +492,10 @@ module.exports = async (req, res) => {
     if (!messages.length) return res.status(400).json({ error: 'Sin mensaje.' });
 
     const texto = await venderConClaude(messages, await getPromptWeb(), sid);
-    const { reply, sugerencias } = extraerSugerencias(texto);
-    return res.status(200).json({ reply: reply || '¿Me repites porfa? 🙏', sugerencias });
+    // [[PUSH]] = el bot quiere ofrecer activar los avisos con un toque (botón en la web)
+    const push = /\[\[PUSH\]\]/.test(texto);
+    const { reply, sugerencias } = extraerSugerencias(texto.replace(/\[\[PUSH\]\]/g, '').trim());
+    return res.status(200).json({ reply: reply || '¿Me repites porfa? 🙏', sugerencias, push });
   } catch (e) {
     console.error('chat error', e);
     return res.status(200).json({ reply: APAGADO });

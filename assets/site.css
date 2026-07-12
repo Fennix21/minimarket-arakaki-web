@@ -674,6 +674,10 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .chat-opt::before { content: '›'; color: #b8963f; font-weight: 800; font-size: 16px; line-height: 1; }
 .chat-opt:hover { background: linear-gradient(180deg, #f3e5bd 0%, #e9d5a2 100%); color: #4a3d20; transform: translateY(-1px); }
+/* Botón especial para activar los avisos push desde el chat (no manda mensaje) */
+.chat-opt.push { background: linear-gradient(180deg, #f3d98a 0%, #e0b64e 100%); color: #3a2e10; border-color: #c79a3c; box-shadow: 0 2px 9px rgba(200, 150, 50, 0.4); }
+.chat-opt.push::before { content: none; }
+.chat-opt.push:hover { background: linear-gradient(180deg, #f7e6a4 0%, #e8c766 100%); color: #3a2e10; transform: translateY(-1px); }
 #chat-form { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px; border-top: 1px solid #e8ddc2; background: #fffdf8; }
 #chat-in {
   flex: 1; resize: none; min-height: 20px; max-height: 110px;

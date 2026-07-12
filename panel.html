@@ -463,7 +463,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <h2 class="tit-vista">👥 Club Arakaki</h2>
     <p class="sub-vista">Clientes que dejaron sus datos en la web para recibir ofertas y novedades. Tu base para campañas por WhatsApp.</p>
     <div class="tabla-scroll"><table>
-      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Le interesa</th><th></th></tr></thead>
+      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Correo</th><th>Le interesa</th><th></th></tr></thead>
       <tbody id="tabla-club"></tbody>
     </table></div>
     <p class="vacio" id="club-vacio" style="display:none">Aún no hay registros del Club Arakaki.</p>
@@ -1142,10 +1142,13 @@ function cargarClub() {
     var cs = j.clientes || [];
     document.getElementById('club-vacio').style.display = cs.length ? 'none' : 'block';
     document.getElementById('tabla-club').innerHTML = cs.map(function (c) {
-      return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre) + '</b></td>' +
-        '<td><a class="wa" href="https://wa.me/' + esc(c.telefono) + '" target="_blank">+' + esc(c.telefono) + '</a></td>' +
+      var wa = c.telefono ? '<a class="wa" href="https://wa.me/' + esc(c.telefono) + '" target="_blank">+' + esc(c.telefono) + '</a>' : '—';
+      var mail = c.email ? '<a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '—';
+      return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre || '—') + '</b></td>' +
+        '<td>' + wa + '</td>' +
+        '<td>' + mail + '</td>' +
         '<td>' + esc(c.interes || '—') + '</td>' +
-        '<td><button class="btn gris" onclick="borrarCliente(\'' + esc(c.telefono) + '\')">🗑️</button></td></tr>';
+        '<td><button class="btn gris" onclick="borrarCliente(\'' + esc(c.id || c.telefono) + '\')">🗑️</button></td></tr>';
     }).join('');
   }).catch(function () {});
 }

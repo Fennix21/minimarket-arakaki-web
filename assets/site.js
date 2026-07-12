@@ -222,6 +222,23 @@
     var btn = e.target && e.target.id === 'push-ofertas-btn' ? e.target : null;
     if (btn && !btn.disabled) pushSuscribir(btn);
   });
+  // Suscribe este navegador a los avisos (para el chat: SOLO activa, nunca apaga).
+  // Devuelve una promesa que resuelve 'on' si quedó suscrito (o ya lo estaba).
+  function pushActivar() {
+    return fetch('/api/push?key').then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.key) throw new Error('sin-clave');
+      return navigator.serviceWorker.register('/sw.js').then(function (reg) {
+        return navigator.serviceWorker.ready.then(function () { return reg.pushManager.getSubscription().then(function (sub) {
+          if (sub) return 'on';
+          return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aBytes(j.key) })
+            .then(function (nueva) {
+              return fetch('/api/push', { method: 'POST', headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ action: 'subscribe', rol: 'clientes', subscription: nueva.toJSON() }) });
+            }).then(function () { return 'on'; });
+        }); });
+      });
+    });
+  }
 
   // ---------- Header, menú, footer, carrito (se inyectan en cada página) ----------
   function armarBase() {
@@ -496,8 +513,8 @@
   // revelados uno a uno (el bot separa ideas con \n\n) y botones de respuesta rápida
   // (sugerencias que manda /api/chat) que se envían como si el cliente los escribiera.
   var CHAT_KEY = 'arakaki_chat';
-  var CHAT_SALUDO = '¡Hola! 👋 Soy el asistente del *Minimarket Arakaki*. Dime qué buscas y te armo el pedido aquí mismo, sin salir de la página 🛒';
-  var CHAT_SUG_INICIAL = ['🍷 ¿Qué vinos tienen?', '🛒 Quiero hacer un pedido', '🛵 ¿Hacen delivery?'];
+  var CHAT_SALUDO = '¡Hola! 👋 Soy el asistente del *Minimarket Arakaki*. Activa nuestros *avisos gratis* y déjame tu WhatsApp o correo para enterarte *antes que nadie* de ofertas, sorteos y novedades 🔔';
+  var CHAT_SUG_INICIAL = ['🔔 Quiero los avisos gratis', '📩 Dejar mi WhatsApp/correo', '🛒 Ver productos'];
   var CHAT_ERROR = 'Uy, no pude responder 🙏 Escríbenos por WhatsApp y te atendemos al toque 📲';
 
   function chatEstado() {
@@ -536,7 +553,7 @@
     fab.id = 'chat-fab';
     fab.setAttribute('aria-label', 'Chatear con el asistente');
     fab.innerHTML =
-      '<span class="fab-burbuja">' + esc(cfg.invitacion || '¿Te ayudo con tu pedido?') + '</span>' +
+      '<span class="fab-burbuja">' + esc(cfg.invitacion || '¿Te aviso de las ofertas? 🔔') + '</span>' +
       '<img class="fab-gato" src="/img/asistente-arakaki.png" alt="Asistente Arakaki">';
     document.body.appendChild(fab);
 
@@ -545,13 +562,13 @@
     caja.innerHTML =
       '<div class="chat-cab">' +
         '<img class="chat-avatar" src="/img/asistente-arakaki.png" alt="">' +
-        '<div class="chat-tit"><b>Asistente Arakaki</b><small>' + esc(cfg.subtitulo || 'Pide aquí mismo, sin salir de la web') + '</small></div>' +
+        '<div class="chat-tit"><b>Asistente Arakaki</b><small>' + esc(cfg.subtitulo || 'Entérate primero de ofertas y novedades') + '</small></div>' +
         '<button class="chat-cerrar" aria-label="Cerrar">✕</button>' +
       '</div>' +
       '<div id="chat-msgs"></div>' +
       '<div id="chat-quick"></div>' +
       '<form id="chat-form" autocomplete="off">' +
-        '<textarea id="chat-in" rows="1" placeholder="Escribe tu consulta o pedido…" maxlength="500"></textarea>' +
+        '<textarea id="chat-in" rows="1" placeholder="Escríbeme aquí 😊" maxlength="500"></textarea>' +
         '<button type="submit" id="chat-enviar" aria-label="Enviar">➤</button>' +
       '</form>';
     document.body.appendChild(caja);
@@ -586,16 +603,48 @@
     }
     function quitarEscribiendo() { var t = document.getElementById('chat-typing'); if (t) t.remove(); }
 
-    function pintarQuick(labels) {
+    function pintarQuick(labels, push) {
       quick.innerHTML = '';
+      var off = 0;
+      if (push) { // botón especial: activa los avisos con un toque (no manda un mensaje)
+        var pb = document.createElement('button');
+        pb.type = 'button';
+        pb.className = 'chat-opt push';
+        pb.textContent = '🔔 Activar avisos gratis';
+        pb.onclick = function () { activarPushChat(); };
+        quick.appendChild(pb);
+        off = 1;
+      }
       (labels || []).forEach(function (lbl, i) {
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'chat-opt';
         b.textContent = lbl;
-        b.style.animationDelay = (i * 80) + 'ms'; // aparecen en cascada
+        b.style.animationDelay = ((i + off) * 80) + 'ms'; // aparecen en cascada
         b.onclick = function () { enviar(lbl); };
         quick.appendChild(b);
+      });
+    }
+
+    // El cliente tocó "🔔 Activar avisos gratis" (el bot mandó el marcador [[PUSH]] → j.push).
+    // Suscribe este navegador; si no se puede, lo lleva a dejar su WhatsApp/correo.
+    function activarPushChat() {
+      pintarQuick([]); // quita el botón para que no lo toque dos veces
+      st.push = false;
+      if (!PUSH_OK) {
+        if (IOS) { pushGuiaIOS(); recibir('En iPhone primero agrega la web a tu inicio 📲 (te dejé la guía). ¡Igual déjame tu WhatsApp o correo y yo te aviso de las ofertas! 😊', ['Te dejo mi WhatsApp', 'Te dejo mi correo'], false); }
+        else recibir('Tu navegador no permite avisos 🙈 pero déjame tu WhatsApp o correo y te aviso de todas las ofertas 😉', ['Te dejo mi WhatsApp', 'Te dejo mi correo'], false);
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        recibir('Veo que los avisos están *bloqueados* en tu navegador 🙈 Puedes reactivarlos en los ajustes del sitio. Mientras, déjame tu WhatsApp o correo y te aviso igual 😊', ['Te dejo mi WhatsApp', 'Te dejo mi correo'], false);
+        return;
+      }
+      pushActivar().then(function () {
+        pushPintarBtn();
+        enviar('✅ Listo, activé las notificaciones');
+      }).catch(function () {
+        recibir('No pude activar los avisos ahorita 🙏 Prueba de nuevo o déjame tu WhatsApp o correo y yo te aviso 😉', ['Te dejo mi WhatsApp', 'Te dejo mi correo'], false);
       });
     }
 
@@ -608,7 +657,7 @@
           m.t.split(/\n\n+/).forEach(function (p) { if (p.trim()) burbujaBot(p.trim(), true); });
         } else burbujaYo(m.t, true);
       });
-      pintarQuick(st.sug);
+      pintarQuick(st.sug, st.push);
     }
 
     // Revela la respuesta párrafo a párrafo, cada uno precedido por "escribiendo…"
@@ -670,6 +719,7 @@
       crecer();
       st.msgs.push({ r: 'u', t: txt });
       st.sug = [];
+      st.push = false;
       chatGuardar(st);
       ocupado = true;
       pintarQuick([]);
@@ -683,20 +733,21 @@
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ sid: st.sid, mensajes: hist }),
       }).then(function (r) { return r.json(); }).then(function (j) {
-        recibir((j && j.reply) || CHAT_ERROR + '\nhttps://wa.me/' + WA, (j && j.sugerencias) || []);
+        recibir((j && j.reply) || CHAT_ERROR + '\nhttps://wa.me/' + WA, (j && j.sugerencias) || [], j && j.push);
       }).catch(function () {
         recibir(CHAT_ERROR + '\nhttps://wa.me/' + WA, []);
       });
     }
 
-    function recibir(texto, sugerencias) {
+    function recibir(texto, sugerencias, push) {
       quitarEscribiendo();
       st.msgs.push({ r: 'b', t: texto });
       st.sug = sugerencias;
+      st.push = !!push;
       chatGuardar(st);
       revelarBot(texto, function () {
         ocupado = false;
-        pintarQuick(sugerencias);
+        pintarQuick(sugerencias, push);
         // En móvil no se devuelve el foco: abriría el teclado tapando la respuesta
         if (caja.classList.contains('abierto') && window.innerWidth > 600) input.focus();
       });
