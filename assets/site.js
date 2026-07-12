@@ -364,21 +364,31 @@
         '<button class="car-cerrar" aria-label="Cerrar">✕</button>' +
         '<h3>🛒 Tu pedido</h3>' +
         '<p class="car-nota">Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin</p>' +
+        '<button id="car-repetir" style="display:none">🔁 Repetir mi pedido de siempre</button>' +
         '<div id="car-lista"></div>' +
         '<div class="car-total"><span>Total</span><span id="car-total-monto">S/ 0</span></div>' +
         '<label for="car-nombre">Tu nombre</label>' +
         '<input id="car-nombre" placeholder="¿Cómo te llamas?" maxlength="60">' +
+        '<label for="car-tel">Tu WhatsApp</label>' +
+        '<input id="car-tel" inputmode="tel" placeholder="Ej. 999 999 999" maxlength="15">' +
         '<label for="car-dir">Dirección de entrega (opcional)</label>' +
         '<textarea id="car-dir" rows="2" placeholder="Calle, número, distrito y referencia" maxlength="200"></textarea>' +
+        '<button class="car-geo" id="car-geo" type="button">📍 Usar mi ubicación</button>' +
         '<button class="btn-wa-grande" id="car-enviar">Enviar pedido por WhatsApp 📲</button>' +
         '<button class="car-vaciar" id="car-vaciar">Vaciar pedido</button>' +
+        '<p class="car-privacidad">Guardamos tus datos solo para atender tus pedidos y agilizar tus recompras.</p>' +
       '</div>';
     document.body.appendChild(modalFondo);
     modalFondo.onclick = function (e) { if (e.target === modalFondo) cerrarCarrito(); };
     modalFondo.querySelector('.car-cerrar').onclick = cerrarCarrito;
     document.getElementById('car-vaciar').onclick = function () { guardarCarrito([]); pintarCarrito(); pintarBadge(); marcarProds(); };
     document.getElementById('car-enviar').onclick = enviarPedido;
+    document.getElementById('car-geo').onclick = pedirUbicacion;
+    document.getElementById('car-repetir').onclick = cargarHabitual;
+    var homeRep = document.getElementById('home-repetir'); // banner de recompra en el inicio (opcional)
+    if (homeRep) homeRep.onclick = function () { cargarHabitual(); abrirCarrito(); };
     pintarBadge();
+    reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     iniciarChat();
   }
 
@@ -387,6 +397,97 @@
     try { return JSON.parse(localStorage.getItem('arakaki_carrito') || '[]'); } catch (e) { return []; }
   }
   function guardarCarrito(c) { localStorage.setItem('arakaki_carrito', JSON.stringify(c)); }
+
+  // ---------- Identidad del cliente (token de dispositivo + archivo de consumo) ----------
+  // El cliente se identifica UNA vez (al pedir con su celular o unirse al Club) y desde ahí lo
+  // reconocemos: el token vive solo en SU navegador; el perfil (nombre/dirección/"lo de siempre")
+  // lo sirve /api/perfil. Es local: si el navegador no soporta storage, todo sigue funcionando.
+  var perfilActual = null;   // perfil traído de /api/perfil (o cacheado)
+  var geoActual = null;      // { lat, lng } si el cliente compartió su ubicación en esta sesión
+
+  function miUid() {
+    try {
+      var u = localStorage.getItem('arakaki_uid');
+      if (!u) {
+        u = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+        localStorage.setItem('arakaki_uid', u);
+      }
+      return u;
+    } catch (e) { return ''; }
+  }
+  function leerPerfilCache() {
+    try { return JSON.parse(localStorage.getItem('arakaki_perfil') || 'null'); } catch (e) { return null; }
+  }
+  function guardarPerfilCache(p) {
+    try { localStorage.setItem('arakaki_perfil', JSON.stringify(p)); } catch (e) {}
+  }
+
+  // Reconoce al cliente: primero pinta lo cacheado (instantáneo), luego refresca desde el servidor.
+  function reconocerCliente() {
+    var cache = leerPerfilCache();
+    if (cache && cache.conocido) aplicarPerfil(cache);
+    var uid = miUid();
+    if (!uid) return;
+    fetch('/api/perfil?uid=' + encodeURIComponent(uid))
+      .then(function (r) { return r.json(); })
+      .then(function (p) {
+        if (p && p.conocido) { guardarPerfilCache(p); aplicarPerfil(p); }
+      })
+      .catch(function () {});
+  }
+
+  // Prefill de los campos del carrito + botón "lo de siempre" si el cliente tiene historial.
+  function aplicarPerfil(p) {
+    perfilActual = p;
+    var n = document.getElementById('car-nombre');
+    var tel = document.getElementById('car-tel');
+    var dir = document.getElementById('car-dir');
+    if (n && !n.value && p.nombre) n.value = p.nombre;
+    if (tel && !tel.value && p.telefono) tel.value = String(p.telefono).replace(/^51/, '');
+    if (dir && !dir.value && p.direccion) dir.value = p.direccion;
+    var btn = document.getElementById('car-repetir');
+    if (btn) btn.style.display = (p.habitual && p.habitual.length) ? '' : 'none';
+    // Banner de recompra en el inicio (si la página lo tiene): saludo + repetir
+    var wrap = document.getElementById('home-repetir-wrap');
+    var hb = document.getElementById('home-repetir');
+    if (wrap && hb) {
+      if (p.habitual && p.habitual.length) {
+        hb.textContent = '🔁 ' + (p.nombre ? '¡Hola, ' + p.nombre + '! ' : '') + 'Repetir tu pedido de siempre';
+        wrap.style.display = '';
+      } else { wrap.style.display = 'none'; }
+    }
+  }
+
+  // Carga "lo de siempre" (productos habituales del perfil) al carrito, listos para enviar.
+  function cargarHabitual() {
+    if (!perfilActual || !perfilActual.habitual || !perfilActual.habitual.length) return;
+    var c = leerCarrito();
+    var existentes = {};
+    c.forEach(function (p) { existentes[p.name] = 1; });
+    perfilActual.habitual.forEach(function (h) {
+      if (!existentes[h.name]) {
+        c.push({ name: h.name, price: (h.price != null ? h.price : null), img: h.img || '', qty: h.qty || 1 });
+        existentes[h.name] = 1;
+      }
+    });
+    guardarCarrito(c);
+    pintarCarrito(); pintarBadge(); marcarProds();
+  }
+
+  // Pide la ubicación GPS (solo si el cliente acepta el permiso del navegador). Adjunta las
+  // coordenadas al pedido y a un link de mapa en el mensaje de WhatsApp; nunca es obligatorio.
+  function pedirUbicacion() {
+    var btn = document.getElementById('car-geo');
+    if (!navigator.geolocation) { if (btn) btn.textContent = 'Tu navegador no comparte ubicación'; return; }
+    if (btn) { btn.disabled = true; btn.textContent = '📍 Obteniendo ubicación…'; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      geoActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      if (btn) { btn.disabled = false; btn.textContent = '✅ Ubicación lista'; btn.classList.add('geo-ok'); }
+    }, function () {
+      if (btn) { btn.disabled = false; btn.textContent = '📍 Usar mi ubicación'; }
+      alert('No pudimos obtener tu ubicación 🙏 Puedes escribir tu dirección.');
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  }
 
   function alternarProducto(p) {
     var c = leerCarrito();
@@ -479,6 +580,7 @@
     if (!c.length) { alert('Elige al menos un producto 🙂'); return; }
     var nombre = (document.getElementById('car-nombre').value || '').trim();
     if (!nombre) { alert('Cuéntanos tu nombre para atenderte mejor 🙌'); document.getElementById('car-nombre').focus(); return; }
+    var tel = (document.getElementById('car-tel').value || '').replace(/\D/g, '');
     var dir = (document.getElementById('car-dir').value || '').trim();
     var t = totalCarrito(c);
 
@@ -488,12 +590,13 @@
     var msj = '¡Hola Minimarket Arakaki! 👋 Soy *' + nombre + '* y quiero hacer este pedido (web):\n\n' +
       lineas.join('\n') +
       '\n\n*Total aprox: S/ ' + t.total.toFixed(2).replace(/\.00$/, '') + (t.sinPrecio ? ' + productos por cotizar' : '') + '*' +
-      (dir ? '\n📍 Entrega en: ' + dir : '');
+      (dir ? '\n📍 Entrega en: ' + dir : '') +
+      (geoActual ? '\n🗺️ Mi ubicación: https://maps.google.com/?q=' + geoActual.lat + ',' + geoActual.lng : '');
 
     // Guarda el pedido en la base (no bloquea el envío a WhatsApp si falla)
     var btn = document.getElementById('car-enviar');
     btn.disabled = true;
-    var datos = { action: 'pedido', nombre: nombre, direccion: dir, items: c, total: t.total, pagina: location.pathname };
+    var datos = { action: 'pedido', nombre: nombre, telefono: tel, direccion: dir, geo: geoActual, uid: miUid(), items: c, total: t.total, pagina: location.pathname };
     try {
       fetch('/api/pedido', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(datos), keepalive: true }).catch(function () {});
     } catch (e) {}
@@ -731,7 +834,7 @@
       fetch('/api/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ sid: st.sid, mensajes: hist }),
+        body: JSON.stringify({ sid: st.sid, uid: miUid(), mensajes: hist }),
       }).then(function (r) { return r.json(); }).then(function (j) {
         recibir((j && j.reply) || CHAT_ERROR + '\nhttps://wa.me/' + WA, (j && j.sugerencias) || [], j && j.push);
       }).catch(function () {

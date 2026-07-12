@@ -128,6 +128,14 @@ h2.tit-vista { font-size:19px; font-weight:800; margin-bottom:4px; }
 .chip.pedido{background:rgba(230,72,49,.2);color:#ff9c8b} .chip.entregado{background:rgba(37,211,102,.16);color:#7fe3a9}
 .chip.descartado{background:var(--switch-off);color:var(--sub)}
 .chip.bot-off{background:rgba(124,15,20,.55);color:#ffb3b3} .chip.v24{background:rgba(37,211,102,.16);color:#7fe3a9} .chip.v24off{background:var(--switch-off);color:#8f8f98}
+/* Club: orden + favoritos por cliente */
+.club-orden { margin-bottom:14px; font-size:13px; color:var(--sub); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.club-orden .btn { font-size:12px; padding:6px 12px; }
+.btn.activo { border-color:var(--dorado2); color:var(--dorado2); }
+.td-favs { max-width:340px; }
+.chip-prod { display:inline-block; font-size:10.5px; font-weight:600; padding:2.5px 8px; border-radius:999px; background:var(--chip-bg); color:var(--chip-txt); margin:1px 2px 1px 0; }
+.chip-prod.tenue { opacity:.65; }
+a.cli-mail { color:var(--sub); font-size:11.5px; }
 #chat-der { background:var(--panel); border:1px solid var(--borde); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
 #chat-cab { padding:12px 14px; border-bottom:1px solid var(--borde); display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--card); }
 #chat-cab .volver { display:none; background:none; border:none; color:var(--campo-txt); font-size:18px; }
@@ -461,9 +469,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <!-- CLUB -->
   <div class="vista" id="v-club">
     <h2 class="tit-vista">👥 Club Arakaki</h2>
-    <p class="sub-vista">Clientes que dejaron sus datos en la web para recibir ofertas y novedades. Tu base para campañas por WhatsApp.</p>
+    <p class="sub-vista">Tus clientes y su consumo: cuántos pedidos hicieron, cuándo compraron por última vez y qué productos prefieren. Ordénalos para ver a tus mejores clientes.</p>
+    <div class="club-orden">
+      Ordenar por:
+      <button class="btn gris" id="club-ord-rec" onclick="ordenarClub('reciente')">🕑 Más reciente</button>
+      <button class="btn gris" id="club-ord-frec" onclick="ordenarClub('frecuencia')">🔁 Más pedidos</button>
+    </div>
     <div class="tabla-scroll"><table>
-      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Correo</th><th>Le interesa</th><th></th></tr></thead>
+      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Pedidos</th><th>Último</th><th>Sus favoritos</th><th></th></tr></thead>
       <tbody id="tabla-club"></tbody>
     </table></div>
     <p class="vacio" id="club-vacio" style="display:none">Aún no hay registros del Club Arakaki.</p>
@@ -1137,20 +1150,40 @@ function restaurarPrecio(btn) {
 }
 
 // ---------- Club ----------
+var clubDatos = [];      // últimos clientes cargados (para reordenar sin volver a pedir)
+var clubOrden = 'reciente';
 function cargarClub() {
   api('clientes').then(function (j) {
-    var cs = j.clientes || [];
-    document.getElementById('club-vacio').style.display = cs.length ? 'none' : 'block';
-    document.getElementById('tabla-club').innerHTML = cs.map(function (c) {
-      var wa = c.telefono ? '<a class="wa" href="https://wa.me/' + esc(c.telefono) + '" target="_blank">+' + esc(c.telefono) + '</a>' : '—';
-      var mail = c.email ? '<a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '—';
-      return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre || '—') + '</b></td>' +
-        '<td>' + wa + '</td>' +
-        '<td>' + mail + '</td>' +
-        '<td>' + esc(c.interes || '—') + '</td>' +
-        '<td><button class="btn gris" onclick="borrarCliente(\'' + esc(c.id || c.telefono) + '\')">🗑️</button></td></tr>';
-    }).join('');
+    clubDatos = j.clientes || [];
+    pintarClub();
   }).catch(function () {});
+}
+function ordenarClub(modo) { clubOrden = modo; pintarClub(); }
+function pintarClub() {
+  var cs = clubDatos.slice();
+  if (clubOrden === 'frecuencia') {
+    cs.sort(function (a, b) { return (Number(b.pedidos) || 0) - (Number(a.pedidos) || 0) || (Number(b.ultimoPedido) || 0) - (Number(a.ultimoPedido) || 0); });
+  } else {
+    cs.sort(function (a, b) { return (Number(b.ultimoPedido || b.creado) || 0) - (Number(a.ultimoPedido || a.creado) || 0); });
+  }
+  var br = document.getElementById('club-ord-rec'), bf = document.getElementById('club-ord-frec');
+  if (br && bf) { br.classList.toggle('activo', clubOrden === 'reciente'); bf.classList.toggle('activo', clubOrden === 'frecuencia'); }
+  document.getElementById('club-vacio').style.display = cs.length ? 'none' : 'block';
+  document.getElementById('tabla-club').innerHTML = cs.map(function (c) {
+    var wa = c.telefono ? '<a class="wa" href="https://wa.me/' + esc(c.telefono) + '" target="_blank">+' + esc(c.telefono) + '</a>' : '—';
+    var ped = Number(c.pedidos) || 0;
+    var ult = c.ultimoPedido ? hora(c.ultimoPedido) : '—';
+    var top = (c.top && c.top.length)
+      ? c.top.map(function (t) { return '<span class="chip-prod">' + esc(t.nombre) + (t.veces > 1 ? ' ·' + t.veces : '') + '</span>'; }).join(' ')
+      : (c.interes ? '<span class="chip-prod tenue">' + esc(c.interes) + '</span>' : '—');
+    return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre || '—') + '</b>' +
+      (c.email ? '<br><a class="cli-mail" href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') + '</td>' +
+      '<td>' + wa + '</td>' +
+      '<td>' + (ped ? '<b>' + ped + '</b>' : '—') + '</td>' +
+      '<td>' + ult + '</td>' +
+      '<td class="td-favs">' + top + '</td>' +
+      '<td><button class="btn gris" onclick="borrarCliente(\'' + esc(c.id || c.telefono) + '\')">🗑️</button></td></tr>';
+  }).join('');
 }
 function borrarCliente(t) {
   if (!confirm('¿Eliminar este registro?')) return;

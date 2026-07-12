@@ -329,6 +329,11 @@
     <span>🎉 Atendemos feriados</span>
   </div></div>
 
+  <!-- Recompra rápida: solo aparece si reconocemos al cliente (lo activa assets/site.js) -->
+  <div id="home-repetir-wrap" style="display:none">
+    <button id="home-repetir" type="button"></button>
+  </div>
+
   <!-- Categorías -->
   <section class="seccion vino">
     <div class="interior">
@@ -595,9 +600,10 @@
     var wsp = document.getElementById('club-wsp').value.replace(/\D/g, '');
     if (!nombre || wsp.length < 9) { alert('Escribe tu nombre y un WhatsApp válido 🙂'); return; }
     var interes = document.getElementById('club-interes').value;
+    var uid = ''; try { uid = localStorage.getItem('arakaki_uid') || ''; } catch (e) {}
     fetch('/api/pedido', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'registro', nombre: nombre, telefono: wsp, interes: interes }),
+      body: JSON.stringify({ action: 'registro', nombre: nombre, telefono: wsp, interes: interes, uid: uid }),
     }).catch(function () {});
     document.getElementById('club-ok').style.display = 'block';
     this.reset();

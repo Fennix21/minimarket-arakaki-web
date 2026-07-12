@@ -66,8 +66,9 @@ Orientar brevemente al visitante y, sobre todo, PERSUADIRLO con calidez para que
 3. Te deje su *correo electrónico*.
 Así recibirá primero nuestras promociones, ofertas especiales, anuncios, sorteos y nuevos lanzamientos.
 
-# NO vendes (regla absoluta)
-- NO tomas pedidos, NO armas carritos, NO cierras compras, NO negocias ni cotizas precios. Aquí NO se vende.
+# NO vendes (casi absoluto)
+- NO tomas pedidos NUEVOS desde cero, NO armas carritos a mano, NO negocias ni cotizas precios. Aquí NO se vende.
+- ÚNICA excepción: un cliente que YA te conoce y quiere REPETIR su pedido ("lo de siempre") — mira "Recompra rápida" en las reglas.
 - Si preguntan por un producto, un precio o si hay algo: NO lo cotices. Con gusto diles que pueden verlo con su precio en la página de su categoría y pásales la ruta (ej. /vinos, /piscos, /helados). Usa buscar_productos SOLO para saber a qué categoría mandarlos. Luego aprovecha para invitarlos a activar los avisos y dejar sus datos.
 
 # Cómo persuades (cálido, nunca insistente ni pesado)
@@ -95,6 +96,12 @@ El cliente te escribe desde el chat de www.minimarketarakaki.com.
 ## Dejar WhatsApp y correo
 - registrar_suscriptor: cuando el cliente te dé su WhatsApp y/o su correo, regístralo (manda lo que tengas: whatsapp, email y nombre si lo dio). Confirma con un agradecimiento corto.
 - Si te dio solo uno de los dos, invítalo con suavidad a dejar también el otro. Nunca inventes ni asumas un dato que no te dieron.
+
+## Recompra rápida ("lo de siempre") — EXCEPCIÓN al "no vender"
+- Si el cliente pide repetir su pedido, dice "lo de siempre", "mi lista", "lo de la otra vez" o similar: usa pedido_habitual para traer sus productos habituales y propóneselos claros y cortos (nombre y precio si lo hay).
+- Si te confirma, cierra el pedido con registrar_pedido (usa el nombre, teléfono y dirección que trae el perfil). Confirma con un mensaje corto y cálido.
+- Si pedido_habitual dice que NO lo reconoces o no tiene lista guardada: dile con amabilidad que aún no tiene una lista guardada, que arme su pedido en la página y que la próxima vez se la tendrás lista. Aprovecha para invitarlo a los avisos.
+- Esto es lo ÚNICO que cierras por aquí: para pedidos nuevos desde cero sigue orientando a la página de la categoría.
 
 ## Si no sabes algo
 - registrar_consulta: si te preguntan un dato que no tienes o un producto que no encuentras, regístralo y dile al cliente que por WhatsApp (977 737 199) le damos respuesta personalizada.
@@ -263,6 +270,37 @@ async function registrarPedido(input, sid) {
   };
 }
 
+// "Lo de siempre": productos más comprados del cliente RECONOCIDO por su token de dispositivo
+// (uid → cliente:<tel>, ver upsertPerfil de api/pedido.js), con precio vigente, para que el bot
+// se los proponga y cierre con registrar_pedido. Sin uid o sin historial: guía al cliente.
+async function pedidoHabitual(uid) {
+  if (!uid) return { conocido: false, mensaje: 'No reconozco a este cliente todavía; no tiene una lista guardada. Invítalo a armar su pedido en la página; la próxima vez se la tendrás lista.' };
+  const tel = await redis(['GET', 'uid:' + uid]);
+  if (!tel) return { conocido: false, mensaje: 'Cliente no reconocido: aún no tiene lista guardada. Invítalo con amabilidad a hacer su primer pedido.' };
+  const raw = await redis(['GET', 'cliente:' + tel]);
+  let cli = null;
+  if (raw) { try { cli = JSON.parse(raw); } catch (e) {} }
+  if (!cli) return { conocido: false };
+  const consumo = (cli.consumo && typeof cli.consumo === 'object') ? cli.consumo : {};
+  const claves = Object.keys(consumo).sort((a, b) =>
+    (consumo[b].veces - consumo[a].veces) || ((consumo[b].ultima || 0) - (consumo[a].ultima || 0)));
+  if (!claves.length) return { conocido: true, nombre: cli.nombre || '', habitual: [], mensaje: 'El cliente aún no tiene productos habituales guardados.' };
+  const vivos = HAS_REDIS ? await getPreciosVivos() : {};
+  const habitual = claves.slice(0, 12).map((name) => {
+    const pr = PRODUCTOS.find((p) => normalizar(p.n) === normalizar(name));
+    const precio = pr ? precioDe(pr, vivos) : null;
+    return { producto: name, veces: consumo[name].veces, precio: precio ? 'S/ ' + precio : null };
+  });
+  return {
+    conocido: true,
+    nombre: cli.nombre || '',
+    direccion: cli.direccion || '',
+    telefono: cli.telefono || tel,
+    habitual: habitual,
+    mensaje: 'Propón estos productos como "lo de siempre" (cortito). Si el cliente confirma, ciérralo con registrar_pedido usando el nombre y teléfono del perfil.',
+  };
+}
+
 // Deja registrada una pregunta que el bot no pudo responder (lista `consultas` en Redis)
 // y avisa a los dueños, para que el equipo la revise y complete el catálogo o el prompt.
 async function registrarConsulta(input, sid) {
@@ -342,6 +380,29 @@ const HERRAMIENTAS = [
     },
   },
   {
+    name: 'pedido_habitual',
+    description: 'Devuelve "lo de siempre" del cliente reconocido: sus productos más comprados con precio vigente. Úsala cuando el cliente pida repetir su pedido, diga "lo de siempre", "mi lista", "lo de la otra vez" o similar. No necesita parámetros.',
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'registrar_pedido',
+    description: 'Registra el pedido del cliente y avisa al dueño. Úsala SOLO cuando el cliente confirme lo que quiere (por ejemplo tras aceptar "lo de siempre"). Pasa su nombre y los items con producto (nombre EXACTO del catálogo) y cantidad; incluye teléfono y dirección si los tienes del perfil.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', description: 'Nombre del cliente' },
+        telefono: { type: 'string', description: 'WhatsApp del cliente (solo dígitos), si lo tienes' },
+        direccion: { type: 'string', description: 'Dirección de entrega, si la tienes' },
+        items: {
+          type: 'array',
+          description: 'Productos del pedido',
+          items: { type: 'object', properties: { producto: { type: 'string' }, cantidad: { type: 'number' } }, required: ['producto'] },
+        },
+      },
+      required: ['nombre', 'items'],
+    },
+  },
+  {
     name: 'registrar_consulta',
     description: 'Registra una pregunta que NO pudiste responder con el catálogo (producto no encontrado o dato que desconoces) para que el equipo la revise. Úsala antes de responder que no tienes esa información.',
     input_schema: {
@@ -367,15 +428,17 @@ const HERRAMIENTAS = [
   },
 ];
 
-async function ejecutarHerramienta(nombre, input, sid) {
+async function ejecutarHerramienta(nombre, input, sid, uid) {
   if (nombre === 'buscar_productos') return buscarProductos(input.texto, input.categoria);
+  if (nombre === 'pedido_habitual') return pedidoHabitual(uid);
+  if (nombre === 'registrar_pedido') return registrarPedido(input || {}, sid);
   if (nombre === 'registrar_suscriptor') return registrarSuscriptor(input || {});
   if (nombre === 'registrar_consulta') return registrarConsulta(input || {}, sid);
   return { error: 'Herramienta desconocida: ' + nombre };
 }
 
 // Conversación con Claude + herramientas (loop tool_use → tool_result, como el asistente admin).
-async function venderConClaude(messages, systemPrompt, sid) {
+async function venderConClaude(messages, systemPrompt, sid, uid) {
   for (let vuelta = 0; vuelta < 5; vuelta++) {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -396,7 +459,7 @@ async function venderConClaude(messages, systemPrompt, sid) {
     for (const b of data.content) {
       if (b.type !== 'tool_use') continue;
       let out;
-      try { out = await ejecutarHerramienta(b.name, b.input || {}, sid); }
+      try { out = await ejecutarHerramienta(b.name, b.input || {}, sid, uid); }
       catch (e) { out = { error: String((e && e.message) || e) }; }
       results.push({ type: 'tool_result', tool_use_id: b.id, content: JSON.stringify(out) });
     }
@@ -473,6 +536,7 @@ module.exports = async (req, res) => {
     if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } }
     b = b || {};
     const sid = String(b.sid || '').replace(/[^a-z0-9]/gi, '').slice(0, 40) || 'anon';
+    const uid = String(b.uid || '').replace(/[^a-z0-9]/gi, '').slice(0, 40); // token de dispositivo → reconoce al cliente para "lo de siempre"
 
     // Freno anti-abuso: tope por sesión y por IP cada hora (el endpoint es público).
     if (HAS_REDIS) {
@@ -491,7 +555,7 @@ module.exports = async (req, res) => {
     const messages = sanearMensajes(b.mensajes);
     if (!messages.length) return res.status(400).json({ error: 'Sin mensaje.' });
 
-    const texto = await venderConClaude(messages, await getPromptWeb(), sid);
+    const texto = await venderConClaude(messages, await getPromptWeb(), sid, uid);
     // [[PUSH]] = el bot quiere ofrecer activar los avisos con un toque (botón en la web)
     const push = /\[\[PUSH\]\]/.test(texto);
     const { reply, sugerencias } = extraerSugerencias(texto.replace(/\[\[PUSH\]\]/g, '').trim());

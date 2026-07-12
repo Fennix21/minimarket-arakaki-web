@@ -215,7 +215,16 @@ module.exports = async (req, res) => {
       for (const t of tels) {
         const raw = await redis(['GET', 'cliente:' + t]);
         if (!raw) continue;
-        try { clientes.push(JSON.parse(raw)); } catch (e) {}
+        let c; try { c = JSON.parse(raw); } catch (e) { continue; }
+        // Favoritos/recurrentes = top del archivo de consumo (por frecuencia). Se calcula aquí y
+        // se manda solo el resumen (no el consumo completo) para un payload liviano en el panel.
+        const consumo = (c.consumo && typeof c.consumo === 'object') ? c.consumo : {};
+        c.top = Object.keys(consumo)
+          .sort((x, y) => (consumo[y].veces - consumo[x].veces) || ((consumo[y].ultima || 0) - (consumo[x].ultima || 0)))
+          .slice(0, 5)
+          .map((n) => ({ nombre: n, veces: consumo[n].veces }));
+        delete c.consumo; delete c.uids;
+        clientes.push(c);
       }
       return res.status(200).json({ clientes });
     }
