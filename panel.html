@@ -62,6 +62,7 @@ input,textarea,select,button { transition:border-color .18s, box-shadow .18s, ba
 
 /* ---------- Estructura: menú lateral (escritorio) / barra inferior (móvil) ---------- */
 #app { display:none; }
+:root[data-auth="check"] #login { display:none; }
 #topbar { display:none; }
 #menu { position:fixed; left:0; top:0; bottom:0; width:222px; background:var(--panel); border-right:1px solid var(--borde); display:flex; flex-direction:column; padding:18px 12px 14px; z-index:60; }
 #menu .marca { display:flex; align-items:center; gap:10px; padding:0 8px 18px; }
@@ -321,6 +322,11 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   try {
     var t = localStorage.getItem('arakaki_panel_tema');
     if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+  // Si ya hay sesión guardada, oculta el login ANTES de pintar (evita ver el
+  // formulario mientras se valida la sesión contra el servidor). Ver #login en CSS.
+  try {
+    if (localStorage.getItem('arakaki_pass')) document.documentElement.setAttribute('data-auth', 'check');
   } catch (e) {}
 </script>
 
@@ -853,7 +859,13 @@ if (PASS) {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     cargarTodo();
-  }).catch(function () { localStorage.removeItem('arakaki_pass'); PASS = ''; });
+  }).catch(function () {
+    // Sesión guardada inválida: limpia y muestra el login (quita data-auth del <html>).
+    localStorage.removeItem('arakaki_pass'); PASS = '';
+    document.documentElement.removeAttribute('data-auth');
+  });
+} else {
+  document.documentElement.removeAttribute('data-auth');
 }
 
 // ---------- Tabs ----------
