@@ -14,6 +14,11 @@
 //   gettemplates / settemplates -> respuestas rápidas
 //   getprecios / setprecio { clave, precio } -> precios en vivo (overrides sobre el catálogo)
 //   getsitio / setsitio        -> textos editables del sitio (lema + footer; los lee /api/sitio)
+//   getclub / setclub          -> interruptores + promos exclusivas + sorteos del Club (los lee /api/cuenta)
+//   resetpin { telefono }      -> borra el PIN del cliente y cierra sus sesiones
+//   setpuntos { telefono, puntos } -> ajuste manual de puntos (canjes)
+//   sorteoinfo { id } / sorteoganador { id } -> participantes / ganador al azar
+//   zonas                      -> calles agrupadas (clientes, pedidos y gasto por calle)
 
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
@@ -39,6 +44,24 @@ async function sendWhatsApp(to, body) {
     body: JSON.stringify({ messaging_product: 'whatsapp', to, type: 'text', text: { body } }),
   });
   if (!r.ok) throw new Error(await r.text());
+}
+
+// Teléfono → llave de identidad normalizada (Perú por defecto: 9 dígitos → 51+num). '' si inválido.
+function normTel(raw) {
+  const t = String(raw || '').replace(/\D/g, '');
+  if (t.length < 9) return '';
+  return t.length === 9 ? '51' + t : t;
+}
+
+// Interruptores del Club (config:club; los lee también /api/cuenta). Sin config, todo prendido.
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, puntosPorSol: 1 };
+async function getClubCfg() {
+  let c = {};
+  const raw = await redis(['GET', 'config:club']);
+  if (raw) { try { c = JSON.parse(raw) || {}; } catch (e) {} }
+  const out = {};
+  Object.keys(CLUB_DEF).forEach((k) => { out[k] = (c[k] === undefined) ? CLUB_DEF[k] : c[k]; });
+  return out;
 }
 
 async function loadLead(phone) {
@@ -182,8 +205,31 @@ module.exports = async (req, res) => {
         let p; try { p = JSON.parse(raws[i]); } catch (e) { continue; }
         if (p.id === b.id) {
           p.estado = (b.estado || 'nuevo').toString().slice(0, 20);
+          // Puntos del Club: se acreditan UNA sola vez, al marcar el pedido como ENTREGADO
+          // (así los pedidos falsos o cancelados nunca suman). flag puntosOk = ya acreditado.
+          if (p.estado === 'entregado' && !p.puntosOk) {
+            try {
+              const club = await getClubCfg();
+              const telP = normTel(p.telefono);
+              if (club.puntos && telP && Number(p.total) > 0) {
+                const rawC = await redis(['GET', 'cliente:' + telP]);
+                let cli = null;
+                if (rawC) { try { cli = JSON.parse(rawC); } catch (e) {} }
+                if (!cli) cli = { telefono: telP, creado: Date.now() };
+                const ganados = Math.floor(Number(p.total) * (Number(club.puntosPorSol) || 1));
+                if (ganados > 0) {
+                  cli.puntos = (Number(cli.puntos) || 0) + ganados;
+                  cli.actualizado = Date.now();
+                  await redis(['SET', 'cliente:' + telP, JSON.stringify(cli)]);
+                  await redis(['ZADD', 'clientes', String(Date.now()), telP]);
+                  p.puntosOk = true;
+                  p.puntosGanados = ganados;
+                }
+              }
+            } catch (e) { console.error('puntos error', e); }
+          }
           await redis(['LSET', 'pedidos', String(i), JSON.stringify(p)]);
-          return res.status(200).json({ ok: true });
+          return res.status(200).json({ ok: true, puntos: p.puntosGanados || 0 });
         }
       }
       return res.status(404).json({ error: 'Pedido no encontrado.' });
@@ -223,7 +269,8 @@ module.exports = async (req, res) => {
           .sort((x, y) => (consumo[y].veces - consumo[x].veces) || ((consumo[y].ultima || 0) - (consumo[x].ultima || 0)))
           .slice(0, 5)
           .map((n) => ({ nombre: n, veces: consumo[n].veces }));
-        delete c.consumo; delete c.uids;
+        c.tienePin = !!c.pinHash; // tiene cuenta del Club con PIN
+        delete c.consumo; delete c.uids; delete c.pinHash; delete c.pinSalt; delete c.sess;
         clientes.push(c);
       }
       return res.status(200).json({ clientes });
@@ -232,6 +279,126 @@ module.exports = async (req, res) => {
       await redis(['DEL', 'cliente:' + b.telefono]);
       await redis(['ZREM', 'clientes', b.telefono]);
       return res.status(200).json({ ok: true });
+    }
+
+    // --- Club Arakaki: interruptores, promos exclusivas y sorteos (los lee /api/cuenta) ---
+    if (b.action === 'getclub') {
+      const club = await getClubCfg();
+      let promos = [], sorteos = [];
+      const rp = await redis(['GET', 'config:clubpromos']);
+      if (rp) { try { promos = JSON.parse(rp) || []; } catch (e) {} }
+      const rs = await redis(['GET', 'config:sorteos']);
+      if (rs) { try { sorteos = JSON.parse(rs) || []; } catch (e) {} }
+      for (const s of sorteos) s.participantes = Number(await redis(['ZCARD', 'sorteo:' + s.id])) || 0;
+      return res.status(200).json({ club, promos, sorteos });
+    }
+    if (b.action === 'setclub') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const nuevoId = (pre) => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const cIn = b.club || {};
+      const club = {};
+      ['login', 'favoritos', 'puntos', 'promos', 'sorteos'].forEach((k) => { club[k] = cIn[k] !== false; });
+      const pps = Number(cIn.puntosPorSol);
+      club.puntosPorSol = (isFinite(pps) && pps > 0 && pps <= 100) ? pps : 1;
+      await redis(['SET', 'config:club', JSON.stringify(club)]);
+      const promos = (Array.isArray(b.promos) ? b.promos : []).map((p) => ({
+        id: txt(p.id, 20).replace(/[^a-z0-9]/gi, '') || nuevoId('cp'),
+        titulo: txt(p.titulo, 80), texto: txt(p.texto, 400), hasta: Number(p.hasta) || null,
+      })).filter((p) => p.titulo).slice(0, 20);
+      await redis(['SET', 'config:clubpromos', JSON.stringify(promos)]);
+      // Sorteos: si el dueño borra uno de la lista, se limpia también su ZSET de participantes
+      let viejos = [];
+      const rs = await redis(['GET', 'config:sorteos']);
+      if (rs) { try { viejos = JSON.parse(rs) || []; } catch (e) {} }
+      const sorteos = (Array.isArray(b.sorteos) ? b.sorteos : []).map((s) => ({
+        id: txt(s.id, 20).replace(/[^a-z0-9]/gi, '') || nuevoId('so'),
+        titulo: txt(s.titulo, 80), premio: txt(s.premio, 120), hasta: Number(s.hasta) || null, activo: s.activo !== false,
+      })).filter((s) => s.titulo).slice(0, 10);
+      const quedan = {};
+      sorteos.forEach((s) => { quedan[s.id] = 1; });
+      for (const v of viejos) if (v.id && !quedan[v.id]) await redis(['DEL', 'sorteo:' + v.id]);
+      await redis(['SET', 'config:sorteos', JSON.stringify(sorteos)]);
+      return res.status(200).json({ ok: true, club, promos, sorteos });
+    }
+    if (b.action === 'resetpin') { // borra el PIN del cliente y cierra TODAS sus sesiones
+      const tel = String(b.telefono || '').replace(/\D/g, '');
+      const raw = await redis(['GET', 'cliente:' + tel]);
+      if (!raw) return res.status(404).json({ error: 'Cliente no encontrado.' });
+      let cli; try { cli = JSON.parse(raw); } catch (e) { return res.status(500).json({ error: 'Registro dañado.' }); }
+      delete cli.pinHash; delete cli.pinSalt;
+      for (const t of (Array.isArray(cli.sess) ? cli.sess : [])) await redis(['DEL', 'sess:' + t]);
+      delete cli.sess;
+      await redis(['SET', 'cliente:' + tel, JSON.stringify(cli)]);
+      return res.status(200).json({ ok: true });
+    }
+    if (b.action === 'setpuntos') { // ajuste manual (canjes): fija el saldo de puntos
+      const tel = String(b.telefono || '').replace(/\D/g, '');
+      const raw = await redis(['GET', 'cliente:' + tel]);
+      if (!raw) return res.status(404).json({ error: 'Cliente no encontrado.' });
+      let cli; try { cli = JSON.parse(raw); } catch (e) { return res.status(500).json({ error: 'Registro dañado.' }); }
+      cli.puntos = Math.max(0, Math.floor(Number(b.puntos) || 0));
+      cli.actualizado = Date.now();
+      await redis(['SET', 'cliente:' + tel, JSON.stringify(cli)]);
+      return res.status(200).json({ ok: true, puntos: cli.puntos });
+    }
+    if (b.action === 'sorteoinfo') { // participantes de un sorteo (con nombre si se conoce)
+      const id = String(b.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 20);
+      const raw = (await redis(['ZRANGE', 'sorteo:' + id, '0', '-1', 'WITHSCORES'])) || [];
+      const participantes = [];
+      for (let i = 0; i < raw.length; i += 2) {
+        const t = raw[i];
+        let nombre = '';
+        const rc = await redis(['GET', 'cliente:' + t]);
+        if (rc) { try { nombre = JSON.parse(rc).nombre || ''; } catch (e) {} }
+        participantes.push({ telefono: t, nombre, ts: Number(raw[i + 1]) || 0 });
+      }
+      return res.status(200).json({ participantes });
+    }
+    if (b.action === 'sorteoganador') { // elige un participante al azar
+      const id = String(b.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 20);
+      const t = await redis(['ZRANDMEMBER', 'sorteo:' + id]);
+      if (!t) return res.status(400).json({ error: 'Este sorteo no tiene participantes aún.' });
+      let nombre = '';
+      const rc = await redis(['GET', 'cliente:' + t]);
+      if (rc) { try { nombre = JSON.parse(rc).nombre || ''; } catch (e) {} }
+      return res.status(200).json({ telefono: t, nombre });
+    }
+
+    // --- Zonas: clientes y pedidos agrupados por calle (dirección hasta el primer número) ---
+    if (b.action === 'zonas') {
+      const calleDe = (dir) => {
+        let s = String(dir || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        s = s.split(/\d/)[0]; // "av. belen 265, san isidro" → "av. belen"
+        s = s.replace(/[.,;#-]+/g, ' ').replace(/\s+/g, ' ').trim();
+        return s.length >= 4 ? s : '';
+      };
+      const zonas = {}; // calle → { clientes:{tel:1}, pedidos, gasto }
+      const zonaDe = (c) => (zonas[c] = zonas[c] || { clientes: {}, pedidos: 0, gasto: 0 });
+      const tels = (await redis(['ZREVRANGE', 'clientes', '0', '499'])) || [];
+      for (const t of tels) {
+        const raw = await redis(['GET', 'cliente:' + t]);
+        if (!raw) continue;
+        let c; try { c = JSON.parse(raw); } catch (e) { continue; }
+        const calle = calleDe(c.direccion);
+        if (calle) zonaDe(calle).clientes[t] = 1;
+      }
+      const raws = (await redis(['LRANGE', 'pedidos', '0', '499'])) || [];
+      for (const r of raws) {
+        let p; try { p = JSON.parse(r); } catch (e) { continue; }
+        const calle = calleDe(p.direccion);
+        if (!calle) continue;
+        const z = zonaDe(calle);
+        z.pedidos += 1;
+        z.gasto += Number(p.total) || 0;
+        if (p.telefono) z.clientes[p.telefono] = 1;
+      }
+      const lista = Object.keys(zonas).map((c) => ({
+        calle: c,
+        clientes: Object.keys(zonas[c].clientes).length,
+        pedidos: zonas[c].pedidos,
+        gasto: Math.round(zonas[c].gasto * 100) / 100,
+      })).sort((a, b) => (b.pedidos - a.pedidos) || (b.clientes - a.clientes)).slice(0, 100);
+      return res.status(200).json({ zonas: lista });
     }
 
     // --- Respuestas rápidas ---

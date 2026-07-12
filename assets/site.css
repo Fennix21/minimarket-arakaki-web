@@ -762,3 +762,119 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   #fp-popup .fp-caja b { font-size: 20px; }
   #fp-popup .fp-caja span { font-size: 8.5px; }
 }
+
+/* ---------- Club Arakaki: estrella de favoritos + página /mi-cuenta ---------- */
+/* Estrella ⭐ en la card del producto (solo clientes logueados, función activable en el panel) */
+.prod .prod-fav {
+  position: absolute; top: 12px; left: 12px; z-index: 4;
+  width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+  background: rgba(12, 10, 8, 0.72); color: #e9c877;
+  border: 1.5px solid rgba(212, 169, 65, 0.55);
+  font-size: 19px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); transition: transform 0.15s, background 0.15s;
+}
+.prod .prod-fav:hover { transform: scale(1.12); }
+.prod .prod-fav.activo {
+  background: linear-gradient(180deg, #f6d98a 0%, #d4a941 100%);
+  color: #3a2708; border-color: var(--dorado);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), 0 0 14px rgba(212, 169, 65, 0.45);
+}
+
+/* Página /mi-cuenta: tarjetas premium dark-gold (mismo lenguaje que .prod) */
+.cuenta-int { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+.cuenta-card {
+  background: linear-gradient(180deg, #211d19 0%, #100e0c 100%); color: #f4ebd6;
+  border: 2px solid rgba(212, 169, 65, 0.42); border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); padding: 24px 22px;
+}
+.cuenta-card h3 {
+  font-family: Georgia, 'Times New Roman', serif; font-size: 21px; color: #e9c877;
+  margin: 0 0 14px; letter-spacing: 0.3px;
+}
+.cuenta-card p { font-size: 14.5px; line-height: 1.55; margin: 0 0 10px; }
+.cuenta-card a { color: var(--dorado); font-weight: 600; }
+.cuenta-hola { grid-column: 1 / -1; position: relative; }
+.ct-vacio { opacity: 0.75; font-size: 14px; }
+
+/* Pestañas Entrar / Crear cuenta */
+.cuenta-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.ct-tab {
+  flex: 1; padding: 10px 8px; border-radius: 12px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.05); color: #cfc4a8;
+  border: 1.5px solid rgba(212, 169, 65, 0.3);
+  font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13.5px;
+  transition: background 0.15s, color 0.15s;
+}
+.ct-tab.activo { background: linear-gradient(180deg, #f6d98a, #d4a941); color: #3a2708; border-color: var(--dorado); }
+
+/* Formulario de acceso */
+.cuenta-acceso label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: #cfc4a8; margin: 12px 0 6px; }
+.cuenta-acceso input {
+  width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06); color: #f4ebd6;
+  border: 1.5px solid rgba(212, 169, 65, 0.35); font-size: 16px; outline: none;
+}
+.cuenta-acceso input:focus { border-color: var(--dorado); box-shadow: 0 0 0 3px rgba(212, 169, 65, 0.16); }
+.ct-error { color: #ff9d8f; font-size: 13.5px; min-height: 18px; margin: 10px 0 4px; }
+.ct-enviar {
+  display: block; width: 100%; box-sizing: border-box; margin-top: 8px;
+  background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  color: #3a2708; border: none; border-radius: 14px; padding: 13px 18px;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 15.5px; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); transition: transform 0.15s, filter 0.15s;
+  text-align: center;
+}
+.ct-enviar:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.ct-enviar:disabled { opacity: 0.6; cursor: default; transform: none; }
+a.ct-link { color: #3a2708 !important; text-decoration: none; }
+.ct-ayuda { font-size: 13px; opacity: 0.85; margin-top: 14px; text-align: center; }
+.cuenta-beneficios ul { margin: 0; padding: 0 0 0 4px; list-style: none; }
+.cuenta-beneficios li { font-size: 14.5px; line-height: 1.5; padding: 7px 0; border-bottom: 1px dashed rgba(212, 169, 65, 0.2); }
+.cuenta-beneficios li:last-child { border-bottom: none; }
+
+/* Panel del cliente logueado */
+.ct-salir {
+  position: absolute; top: 20px; right: 20px; cursor: pointer;
+  background: transparent; color: #cfc4a8; border: 1.5px solid rgba(212, 169, 65, 0.35);
+  border-radius: 10px; padding: 7px 12px; font-size: 12.5px; font-weight: 600;
+}
+.ct-salir:hover { color: #f4ebd6; border-color: var(--dorado); }
+.cp-num {
+  font-family: Georgia, 'Times New Roman', serif; font-size: 52px; font-weight: 700;
+  color: #e9c877; text-shadow: 0 0 22px rgba(212, 169, 65, 0.35); line-height: 1; margin: 6px 0 12px;
+}
+.cprom, .csort { border: 1.5px solid rgba(212, 169, 65, 0.3); border-radius: 14px; padding: 13px 14px; margin-bottom: 12px; }
+.cprom b, .csort b { color: #f2d894; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; }
+.cprom p, .csort p { margin: 6px 0 4px; font-size: 14px; }
+.cprom small, .csort small { color: var(--dorado); font-size: 12px; display: block; margin-top: 2px; }
+.cs-btn {
+  margin-top: 10px; width: 100%; cursor: pointer;
+  background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  color: #3a2708; border: none; border-radius: 12px; padding: 10px 14px;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 14px;
+}
+.cs-btn:disabled { background: rgba(212, 169, 65, 0.18); color: #e9c877; cursor: default; }
+
+/* Lista de favoritos / lo de siempre */
+.cfav-grid { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 14px; }
+.cfav {
+  display: flex; align-items: center; gap: 12px;
+  border: 1.5px solid rgba(212, 169, 65, 0.28); border-radius: 14px; padding: 8px 10px;
+}
+.cfav img { width: 52px; height: 52px; object-fit: contain; border-radius: 10px; background: #0a0908; flex: none; }
+.cfav-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cfav-nom { font-size: 13.5px; line-height: 1.3; }
+.cfav-precio { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; color: #e9c877; font-size: 15px; }
+.cfav-x {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  background: transparent; color: #cfc4a8; border: 1.5px solid rgba(212, 169, 65, 0.3); font-size: 13px;
+}
+.cfav-x:hover { color: #ff9d8f; border-color: #ff9d8f; }
+
+/* Botón "Mi cuenta" del chat (variante perfilada del pastel dorado) */
+.chat-opt.cuenta { border-style: dashed; }
+
+@media (max-width: 700px) {
+  .cuenta-int { grid-template-columns: 1fr; gap: 18px; }
+  .cuenta-card { padding: 20px 16px; }
+}

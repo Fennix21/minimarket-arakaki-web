@@ -29,6 +29,21 @@ http.createServer((req, res) => {
     }
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
+    // Stub de la cuenta del Club: permite ver /mi-cuenta y las estrellas ⭐ en local
+    if (url === '/api/cuenta') {
+      const funciones = { favoritos: true, puntos: true, promos: true, sorteos: true };
+      const perfil = {
+        on: true, conocido: true, funciones, nombre: 'Cliente de prueba', telefono: '51999999999',
+        pedidos: 3, puntos: 120,
+        favs: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105 }],
+        habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
+        promos: [{ id: 'cp1', titulo: 'Promo de prueba', texto: '2x1 en helados solo para el Club (dev)' }],
+        sorteos: [{ id: 'so1', titulo: 'Sorteo de prueba', premio: 'Canasta Arakaki', participando: false }],
+      };
+      if (req.method === 'POST') return res.end(JSON.stringify({ ok: true, token: 'sdevtoken', perfil, favs: perfil.favs.map(f => f.name), participando: true }));
+      const conToken = (req.url || '').indexOf('token=') >= 0;
+      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones }));
+    }
     return res.end('{"ok":true,"stub":true}');
   }
   let archivo = url === '/' ? '/index.html' : url;

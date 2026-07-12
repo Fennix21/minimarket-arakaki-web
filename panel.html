@@ -250,6 +250,15 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .plantillas-edit textarea { flex:1; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; min-height:38px; }
 .plantillas-edit button.x { background:rgba(124,15,20,.6); color:#ffb3b3; border:none; border-radius:9px; padding:0 12px; }
 
+/* Editores del Club (promos exclusivas y sorteos) */
+.club-item { border:1px solid var(--borde); border-radius:12px; background:var(--card); padding:12px 14px; margin-bottom:10px; }
+.club-item input[type=text], .club-item textarea { width:100%; box-sizing:border-box; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:9px 11px; font-size:13.5px; margin-bottom:8px; }
+.club-item textarea { resize:vertical; min-height:52px; }
+.club-item input[type=date] { background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:7px 9px; font-size:12.5px; }
+.club-item .fila-conf { margin:2px 0 0; }
+#club-sorteo-info { margin-top:6px; }
+#club-sorteo-info .stat-fila span { overflow:hidden; text-overflow:ellipsis; }
+
 /* ---------- Móvil: barra superior + navegación inferior ---------- */
 @media (max-width:860px){
   #topbar { display:flex; align-items:center; gap:9px; position:fixed; top:0; left:0; right:0; height:54px; background:var(--panel); border-bottom:1px solid var(--borde); padding:0 14px; z-index:60; }
@@ -475,17 +484,65 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <!-- CLUB -->
   <div class="vista" id="v-club">
     <h2 class="tit-vista">👥 Club Arakaki</h2>
-    <p class="sub-vista">Tus clientes y su consumo: cuántos pedidos hicieron, cuándo compraron por última vez y qué productos prefieren. Ordénalos para ver a tus mejores clientes.</p>
+    <p class="sub-vista">Tus clientes y su consumo, y el Club con cuenta en la web (login con PIN, favoritos ⭐, puntos 🪙, promos 🎁 y sorteos 🎟️). Prende y apaga cada función según tu estrategia.</p>
+    <div class="aviso" id="club-aviso"></div>
+
+    <div class="caja-bot">
+      <h3>⚙️ Funciones del Club en la web</h3>
+      <p class="desc">Los cambios se ven en la web en ~1 minuto. Si apagas la <b>cuenta de clientes</b>, se apaga TODO el Club y la web queda como antes.</p>
+      <div class="toggle-fila"><div class="tf-txt"><b>👤 Cuenta de clientes (interruptor general)</b><span>Login con celular + PIN y la página /mi-cuenta</span></div><label class="switch"><input type="checkbox" id="club-login"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>⭐ Favoritos</b><span>Estrellita en cada producto para guardarlo y pedir en 2 toques</span></div><label class="switch"><input type="checkbox" id="club-favoritos"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>🪙 Puntos</b><span>Se acreditan solos al marcar el pedido como ENTREGADO</span></div><label class="switch"><input type="checkbox" id="club-puntos"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>🎁 Promos exclusivas</b><span>Solo las ven los clientes con sesión iniciada</span></div><label class="switch"><input type="checkbox" id="club-promos-sw"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>🎟️ Sorteos</b><span>Participan con un toque desde su cuenta</span></div><label class="switch"><input type="checkbox" id="club-sorteos-sw"><span class="pista"></span></label></div>
+      <div class="fila-conf">
+        <label style="font-size:13px">🪙 Puntos por cada sol de compra: <input type="text" id="club-pps" inputmode="decimal" placeholder="1" style="width:70px"></label>
+        <button class="btn" onclick="guardarClub()">💾 Guardar funciones</button>
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>🎁 Promos exclusivas del Club</h3>
+      <p class="desc">Solo las ven los clientes logueados en su cuenta (/mi-cuenta). La fecha límite es opcional: vencida, la promo deja de mostrarse sola.</p>
+      <div id="club-promos"></div>
+      <div class="fila-conf">
+        <button class="btn gris" onclick="agregarPromoClub()">+ Añadir promo</button>
+        <button class="btn" onclick="guardarClub()">💾 Guardar promos</button>
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>🎟️ Sorteos</h3>
+      <p class="desc">Crea el sorteo y tus clientes participan desde su cuenta. Con 🎲 eliges un ganador al azar (puedes repetir si no contesta). Al borrar un sorteo se borra también su lista de participantes.</p>
+      <div id="club-sorteos"></div>
+      <div class="fila-conf">
+        <button class="btn gris" onclick="agregarSorteoClub()">+ Añadir sorteo</button>
+        <button class="btn" onclick="guardarClub()">💾 Guardar sorteos</button>
+      </div>
+      <div id="club-sorteo-info"></div>
+    </div>
+
+    <h3 style="margin:22px 0 8px">📇 Tus clientes</h3>
     <div class="club-orden">
       Ordenar por:
       <button class="btn gris" id="club-ord-rec" onclick="ordenarClub('reciente')">🕑 Más reciente</button>
       <button class="btn gris" id="club-ord-frec" onclick="ordenarClub('frecuencia')">🔁 Más pedidos</button>
     </div>
     <div class="tabla-scroll"><table>
-      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Pedidos</th><th>Último</th><th>Sus favoritos</th><th></th></tr></thead>
+      <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Pedidos</th><th>🪙 Puntos</th><th>Gasto</th><th>Última visita</th><th>Sus favoritos</th><th></th></tr></thead>
       <tbody id="tabla-club"></tbody>
     </table></div>
     <p class="vacio" id="club-vacio" style="display:none">Aún no hay registros del Club Arakaki.</p>
+
+    <div class="caja-bot" style="margin-top:16px">
+      <h3>🗺️ Zonas de tus clientes</h3>
+      <p class="desc">Las direcciones de pedidos y clientes agrupadas por calle: dónde ya eres fuerte y qué calles cercanas casi no tienen clientes todavía (ahí conviene volantear o promocionar).</p>
+      <div class="fila-conf"><button class="btn gris" onclick="cargarZonas()">📍 Calcular zonas</button></div>
+      <div class="tabla-scroll"><table>
+        <thead><tr><th>Calle / zona</th><th>Clientes</th><th>Pedidos</th><th>Gasto total</th></tr></thead>
+        <tbody id="tabla-zonas"><tr><td colspan="4" style="color:#888">Toca "📍 Calcular zonas" para ver el resumen.</td></tr></tbody>
+      </table></div>
+    </div>
   </div>
 
   <!-- ANALÍTICAS -->
@@ -1164,11 +1221,196 @@ function restaurarPrecio(btn) {
 // ---------- Club ----------
 var clubDatos = [];      // últimos clientes cargados (para reordenar sin volver a pedir)
 var clubOrden = 'reciente';
+var CLUB_CFG = null;     // { club, promos, sorteos } (getclub)
+function avisoClub(t, mal) {
+  var a = document.getElementById('club-aviso');
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
 function cargarClub() {
   api('clientes').then(function (j) {
     clubDatos = j.clientes || [];
     pintarClub();
   }).catch(function () {});
+  api('getclub').then(function (j) { CLUB_CFG = j; pintarClubCfg(); })
+    .catch(function (e) { avisoClub(e.message, true); });
+}
+
+// --- Funciones del Club (interruptores) + editores de promos y sorteos ---
+function fechaCorta(ms) { // ms → 'YYYY-MM-DD' (día de Lima) para el input date
+  if (!ms) return '';
+  return new Date(Number(ms) - 5 * 3600000).toISOString().slice(0, 10);
+}
+function fechaMs(v) { // input date → fin de ese día en Lima (ms); '' → null
+  if (!v) return null;
+  var t = Date.parse(v + 'T23:59:59-05:00');
+  return isFinite(t) ? t : null;
+}
+function pintarClubCfg() {
+  if (!CLUB_CFG) return;
+  var c = CLUB_CFG.club || {};
+  document.getElementById('club-login').checked = c.login !== false;
+  document.getElementById('club-favoritos').checked = c.favoritos !== false;
+  document.getElementById('club-puntos').checked = c.puntos !== false;
+  document.getElementById('club-promos-sw').checked = c.promos !== false;
+  document.getElementById('club-sorteos-sw').checked = c.sorteos !== false;
+  document.getElementById('club-pps').value = c.puntosPorSol || 1;
+  pintarPromosClub();
+  pintarSorteosClub();
+}
+function pintarPromosClub() {
+  var ps = (CLUB_CFG && CLUB_CFG.promos) || [];
+  document.getElementById('club-promos').innerHTML = ps.map(function (p, i) {
+    return '<div class="club-item" data-id="' + esc(p.id || '') + '">' +
+      '<input type="text" class="cpi-tit" value="' + esc(p.titulo || '') + '" maxlength="80" placeholder="Título (ej. 🍦 2x1 en helados para el Club)">' +
+      '<textarea class="cpi-txt" maxlength="400" placeholder="Detalle de la promo (cómo la canjea)">' + esc(p.texto || '') + '</textarea>' +
+      '<div class="fila-conf"><label style="font-size:12px">Hasta: <input type="date" class="cpi-hasta" value="' + fechaCorta(p.hasta) + '"></label>' +
+      '<button class="btn gris" onclick="quitarPromoClub(' + i + ')">🗑️ Quitar</button></div></div>';
+  }).join('') || '<span class="hint" style="font-size:12px;color:var(--sub)">Sin promos todavía: toca "+ Añadir promo".</span>';
+}
+function leerPromosClubDOM() {
+  var out = [];
+  var items = document.querySelectorAll('#club-promos .club-item');
+  for (var i = 0; i < items.length; i++) {
+    out.push({
+      id: items[i].getAttribute('data-id') || '',
+      titulo: items[i].querySelector('.cpi-tit').value.trim(),
+      texto: items[i].querySelector('.cpi-txt').value.trim(),
+      hasta: fechaMs(items[i].querySelector('.cpi-hasta').value),
+    });
+  }
+  return out;
+}
+function agregarPromoClub() {
+  if (!CLUB_CFG) return;
+  CLUB_CFG.promos = leerPromosClubDOM();
+  CLUB_CFG.promos.push({ id: '', titulo: '', texto: '', hasta: null });
+  pintarPromosClub();
+}
+function quitarPromoClub(i) {
+  CLUB_CFG.promos = leerPromosClubDOM();
+  CLUB_CFG.promos.splice(i, 1);
+  pintarPromosClub();
+}
+function pintarSorteosClub() {
+  var ss = (CLUB_CFG && CLUB_CFG.sorteos) || [];
+  document.getElementById('club-sorteos').innerHTML = ss.map(function (s, i) {
+    return '<div class="club-item" data-id="' + esc(s.id || '') + '">' +
+      '<input type="text" class="csi-tit" value="' + esc(s.titulo || '') + '" maxlength="80" placeholder="Título (ej. 🎆 Sorteo Fiestas Patrias)">' +
+      '<input type="text" class="csi-premio" value="' + esc(s.premio || '') + '" maxlength="120" placeholder="Premio (ej. 1 canasta Arakaki)">' +
+      '<div class="fila-conf">' +
+        '<label style="font-size:12px">Hasta: <input type="date" class="csi-hasta" value="' + fechaCorta(s.hasta) + '"></label>' +
+        '<label class="check-fila" style="padding:0"><input type="checkbox" class="csi-activo"' + (s.activo !== false ? ' checked' : '') + '> Activo</label>' +
+        (s.id ? '<span style="font-size:12px;color:var(--sub)">👥 ' + (s.participantes || 0) + ' participan</span>' +
+          '<button class="btn gris" onclick="verParticipantes(\'' + esc(s.id) + '\')">👥 Ver</button>' +
+          '<button class="btn" onclick="elegirGanador(\'' + esc(s.id) + '\')">🎲 Elegir ganador</button>' : '') +
+        '<button class="btn gris" onclick="quitarSorteoClub(' + i + ')">🗑️ Quitar</button>' +
+      '</div></div>';
+  }).join('') || '<span class="hint" style="font-size:12px;color:var(--sub)">Sin sorteos todavía: toca "+ Añadir sorteo".</span>';
+}
+function leerSorteosClubDOM() {
+  var out = [];
+  var items = document.querySelectorAll('#club-sorteos .club-item');
+  for (var i = 0; i < items.length; i++) {
+    out.push({
+      id: items[i].getAttribute('data-id') || '',
+      titulo: items[i].querySelector('.csi-tit').value.trim(),
+      premio: items[i].querySelector('.csi-premio').value.trim(),
+      hasta: fechaMs(items[i].querySelector('.csi-hasta').value),
+      activo: items[i].querySelector('.csi-activo').checked,
+    });
+  }
+  return out;
+}
+function agregarSorteoClub() {
+  if (!CLUB_CFG) return;
+  CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
+  CLUB_CFG.sorteos.push({ id: '', titulo: '', premio: '', hasta: null, activo: true });
+  pintarSorteosClub();
+}
+function quitarSorteoClub(i) {
+  var s = leerSorteosClubDOM()[i];
+  if (s && s.id && !confirm('¿Borrar este sorteo? También se borra su lista de participantes.')) return;
+  CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
+  CLUB_CFG.sorteos.splice(i, 1);
+  pintarSorteosClub();
+}
+// Conserva el nº de participantes que ya conocíamos (getclub) al releer del DOM
+function sorteosConConteo(lista) {
+  var previos = {};
+  ((CLUB_CFG && CLUB_CFG.sorteos) || []).forEach(function (s) { if (s.id) previos[s.id] = s.participantes || 0; });
+  lista.forEach(function (s) { if (s.id) s.participantes = previos[s.id] || 0; });
+  return lista;
+}
+function guardarClub() {
+  if (!CLUB_CFG) return;
+  var club = {
+    login: document.getElementById('club-login').checked,
+    favoritos: document.getElementById('club-favoritos').checked,
+    puntos: document.getElementById('club-puntos').checked,
+    promos: document.getElementById('club-promos-sw').checked,
+    sorteos: document.getElementById('club-sorteos-sw').checked,
+    puntosPorSol: parseFloat((document.getElementById('club-pps').value || '1').replace(',', '.')) || 1,
+  };
+  var promos = leerPromosClubDOM().filter(function (p) { return p.titulo; });
+  var sorteos = leerSorteosClubDOM().filter(function (s) { return s.titulo; });
+  api('setclub', { club: club, promos: promos, sorteos: sorteos }).then(function (j) {
+    var previos = CLUB_CFG.sorteos || [];
+    CLUB_CFG = j;
+    // el guardado no devuelve el conteo de participantes: se conserva el conocido
+    var mapa = {};
+    previos.forEach(function (s) { if (s.id) mapa[s.id] = s.participantes || 0; });
+    (CLUB_CFG.sorteos || []).forEach(function (s) { s.participantes = mapa[s.id] || 0; });
+    pintarClubCfg();
+    avisoClub('✅ Club guardado. Se ve en la web en ~1 minuto.');
+  }).catch(function (e) { avisoClub(e.message, true); });
+}
+function verParticipantes(id) {
+  api('sorteoinfo', { id: id }).then(function (j) {
+    var ps = j.participantes || [];
+    document.getElementById('club-sorteo-info').innerHTML =
+      '<div class="caja" style="margin-top:8px"><h3 style="font-size:14px">👥 Participantes (' + ps.length + ')</h3>' +
+      (ps.length ? ps.map(function (p) {
+        return '<div class="stat-fila"><span>' + esc(p.nombre || 'Sin nombre') + ' · <a href="https://wa.me/' + esc(p.telefono) + '" target="_blank">+' + esc(p.telefono) + '</a></span><b>' + hora(p.ts) + '</b></div>';
+      }).join('') : '<p style="font-size:13px;color:var(--sub)">Nadie participa todavía.</p>') + '</div>';
+  }).catch(function (e) { avisoClub(e.message, true); });
+}
+function elegirGanador(id) {
+  api('sorteoganador', { id: id }).then(function (j) {
+    document.getElementById('club-sorteo-info').innerHTML =
+      '<div class="caja" style="margin-top:8px"><h3 style="font-size:14px">🎉 Ganador del sorteo</h3>' +
+      '<p style="font-size:15px;margin:8px 0"><b>' + esc(j.nombre || 'Sin nombre') + '</b> · <a href="https://wa.me/' + esc(j.telefono) + '" target="_blank">+' + esc(j.telefono) + '</a></p>' +
+      '<p style="font-size:12px;color:var(--sub)">Escríbele por WhatsApp para avisarle 🎊 (puedes volver a tirar el dado si no contesta).</p></div>';
+  }).catch(function (e) { avisoClub(e.message, true); });
+}
+
+// --- Zonas: calles con más clientes/pedidos (bajo demanda, tarda unos segundos) ---
+function cargarZonas() {
+  document.getElementById('tabla-zonas').innerHTML = '<tr><td colspan="4" style="color:#888">Calculando…</td></tr>';
+  api('zonas').then(function (j) {
+    var zs = j.zonas || [];
+    document.getElementById('tabla-zonas').innerHTML = zs.map(function (z) {
+      return '<tr><td><b>' + esc(z.calle) + '</b></td><td>' + z.clientes + '</td><td>' + z.pedidos + '</td><td>S/ ' + (z.gasto || 0) + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="color:#888">Sin direcciones registradas todavía (llegan con los pedidos).</td></tr>';
+  }).catch(function (e) { avisoClub(e.message, true); });
+}
+
+// --- Puntos y PIN por cliente ---
+function editarPuntos(tel, actual) {
+  var v = prompt('Nuevo saldo de puntos para este cliente:', actual);
+  if (v === null) return;
+  api('setpuntos', { telefono: tel, puntos: Number(v) || 0 }).then(function () {
+    avisoClub('✅ Puntos actualizados.');
+    cargarClub();
+  }).catch(function (e) { avisoClub(e.message, true); });
+}
+function resetearPin(tel) {
+  if (!confirm('¿Resetear el PIN de este cliente? Se cierran sus sesiones y podrá crear un PIN nuevo desde /mi-cuenta.')) return;
+  api('resetpin', { telefono: tel }).then(function () {
+    avisoClub('✅ PIN reseteado. El cliente puede crear uno nuevo en /mi-cuenta.');
+    cargarClub();
+  }).catch(function (e) { avisoClub(e.message, true); });
 }
 function ordenarClub(modo) { clubOrden = modo; pintarClub(); }
 function pintarClub() {
@@ -1184,17 +1426,26 @@ function pintarClub() {
   document.getElementById('tabla-club').innerHTML = cs.map(function (c) {
     var wa = c.telefono ? '<a class="wa" href="https://wa.me/' + esc(c.telefono) + '" target="_blank">+' + esc(c.telefono) + '</a>' : '—';
     var ped = Number(c.pedidos) || 0;
-    var ult = c.ultimoPedido ? hora(c.ultimoPedido) : '—';
+    var pts = Number(c.puntos) || 0;
+    var gasto = Number(c.gastoTotal) || 0;
+    var visita = c.ultimaVisita ? hora(c.ultimaVisita) : (c.ultimoPedido ? hora(c.ultimoPedido) : '—');
     var top = (c.top && c.top.length)
       ? c.top.map(function (t) { return '<span class="chip-prod">' + esc(t.nombre) + (t.veces > 1 ? ' ·' + t.veces : '') + '</span>'; }).join(' ')
       : (c.interes ? '<span class="chip-prod tenue">' + esc(c.interes) + '</span>' : '—');
+    var llave = esc(c.id || c.telefono);
     return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre || '—') + '</b>' +
+      (c.tienePin ? ' <span title="Tiene cuenta del Club (PIN)">🔑</span>' : '') +
       (c.email ? '<br><a class="cli-mail" href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') + '</td>' +
       '<td>' + wa + '</td>' +
       '<td>' + (ped ? '<b>' + ped + '</b>' : '—') + '</td>' +
-      '<td>' + ult + '</td>' +
+      (c.telefono
+        ? '<td style="cursor:pointer" title="Toca para ajustar los puntos (canjes)" onclick="editarPuntos(\'' + esc(c.telefono) + '\',' + pts + ')">🪙 <b>' + pts + '</b></td>'
+        : '<td>—</td>') +
+      '<td>' + (gasto ? 'S/ ' + gasto : '—') + '</td>' +
+      '<td>' + visita + '</td>' +
       '<td class="td-favs">' + top + '</td>' +
-      '<td><button class="btn gris" onclick="borrarCliente(\'' + esc(c.id || c.telefono) + '\')">🗑️</button></td></tr>';
+      '<td>' + (c.tienePin && c.telefono ? '<button class="btn gris" title="Resetear PIN (si lo olvidó o no lo reconoces)" onclick="resetearPin(\'' + esc(c.telefono) + '\')">🔑↺</button> ' : '') +
+        '<button class="btn gris" onclick="borrarCliente(\'' + llave + '\')">🗑️</button></td></tr>';
   }).join('');
 }
 function borrarCliente(t) {

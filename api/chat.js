@@ -48,12 +48,28 @@ async function getPreciosVivos() {
 // si el dueño escribió un config:webprompt, ese texto manda el tono; si está vacío, usa la
 // MISIÓN por defecto: captar suscriptores (avisos push + correo + WhatsApp), NO vender.
 async function getPromptWeb() {
+  let base = MISION_CAPTADOR;
+  let extra = '';
   if (HAS_REDIS) {
     const propio = await redis(['GET', 'config:webprompt']);
-    if (propio) return propio + REGLAS_WEB;
+    if (propio) base = propio;
+    // Si el Club está activo (config:club, panel → 👥 Club), el bot conoce /mi-cuenta
+    try {
+      const raw = await redis(['GET', 'config:club']);
+      const club = raw ? (JSON.parse(raw) || {}) : {};
+      if (club.login !== false) extra = REGLA_CUENTA;
+    } catch (e) {}
   }
-  return MISION_CAPTADOR + REGLAS_WEB;
+  return base + REGLAS_WEB + extra;
 }
+
+// Se anexa al prompt SOLO cuando el Club está activo (interruptor en panel → 👥 Club).
+const REGLA_CUENTA = `
+
+## Cuenta del cliente (Club Arakaki)
+- En /mi-cuenta el cliente crea GRATIS su cuenta (celular + PIN) y accede a: sus productos favoritos ⭐, puntos por sus compras 🪙, promos exclusivas 🎁 y sorteos 🎟️.
+- Si pregunta por su cuenta, sus puntos, sus favoritos, las promos del club o los sorteos, mándalo a /mi-cuenta (escribe la ruta tal cual y se vuelve link).
+- Menciónalo como beneficio cuando venga al caso: es otra buena razón para dejarte sus datos.`;
 
 // Misión por defecto del chat web: orientar y PERSUADIR para suscribirse a los avisos.
 // NO vende: si el dueño quiere otro comportamiento, lo escribe en config:webprompt (panel).

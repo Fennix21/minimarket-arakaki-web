@@ -389,6 +389,7 @@
     if (homeRep) homeRep.onclick = function () { cargarHabitual(); abrirCarrito(); };
     pintarBadge();
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
+    cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
     iniciarChat();
   }
 
@@ -431,7 +432,11 @@
     fetch('/api/perfil?uid=' + encodeURIComponent(uid))
       .then(function (r) { return r.json(); })
       .then(function (p) {
-        if (p && p.conocido) { guardarPerfilCache(p); aplicarPerfil(p); }
+        if (p && p.conocido) {
+          guardarPerfilCache(p); aplicarPerfil(p);
+          // Recurrencia para el dueño: 1 visita por día (aunque no haya iniciado sesión)
+          cuentaFlagsCargar(function (f) { if (f.on) pingVisita(); });
+        }
       })
       .catch(function () {});
   }
@@ -610,6 +615,373 @@
     }, 250);
   }
 
+  // ---------- Cuenta del cliente (Club Arakaki: login por PIN + beneficios) ----------
+  // Capa ACTIVA de identidad: sesión verificada con celular + PIN (token en localStorage
+  // arakaki_sesion → sess:<token> en Redis, la maneja /api/cuenta). Convive con el
+  // reconocimiento pasivo (arakaki_uid). Los interruptores del Club (login/favoritos/
+  // puntos/promos/sorteos) los decide el dueño en /panel → 👥 Club.
+  var cuentaFlags = null;   // { on, funciones } — qué funciones del Club están prendidas
+  var cuentaPerfil = null;  // perfil del cliente logueado (GET /api/cuenta?token=...)
+
+  function leerSesion() { try { return localStorage.getItem('arakaki_sesion') || ''; } catch (e) { return ''; } }
+  function guardarSesion(t) { try { localStorage.setItem('arakaki_sesion', t); } catch (e) {} }
+  function borrarSesion() { cuentaPerfil = null; try { localStorage.removeItem('arakaki_sesion'); } catch (e) {} }
+
+  // Flags del Club con caché de 5 min en sessionStorage (una sola consulta por ratito)
+  function cuentaFlagsCargar(cb) {
+    if (cuentaFlags) { cb(cuentaFlags); return; }
+    try {
+      var c = JSON.parse(sessionStorage.getItem('arakaki_club_flags') || 'null');
+      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; cb(c.d); return; }
+    } catch (e) {}
+    fetch('/api/cuenta').then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || j.on !== true) j = { on: false };
+      cuentaFlags = j;
+      try { sessionStorage.setItem('arakaki_club_flags', JSON.stringify({ ts: Date.now(), d: j })); } catch (e) {}
+      cb(j);
+    }).catch(function () { cb({ on: false }); });
+  }
+  function fnClub(nombre) { // ¿esta función del Club está prendida?
+    return !!(cuentaFlags && cuentaFlags.on && cuentaFlags.funciones && cuentaFlags.funciones[nombre]);
+  }
+
+  function cuentaPost(datos) {
+    datos.token = leerSesion();
+    datos.uid = miUid();
+    return fetch('/api/cuenta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(datos) })
+      .then(function (r) { return r.json(); });
+  }
+
+  // Al cargar cualquier página: si el Club está activo → ítem "Mi cuenta" en el menú;
+  // y si hay sesión → trae el perfil (estrellas ⭐ en el catálogo + visita del día).
+  function cuentaIniciar() {
+    cuentaFlagsCargar(function (f) {
+      if (!f.on) return;
+      menuItemCuenta();
+      var tk = leerSesion();
+      if (!tk) return;
+      fetch('/api/cuenta?token=' + encodeURIComponent(tk))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.on === true && j.conocido === false) { borrarSesion(); return; }
+          if (!j || !j.conocido) return;
+          cuentaPerfil = j;
+          pintarFavStars();
+          pingVisita();
+        }).catch(function () {});
+    });
+  }
+
+  function menuItemCuenta() {
+    var lista = document.querySelector('#menu-panel .menu-lista');
+    if (!lista || document.getElementById('menu-mi-cuenta')) return;
+    var here = location.pathname === '/mi-cuenta' || location.pathname === '/mi-cuenta.html';
+    var a = document.createElement('a');
+    a.id = 'menu-mi-cuenta';
+    a.className = 'menu-item' + (here ? ' activo' : '');
+    a.href = '/mi-cuenta';
+    a.setAttribute('data-g', '0');
+    a.setAttribute('data-nombre', 'mi cuenta club arakaki favoritos puntos sorteos');
+    a.innerHTML = '<span class="mi-coin">👤</span><span class="mi-main"><span class="mi-txt">Mi cuenta</span>' +
+      '<span class="mi-hint"></span></span><span class="mi-badge new">🎁 Club</span><span class="mi-chevron">›</span>';
+    var primero = lista.querySelector('.menu-item'); // "Página principal" (grupo Inicio)
+    if (primero && primero.nextSibling) lista.insertBefore(a, primero.nextSibling);
+    else lista.appendChild(a);
+  }
+
+  // Cuenta 1 visita por día (recurrencia que ve el dueño en el panel). El guard vive
+  // en localStorage; el servidor igual descarta repetidas del mismo día.
+  function pingVisita() {
+    var hoy = new Date().toISOString().slice(0, 10);
+    try {
+      if (localStorage.getItem('arakaki_visita') === hoy) return;
+      localStorage.setItem('arakaki_visita', hoy);
+    } catch (e) { return; }
+    cuentaPost({ action: 'visita' }).catch(function () {});
+  }
+
+  // Estrellas ⭐ en las cards del catálogo: solo logueados y con la función activa.
+  function pintarFavStars() {
+    if (!cuentaPerfil || !fnClub('favoritos')) return;
+    var favSet = {};
+    (cuentaPerfil.favs || []).forEach(function (f) { favSet[f.name] = 1; });
+    var cards = document.querySelectorAll('.prod');
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        if (card.querySelector('.prod-fav')) return;
+        var img = card.querySelector('.prod-img');
+        if (!img) return;
+        var nom = card.getAttribute('data-nombre');
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'prod-fav' + (favSet[nom] ? ' activo' : '');
+        b.setAttribute('aria-label', 'Guardar en mis favoritos');
+        b.textContent = favSet[nom] ? '★' : '☆';
+        b.onclick = function (e) {
+          e.stopPropagation(); // la imagen también agrega/quita del carrito: no mezclar
+          var on = !b.classList.contains('activo');
+          b.classList.toggle('activo', on);
+          b.textContent = on ? '★' : '☆';
+          cuentaPost({ action: 'fav', producto: nom, on: on }).then(function (j) {
+            if (!j || !j.ok) { b.classList.toggle('activo', !on); b.textContent = on ? '☆' : '★'; return; }
+            if (cuentaPerfil) cuentaPerfil.favs = (j.favs || []).map(function (n) { return { name: n }; });
+          }).catch(function () { b.classList.toggle('activo', !on); b.textContent = on ? '☆' : '★'; });
+        };
+        img.appendChild(b);
+      })(cards[i]);
+    }
+  }
+
+  // Índice nombre → producto del catálogo cargado en la página (para foto y precio)
+  var IDX_CAT = null;
+  function prodDelCatalogo(nombre) {
+    if (!IDX_CAT) {
+      IDX_CAT = {};
+      try {
+        var cats = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories) || {};
+        Object.keys(cats).forEach(function (slug) {
+          (cats[slug].sections || []).forEach(function (s) {
+            (s.products || []).forEach(function (p) { if (p && p.name) IDX_CAT[p.name] = p; });
+          });
+        });
+      } catch (e) {}
+    }
+    return IDX_CAT[nombre] || null;
+  }
+
+  function favItemHtml(f, conQuitar) {
+    var pr = prodDelCatalogo(f.name) || {};
+    var img = f.img || pr.img || '';
+    var precio = (f.price != null && f.price !== '') ? f.price : pr.price;
+    return '<div class="cfav" data-nombre="' + esc(f.name) + '">' +
+      (img ? '<img loading="lazy" src="' + esc(img) + '" alt="">' : '') +
+      '<div class="cfav-info"><span class="cfav-nom">' + esc(f.name) + '</span>' +
+      (precio ? '<span class="cfav-precio">S/ ' + esc(precio) + '</span>' : '') + '</div>' +
+      (conQuitar ? '<button type="button" class="cfav-x" aria-label="Quitar de favoritos">✕</button>' : '') +
+      '</div>';
+  }
+
+  // Suma una lista de productos al carrito (sin duplicar) y lo abre
+  function agregarListaAlCarrito(items) {
+    var c = leerCarrito();
+    var existentes = {};
+    c.forEach(function (x) { existentes[x.name] = 1; });
+    items.forEach(function (f) {
+      if (existentes[f.name]) return;
+      var pr = prodDelCatalogo(f.name) || {};
+      var precio = (f.price != null && f.price !== '') ? f.price : (pr.price || null);
+      c.push({ name: f.name, price: precio, img: f.img || pr.img || '', qty: f.qty || 1 });
+      existentes[f.name] = 1;
+    });
+    guardarCarrito(c);
+    pintarBadge(); marcarProds();
+    abrirCarrito();
+  }
+
+  // Página /mi-cuenta: login/registro o panel del cliente según haya sesión.
+  window.renderCuenta = function () {
+    var cont = document.getElementById('contenido-cuenta');
+    if (!cont) return;
+    cont.innerHTML = '<section class="hero cuenta-hero"><h1>Mi cuenta</h1><p class="sub">Club Arakaki · Beneficios para caseros 💛</p></section>' +
+      '<section class="seccion premium"><div class="interior cuenta-int" id="cuenta-int"><p class="ct-vacio">Cargando…</p></div></section>';
+    cuentaFlagsCargar(function (f) {
+      var int = document.getElementById('cuenta-int');
+      if (!int) return;
+      if (!f.on) {
+        int.innerHTML = '<div class="cuenta-card"><h3>🎁 Club Arakaki</h3>' +
+          '<p>El Club estará disponible muy pronto. Mientras tanto, escríbenos por WhatsApp y te atendemos al toque 📲</p>' +
+          '<a class="ct-enviar ct-link" href="https://wa.me/' + WA + '" target="_blank" rel="noopener">Ir a WhatsApp 💬</a></div>';
+        return;
+      }
+      var tk = leerSesion();
+      if (!tk) { pintarAcceso(int); return; }
+      if (cuentaPerfil) { pintarPanelCliente(int, cuentaPerfil); return; }
+      fetch('/api/cuenta?token=' + encodeURIComponent(tk))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.conocido) { cuentaPerfil = j; pintarPanelCliente(int, j); }
+          else { borrarSesion(); pintarAcceso(int); }
+        }).catch(function () { pintarAcceso(int); });
+    });
+  };
+
+  // Formulario de acceso: pestañas "Ya tengo cuenta" / "Crear mi cuenta"
+  function pintarAcceso(int) {
+    int.innerHTML =
+      '<div class="cuenta-card cuenta-acceso">' +
+        '<div class="cuenta-tabs">' +
+          '<button type="button" class="ct-tab activo" data-t="entrar">Ya tengo cuenta</button>' +
+          '<button type="button" class="ct-tab" data-t="crear">Crear mi cuenta</button>' +
+        '</div>' +
+        '<form id="ct-form" autocomplete="off">' +
+          '<div id="ct-solo-crear" style="display:none"><label for="ct-nombre">Tu nombre</label>' +
+          '<input id="ct-nombre" maxlength="60" placeholder="¿Cómo te llamas?"></div>' +
+          '<label for="ct-tel">Tu celular (WhatsApp)</label>' +
+          '<input id="ct-tel" inputmode="tel" maxlength="15" placeholder="Ej. 999 999 999">' +
+          '<label for="ct-pin">Tu PIN (4 a 6 números)</label>' +
+          '<input id="ct-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+          '<p class="ct-error" id="ct-error"></p>' +
+          '<button type="submit" class="ct-enviar" id="ct-enviar">Entrar</button>' +
+        '</form>' +
+        '<p class="ct-ayuda">¿Olvidaste tu PIN? <a href="https://wa.me/' + WA + '?text=' +
+          encodeURIComponent('Hola 👋 Olvidé el PIN de mi cuenta del Club Arakaki, ¿me ayudan a recuperarla?') +
+          '" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></p>' +
+      '</div>' +
+      '<div class="cuenta-card cuenta-beneficios"><h3>¿Qué gano con mi cuenta?</h3><ul>' +
+        (fnClub('favoritos') ? '<li>⭐ Guarda tus favoritos y pide en 2 toques</li>' : '') +
+        (fnClub('puntos') ? '<li>🪙 Acumula puntos con cada compra entregada</li>' : '') +
+        (fnClub('promos') ? '<li>🎁 Promos exclusivas solo para miembros</li>' : '') +
+        (fnClub('sorteos') ? '<li>🎟️ Participa en sorteos con un toque</li>' : '') +
+        '<li>🔁 Tu "pedido de siempre" listo para repetir</li>' +
+      '</ul></div>';
+
+    var modo = 'entrar';
+    var tabs = int.querySelectorAll('.ct-tab');
+    var soloCrear = document.getElementById('ct-solo-crear');
+    var btn = document.getElementById('ct-enviar');
+    var err = document.getElementById('ct-error');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].onclick = function () {
+        modo = this.getAttribute('data-t');
+        for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('activo', tabs[j] === this);
+        soloCrear.style.display = modo === 'crear' ? '' : 'none';
+        btn.textContent = modo === 'crear' ? 'Crear mi cuenta' : 'Entrar';
+        err.textContent = '';
+      };
+    }
+    document.getElementById('ct-form').onsubmit = function (e) {
+      e.preventDefault();
+      err.textContent = '';
+      var nombre = (document.getElementById('ct-nombre').value || '').trim();
+      var tel = (document.getElementById('ct-tel').value || '').replace(/\D/g, '');
+      var pin = (document.getElementById('ct-pin').value || '').trim();
+      if (modo === 'crear' && nombre.length < 2) { err.textContent = 'Cuéntanos tu nombre 🙂'; return; }
+      if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
+      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN debe tener de 4 a 6 números.'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Un momento…';
+      cuentaPost({ action: modo, nombre: nombre, telefono: tel, pin: pin }).then(function (j) {
+        if (j && j.ok && j.token) {
+          guardarSesion(j.token);
+          cuentaPerfil = j.perfil || null;
+          if (window.arkTrack) window.arkTrack(modo === 'crear' ? 'club_cuenta_creada' : 'club_login');
+          window.renderCuenta();
+        } else {
+          btn.disabled = false;
+          btn.textContent = modo === 'crear' ? 'Crear mi cuenta' : 'Entrar';
+          err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = modo === 'crear' ? 'Crear mi cuenta' : 'Entrar';
+        err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
+      });
+    };
+  }
+
+  // Panel del cliente logueado: puntos, promos, sorteos, favoritos y "lo de siempre"
+  function pintarPanelCliente(int, p) {
+    var html = '<div class="cuenta-card cuenta-hola"><h3>¡Hola, ' + esc(p.nombre || 'casero') + '! 👋</h3>' +
+      '<p>' + (p.pedidos ? 'Llevas <b>' + p.pedidos + '</b> pedido' + (p.pedidos === 1 ? '' : 's') + ' con nosotros 💛' : 'Bienvenido al Club Arakaki 💛') + '</p>' +
+      '<button type="button" class="ct-salir" id="ct-salir">Cerrar sesión</button></div>';
+
+    if (fnClub('puntos')) {
+      html += '<div class="cuenta-card cuenta-puntos"><h3>🪙 Mis puntos</h3>' +
+        '<div class="cp-num">' + (Number(p.puntos) || 0) + '</div>' +
+        '<p>Ganas puntos con cada pedido entregado. <a href="https://wa.me/' + WA + '?text=' +
+        encodeURIComponent('Hola 👋 Quiero canjear mis puntos del Club Arakaki 🪙') +
+        '" target="_blank" rel="noopener">Canjéalos por WhatsApp 📲</a></p></div>';
+    }
+    if (fnClub('promos')) {
+      html += '<div class="cuenta-card cuenta-promos"><h3>🎁 Promos exclusivas</h3>' +
+        ((p.promos && p.promos.length) ? p.promos.map(function (pr) {
+          return '<div class="cprom"><b>' + esc(pr.titulo) + '</b>' +
+            (pr.texto ? '<p>' + esc(pr.texto) + '</p>' : '') +
+            (pr.hasta ? '<small>Hasta el ' + new Date(Number(pr.hasta)).toLocaleDateString('es-PE') + '</small>' : '') + '</div>';
+        }).join('') : '<p class="ct-vacio">Pronto verás aquí promos solo para miembros 👀</p>');
+      html += '</div>';
+    }
+    if (fnClub('sorteos')) {
+      html += '<div class="cuenta-card cuenta-sorteos"><h3>🎟️ Sorteos</h3>' +
+        ((p.sorteos && p.sorteos.length) ? p.sorteos.map(function (s) {
+          return '<div class="csort" data-id="' + esc(s.id) + '"><b>' + esc(s.titulo) + '</b>' +
+            (s.premio ? '<p>🏆 ' + esc(s.premio) + '</p>' : '') +
+            (s.hasta ? '<small>Hasta el ' + new Date(Number(s.hasta)).toLocaleDateString('es-PE') + '</small>' : '') +
+            '<button type="button" class="cs-btn"' + (s.participando ? ' disabled' : '') + '>' +
+            (s.participando ? '✅ Ya estás participando' : '🎟️ Participar gratis') + '</button></div>';
+        }).join('') : '<p class="ct-vacio">No hay sorteos activos ahorita. ¡Atento a los avisos! 🔔</p>');
+      html += '</div>';
+    }
+    if (fnClub('favoritos')) {
+      html += '<div class="cuenta-card cuenta-favs"><h3>⭐ Mis favoritos</h3>' +
+        ((p.favs && p.favs.length)
+          ? '<div class="cfav-grid">' + p.favs.map(function (f) { return favItemHtml(f, true); }).join('') + '</div>' +
+            '<button type="button" class="ct-enviar" id="cf-todos">🛒 Agregar todos a mi pedido</button>'
+          : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto del catálogo y aparecerá aquí.</p>' +
+            '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>');
+      html += '</div>';
+    }
+    if (p.habitual && p.habitual.length) {
+      html += '<div class="cuenta-card cuenta-habitual"><h3>🔁 Lo de siempre</h3><p>Tus productos más pedidos:</p>' +
+        '<div class="cfav-grid">' + p.habitual.slice(0, 6).map(function (h) { return favItemHtml(h, false); }).join('') + '</div>' +
+        '<button type="button" class="ct-enviar" id="ch-todos">🛒 Repetir mi pedido de siempre</button></div>';
+    }
+    int.innerHTML = html;
+
+    document.getElementById('ct-salir').onclick = function () {
+      cuentaPost({ action: 'salir' }).catch(function () {});
+      borrarSesion();
+      window.renderCuenta();
+    };
+    var cfTodos = document.getElementById('cf-todos');
+    if (cfTodos) cfTodos.onclick = function () { agregarListaAlCarrito(p.favs || []); };
+    var chTodos = document.getElementById('ch-todos');
+    if (chTodos) chTodos.onclick = function () { agregarListaAlCarrito(p.habitual || []); };
+
+    // Quitar un favorito desde la cuenta
+    var xs = int.querySelectorAll('.cfav-x');
+    for (var i = 0; i < xs.length; i++) {
+      (function (x) {
+        x.onclick = function () {
+          var fila = x.parentNode;
+          var nom = fila.getAttribute('data-nombre');
+          fila.style.opacity = '.4';
+          cuentaPost({ action: 'fav', producto: nom, on: false }).then(function (j) {
+            if (j && j.ok) {
+              if (fila.parentNode) fila.parentNode.removeChild(fila);
+              p.favs = (p.favs || []).filter(function (f) { return f.name !== nom; });
+              if (cuentaPerfil) cuentaPerfil.favs = p.favs;
+              if (!p.favs.length) pintarPanelCliente(int, p);
+            } else fila.style.opacity = '';
+          }).catch(function () { fila.style.opacity = ''; });
+        };
+      })(xs[i]);
+    }
+
+    // Participar en un sorteo (1 toque)
+    var sorteos = int.querySelectorAll('.csort');
+    for (var k = 0; k < sorteos.length; k++) {
+      (function (fila) {
+        var btn = fila.querySelector('.cs-btn');
+        if (!btn || btn.disabled) return;
+        btn.onclick = function () {
+          btn.disabled = true;
+          btn.textContent = 'Un momento…';
+          cuentaPost({ action: 'sorteo', id: fila.getAttribute('data-id') }).then(function (j) {
+            if (j && j.ok) {
+              btn.textContent = '✅ Ya estás participando';
+              if (window.arkTrack) window.arkTrack('club_sorteo');
+            } else {
+              btn.disabled = false;
+              btn.textContent = '🎟️ Participar gratis';
+              alert((j && j.error) || 'No se pudo registrar tu participación 🙏');
+            }
+          }).catch(function () { btn.disabled = false; btn.textContent = '🎟️ Participar gratis'; });
+        };
+      })(sorteos[k]);
+    }
+  }
+
   // ---------- Chat vendedor flotante (→ /api/chat) ----------
   // Solo aparece si el backend confirma que el bot está activo (API key + no apagado en /panel).
   // Mecánica conversacional estilo WHAPE: "escribiendo…" antes de cada mensaje, párrafos
@@ -706,7 +1078,7 @@
     }
     function quitarEscribiendo() { var t = document.getElementById('chat-typing'); if (t) t.remove(); }
 
-    function pintarQuick(labels, push) {
+    function pintarQuick(labels, push, conCuenta) {
       quick.innerHTML = '';
       var off = 0;
       if (push) { // botón especial: activa los avisos con un toque (no manda un mensaje)
@@ -727,6 +1099,15 @@
         b.onclick = function () { enviar(lbl); };
         quick.appendChild(b);
       });
+      if (conCuenta) { // acceso directo al Club (solo en la bienvenida, si está activo)
+        var cb = document.createElement('button');
+        cb.type = 'button';
+        cb.className = 'chat-opt cuenta';
+        cb.textContent = '👤 Mi cuenta';
+        cb.style.animationDelay = (((labels || []).length + off) * 80) + 'ms';
+        cb.onclick = function () { location.href = '/mi-cuenta'; };
+        quick.appendChild(cb);
+      }
     }
 
     // El cliente tocó "🔔 Activar avisos gratis" (el bot mandó el marcador [[PUSH]] → j.push).
@@ -800,7 +1181,7 @@
         ocupado = true;
         revelarBot(saludo, function () {
           ocupado = false;
-          pintarQuick(botonesIni);
+          pintarQuick(botonesIni, false, !!(cuentaFlags && cuentaFlags.on));
           if (!esMovil) input.focus();
         });
       } else {
@@ -908,6 +1289,7 @@
       })(cards[i]);
     }
     marcarProds();
+    pintarFavStars(); // estrellas ⭐ del Club si el cliente ya está logueado
 
     // Precios "en vivo": los overrides (panel 💰 / WhatsApp del dueño) pisan los del catálogo.
     // Si falla o responde el stub del dev-server, se quedan los precios base.
