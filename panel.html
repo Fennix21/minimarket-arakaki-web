@@ -23,7 +23,8 @@
 body { font-family:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--texto); min-height:100vh; }
 button { font-family:inherit; cursor:pointer; }
 input,textarea,select { font-family:inherit; }
-input:focus,textarea:focus,select:focus { outline:none; border-color:var(--dorado) !important; }
+input:focus,textarea:focus,select:focus { outline:none; border-color:var(--dorado) !important; box-shadow:0 0 0 3px rgba(212,169,65,.13); }
+input,textarea,select,button { transition:border-color .18s, box-shadow .18s, background .18s, transform .12s; }
 ::selection { background:var(--dorado); color:#000; }
 
 /* ---------- Login ---------- */
@@ -152,7 +153,7 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .barras .col span { font-size:9.5px; color:var(--sub); }
 
 /* ---------- Bot / formularios ---------- */
-#v-bot textarea { width:100%; background:var(--campo); color:#eee; border:1px solid var(--borde); border-radius:12px; padding:13px; font-size:13.5px; line-height:1.55; resize:vertical; }
+#v-bot textarea { width:100%; background:var(--campo); color:#eee; border:1.5px solid var(--borde); border-radius:12px; padding:14px 15px; font-size:13.5px; line-height:1.65; resize:vertical; box-sizing:border-box; }
 
 /* Sub-pestañas dentro de ⚙️ Bot: se ve una cosa a la vez (menos saturación) */
 .subtabs { display:flex; gap:6px; background:var(--panel); border:1px solid var(--borde); border-radius:14px; padding:5px; margin-bottom:20px; overflow-x:auto; }
@@ -169,10 +170,18 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .caja-bot { background:var(--panel); border:1px solid var(--borde); border-radius:var(--radius); padding:20px 22px; margin-bottom:16px; }
 .caja-bot > h3 { font-size:15.5px; font-weight:800; display:flex; align-items:center; gap:8px; }
 .caja-bot > .desc { font-size:12.5px; color:var(--sub); margin:5px 0 15px; line-height:1.5; }
-.campo-bloque { margin-bottom:15px; }
+.campo-bloque { margin-bottom:22px; }
 .campo-bloque:last-child { margin-bottom:0; }
-.campo-bloque > label { display:block; font-size:12.5px; font-weight:700; color:#d8c7a0; margin-bottom:5px; }
-.campo-bloque > .hint { font-size:11.5px; color:var(--sub); margin:-1px 0 7px; line-height:1.45; }
+.campo-bloque > label { display:block; font-size:12.5px; font-weight:700; color:#d8c7a0; margin-bottom:8px; letter-spacing:.3px; }
+.campo-bloque > .hint { font-size:11.5px; color:var(--sub); margin:-3px 0 10px; line-height:1.55; }
+/* Campos de texto del panel: tema oscuro unificado con buen respiro (antes salían blancos nativos) */
+.campo-bloque input:not([type=checkbox]):not([type=file]), .campo-bloque textarea, .campo-bloque select {
+  background:var(--campo); color:#f2f2f2; border:1.5px solid var(--borde); border-radius:11px;
+  padding:12px 14px; font-size:14px; line-height:1.55; width:100%; box-sizing:border-box;
+}
+.campo-bloque textarea { resize:vertical; }
+.campo-bloque input::placeholder, .campo-bloque textarea::placeholder, #v-bot textarea::placeholder { color:#63636e; }
+.img-fuentes { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
 
 /* Ayuda colapsable: el detalle está a un clic, no saturando por defecto */
 .ayuda { margin:0 0 15px; border:1px solid var(--borde); border-radius:11px; background:var(--card); overflow:hidden; }
@@ -550,10 +559,15 @@ td a.wa { color:var(--verde); text-decoration:none; }
         </div>
         <div class="campo-bloque">
           <label>Imagen (opcional, estilo banner)</label>
-          <div class="hint">Detiene el scroll: se ve grande en Android y PC (iPhone y Firefox muestran solo el texto). Busca una foto de tu catálogo o pega la URL de cualquier imagen de tu web.</div>
-          <input type="text" id="push-img-buscar" placeholder="🔍 Buscar producto del catálogo…" style="width:100%" autocomplete="off" oninput="buscarImgPush()">
+          <div class="hint">📐 Medida ideal: <b>1000×500 px (2:1)</b>, horizontal como una portada de YouTube, con el producto y el precio bien grandes. Se ve en Android y PC (iPhone y Firefox muestran solo el texto). Al subirla la comprimimos y te decimos si la proporción sirve.</div>
+          <div class="img-fuentes">
+            <button type="button" class="btn gris" onclick="document.getElementById('push-img-file').click()">📁 Subir desde mi dispositivo</button>
+            <input type="file" id="push-img-file" accept="image/*" style="display:none" onchange="subirImgPush(this)">
+            <span class="hint" id="push-img-info" style="margin:0"></span>
+          </div>
+          <input type="text" id="push-img-buscar" placeholder="🔍 …o busca una foto de tu catálogo" style="width:100%" autocomplete="off" oninput="buscarImgPush()">
           <div id="push-img-res"></div>
-          <input type="text" id="push-img" maxlength="400" placeholder="/img/productos/… o https://…" style="width:100%;margin-top:8px" oninput="pintarPreviewPush()">
+          <input type="text" id="push-img" maxlength="400" placeholder="…o pega una URL: /img/productos/… o https://…" style="width:100%;margin-top:8px" oninput="pintarPreviewPush()">
         </div>
         <div class="campo-bloque">
           <label>Vista previa (así se verá la notificación)</label>
@@ -1313,6 +1327,42 @@ function borrarPromo(id) {
     pintarPromos();
     avisoPush('🗑️ Promoción borrada.');
   }).catch(function (e) { avisoPush(e.message, true); });
+}
+// Subir banner desde el dispositivo: se reescala/comprime EN el navegador (máx 1200px,
+// JPEG) y se guarda en Redis vía imgup; el campo recibe /api/push?img=<id>.
+function subirImgPush(inp) {
+  var f = inp.files && inp.files[0];
+  inp.value = ''; // permite volver a elegir el mismo archivo
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoPush('Ese archivo no es una imagen.', true);
+  var info = document.getElementById('push-img-info');
+  info.textContent = '⏳ Procesando la imagen…';
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var esc2 = Math.min(1, 1200 / img.naturalWidth, 1200 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * esc2)), h = Math.max(1, Math.round(img.naturalHeight * esc2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) { info.textContent = ''; return avisoPush('La imagen pesa demasiado incluso comprimida: prueba con otra más liviana.', true); }
+    var r = w / h; // proporción ideal 2:1 (banner de notificación)
+    var consejo = r >= 1.7 && r <= 2.3 ? '✅ Proporción perfecta para notificación.'
+      : r > 2.3 ? '⚠️ Muy alargada: puede verse con franjas.'
+      : r >= 1 ? '⚠️ Poco ancha: Android puede recortarla arriba y abajo. Ideal 2:1 (ej. 1000×500).'
+      : '⚠️ Es vertical: se recortará bastante. Mejor una horizontal 2:1.';
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      document.getElementById('push-img').value = j.url;
+      info.textContent = '🖼️ Subida (' + w + '×' + h + ' px). ' + consejo;
+      pintarPreviewPush();
+    }).catch(function (e) { info.textContent = ''; avisoPush(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); info.textContent = ''; avisoPush('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
 }
 function probarPromo() {
   var titulo = document.getElementById('push-titulo').value.trim();

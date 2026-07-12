@@ -10,6 +10,10 @@
 //   POST { action:'count', pass }                                      (todo lo del panel: contadores + promos guardadas + historial)
 //   POST { action:'savepromo', pass, promo }                           (guarda/actualiza una promoción reutilizable, máx 20)
 //   POST { action:'delpromo', pass, id }                               (borra una promoción guardada)
+//   POST { action:'imgup', pass, data }                                (sube el banner como dataURL ya comprimido por el panel
+//                                                                       → pushimg:<id> en Redis, máx 30, y devuelve su URL)
+//   GET  ?img=<id>                                                     (sirve ese banner con caché larga; lo pide el navegador
+//                                                                       del cliente al mostrar la notificación)
 // Suscripciones en HASH push:clientes / push:duenos (ver api/_push.js).
 // Promos guardadas en config:pushpromos (JSON array) · historial en LIST pushlog (≤50)
 // · clics por campaña en stat:evp:push_click:/<id> (los suma sw.js vía /api/track).
@@ -33,6 +37,16 @@ const limpio = (s, n) => (s == null ? '' : String(s)).trim().slice(0, n);
 const ROLES = { clientes: 1, duenos: 1 };
 
 module.exports = async (req, res) => {
+  // GET ?img=<id> → sirve un banner subido desde el panel (Redis pushimg:<id>)
+  if (req.method === 'GET' && req.query && req.query.img) {
+    const id = String(req.query.img).replace(/[^a-z0-9]/gi, '').slice(0, 24);
+    const dataUrl = id && REDIS_URL ? await redis(['GET', 'pushimg:' + id]) : null;
+    const m = dataUrl && dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+    if (!m) return res.status(404).json({ error: 'Imagen no encontrada.' });
+    res.setHeader('Content-Type', m[1]);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // el id es único: cachear para siempre
+    return res.status(200).end(Buffer.from(m[2], 'base64'));
+  }
   // La clave pública no es secreta: el navegador la usa para crear la suscripción
   if (req.method === 'GET') {
     res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
@@ -121,6 +135,24 @@ module.exports = async (req, res) => {
       promos = promos.filter((x) => x && x.id !== b.id);
       await redis(['SET', 'config:pushpromos', JSON.stringify(promos)]);
       return res.status(200).json({ ok: true, promos });
+    }
+
+    if (b.action === 'imgup') {
+      const data = String(b.data || '');
+      if (data.length > 480000) return res.status(400).json({ error: 'Imagen demasiado pesada (máx ~350 KB ya comprimida).' });
+      if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(data)) {
+        return res.status(400).json({ error: 'Formato de imagen inválido.' });
+      }
+      const id = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      await redis(['SET', 'pushimg:' + id, data]);
+      await redis(['ZADD', 'pushimgs', String(Date.now()), id]);
+      // Tope de 30 banners guardados: las más viejas se van (sus URLs viven en el caché CDN un año)
+      const total = Number(await redis(['ZCARD', 'pushimgs'])) || 0;
+      if (total > 30) {
+        const viejas = (await redis(['ZRANGE', 'pushimgs', '0', String(total - 31)])) || [];
+        for (const v of viejas) { await redis(['DEL', 'pushimg:' + v]); await redis(['ZREM', 'pushimgs', v]); }
+      }
+      return res.status(200).json({ ok: true, url: '/api/push?img=' + id });
     }
 
     if (b.action === 'test') {
