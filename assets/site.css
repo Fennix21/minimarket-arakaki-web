@@ -501,7 +501,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 
 /* ---------- Footer ---------- */
 .pie {
-  background: linear-gradient(180deg, #2b2723 0%, #1c1a18 60%, #141210 100%);
+  background: #1a1715;
   color: var(--blanco); padding: 12px 18px 30px;
   border-top: 2px solid rgba(212, 169, 65, 0.55);
 }
@@ -540,7 +540,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .pie-marca img { height: 82px; width: auto; margin: 0 auto; display: inline-block; }
 /* Pie compacto de las páginas de categoría (no llevan el footer completo) */
 .pie-mini {
-  background: linear-gradient(180deg, #2b2723 0%, #141210 100%);
+  background: #1a1715;
   border-top: 2px solid rgba(212, 169, 65, 0.55);
   padding: 8px 18px 30px;
 }
