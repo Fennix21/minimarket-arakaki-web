@@ -419,6 +419,53 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .car-geo:disabled { opacity: 0.7; cursor: wait; }
 .car-geo.geo-ok { color: #fff; background: var(--verde-wa); border-color: var(--verde-wa); }
+/* Pulso dorado: llama la atención al botón de ubicación cuando hay que volver a tocarlo */
+.car-geo.geo-atencion {
+  border-color: var(--dorado); color: #7a5c14;
+  animation: geo-pulso 1.4s ease-out infinite;
+}
+@keyframes geo-pulso {
+  0% { box-shadow: 0 0 0 0 rgba(212, 169, 65, 0.55); }
+  70% { box-shadow: 0 0 0 10px rgba(212, 169, 65, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 169, 65, 0); }
+}
+/* Dirección obligatoria */
+.car-oblig { color: var(--rojo); font-size: 12px; font-weight: 700; }
+#car-dir.car-dir-falta { border: 2px solid var(--rojo); background: #fdf3f3; }
+/* Direcciones guardadas: chips para reusar en 1 toque */
+#car-dirs { margin: 6px 0 8px; }
+.car-dirs-tit { display: block; font-size: 12px; opacity: 0.65; margin-bottom: 6px; }
+.car-dir-chip {
+  display: inline-flex; align-items: stretch; max-width: 100%; margin: 0 6px 6px 0;
+  border: 1.5px solid rgba(212, 169, 65, 0.6); border-radius: 10px; overflow: hidden; background: #fdf8ec;
+}
+.car-dir-chip.activo { border-color: var(--dorado); background: #f7e9c3; }
+.car-dir-chip .cdc-usar {
+  border: none; background: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
+  color: #5a4310; padding: 8px 10px; text-align: left; max-width: 250px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.car-dir-chip .cdc-x {
+  border: none; border-left: 1px solid rgba(212, 169, 65, 0.4); background: none; cursor: pointer;
+  color: #a08340; font-size: 12px; padding: 0 9px;
+}
+.car-dir-chip .cdc-x:hover { color: var(--rojo); }
+/* Aviso del carrito (reemplaza los alert): tarjeta destacada con animación */
+.car-aviso {
+  margin: 12px 0 2px; padding: 13px 15px; border-radius: 12px; font-size: 14.5px; line-height: 1.5;
+  text-align: center;
+}
+.car-aviso.pop { animation: car-aviso-pop 0.3s ease-out; }
+.car-aviso.exito {
+  background: linear-gradient(160deg, #2e2415 0%, #262626 100%); color: #f4e3ae;
+  border: 2px solid var(--dorado); box-shadow: 0 8px 22px rgba(212, 169, 65, 0.35);
+}
+.car-aviso.exito b { color: #f7dc8f; }
+.car-aviso.error { background: #7c0f14; color: #fff; border: 2px solid #5a0a0e; box-shadow: 0 8px 22px rgba(124, 15, 20, 0.3); }
+@keyframes car-aviso-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
 .car-privacidad { font-size: 11.5px; opacity: 0.6; margin-top: 12px; text-align: center; line-height: 1.4; }
 
 /* ---------- Carruseles premium de categoría (home) ---------- */

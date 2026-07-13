@@ -395,9 +395,11 @@
         '<input id="car-nombre" placeholder="¿Cómo te llamas?" maxlength="60">' +
         '<label for="car-tel">Tu WhatsApp</label>' +
         '<input id="car-tel" inputmode="tel" placeholder="Ej. 999 999 999" maxlength="15">' +
-        '<label for="car-dir">Dirección de entrega (opcional)</label>' +
+        '<label for="car-dir">Dirección de entrega <span class="car-oblig">(obligatoria)</span></label>' +
+        '<div id="car-dirs" style="display:none"></div>' +
         '<textarea id="car-dir" rows="2" placeholder="Calle, número, distrito y referencia" maxlength="200"></textarea>' +
         '<button class="car-geo" id="car-geo" type="button">📍 Usar mi ubicación</button>' +
+        '<div id="car-aviso" class="car-aviso" style="display:none" role="alert"></div>' +
         '<button class="btn-wa-grande" id="car-enviar">Enviar pedido por WhatsApp 📲</button>' +
         '<button class="car-vaciar" id="car-vaciar">Vaciar pedido</button>' +
         '<p class="car-privacidad">Guardamos tus datos solo para atender tus pedidos y agilizar tus recompras.</p>' +
@@ -408,6 +410,7 @@
     document.getElementById('car-vaciar').onclick = function () { guardarCarrito([]); pintarCarrito(); pintarBadge(); marcarProds(); };
     document.getElementById('car-enviar').onclick = enviarPedido;
     document.getElementById('car-geo').onclick = pedirUbicacion;
+    document.getElementById('car-dir').oninput = function () { this.classList.remove('car-dir-falta'); };
     pintarBadge();
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
@@ -419,6 +422,65 @@
     try { return JSON.parse(localStorage.getItem('arakaki_carrito') || '[]'); } catch (e) { return []; }
   }
   function guardarCarrito(c) { localStorage.setItem('arakaki_carrito', JSON.stringify(c)); }
+
+  // Direcciones de entrega guardadas (en ESTE navegador): se guardan solas al enviar un
+  // pedido y aparecen como chips sobre el campo de dirección para reusarlas en 1 toque.
+  function leerDirs() {
+    try { return JSON.parse(localStorage.getItem('arakaki_dirs') || '[]'); } catch (e) { return []; }
+  }
+  function guardarDirs(d) { try { localStorage.setItem('arakaki_dirs', JSON.stringify(d)); } catch (e) {} }
+  function guardarDireccion(dir) {
+    var d = leerDirs().filter(function (x) { return x.toLowerCase() !== dir.toLowerCase(); });
+    d.unshift(dir);
+    guardarDirs(d.slice(0, 5));
+  }
+  function pintarDirs() {
+    var cont = document.getElementById('car-dirs');
+    if (!cont) return;
+    var d = leerDirs();
+    if (!d.length) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
+    cont.style.display = '';
+    cont.innerHTML = '<span class="car-dirs-tit">💾 Tus direcciones guardadas — toca una para usarla:</span>' +
+      d.map(function (x, i) {
+        return '<div class="car-dir-chip" data-i="' + i + '">' +
+          '<button type="button" class="cdc-usar">📍 ' + esc(x) + '</button>' +
+          '<button type="button" class="cdc-x" aria-label="Borrar esta dirección">✕</button></div>';
+      }).join('');
+    var chips = cont.querySelectorAll('.car-dir-chip');
+    for (var i = 0; i < chips.length; i++) {
+      (function (chip) {
+        chip.querySelector('.cdc-usar').onclick = function () {
+          var ta = document.getElementById('car-dir');
+          ta.value = leerDirs()[Number(chip.getAttribute('data-i'))] || '';
+          ta.classList.remove('car-dir-falta');
+          var todos = cont.querySelectorAll('.car-dir-chip');
+          for (var j = 0; j < todos.length; j++) todos[j].classList.toggle('activo', todos[j] === chip);
+        };
+        chip.querySelector('.cdc-x').onclick = function () {
+          var arr = leerDirs();
+          arr.splice(Number(chip.getAttribute('data-i')), 1);
+          guardarDirs(arr);
+          pintarDirs();
+        };
+      })(chips[i]);
+    }
+  }
+
+  // Aviso dentro del modal del carrito (reemplaza los alert(): visible, con estilo y animación)
+  var avisoTimer = null;
+  function avisoCarrito(html, tipo) {
+    var av = document.getElementById('car-aviso');
+    if (!av) { alert(html.replace(/<[^>]+>/g, '')); return; }
+    av.className = 'car-aviso' + (tipo ? ' ' + tipo : '');
+    av.innerHTML = html;
+    av.style.display = '';
+    av.classList.remove('pop');
+    void av.offsetWidth; // reinicia la animación
+    av.classList.add('pop');
+    if (avisoTimer) clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(function () { av.style.display = 'none'; }, 10000);
+    try { av.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+  }
 
   // ---------- Identidad del cliente (token de dispositivo + archivo de consumo) ----------
   // El cliente se identifica UNA vez (al pedir con su celular o unirse al Club) y desde ahí lo
@@ -484,13 +546,20 @@
   function pedirUbicacion() {
     var btn = document.getElementById('car-geo');
     if (!navigator.geolocation) { if (btn) btn.textContent = 'Tu navegador no comparte ubicación'; return; }
-    if (btn) { btn.disabled = true; btn.textContent = '📍 Obteniendo ubicación…'; }
+    if (btn) { btn.disabled = true; btn.textContent = '📍 Obteniendo ubicación…'; btn.classList.remove('geo-atencion'); }
     navigator.geolocation.getCurrentPosition(function (pos) {
       geoActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       if (btn) { btn.disabled = false; btn.textContent = '✅ Ubicación lista'; btn.classList.add('geo-ok'); }
-    }, function () {
+    }, function (err) {
       if (btn) { btn.disabled = false; btn.textContent = '📍 Usar mi ubicación'; }
-      alert('No pudimos obtener tu ubicación 🙏 Puedes escribir tu dirección.');
+      if (err && err.code === 1) {
+        // El cliente negó el permiso del navegador: no insistir, que escriba su dirección
+        avisoCarrito('🙏 No nos diste permiso de ubicación. Escribe tu dirección de entrega arriba.', 'error');
+      } else {
+        // GPS recién encendido (el pedido original venció mientras Android lo activaba)
+        avisoCarrito('✅ <b>¡Listo! Tu GPS ahora ya está encendido.</b><br>Vuelve a presionar <b>📍 Usar mi ubicación</b>.', 'exito');
+        if (btn) btn.classList.add('geo-atencion');
+      }
     }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
   }
 
@@ -550,6 +619,7 @@
   }
   function abrirCarrito() {
     pintarCarrito();
+    pintarDirs();
     document.getElementById('carrito-modal-fondo').classList.add('abierto');
   }
   function cerrarCarrito() { document.getElementById('carrito-modal-fondo').classList.remove('abierto'); }
@@ -582,11 +652,20 @@
 
   function enviarPedido() {
     var c = leerCarrito();
-    if (!c.length) { alert('Elige al menos un producto 🙂'); return; }
+    if (!c.length) { avisoCarrito('🛒 Elige al menos un producto 🙂', 'error'); return; }
     var nombre = (document.getElementById('car-nombre').value || '').trim();
-    if (!nombre) { alert('Cuéntanos tu nombre para atenderte mejor 🙌'); document.getElementById('car-nombre').focus(); return; }
+    if (!nombre) { avisoCarrito('🙌 Cuéntanos tu nombre para atenderte mejor.', 'error'); document.getElementById('car-nombre').focus(); return; }
     var tel = (document.getElementById('car-tel').value || '').replace(/\D/g, '');
-    var dir = (document.getElementById('car-dir').value || '').trim();
+    var ta = document.getElementById('car-dir');
+    var dir = (ta.value || '').trim();
+    if (!dir) {
+      avisoCarrito('📍 <b>Falta tu dirección de entrega.</b><br>Escríbela o toca <b>📍 Usar mi ubicación</b> para llevarte tu pedido.', 'error');
+      ta.classList.add('car-dir-falta');
+      ta.focus();
+      return;
+    }
+    ta.classList.remove('car-dir-falta');
+    guardarDireccion(dir); // queda guardada para reusarla en el próximo pedido
     var t = totalCarrito(c);
 
     var lineas = c.map(function (p) {
