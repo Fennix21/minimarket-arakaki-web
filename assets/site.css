@@ -533,6 +533,19 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Logo del pie: centrado. En la portada cierra el footer; en las páginas de
+   categoría vive dentro de .pie-mini (cinta + logo). El logo es blanco, por eso
+   siempre va sobre fondo oscuro. */
+.pie-marca { text-align: center; padding: 26px 18px 6px; }
+.pie-marca img { height: 82px; width: auto; margin: 0 auto; display: inline-block; }
+/* Pie compacto de las páginas de categoría (no llevan el footer completo) */
+.pie-mini {
+  background: linear-gradient(180deg, #2b2723 0%, #141210 100%);
+  border-top: 2px solid rgba(212, 169, 65, 0.55);
+  padding: 8px 18px 30px;
+}
+@media (max-width: 700px) { .pie-marca img { height: 64px; } }
+
 /* Botón de notificaciones push del footer (ofertas) */
 .pie .pie-push { text-align: center; margin: 28px auto 0; }
 .pie .pie-push button {

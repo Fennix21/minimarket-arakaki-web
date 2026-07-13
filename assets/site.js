@@ -3,6 +3,11 @@
   var WA = '51977737199'; // WhatsApp del minimarket
   var LOGO = '/img/logo-arakaki.webp';
   var LOGO_BLANCO = '/img/logo-gato.png'; // logo horizontal blanco del header (gato de la suerte)
+  // Cinta (marquee) reutilizable: en la portada va inline en index.html; en las páginas
+  // de categoría la inyecta armarBase() junto al logo del pie (ver más abajo).
+  var CINTA_ITEMS = '<span>📲 Pide por WhatsApp</span><span>🛵 Delivery disponible</span>' +
+    '<span>🕗 Lun – Sáb 7:00 am – 9:00 pm</span><span>🕗 Domingos 8:00 am – 8:00 pm</span>' +
+    '<span>🎉 Atendemos feriados</span>';
   var REDES = {
     facebook: { url: 'https://www.facebook.com/minimarketarakaki1', img: '/img/redes/facebook.png' },
     instagram: { url: 'https://www.instagram.com/arakakiminimarket', img: '/img/redes/instagram.png' },
@@ -118,7 +123,8 @@
         '<div class="pie-col"><h4>' + esc(cfg.redesTit) + '</h4><div class="redes">' + redesHtml + '</div></div>' +
       '</div>' +
       pushBtn +
-      '<p class="copy">' + esc(copy) + '</p>';
+      '<p class="copy">' + esc(copy) + '</p>' +
+      '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
   }
   function aplicarSitio(cfg) {
     var lema = document.querySelector('.cab .lema-cab');
@@ -352,6 +358,19 @@
       var pie = document.createElement('footer');
       pie.className = 'pie';
       document.body.appendChild(pie);
+    } else {
+      // Las páginas de categoría (y mi-cuenta) no llevan el footer completo: reciben un
+      // pie compacto = cinta (marquee) + logo centrado. El rodillo se duplica para que
+      // el desplazamiento sea continuo (igual que en la portada).
+      var cinta = document.createElement('div');
+      cinta.className = 'cinta';
+      cinta.innerHTML = '<div class="cinta-rodillo">' + CINTA_ITEMS + CINTA_ITEMS + '</div>';
+      document.body.appendChild(cinta);
+
+      var pieMini = document.createElement('footer');
+      pieMini.className = 'pie-mini';
+      pieMini.innerHTML = '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
+      document.body.appendChild(pieMini);
     }
     aplicarSitio(SITIO_DEF); // render inmediato con los textos por defecto (el lema; y el pie si es home)
     cargarSitio();           // y luego los del panel, si el dueño los editó
