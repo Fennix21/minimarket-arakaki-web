@@ -726,6 +726,45 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <div id="push-historial"><span class="hint">Todavía no envías ninguna promoción.</span></div>
       </div>
 
+      <!-- 2b. Promos por CORREO (Resend) a los miembros del Club -->
+      <div class="caja-bot">
+        <h3>📧 Promos por correo</h3>
+        <p class="desc">Correo de marketing a los miembros del Club que registraron su correo en su cuenta. <span id="correo-subs">…</span></p>
+        <div class="aviso" id="correo-aviso"></div>
+        <details class="ayuda">
+          <summary>¿Cómo funciona? (léelo antes del primer envío)</summary>
+          <div class="cuerpo">
+            Necesita la variable <b>RESEND_API_KEY</b> en Vercel (cuenta gratis en resend.com: 100 correos/día, 3000/mes).
+            Para que lleguen a los clientes hay que <b>verificar un dominio en Resend</b> (registros DNS SPF/DKIM) y poner el remitente en <b>RESEND_FROM</b>;
+            con el remitente de prueba solo te llegan a ti. Cada correo sale con la marca de la tienda y su enlace de baja
+            (obligatorio por ley): quien se dé de baja deja de recibir promos pero sigue recibiendo los correos de su cuenta.
+          </div>
+        </details>
+        <div class="campo-bloque">
+          <label>Asunto</label>
+          <input type="text" id="correo-asunto" maxlength="80" placeholder="🍷 Solo para miembros: 20% en vinos" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Título dentro del correo (opcional; si lo dejas vacío se usa el asunto)</label>
+          <input type="text" id="correo-titulo" maxlength="80" placeholder="Descuento exclusivo del Club" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Mensaje</label>
+          <textarea id="correo-texto" maxlength="1000" style="min-height:90px" placeholder="Este fin de semana, 2x1 en vinos chilenos solo para miembros del Club 🍷 Pide con delivery o muestra este correo en caja."></textarea>
+        </div>
+        <div class="campo-bloque">
+          <label>Link del botón (opcional)</label>
+          <input type="text" id="correo-url" maxlength="300" placeholder="/vinos-chilenos" style="width:100%">
+        </div>
+        <div class="fila-conf">
+          <button class="btn" onclick="enviarCorreoPromo()">📧 Enviar a los miembros</button>
+        </div>
+        <div class="campo-bloque">
+          <label>📜 Últimos correos enviados</label>
+          <div id="correo-hist"><span class="hint">Todavía no envías correos.</span></div>
+        </div>
+      </div>
+
       <!-- 3. Avisos del negocio en este dispositivo -->
       <div class="caja-bot">
         <h3>📲 Avisos push en este dispositivo</h3>
@@ -1525,6 +1564,7 @@ function cargarBot() {
   pintarTplsEdit();
   cargarWebchat();
   cargarPush();
+  cargarCorreo();
 }
 // --- Chat de la web (on/off + textos + cerebro propio, independiente de WhatsApp) ---
 function cargarWebchat() {
@@ -1892,6 +1932,40 @@ function enviarPush() {
         ' La promo sigue aquí: guárdala 💾 para reusarla cuando quieras.');
       cargarPush(); // refresca historial y contadores; los campos NO se borran
     }).catch(function (e) { avisoPush(e.message, true); });
+}
+
+// ---------- Promos por CORREO (Resend) a los miembros del Club ----------
+var CORREO_TOTAL = 0;
+function avisoCorreo(t, mal) { avisoPushEn('correo-aviso', t, mal); }
+function cargarCorreo() {
+  api('correoinfo').then(function (j) {
+    CORREO_TOTAL = j.total || 0;
+    var s = document.getElementById('correo-subs');
+    if (!j.configurado) s.innerHTML = '⚠️ Falta <b>RESEND_API_KEY</b> en Vercel (mira "¿Cómo funciona?").';
+    else s.textContent = 'Con correo: 📧 ' + CORREO_TOTAL + ' miembro(s)' + (j.bajas ? ' · ' + j.bajas + ' de baja' : '') + '.';
+    var h = document.getElementById('correo-hist');
+    h.innerHTML = (j.historial && j.historial.length) ? j.historial.map(function (c) {
+      return '<div class="mini-fila"><b>' + esc(c.asunto) + '</b><span class="mf-der">' + hora(c.ts) + ' · ' + c.enviados + '/' + c.total + ' enviados</span></div>';
+    }).join('') : '<span class="hint">Todavía no envías correos.</span>';
+  }).catch(function () {});
+}
+function enviarCorreoPromo() {
+  var asunto = document.getElementById('correo-asunto').value.trim();
+  var texto = document.getElementById('correo-texto').value.trim();
+  if (!asunto || !texto) return avisoCorreo('Escribe el asunto y el mensaje.', true);
+  if (!CORREO_TOTAL) return avisoCorreo('Ningún miembro del Club tiene correo registrado todavía.', true);
+  var extra = CORREO_TOTAL > 100 ? '\n\n⚠️ OJO: el plan gratis de Resend envía máximo 100 correos por día.' : '';
+  if (!confirm('¿Enviar este correo a ' + CORREO_TOTAL + ' miembro(s) del Club?\n\n' + asunto + '\n' + texto.slice(0, 120) + extra)) return;
+  api('correopromo', {
+    asunto: asunto,
+    titulo: document.getElementById('correo-titulo').value.trim(),
+    texto: texto,
+    url: document.getElementById('correo-url').value.trim(),
+  }).then(function (j) {
+    var errs = (j.errores && j.errores.length) ? ' ⚠️ ' + j.errores[0] : '';
+    avisoCorreo('📧 Enviado a ' + j.enviados + ' de ' + j.total + ' miembro(s).' + errs, !j.enviados);
+    cargarCorreo();
+  }).catch(function (e) { avisoCorreo(e.message, true); });
 }
 function pintarTplsEdit() {
   api('gettemplates').then(function (j) {

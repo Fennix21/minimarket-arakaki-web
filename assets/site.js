@@ -1001,22 +1001,28 @@
     document.getElementById('ct-rec').onclick = function (e) { e.preventDefault(); pintarRecuperar(int); };
   }
 
-  // Recuperar la cuenta con el correo registrado en "Mis datos": celular + correo + PIN nuevo
+  // Recuperar la cuenta con el correo registrado en "Mis datos". Si el sistema de correos
+  // está activo (flags.correo → Resend en el backend) manda un código de 6 dígitos al correo
+  // y el paso 2 lo canjea por el PIN nuevo; si no, valida celular+correo y cambia directo.
   function pintarRecuperar(int) {
+    var porCodigo = !!(cuentaFlags && cuentaFlags.correo);
     int.innerHTML =
       '<div class="cuenta-card cuenta-acceso cuenta-form">' +
         '<h3>🔓 Recuperar mi cuenta</h3>' +
-        '<p>Ingresa tu celular, el correo que registraste en tu cuenta y elige un PIN nuevo.</p>' +
+        '<p>' + (porCodigo
+          ? 'Ingresa tu celular y el correo que registraste en tu cuenta: te enviaremos un <b>código de 6 números</b> para estrenar PIN.'
+          : 'Ingresa tu celular, el correo que registraste en tu cuenta y elige un PIN nuevo.') + '</p>' +
         '<form id="cr-form" autocomplete="off">' +
           '<label for="cr-tel">Tu celular (WhatsApp)</label>' +
           '<input id="cr-tel" inputmode="tel" maxlength="15" placeholder="Ej. 999 999 999">' +
           '<label for="cr-email">Tu correo registrado</label>' +
           '<input id="cr-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
-          '<label for="cr-pin">Tu PIN nuevo (4 a 6 números)</label>' +
-          '<input id="cr-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
-          '<label class="ct-check"><input type="checkbox" id="cr-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
+          (porCodigo ? '' :
+            '<label for="cr-pin">Tu PIN nuevo (4 a 6 números)</label>' +
+            '<input id="cr-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+            '<label class="ct-check"><input type="checkbox" id="cr-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>') +
           '<p class="ct-error" id="cr-error"></p>' +
-          '<button type="submit" class="ct-enviar" id="cr-enviar">Recuperar y entrar</button>' +
+          '<button type="submit" class="ct-enviar" id="cr-enviar">' + (porCodigo ? '📩 Enviarme el código' : 'Recuperar y entrar') + '</button>' +
         '</form>' +
         '<p class="ct-ayuda"><a href="#" id="cr-volver">← Volver</a> · ¿No registraste un correo? <a href="https://wa.me/' + WA + '?text=' +
           encodeURIComponent('Hola 👋 Olvidé el PIN de mi cuenta del Club Arakaki y no registré correo, ¿me ayudan a recuperarla?') +
@@ -1027,17 +1033,70 @@
       e.preventDefault();
       var err = document.getElementById('cr-error');
       var btn = document.getElementById('cr-enviar');
+      var btnTxt = porCodigo ? '📩 Enviarme el código' : 'Recuperar y entrar';
       var tel = (document.getElementById('cr-tel').value || '').replace(/\D/g, '');
       var email = (document.getElementById('cr-email').value || '').trim();
-      var pin = (document.getElementById('cr-pin').value || '').trim();
+      var pinEl = document.getElementById('cr-pin');
+      var pin = pinEl ? (pinEl.value || '').trim() : '';
       err.textContent = '';
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
       if (!email) { err.textContent = 'Ingresa el correo que registraste en tu cuenta.'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!porCodigo && !/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
       var recordar = !!(document.getElementById('cr-recordar') && document.getElementById('cr-recordar').checked);
       btn.disabled = true;
       btn.textContent = 'Un momento…';
       cuentaPost({ action: 'recuperar', telefono: tel, email: email, pin: pin }).then(function (j) {
+        if (j && j.ok && j.codigo) {
+          pintarRecuperarCodigo(int, tel); // paso 2: el código ya viaja al correo
+        } else if (j && j.ok && j.token) {
+          guardarSesion(j.token, recordar);
+          cuentaPerfil = j.perfil || null;
+          if (window.arkTrack) window.arkTrack('club_recupero');
+          window.renderCuenta();
+        } else {
+          btn.disabled = false;
+          btn.textContent = btnTxt;
+          err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = btnTxt;
+        err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
+      });
+    };
+  }
+
+  // Paso 2 de la recuperación: canjear el código que llegó al correo por el PIN nuevo
+  function pintarRecuperarCodigo(int, tel) {
+    int.innerHTML =
+      '<div class="cuenta-card cuenta-acceso cuenta-form">' +
+        '<h3>📩 Revisa tu correo</h3>' +
+        '<p>Te enviamos un <b>código de 6 números</b> (vence en 15 minutos). Si no lo ves, busca en <b>spam</b> o correos no deseados.</p>' +
+        '<form id="cc-form" autocomplete="off">' +
+          '<label for="cc-codigo">Código del correo</label>' +
+          '<input id="cc-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">' +
+          '<label for="cc-pin">Tu PIN nuevo (4 a 6 números)</label>' +
+          '<input id="cc-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+          '<label class="ct-check"><input type="checkbox" id="cc-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
+          '<p class="ct-error" id="cc-error"></p>' +
+          '<button type="submit" class="ct-enviar" id="cc-enviar">Cambiar mi PIN y entrar</button>' +
+        '</form>' +
+        '<p class="ct-ayuda"><a href="#" id="cc-volver">← ¿No te llegó? Pedir otro código</a></p>' +
+      '</div>';
+    document.getElementById('cc-volver').onclick = function (e) { e.preventDefault(); pintarRecuperar(int); };
+    document.getElementById('cc-form').onsubmit = function (e) {
+      e.preventDefault();
+      var err = document.getElementById('cc-error');
+      var btn = document.getElementById('cc-enviar');
+      var codigo = (document.getElementById('cc-codigo').value || '').replace(/\D/g, '');
+      var pin = (document.getElementById('cc-pin').value || '').trim();
+      err.textContent = '';
+      if (codigo.length !== 6) { err.textContent = 'Escribe el código de 6 números que te llegó al correo.'; return; }
+      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      var recordar = !!(document.getElementById('cc-recordar') && document.getElementById('cc-recordar').checked);
+      btn.disabled = true;
+      btn.textContent = 'Un momento…';
+      cuentaPost({ action: 'reccode', telefono: tel, codigo: codigo, pin: pin }).then(function (j) {
         if (j && j.ok && j.token) {
           guardarSesion(j.token, recordar);
           cuentaPerfil = j.perfil || null;
@@ -1045,12 +1104,12 @@
           window.renderCuenta();
         } else {
           btn.disabled = false;
-          btn.textContent = 'Recuperar y entrar';
+          btn.textContent = 'Cambiar mi PIN y entrar';
           err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
         }
       }).catch(function () {
         btn.disabled = false;
-        btn.textContent = 'Recuperar y entrar';
+        btn.textContent = 'Cambiar mi PIN y entrar';
         err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
       });
     };

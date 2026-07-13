@@ -9,6 +9,7 @@
 //   pedidos                   -> pedidos hechos desde la web  · pedidoestado { id, estado }
 //   consultas                 -> preguntas que el chat web no pudo responder · consultadel { id }
 //   preguntas                 -> preguntas del Club (/mi-cuenta) · pregresp { id, respuesta } · pregdel { id }
+//   correoinfo                -> miembros con correo + historial · correopromo { asunto, titulo?, texto, url? } (Resend)
 //   clientes                  -> registros del Club Arakaki   · clientedel { telefono }
 //   stats                     -> analítica del sitio
 //   getprompt / setprompt / resetprompt / setnotify / getwebchat / setwebchat
@@ -21,8 +22,10 @@
 //   sorteoinfo { id } / sorteoganador { id } -> participantes / ganador al azar
 //   zonas                      -> calles agrupadas (clientes, pedidos y gasto por calle)
 
+const crypto = require('crypto');
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
+const { HAS_CORREO, enviarLote, htmlPromo } = require('./_correo.js');
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -285,6 +288,63 @@ module.exports = async (req, res) => {
         }
       }
       return res.status(404).json({ error: 'Pregunta no encontrada.' });
+    }
+
+    // --- Promos por CORREO (Resend) a los miembros del Club con correo registrado ---
+    if (b.action === 'correoinfo' || b.action === 'correopromo') {
+      // Destinatarios: clientes con correo válido que no se dieron de baja (sin duplicar correos)
+      const keys = (await redis(['ZREVRANGE', 'clientes', '0', '499'])) || [];
+      const destinos = [];
+      const porEmail = {};
+      let bajas = 0;
+      for (const k of keys) {
+        const raw = await redis(['GET', 'cliente:' + k]);
+        if (!raw) continue;
+        let c; try { c = JSON.parse(raw); } catch (e) { continue; }
+        const email = String(c.email || '').toLowerCase().trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) continue;
+        if (c.correoBaja) { bajas++; continue; }
+        if (porEmail[email]) continue;
+        porEmail[email] = 1;
+        destinos.push({ key: k, cli: c, email });
+      }
+
+      if (b.action === 'correoinfo') {
+        const historial = [];
+        for (const r of (await redis(['LRANGE', 'correolog', '0', '9'])) || []) {
+          try { historial.push(JSON.parse(r)); } catch (e) {}
+        }
+        return res.status(200).json({ configurado: HAS_CORREO, total: destinos.length, bajas, historial });
+      }
+
+      // correopromo: enviar la campaña
+      if (!HAS_CORREO) return res.status(400).json({ error: 'Falta configurar RESEND_API_KEY en Vercel.' });
+      const asunto = String(b.asunto || '').trim().slice(0, 100);
+      const titulo = String(b.titulo || '').trim().slice(0, 100);
+      const texto = String(b.texto || '').trim().slice(0, 2000);
+      const url = String(b.url || '').trim().slice(0, 300);
+      if (!asunto || !texto) return res.status(400).json({ error: 'Escribe el asunto y el mensaje.' });
+      if (!destinos.length) return res.status(400).json({ error: 'Ningún miembro del Club tiene correo registrado todavía.' });
+      const items = [];
+      for (const d of destinos) {
+        // Token de baja por cliente: se crea 1 sola vez; su registro en Redis se refresca por campaña
+        if (!d.cli.bajaTok) {
+          d.cli.bajaTok = crypto.randomBytes(12).toString('hex');
+          d.cli.actualizado = Date.now();
+          await redis(['SET', 'cliente:' + d.key, JSON.stringify(d.cli)]);
+        }
+        await redis(['SET', 'baja:' + d.cli.bajaTok, d.key, 'EX', String(400 * 86400)]);
+        items.push({
+          para: d.email,
+          asunto,
+          html: htmlPromo({ titulo: titulo || asunto, texto, url, nombre: d.cli.nombre || '', bajaTok: d.cli.bajaTok }),
+        });
+      }
+      const envio = await enviarLote(items);
+      await redis(['LPUSH', 'correolog', JSON.stringify({ id: 'e' + Date.now().toString(36), ts: Date.now(), asunto, enviados: envio.enviados, total: destinos.length })]);
+      await redis(['LTRIM', 'correolog', '0', '29']);
+      if (envio.enviados) await redis(['INCRBY', 'stat:correo_enviados', String(envio.enviados)]);
+      return res.status(200).json({ ok: true, enviados: envio.enviados, total: destinos.length, errores: envio.errores });
     }
 
     // --- Clientes del Club Arakaki ---

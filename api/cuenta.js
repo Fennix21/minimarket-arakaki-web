@@ -4,13 +4,16 @@
 //   GET  sin token      -> { on, funciones }                (caché CDN 60s; site.js decide si muestra "Mi cuenta")
 //   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, promos, sorteos,
 //                                                            email, foto, direcciones y preguntas con respuesta)
-//   POST { action: 'crear'|'entrar'|'salir'|'recuperar'                          (sin sesión)
+//   POST { action: 'crear'|'entrar'|'salir'|'recuperar'|'reccode'                (sin sesión)
 //                 |'fav'|'sorteo'|'visita'                                       (beneficios)
 //                 |'perfil'|'foto'|'dirs'|'pin'|'pregunta', ... }                (editar mi cuenta)
+//   Recuperación: con Resend (RESEND_API_KEY) 'recuperar' manda un código al correo y 'reccode'
+//   lo canjea por el PIN nuevo; sin Resend 'recuperar' valida celular+correo y cambia directo.
 
 const crypto = require('crypto');
 const { PRODUCTOS } = require('./_catalogo');
 const { pushDuenos } = require('./_push.js');
+const { HAS_CORREO, enviarCorreo, htmlCodigo, htmlAvisoPin } = require('./_correo.js');
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -248,7 +251,8 @@ module.exports = async (req, res) => {
       }
       if (!token) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
-        return res.status(200).json({ on: true, funciones: funcionesDe(club) });
+        // correo:true = hay sistema de correos (Resend) → la recuperación usa código al correo
+        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO });
       }
       res.setHeader('cache-control', 'no-store');
       const tel = await telDeSesion(token);
@@ -337,18 +341,31 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
-    // ----- Recuperar cuenta con el correo registrado (resetea el PIN y entra de una) -----
+    // ----- Recuperar cuenta con el correo registrado -----
+    // Con Resend activo (HAS_CORREO): paso 1 = enviar código de 6 dígitos al correo (vence 15 min).
+    // Sin Resend: modo directo = celular + correo + PIN nuevo (valida que coincidan y entra).
     if (b.action === 'recuperar') {
       const telR = normTel(b.telefono);
       const email = limpio(b.email, 80).toLowerCase();
       const pin = limpio(b.pin, 6);
       if (!telR || !email) return res.status(400).json({ error: 'Ingresa tu celular y el correo que registraste en tu cuenta.' });
-      if (!/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'El PIN nuevo debe tener de 4 a 6 números.' });
+      if (!HAS_CORREO && !/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'El PIN nuevo debe tener de 4 a 6 números.' });
       if (await frenoPin(req, telR)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
       const cliR = await cargarCliente(telR);
       // Mensaje genérico a propósito: no revela qué dato falló
       if (!cliR || !cliR.pinHash || !cliR.email || String(cliR.email).toLowerCase() !== email) {
         return res.status(400).json({ error: 'Los datos no coinciden. Revisa tu celular y el correo que registraste (o pídenos ayuda por WhatsApp).' });
+      }
+      if (HAS_CORREO) {
+        const codigo = String(crypto.randomInt(100000, 1000000));
+        await redis(['SET', 'reccode:' + telR, codigo, 'EX', '900']);
+        await redis(['DEL', 'reccodetry:' + telR]);
+        const env = await enviarCorreo(cliR.email, '🔑 Tu código para recuperar tu cuenta', htmlCodigo(cliR.nombre || '', codigo));
+        if (!env.ok) {
+          console.error('correo recuperacion error', env.error);
+          return res.status(500).json({ error: 'No pudimos enviarte el correo ahora mismo. Prueba en un ratito o pídenos ayuda por WhatsApp 🙏' });
+        }
+        return res.status(200).json({ ok: true, codigo: true });
       }
       cliR.pinSalt = crypto.randomBytes(8).toString('hex');
       cliR.pinHash = hashPin(pin, cliR.pinSalt);
@@ -359,6 +376,41 @@ module.exports = async (req, res) => {
       await guardarCliente(telR, cliR);
       await notifyOwner('🔓 *Cuenta recuperada con correo (web)*\n👤 ' + (cliR.nombre || 'Cliente') + ' (+' + telR + ')' +
         '\nCambió su PIN usando su correo registrado. Si no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
+      const perfil = await perfilCompleto(telR, cliR, club);
+      perfil.on = true;
+      perfil.funciones = funcionesDe(club);
+      return res.status(200).json({ ok: true, token: nuevoToken, perfil });
+    }
+
+    // ----- Paso 2 de la recuperación: verificar el código del correo y estrenar PIN -----
+    if (b.action === 'reccode') {
+      const telR = normTel(b.telefono);
+      const codigo = limpio(b.codigo, 6).replace(/\D/g, '');
+      const pin = limpio(b.pin, 6);
+      if (!telR || codigo.length !== 6) return res.status(400).json({ error: 'Revisa el código de 6 números que te llegó al correo.' });
+      if (!/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'El PIN nuevo debe tener de 4 a 6 números.' });
+      if (await frenoPin(req, telR)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
+      // Máx. 5 intentos por código: al sexto se invalida y hay que pedir otro
+      const nTry = await redis(['INCR', 'reccodetry:' + telR]);
+      if (Number(nTry) === 1) await redis(['EXPIRE', 'reccodetry:' + telR, '900']);
+      if (Number(nTry) > 5) {
+        await redis(['DEL', 'reccode:' + telR]);
+        return res.status(429).json({ error: 'Demasiados intentos con este código. Pide uno nuevo 🙏' });
+      }
+      const guardado = await redis(['GET', 'reccode:' + telR]);
+      const cliR = (guardado && guardado === codigo) ? await cargarCliente(telR) : null;
+      if (!cliR) return res.status(400).json({ error: 'Código incorrecto o vencido. Revisa tu correo o pide uno nuevo 🙏' });
+      await redis(['DEL', 'reccode:' + telR]);
+      await redis(['DEL', 'reccodetry:' + telR]);
+      cliR.pinSalt = crypto.randomBytes(8).toString('hex');
+      cliR.pinHash = hashPin(pin, cliR.pinSalt);
+      for (const t of (Array.isArray(cliR.sess) ? cliR.sess : [])) await redis(['DEL', 'sess:' + t]);
+      cliR.sess = [];
+      const nuevoToken = await crearSesion(cliR, telR, uid);
+      await guardarCliente(telR, cliR);
+      try { if (cliR.email) await enviarCorreo(cliR.email, '🔐 Tu PIN fue cambiado', htmlAvisoPin(cliR.nombre || '')); } catch (e) {}
+      await notifyOwner('🔓 *Cuenta recuperada con código al correo (web)*\n👤 ' + (cliR.nombre || 'Cliente') + ' (+' + telR + ')' +
+        '\nSi no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
       const perfil = await perfilCompleto(telR, cliR, club);
       perfil.on = true;
       perfil.funciones = funcionesDe(club);
@@ -456,6 +508,8 @@ module.exports = async (req, res) => {
       for (const t of vivas) if (t !== token) await redis(['DEL', 'sess:' + t]);
       cli.sess = vivas.indexOf(token) >= 0 ? [token] : [];
       await guardarCliente(tel, cli);
+      // Aviso de seguridad al correo registrado (si hay sistema de correos)
+      try { if (HAS_CORREO && cli.email) await enviarCorreo(cli.email, '🔐 Tu PIN fue cambiado', htmlAvisoPin(cli.nombre || '')); } catch (e) {}
       return res.status(200).json({ ok: true });
     }
 

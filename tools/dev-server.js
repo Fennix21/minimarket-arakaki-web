@@ -16,6 +16,11 @@ const MIME = {
 http.createServer((req, res) => {
   const url = decodeURIComponent((req.url || '/').split('?')[0]);
   if (url.startsWith('/api/')) {
+    // Stub de la baja de correos promocionales (página HTML, no JSON)
+    if (url === '/api/correo') {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      return res.end('<body style="background:#262626;color:#f4ebd6;font-family:Georgia;text-align:center;padding:60px">Listo 💛 (stub de baja de correos)</body>');
+    }
     res.writeHead(200, { 'content-type': 'application/json' });
     // Stub del chat web: permite ver el widget en local (el bot real corre en Vercel)
     if (url === '/api/chat') {
@@ -55,15 +60,24 @@ http.createServer((req, res) => {
         ],
       };
       if (req.method === 'POST') {
-        return res.end(JSON.stringify({
-          ok: true, token: 'sdevtoken', perfil, favs: perfil.favs.map(f => f.name), participando: true,
-          nombre: 'Cliente de prueba', email: 'prueba@correo.com',
-          direccion: perfil.direccion, direcciones: perfil.direcciones,
-          pregunta: { id: 'q' + Date.now().toString(36), pregunta: '(pregunta de prueba)', ts: Date.now(), respuesta: '', respTs: null },
-        }));
+        // Lee el body para responder según la acción (recuperar = manda "código" al correo)
+        let cuerpo = '';
+        req.on('data', (c) => { cuerpo += c; });
+        req.on('end', () => {
+          let accion = '';
+          try { accion = JSON.parse(cuerpo).action || ''; } catch (e) {}
+          if (accion === 'recuperar') return res.end('{"ok":true,"codigo":true}');
+          res.end(JSON.stringify({
+            ok: true, token: 'sdevtoken', perfil, favs: perfil.favs.map(f => f.name), participando: true,
+            nombre: 'Cliente de prueba', email: 'prueba@correo.com',
+            direccion: perfil.direccion, direcciones: perfil.direcciones,
+            pregunta: { id: 'q' + Date.now().toString(36), pregunta: '(pregunta de prueba)', ts: Date.now(), respuesta: '', respTs: null },
+          }));
+        });
+        return;
       }
       const conToken = (req.url || '').indexOf('token=') >= 0;
-      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones }));
+      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true }));
     }
     return res.end('{"ok":true,"stub":true}');
   }
