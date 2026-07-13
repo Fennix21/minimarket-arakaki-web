@@ -1192,6 +1192,17 @@
         }).join('') : '<p class="ct-vacio">Pronto verás aquí promos solo para miembros 👀</p>');
       html += '</div>';
     }
+    if (fnClub('cupones')) {
+      html += '<div class="cuenta-card cuenta-cupones"><h3>🎫 Cupones exclusivos</h3>' +
+        ((p.cupones && p.cupones.length) ? p.cupones.map(function (cu) {
+          return '<div class="ccup">' +
+            (cu.imagen ? '<img src="' + esc(cu.imagen) + '" alt="' + esc(cu.titulo || 'Cupón') + '">' : '') +
+            '<b>' + esc(cu.titulo) + '</b>' +
+            (cu.codigo ? '<span class="ccup-cod">' + esc(cu.codigo) + '</span>' : '') +
+            (cu.hasta ? '<small>Hasta el ' + new Date(Number(cu.hasta)).toLocaleDateString('es-PE') + '</small>' : '') + '</div>';
+        }).join('') : '<p class="ct-vacio">Pronto verás aquí cupones solo para miembros 🎫</p>');
+      html += '</div>';
+    }
     if (fnClub('sorteos')) {
       html += '<div class="cuenta-card cuenta-sorteos"><h3>🎟️ Sorteos</h3>' +
         ((p.sorteos && p.sorteos.length) ? p.sorteos.map(function (s) {

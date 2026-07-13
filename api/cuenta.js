@@ -60,7 +60,7 @@ async function getPreciosVivos() {
 }
 
 // Interruptores del Club (panel → 👥 Club). Sin config guardada, todo prendido.
-const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, puntosPorSol: 1 };
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
 async function getClub() {
   let c = {};
   const raw = await redis(['GET', 'config:club']);
@@ -210,6 +210,13 @@ async function perfilCompleto(tel, cli, club) {
     }
   }
 
+  // Cupones exclusivos del Club (vigentes)
+  let cupones = [];
+  if (club.cupones) {
+    const raw = await redis(['GET', 'config:clubcupones']);
+    if (raw) { try { cupones = (JSON.parse(raw) || []).filter(vigente); } catch (e) {} }
+  }
+
   return {
     conocido: true,
     nombre: cli.nombre || '',
@@ -224,12 +231,13 @@ async function perfilCompleto(tel, cli, club) {
     habitual,
     promos,
     sorteos,
+    cupones,
     preguntas: await preguntasDe(tel),
   };
 }
 
 function funcionesDe(club) {
-  return { favoritos: !!club.favoritos, puntos: !!club.puntos, promos: !!club.promos, sorteos: !!club.sorteos };
+  return { favoritos: !!club.favoritos, puntos: !!club.puntos, promos: !!club.promos, sorteos: !!club.sorteos, cupones: !!club.cupones };
 }
 
 // Día calendario de Lima (UTC-5), para contar 1 visita por día como máximo.

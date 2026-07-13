@@ -256,6 +256,9 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .club-item textarea { resize:vertical; min-height:52px; }
 .club-item input[type=date] { background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:7px 9px; font-size:12.5px; }
 .club-item .fila-conf { margin:2px 0 0; }
+.cci-foto { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.cci-foto img { width:90px; height:90px; object-fit:cover; border-radius:10px; border:1px solid var(--borde); background:var(--campo); }
+.cci-foto .cci-nofoto { width:90px; height:90px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:1px dashed var(--borde); background:var(--campo); font-size:12px; color:var(--sub); text-align:center; }
 #club-sorteo-info { margin-top:6px; }
 #club-sorteo-info .stat-fila span { overflow:hidden; text-overflow:ellipsis; }
 
@@ -503,6 +506,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="toggle-fila"><div class="tf-txt"><b>🪙 Puntos</b><span>Se acreditan solos al marcar el pedido como ENTREGADO</span></div><label class="switch"><input type="checkbox" id="club-puntos"><span class="pista"></span></label></div>
       <div class="toggle-fila"><div class="tf-txt"><b>🎁 Promos exclusivas</b><span>Solo las ven los clientes con sesión iniciada</span></div><label class="switch"><input type="checkbox" id="club-promos-sw"><span class="pista"></span></label></div>
       <div class="toggle-fila"><div class="tf-txt"><b>🎟️ Sorteos</b><span>Participan con un toque desde su cuenta</span></div><label class="switch"><input type="checkbox" id="club-sorteos-sw"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>🎫 Cupones exclusivos</b><span>Cupón con imagen y código, solo para clientes logueados</span></div><label class="switch"><input type="checkbox" id="club-cupones-sw"><span class="pista"></span></label></div>
       <div class="fila-conf">
         <label style="font-size:13px">🪙 Puntos por cada sol de compra: <input type="text" id="club-pps" inputmode="decimal" placeholder="1" style="width:70px"></label>
         <button class="btn" onclick="guardarClub()">💾 Guardar funciones</button>
@@ -516,6 +520,16 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarPromoClub()">+ Añadir promo</button>
         <button class="btn" onclick="guardarClub()">💾 Guardar promos</button>
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>🎫 Cupones exclusivos</h3>
+      <p class="desc">Solo los ven los clientes logueados (/mi-cuenta). Sube la imagen del cupón desde tu dispositivo (obligatoria), ponle un título y un código que muestren en caja. La fecha límite es opcional: vencido, el cupón deja de mostrarse solo.</p>
+      <div id="club-cupones"></div>
+      <div class="fila-conf">
+        <button class="btn gris" onclick="agregarCuponClub()">+ Añadir cupón</button>
+        <button class="btn" onclick="guardarClub()">💾 Guardar cupones</button>
       </div>
     </div>
 
@@ -1410,8 +1424,10 @@ function pintarClubCfg() {
   document.getElementById('club-puntos').checked = c.puntos !== false;
   document.getElementById('club-promos-sw').checked = c.promos !== false;
   document.getElementById('club-sorteos-sw').checked = c.sorteos !== false;
+  document.getElementById('club-cupones-sw').checked = c.cupones !== false;
   document.getElementById('club-pps').value = c.puntosPorSol || 1;
   pintarPromosClub();
+  pintarCuponesClub();
   pintarSorteosClub();
 }
 function pintarPromosClub() {
@@ -1447,6 +1463,79 @@ function quitarPromoClub(i) {
   CLUB_CFG.promos = leerPromosClubDOM();
   CLUB_CFG.promos.splice(i, 1);
   pintarPromosClub();
+}
+function pintarCuponesClub() {
+  var cs = (CLUB_CFG && CLUB_CFG.cupones) || [];
+  document.getElementById('club-cupones').innerHTML = cs.map(function (c, i) {
+    var img = c.imagen || '';
+    var foto = img
+      ? '<img src="' + esc(img) + '" alt="Cupón">'
+      : '<div class="cci-nofoto">Sin<br>imagen</div>';
+    return '<div class="club-item" data-id="' + esc(c.id || '') + '" data-img="' + esc(img) + '">' +
+      '<div class="cci-foto">' + foto +
+        '<label class="btn gris" style="cursor:pointer">📷 ' + (img ? 'Cambiar imagen' : 'Subir imagen') +
+          '<input type="file" accept="image/*" style="display:none" onchange="subirImgCupon(this,' + i + ')"></label></div>' +
+      '<input type="text" class="cci-tit" value="' + esc(c.titulo || '') + '" maxlength="80" placeholder="Título (ej. 🎫 10% de descuento para el Club)">' +
+      '<input type="text" class="cci-cod" value="' + esc(c.codigo || '') + '" maxlength="40" placeholder="Código (ej. ARAKAKI10)" style="text-transform:uppercase">' +
+      '<div class="fila-conf"><label style="font-size:12px">Hasta: <input type="date" class="cci-hasta" value="' + fechaCorta(c.hasta) + '"></label>' +
+      '<button class="btn gris" onclick="quitarCuponClub(' + i + ')">🗑️ Quitar</button></div></div>';
+  }).join('') || '<span class="hint" style="font-size:12px;color:var(--sub)">Sin cupones todavía: toca "+ Añadir cupón".</span>';
+}
+function leerCuponesClubDOM() {
+  var out = [];
+  var items = document.querySelectorAll('#club-cupones .club-item');
+  for (var i = 0; i < items.length; i++) {
+    out.push({
+      id: items[i].getAttribute('data-id') || '',
+      titulo: items[i].querySelector('.cci-tit').value.trim(),
+      codigo: items[i].querySelector('.cci-cod').value.trim().toUpperCase(),
+      imagen: items[i].getAttribute('data-img') || '',
+      hasta: fechaMs(items[i].querySelector('.cci-hasta').value),
+    });
+  }
+  return out;
+}
+function agregarCuponClub() {
+  if (!CLUB_CFG) return;
+  CLUB_CFG.cupones = leerCuponesClubDOM();
+  CLUB_CFG.cupones.push({ id: '', titulo: '', codigo: '', imagen: '', hasta: null });
+  pintarCuponesClub();
+}
+function quitarCuponClub(i) {
+  CLUB_CFG.cupones = leerCuponesClubDOM();
+  CLUB_CFG.cupones.splice(i, 1);
+  pintarCuponesClub();
+}
+// Subir la imagen del cupón desde el dispositivo: se reescala/comprime EN el navegador (máx 1200px,
+// JPEG) y se guarda en Redis vía imgup; el cupón guarda la URL /api/push?img=<id>.
+function subirImgCupon(inp, i) {
+  var f = inp.files && inp.files[0];
+  inp.value = ''; // permite volver a elegir el mismo archivo
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoClub('Ese archivo no es una imagen.', true);
+  CLUB_CFG.cupones = leerCuponesClubDOM(); // conserva lo tipeado antes de subir
+  avisoClub('⏳ Procesando la imagen del cupón…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var esc2 = Math.min(1, 1200 / img.naturalWidth, 1200 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * esc2)), h = Math.max(1, Math.round(img.naturalHeight * esc2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) return avisoClub('La imagen pesa demasiado incluso comprimida: prueba con otra más liviana.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      if (CLUB_CFG.cupones[i]) CLUB_CFG.cupones[i].imagen = j.url;
+      pintarCuponesClub();
+      avisoClub('🖼️ Imagen del cupón subida. No olvides "💾 Guardar cupones".');
+    }).catch(function (e) { avisoClub(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoClub('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
 }
 function pintarSorteosClub() {
   var ss = (CLUB_CFG && CLUB_CFG.sorteos) || [];
@@ -1506,11 +1595,13 @@ function guardarClub() {
     puntos: document.getElementById('club-puntos').checked,
     promos: document.getElementById('club-promos-sw').checked,
     sorteos: document.getElementById('club-sorteos-sw').checked,
+    cupones: document.getElementById('club-cupones-sw').checked,
     puntosPorSol: parseFloat((document.getElementById('club-pps').value || '1').replace(',', '.')) || 1,
   };
   var promos = leerPromosClubDOM().filter(function (p) { return p.titulo; });
   var sorteos = leerSorteosClubDOM().filter(function (s) { return s.titulo; });
-  api('setclub', { club: club, promos: promos, sorteos: sorteos }).then(function (j) {
+  var cupones = leerCuponesClubDOM().filter(function (c) { return c.titulo && c.imagen; });
+  api('setclub', { club: club, promos: promos, sorteos: sorteos, cupones: cupones }).then(function (j) {
     var previos = CLUB_CFG.sorteos || [];
     CLUB_CFG = j;
     // el guardado no devuelve el conteo de participantes: se conserva el conocido
