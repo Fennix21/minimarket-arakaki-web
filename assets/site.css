@@ -151,6 +151,30 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 #menu-panel .menu-item:hover .mi-chevron { transform: translateX(3px); color: var(--dorado); }
 #menu-panel .menu-item.activo .mi-coin { background: linear-gradient(160deg,#f7dc8f,#d4a941); border-color: var(--dorado); color: #3a0d0a; }
 
+/* "Mi cuenta" (Club) DESTACADO: no debe pasar desapercibido entre los ítems */
+#menu-panel #menu-mi-cuenta {
+  background: linear-gradient(90deg, rgba(212,169,65,0.24), rgba(212,169,65,0.05));
+  border-color: rgba(212,169,65,0.55);
+  animation: miCuentaGlow 2.6s ease-in-out infinite;
+}
+#menu-panel #menu-mi-cuenta .mi-coin {
+  background: linear-gradient(160deg,#f7dc8f,#d4a941); border-color: var(--dorado); color: #3a0d0a;
+  box-shadow: 0 0 12px rgba(212,169,65,0.4);
+}
+#menu-panel #menu-mi-cuenta .mi-txt { font-weight: 700; color: #f7e6b8; }
+#menu-panel #menu-mi-cuenta .mi-chevron { color: var(--dorado); }
+#menu-panel #menu-mi-cuenta .mi-badge.new { animation: miBadgePulse 1.8s ease-in-out infinite; }
+#menu-panel #menu-mi-cuenta:hover .mi-coin { transform: scale(1.07); }
+@keyframes miCuentaGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(212,169,65,0.14) inset, 0 0 0 rgba(212,169,65,0); }
+  50% { box-shadow: 0 0 0 1px rgba(212,169,65,0.32) inset, 0 0 20px rgba(212,169,65,0.4); }
+}
+@keyframes miBadgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+@media (prefers-reduced-motion: reduce) {
+  #menu-panel #menu-mi-cuenta { animation: none; box-shadow: 0 0 0 1px rgba(212,169,65,0.22) inset; }
+  #menu-panel #menu-mi-cuenta .mi-badge.new { animation: none; }
+}
+
 /* Buscando: oculta los favoritos para dar foco a los resultados */
 #menu-panel.buscando .menu-dest, #menu-panel.buscando .menu-dest-tit { display: none; }
 #menu-panel .menu-vacio { display: none; padding: 16px 22px; opacity: .65; font-size: 13px; line-height: 1.5; }
