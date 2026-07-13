@@ -27,6 +27,13 @@ http.createServer((req, res) => {
           })
         : '{"on":true}');
     }
+    // Stub del perfil: cliente reconocido de prueba (saludo de la portada + prefill del carrito)
+    if (url === '/api/perfil') {
+      return res.end(JSON.stringify({
+        conocido: true, nombre: 'Cliente de prueba', telefono: '51999999999', pedidos: 3,
+        habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
+      }));
+    }
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
     // Stub de la cuenta del Club: permite ver /mi-cuenta y las estrellas ⭐ en local

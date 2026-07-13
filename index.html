@@ -312,6 +312,8 @@
   <!-- Portada: fachada de la tienda + video en círculo -->
   <section class="portada">
     <div class="interior">
+      <!-- Saludo al cliente reconocido: lo pinta assets/site.js (aplicarPerfil) -->
+      <p class="portada-hola" id="portada-hola" style="display:none"></p>
       <div class="portada-circulo">
         <video src="/img/videos/bienvenida.mp4" autoplay muted loop playsinline></video>
       </div>
@@ -328,11 +330,6 @@
     <span>🕗 Lun – Sáb 7:00 am – 9:00 pm</span><span>🕗 Domingos 8:00 am – 8:00 pm</span>
     <span>🎉 Atendemos feriados</span>
   </div></div>
-
-  <!-- Recompra rápida: solo aparece si reconocemos al cliente (lo activa assets/site.js) -->
-  <div id="home-repetir-wrap" style="display:none">
-    <button id="home-repetir" type="button"></button>
-  </div>
 
   <!-- Categorías -->
   <section class="seccion vino">

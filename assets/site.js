@@ -343,11 +343,17 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrarMenu(); });
     function cerrarMenu() { document.body.classList.remove('menu-abierto'); }
 
-    // Footer (contenido editable desde el panel → 📝 Sitio; ver footerHTML/aplicarSitio)
-    var pie = document.createElement('footer');
-    pie.className = 'pie';
-    document.body.appendChild(pie);
-    aplicarSitio(SITIO_DEF); // render inmediato con los textos por defecto (el lema y el pie)
+    // Footer: SOLO en la portada (home). El dueño lo pidió así: el resto de páginas
+    // (categorías, mi-cuenta) no llevan pie. aplicarSitio/cargarSitio siguen corriendo
+    // igual para aplicar el lema del header; footerHTML se salta solo si no hay footer.pie.
+    var esHome = /^\/(index\.html)?$/.test(location.pathname);
+    if (esHome) {
+      // Footer (contenido editable desde el panel → 📝 Sitio; ver footerHTML/aplicarSitio)
+      var pie = document.createElement('footer');
+      pie.className = 'pie';
+      document.body.appendChild(pie);
+    }
+    aplicarSitio(SITIO_DEF); // render inmediato con los textos por defecto (el lema; y el pie si es home)
     cargarSitio();           // y luego los del panel, si el dueño los editó
 
     // Carrito flotante + modal
@@ -364,7 +370,6 @@
         '<button class="car-cerrar" aria-label="Cerrar">✕</button>' +
         '<h3>🛒 Tu pedido</h3>' +
         '<p class="car-nota">Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin</p>' +
-        '<button id="car-repetir" style="display:none">🔁 Repetir mi pedido de siempre</button>' +
         '<div id="car-lista"></div>' +
         '<div class="car-total"><span>Total</span><span id="car-total-monto">S/ 0</span></div>' +
         '<label for="car-nombre">Tu nombre</label>' +
@@ -384,9 +389,6 @@
     document.getElementById('car-vaciar').onclick = function () { guardarCarrito([]); pintarCarrito(); pintarBadge(); marcarProds(); };
     document.getElementById('car-enviar').onclick = enviarPedido;
     document.getElementById('car-geo').onclick = pedirUbicacion;
-    document.getElementById('car-repetir').onclick = cargarHabitual;
-    var homeRep = document.getElementById('home-repetir'); // banner de recompra en el inicio (opcional)
-    if (homeRep) homeRep.onclick = function () { cargarHabitual(); abrirCarrito(); };
     pintarBadge();
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
@@ -450,33 +452,12 @@
     if (n && !n.value && p.nombre) n.value = p.nombre;
     if (tel && !tel.value && p.telefono) tel.value = String(p.telefono).replace(/^51/, '');
     if (dir && !dir.value && p.direccion) dir.value = p.direccion;
-    var btn = document.getElementById('car-repetir');
-    if (btn) btn.style.display = (p.habitual && p.habitual.length) ? '' : 'none';
-    // Banner de recompra en el inicio (si la página lo tiene): saludo + repetir
-    var wrap = document.getElementById('home-repetir-wrap');
-    var hb = document.getElementById('home-repetir');
-    if (wrap && hb) {
-      if (p.habitual && p.habitual.length) {
-        hb.textContent = '🔁 ' + (p.nombre ? '¡Hola, ' + p.nombre + '! ' : '') + 'Repetir tu pedido de siempre';
-        wrap.style.display = '';
-      } else { wrap.style.display = 'none'; }
+    // Saludo al cliente reconocido: texto sobre el video de la portada (solo el home lo tiene)
+    var hola = document.getElementById('portada-hola');
+    if (hola && p.nombre) {
+      hola.textContent = '¡Hola, ' + p.nombre + '!';
+      hola.style.display = '';
     }
-  }
-
-  // Carga "lo de siempre" (productos habituales del perfil) al carrito, listos para enviar.
-  function cargarHabitual() {
-    if (!perfilActual || !perfilActual.habitual || !perfilActual.habitual.length) return;
-    var c = leerCarrito();
-    var existentes = {};
-    c.forEach(function (p) { existentes[p.name] = 1; });
-    perfilActual.habitual.forEach(function (h) {
-      if (!existentes[h.name]) {
-        c.push({ name: h.name, price: (h.price != null ? h.price : null), img: h.img || '', qty: h.qty || 1 });
-        existentes[h.name] = 1;
-      }
-    });
-    guardarCarrito(c);
-    pintarCarrito(); pintarBadge(); marcarProds();
   }
 
   // Pide la ubicación GPS (solo si el cliente acepta el permiso del navegador). Adjunta las
