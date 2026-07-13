@@ -101,6 +101,15 @@ async function getPromptWeb() {
     if (df && String(df).trim()) {
       datos = '\n\n## DATOS OFICIALES DEL NEGOCIO (única verdad; PROHIBIDO inventar lo que no esté aquí)\n' + String(df).trim();
     }
+    // Respuestas oficiales a preguntas frecuentes (config:webfaq, panel → 💬 Chat de la web)
+    try {
+      const fraw = await redis(['GET', 'config:webfaq']);
+      const lista = fraw ? (JSON.parse(fraw) || []) : [];
+      if (Array.isArray(lista) && lista.length) {
+        datos += '\n\n## RESPUESTAS OFICIALES (preguntas frecuentes)\nSi el cliente pregunta algo de esta lista, responde con ESTA información (con tus palabras, sin cambiar los datos):' +
+          lista.slice(0, 30).map((f) => '\n- Si preguntan: «' + String((f && f.q) || '').slice(0, 200) + '» → responde: ' + String((f && f.r) || '').slice(0, 500)).join('');
+      }
+    } catch (e) {}
     // Temporada / campaña activa: instrucciones de estrategia del momento
     try {
       const t = await temporadaActiva();
@@ -141,6 +150,8 @@ Así recibirá primero nuestras promociones, ofertas especiales, anuncios, sorte
 - Resalta el beneficio: enterarse *antes que nadie* de ofertas, descuentos y novedades; es *gratis* y sin spam.
 - Ofrece activar las notificaciones con un toque (mira las reglas técnicas: marcador [[PUSH]]).
 - Pide el WhatsApp y el correo de forma natural; cuando te los den, regístralos con registrar_suscriptor y agradéceles.
+- Si te dio solo el WhatsApp o solo el correo, invítalo con suavidad a dejar también el otro.
+- Tus botones de respuesta rápida (la línea >>>) deben empujar hacia activar los avisos o dejar los datos. Ej: >>> Sí, quiero los avisos | Te dejo mi WhatsApp | Ver productos
 - Tono peruano, amable, cercano, con emojis. Mensajes cortos.`;
 
 // Reglas técnicas del chat web: se cumplen SIEMPRE, sea cual sea la personalidad del cerebro.
@@ -161,12 +172,12 @@ El cliente te escribe desde el chat de www.minimarketarakaki.com.
 
 ## Dejar WhatsApp y correo
 - registrar_suscriptor: cuando el cliente te dé su WhatsApp y/o su correo, regístralo (manda lo que tengas: whatsapp, email y nombre si lo dio). Confirma con un agradecimiento corto.
-- Si te dio solo uno de los dos, invítalo con suavidad a dejar también el otro. Nunca inventes ni asumas un dato que no te dieron.
+- Nunca inventes ni asumas un dato que no te dieron.
 
 ## Recompra rápida ("lo de siempre") — EXCEPCIÓN al "no vender"
 - Si el cliente pide repetir su pedido, dice "lo de siempre", "mi lista", "lo de la otra vez" o similar: usa pedido_habitual para traer sus productos habituales y propóneselos claros y cortos (nombre y precio si lo hay).
 - Si te confirma, cierra el pedido con registrar_pedido (usa el nombre, teléfono y dirección que trae el perfil). Confirma con un mensaje corto y cálido.
-- Si pedido_habitual dice que NO lo reconoces o no tiene lista guardada: dile con amabilidad que aún no tiene una lista guardada, que arme su pedido en la página y que la próxima vez se la tendrás lista. Aprovecha para invitarlo a los avisos.
+- Si pedido_habitual dice que NO lo reconoces o no tiene lista guardada: dile con amabilidad que aún no tiene una lista guardada, que arme su pedido en la página y que la próxima vez se la tendrás lista.
 - Esto es lo ÚNICO que cierras por aquí: para pedidos nuevos desde cero sigue orientando a la página de la categoría.
 
 ## Si no sabes algo
@@ -178,8 +189,8 @@ El cliente te escribe desde el chat de www.minimarketarakaki.com.
 - Separa las ideas con una línea en blanco: la web muestra cada párrafo como un mensaje aparte (como en WhatsApp). Máximo 3 párrafos por respuesta.
 
 ## Botones de respuesta rápida (última línea de CADA respuesta)
-- Termina SIEMPRE con una línea que empiece con >>> y 2-3 opciones separadas por |, escritas como las diría el CLIENTE (son botones que él toca y se envían como su mensaje). Ej: >>> Sí, quiero los avisos | Te dejo mi WhatsApp | Ver productos
-- Las opciones deben EMPUJAR hacia suscribirse a los avisos o dejar sus datos, o resolver la duda que naturalmente sigue. Nada genérico ni repetido.
+- Termina SIEMPRE con una línea que empiece con >>> y 2-3 opciones separadas por |, escritas como las diría el CLIENTE (son botones que él toca y se envían como su mensaje). Ej: >>> Sí, me interesa | Ver productos | ¿Hacen delivery?
+- Las opciones deben seguir TU misión y la conversación: resolver la duda que naturalmente sigue o acercar al cliente a tu objetivo. Nada genérico ni repetido.
 - ÚNICA excepción: cuando le pidas un dato (WhatsApp o correo), no pongas la línea >>>.`;
 
 // ---------- Herramientas del vendedor ----------
@@ -668,3 +679,6 @@ module.exports.sanearMensajes = sanearMensajes;
 module.exports.registrarConsulta = registrarConsulta;
 module.exports.extraerSugerencias = extraerSugerencias;
 module.exports.enRangoMMDD = enRangoMMDD;
+// Para el panel (getwebchat en api/crm.js): mostrar/copiar la misión por defecto y las reglas fijas.
+module.exports.MISION_CAPTADOR = MISION_CAPTADOR;
+module.exports.REGLAS_WEB = REGLAS_WEB;

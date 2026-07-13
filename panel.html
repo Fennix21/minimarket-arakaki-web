@@ -610,7 +610,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
       <details class="ayuda">
         <summary>¿En qué se diferencia del bot de WhatsApp?</summary>
-        <div class="cuerpo">Es <b>independiente</b>: aquí puedes probar un enfoque distinto (orientativo, vendedor…) sin tocar tu WhatsApp. Si dejas su cerebro vacío, usa el mismo de WhatsApp. Cualquier campo que dejes en blanco vuelve a su texto por defecto. Los cambios se ven en la web en ~1 minuto.</div>
+        <div class="cuerpo">Es <b>independiente</b>: aquí puedes probar un enfoque distinto sin tocar tu WhatsApp. Si dejas su cerebro vacío, usa la <b>misión por defecto</b> (captar suscriptores para los avisos, NO vende); escribe tu propio cerebro y el bot obedece TU estrategia. Cualquier campo que dejes en blanco vuelve a su texto por defecto. Los cambios se ven en la web en ~1 minuto.</div>
       </details>
 
       <div class="caja-bot">
@@ -638,9 +638,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
       <div class="caja-bot">
         <h3>🧠 Cerebro propio</h3>
-        <p class="desc">Déjalo vacío para usar el mismo cerebro de WhatsApp (enfoque vendedor).</p>
+        <p class="desc">Aquí mandas TÚ: objetivo, tono y estrategia del bot (incluye qué proponen sus botones de seguimiento). Vacío = usa la misión por defecto (captar suscriptores para los avisos). ¿Quieres cambiar "eso de los avisos"? Copia la misión y edítala a tu antojo.</p>
+        <button class="btn" type="button" onclick="usarPromptDefault()" style="margin-bottom:8px">📋 Copiar la misión por defecto para editarla</button>
         <textarea id="web-prompt" style="min-height:200px" placeholder="Ej.: Eres el asistente ORIENTATIVO del Minimarket Arakaki: guías al cliente, resuelves dudas y recomiendas productos del catálogo sin presionar la venta. Cálido, español peruano, mensajes cortos…"></textarea>
         <div id="web-estado" style="font-size:12px;color:#aaa;margin-top:8px"></div>
+        <details class="ayuda" style="margin-top:8px">
+          <summary>🔒 Reglas fijas del sistema (siempre se aplican)</summary>
+          <div class="cuerpo">Estas reglas técnicas se añaden SIEMPRE después de tu cerebro: el formato de los botones (línea &gt;&gt;&gt;), el marcador [[PUSH]], el uso de las herramientas y la <b>prohibición de inventar datos</b>. Garantizan que el chat no se rompa ni alucine. La estrategia (qué busca, qué ofrece, hacia dónde empujan los botones) la decide tu cerebro. Después de estas reglas se añaden también tus 📋 Datos oficiales, ❓ Respuestas oficiales y la 📅 temporada activa.<pre id="web-reglas" style="white-space:pre-wrap;font-size:11px;margin-top:8px;max-height:260px;overflow:auto"></pre></div>
+        </details>
       </div>
 
       <div class="caja-bot">
@@ -651,6 +656,13 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
           <div class="hint">Horario · Delivery (zonas y costo) · Tiempo de entrega · Pedido mínimo · Medios de pago · Cambios/devoluciones · Cualquier dato clave.</div>
           <textarea id="web-datos" style="min-height:140px" placeholder="Horario: Lun a Dom, 8am a 11pm&#10;Delivery: gratis desde S/ 30 en Pueblo Libre; S/ 3 en zonas cercanas&#10;Tiempo de entrega: 20 a 40 min&#10;Pedido mínimo: S/ 15&#10;Medios de pago: efectivo, Yape, Plin, tarjeta&#10;Cambios: hasta 24h con boleta"></textarea>
         </div>
+      </div>
+
+      <div class="caja-bot">
+        <h3>❓ Respuestas oficiales (preguntas frecuentes)</h3>
+        <p class="desc">Prepara la respuesta EXACTA para las preguntas típicas de tus clientes. El bot contesta con esa información (con sus palabras, sin cambiar los datos) en vez de improvisar. Máximo 30.</p>
+        <div id="web-faq"></div>
+        <button class="btn" type="button" onclick="nuevaFaq()" style="margin-top:6px">➕ Nueva pregunta</button>
       </div>
 
       <div class="caja-bot">
@@ -1631,8 +1643,10 @@ function cargarBot() {
   cargarPush();
   cargarCorreo();
 }
-// --- Chat de la web (on/off + textos + cerebro propio + datos oficiales + temporadas) ---
+// --- Chat de la web (on/off + textos + cerebro propio + datos oficiales + FAQ + temporadas) ---
 var WEB_TEMPS = [];
+var WEB_FAQ = [];
+var WEB_PROMPT_DEF = '';
 function cargarWebchat() {
   api('getwebchat').then(function (j) {
     document.getElementById('conf-webchat').checked = j.on !== false;
@@ -1645,9 +1659,13 @@ function cargarWebchat() {
     document.getElementById('web-msg-apagado').value = j.apagado || '';
     document.getElementById('web-msg-limite').value = j.limite || '';
     document.getElementById('web-msg-error').value = j.errtec || '';
+    WEB_PROMPT_DEF = j.promptDefault || '';
+    document.getElementById('web-reglas').textContent = j.reglas || '';
+    WEB_FAQ = (Array.isArray(j.faq) ? j.faq : []).map(function (f) { return { q: (f && f.q) || '', r: (f && f.r) || '' }; });
+    pintarFaq();
     document.getElementById('web-estado').textContent = j.prompt
-      ? '🧠 Cerebro PROPIO: el chat web es independiente de WhatsApp.'
-      : 'ℹ️ Sin cerebro propio: usa el de WhatsApp (enfoque vendedor).';
+      ? '🧠 Cerebro PROPIO: el bot sigue TU estrategia.'
+      : 'ℹ️ Sin cerebro propio: usa la misión por defecto (captar suscriptores para los avisos).';
     WEB_TEMPS = (Array.isArray(j.temporadas) ? j.temporadas : []).map(function (t) {
       t = t || {};
       return { id: t.id || ('t' + Math.random().toString(36).slice(2, 8)), nombre: t.nombre || '',
@@ -1753,6 +1771,7 @@ function avisoWeb(t, mal) {
 }
 function guardarWebchat() {
   sincTemps();
+  sincFaq();
   api('setwebchat', {
     on: document.getElementById('conf-webchat').checked,
     saludo: document.getElementById('web-saludo').value,
@@ -1761,6 +1780,7 @@ function guardarWebchat() {
     subtitulo: document.getElementById('web-subtitulo').value,
     prompt: document.getElementById('web-prompt').value,
     datos: document.getElementById('web-datos').value,
+    faq: WEB_FAQ,
     temporadas: WEB_TEMPS,
     temporada: document.getElementById('web-temp-activa').value,
     apagado: document.getElementById('web-msg-apagado').value,
@@ -1768,9 +1788,46 @@ function guardarWebchat() {
     errtec: document.getElementById('web-msg-error').value,
   }).then(function (j) {
     avisoWeb((j.on ? '✅ Guardado. ' : '✅ Guardado (chat OCULTO en la web). ') +
-      'Cerebro: ' + (j.usaWhatsapp ? 'el de WhatsApp (vendedor)' : 'PROPIO del chat web') + '. Se ve en ~1 min.');
+      'Cerebro: ' + (j.usaWhatsapp ? 'la misión por defecto (captador)' : 'PROPIO (tu estrategia)') + '. Se ve en ~1 min.');
     cargarWebchat();
   }).catch(function (e) { avisoWeb(e.message, true); });
+}
+// --- Respuestas oficiales (FAQ): el bot contesta con esta info en vez de improvisar ---
+function pintarFaq() {
+  var cont = document.getElementById('web-faq');
+  if (!WEB_FAQ.length) { cont.innerHTML = '<p class="hint" style="margin:8px 0">Ej.: "¿Aceptan Yape?" → "Sí, Yape y Plin al 977 737 199". Crea la primera.</p>'; return; }
+  cont.innerHTML = WEB_FAQ.map(function (f, i) {
+    return '<div class="faq-card" style="border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:10px;margin:8px 0">' +
+      '<div style="display:flex;gap:8px">' +
+        '<input type="text" class="f-q" maxlength="200" placeholder="Si el cliente pregunta… (ej. ¿Aceptan Yape?)" value="' + esc(f.q) + '" style="flex:1">' +
+        '<button class="btn" type="button" onclick="quitarFaq(' + i + ')" title="Quitar" style="background:#7c0f14;color:#fff">🗑</button>' +
+      '</div>' +
+      '<textarea class="f-r" maxlength="500" style="min-height:52px;width:100%;margin-top:6px" placeholder="El bot responde con esta información…">' + esc(f.r) + '</textarea>' +
+    '</div>';
+  }).join('');
+}
+function sincFaq() {
+  var cards = document.querySelectorAll('#web-faq .faq-card');
+  var arr = [];
+  for (var i = 0; i < cards.length; i++) {
+    arr.push({ q: cards[i].querySelector('.f-q').value.trim(), r: cards[i].querySelector('.f-r').value.trim() });
+  }
+  WEB_FAQ = arr;
+}
+function nuevaFaq() {
+  sincFaq();
+  if (WEB_FAQ.length >= 30) { avisoWeb('Máximo 30 preguntas.', true); return; }
+  WEB_FAQ.push({ q: '', r: '' });
+  pintarFaq();
+}
+function quitarFaq(i) { sincFaq(); WEB_FAQ.splice(i, 1); pintarFaq(); }
+// Copia la misión por defecto al cerebro para editarla a gusto (no guarda hasta tocar 💾)
+function usarPromptDefault() {
+  var ta = document.getElementById('web-prompt');
+  if (!WEB_PROMPT_DEF) { avisoWeb('Aún no cargó la misión por defecto: toca ↻ Actualizar e intenta de nuevo.', true); return; }
+  if (ta.value.trim() && !confirm('Esto reemplaza el texto actual del cerebro por la misión por defecto. ¿Continuar?')) return;
+  ta.value = WEB_PROMPT_DEF;
+  avisoWeb('📋 Misión por defecto copiada al cerebro: edítala a tu antojo y toca 💾 Guardar.');
 }
 // --- Probar el chat: conversa contra /api/chat (usa la config YA guardada) ---
 var WEB_TEST_MSGS = [];

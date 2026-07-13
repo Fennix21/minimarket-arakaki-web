@@ -26,6 +26,7 @@ const crypto = require('crypto');
 const { DEFAULT_PROMPT } = require('./_prompt');
 const { PRODUCTOS } = require('./_catalogo');
 const { HAS_CORREO, enviarLote, htmlPromo } = require('./_correo.js');
+const { MISION_CAPTADOR, REGLAS_WEB } = require('./chat.js'); // misión por defecto + reglas fijas del chat web (para el panel)
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -548,6 +549,9 @@ module.exports = async (req, res) => {
       let temporadas = [];
       if (traw) { try { temporadas = JSON.parse(traw) || []; } catch (e) { temporadas = []; } }
       const temporada = await redis(['GET', 'config:webtemporada']);
+      const fraw = await redis(['GET', 'config:webfaq']);
+      let faq = [];
+      if (fraw) { try { faq = JSON.parse(fraw) || []; } catch (e) { faq = []; } }
       return res.status(200).json({
         on: webchat !== '0',
         saludo: ui.saludo || '',
@@ -555,7 +559,10 @@ module.exports = async (req, res) => {
         invitacion: ui.invitacion || '',
         subtitulo: ui.subtitulo || '',
         prompt: webprompt || '',
+        promptDefault: MISION_CAPTADOR,
+        reglas: REGLAS_WEB,
         datos: datos || '',
+        faq: Array.isArray(faq) ? faq : [],
         temporadas: Array.isArray(temporadas) ? temporadas : [],
         temporada: temporada || '',
         apagado: ui.apagado || '',
@@ -591,6 +598,13 @@ module.exports = async (req, res) => {
       const datos = txt(b.datos, 4000);
       if (datos) await redis(['SET', 'config:webdatos', datos]);
       else await redis(['DEL', 'config:webdatos']);
+      // Respuestas oficiales a preguntas frecuentes (el bot responde con esa info, no improvisa)
+      const faq = (Array.isArray(b.faq) ? b.faq : []).slice(0, 30).map((f) => {
+        f = f || {};
+        return { q: txt(f.q, 200), r: txt(f.r, 500) };
+      }).filter((f) => f.q && f.r);
+      if (faq.length) await redis(['SET', 'config:webfaq', JSON.stringify(faq)]);
+      else await redis(['DEL', 'config:webfaq']);
       // Temporadas / campañas: cada una con sus textos + instrucciones + fechas (MM-DD)
       const temporadas = (Array.isArray(b.temporadas) ? b.temporadas : []).slice(0, 12).map((t) => {
         t = t || {};
