@@ -146,10 +146,11 @@ module.exports = async (req, res) => {
       const id = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
       await redis(['SET', 'pushimg:' + id, data]);
       await redis(['ZADD', 'pushimgs', String(Date.now()), id]);
-      // Tope de 30 banners guardados: las más viejas se van (sus URLs viven en el caché CDN un año)
+      // Tope de 80 imágenes guardadas (banners de notificación + imágenes de cupones comparten pool):
+      // las más viejas se van (sus URLs viven en el caché CDN un año)
       const total = Number(await redis(['ZCARD', 'pushimgs'])) || 0;
-      if (total > 30) {
-        const viejas = (await redis(['ZRANGE', 'pushimgs', '0', String(total - 31)])) || [];
+      if (total > 80) {
+        const viejas = (await redis(['ZRANGE', 'pushimgs', '0', String(total - 81)])) || [];
         for (const v of viejas) { await redis(['DEL', 'pushimg:' + v]); await redis(['ZREM', 'pushimgs', v]); }
       }
       return res.status(200).json({ ok: true, url: '/api/push?img=' + id });

@@ -59,7 +59,7 @@ function normTel(raw) {
 }
 
 // Interruptores del Club (config:club; los lee también /api/cuenta). Sin config, todo prendido.
-const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, puntosPorSol: 1 };
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
 async function getClubCfg() {
   let c = {};
   const raw = await redis(['GET', 'config:club']);
@@ -378,20 +378,22 @@ module.exports = async (req, res) => {
     // --- Club Arakaki: interruptores, promos exclusivas y sorteos (los lee /api/cuenta) ---
     if (b.action === 'getclub') {
       const club = await getClubCfg();
-      let promos = [], sorteos = [];
+      let promos = [], sorteos = [], cupones = [];
       const rp = await redis(['GET', 'config:clubpromos']);
       if (rp) { try { promos = JSON.parse(rp) || []; } catch (e) {} }
       const rs = await redis(['GET', 'config:sorteos']);
       if (rs) { try { sorteos = JSON.parse(rs) || []; } catch (e) {} }
+      const rc = await redis(['GET', 'config:clubcupones']);
+      if (rc) { try { cupones = JSON.parse(rc) || []; } catch (e) {} }
       for (const s of sorteos) s.participantes = Number(await redis(['ZCARD', 'sorteo:' + s.id])) || 0;
-      return res.status(200).json({ club, promos, sorteos });
+      return res.status(200).json({ club, promos, sorteos, cupones });
     }
     if (b.action === 'setclub') {
       const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
       const nuevoId = (pre) => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
       const cIn = b.club || {};
       const club = {};
-      ['login', 'favoritos', 'puntos', 'promos', 'sorteos'].forEach((k) => { club[k] = cIn[k] !== false; });
+      ['login', 'favoritos', 'puntos', 'promos', 'sorteos', 'cupones'].forEach((k) => { club[k] = cIn[k] !== false; });
       const pps = Number(cIn.puntosPorSol);
       club.puntosPorSol = (isFinite(pps) && pps > 0 && pps <= 100) ? pps : 1;
       await redis(['SET', 'config:club', JSON.stringify(club)]);
@@ -412,7 +414,17 @@ module.exports = async (req, res) => {
       sorteos.forEach((s) => { quedan[s.id] = 1; });
       for (const v of viejos) if (v.id && !quedan[v.id]) await redis(['DEL', 'sorteo:' + v.id]);
       await redis(['SET', 'config:sorteos', JSON.stringify(sorteos)]);
-      return res.status(200).json({ ok: true, club, promos, sorteos });
+      // Cupones: imagen (URL) obligatoria; se guarda /api/push?img=<id> | /img/... | https://...
+      const urlImg = (v) => {
+        const s = txt(v, 200);
+        return /^(\/api\/push\?img=[a-z0-9]+|\/img\/|https?:\/\/)/i.test(s) ? s : '';
+      };
+      const cupones = (Array.isArray(b.cupones) ? b.cupones : []).map((c) => ({
+        id: txt(c.id, 20).replace(/[^a-z0-9]/gi, '') || nuevoId('cu'),
+        titulo: txt(c.titulo, 80), codigo: txt(c.codigo, 40).toUpperCase(), imagen: urlImg(c.imagen), hasta: Number(c.hasta) || null,
+      })).filter((c) => c.titulo && c.imagen).slice(0, 12);
+      await redis(['SET', 'config:clubcupones', JSON.stringify(cupones)]);
+      return res.status(200).json({ ok: true, club, promos, sorteos, cupones });
     }
     if (b.action === 'resetpin') { // borra el PIN del cliente y cierra TODAS sus sesiones
       const tel = String(b.telefono || '').replace(/\D/g, '');
