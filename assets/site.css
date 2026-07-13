@@ -800,6 +800,10 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .cuenta-hola { grid-column: 1 / -1; position: relative; }
 .ct-vacio { opacity: 0.75; font-size: 14px; }
 
+/* Fondo uniforme en /mi-cuenta: un solo tono (el de la zona de login), sin la franja más clara del encabezado. Scoped a esta página; NO toca .hero ni .seccion.premium de las categorías */
+.cuenta-hero,
+.cuenta-hero + .seccion.premium { background: #1a1715; }
+
 /* Pestañas Entrar / Crear cuenta */
 .cuenta-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
 .ct-tab {
