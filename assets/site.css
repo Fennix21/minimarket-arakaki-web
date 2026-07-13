@@ -803,6 +803,9 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* Fondo uniforme en /mi-cuenta: un solo tono (el de la zona de login), sin la franja más clara del encabezado. Scoped a esta página; NO toca .hero ni .seccion.premium de las categorías */
 .cuenta-hero,
 .cuenta-hero + .seccion.premium { background: #1a1715; }
+/* Acerca el contenedor de acceso/panel al subtítulo (menos aire entre el hero y la primera tarjeta) */
+.cuenta-hero { padding-bottom: 14px; }
+.cuenta-hero + .seccion.premium { padding-top: 18px; }
 
 /* Pestañas Entrar / Crear cuenta */
 .cuenta-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
@@ -885,4 +888,6 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
 @media (max-width: 700px) {
   .cuenta-int { grid-template-columns: 1fr; gap: 18px; }
   .cuenta-card { padding: 20px 16px; }
+  /* En móvil el botón de cerrar sesión fluye debajo del saludo (no se superpone al nombre) */
+  .ct-salir { position: static; top: auto; right: auto; display: inline-block; margin-top: 14px; }
 }

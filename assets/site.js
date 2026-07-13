@@ -782,7 +782,7 @@
   window.renderCuenta = function () {
     var cont = document.getElementById('contenido-cuenta');
     if (!cont) return;
-    cont.innerHTML = '<section class="hero cuenta-hero"><h1>Mi cuenta</h1><p class="sub">Club Arakaki · Beneficios para caseros 💛</p></section>' +
+    cont.innerHTML = '<section class="hero cuenta-hero"><h1>Mi cuenta</h1><p class="sub">Club Arakaki · Beneficios exclusivos online 💛</p></section>' +
       '<section class="seccion premium"><div class="interior cuenta-int" id="cuenta-int"><p class="ct-vacio">Cargando…</p></div></section>';
     cuentaFlagsCargar(function (f) {
       var int = document.getElementById('cuenta-int');
