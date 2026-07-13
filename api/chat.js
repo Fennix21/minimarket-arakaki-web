@@ -44,12 +44,49 @@ async function getPreciosVivos() {
   return {};
 }
 
+// Fecha de hoy en Lima como "MM-DD" (para activar temporadas por fechas, hora de Lima).
+function hoyLimaMMDD() {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date()).slice(5);
+  } catch (e) {
+    return new Date().toISOString().slice(5, 10);
+  }
+}
+
+// ¿"MM-DD" (hoy) cae dentro de [desde, hasta]? Soporta rangos que cruzan el año (15-12 → 06-01).
+function enRangoMMDD(hoy, desde, hasta) {
+  if (!desde || !hasta) return false;
+  if (desde <= hasta) return hoy >= desde && hoy <= hasta;
+  return hoy >= desde || hoy <= hasta; // la campaña cruza el fin de año
+}
+
+// Temporada/campaña activa del chat web (panel → 💬 Chat de la web).
+//   config:webtemporada  = '' ninguna · 'auto' la que corresponda a la fecha · '<id>' forzada a mano
+//   config:webtemporadas = JSON [{id,nombre,desde?,hasta?,saludo?,botones?,subtitulo?,invitacion?,extra?}]
+async function temporadaActiva() {
+  if (!HAS_REDIS) return null;
+  const sel = await redis(['GET', 'config:webtemporada']);
+  if (!sel) return null;
+  const raw = await redis(['GET', 'config:webtemporadas']);
+  let lista = [];
+  if (raw) { try { lista = JSON.parse(raw) || []; } catch (e) { lista = []; } }
+  if (!Array.isArray(lista) || !lista.length) return null;
+  if (sel === 'auto') {
+    const hoy = hoyLimaMMDD();
+    return lista.find((t) => t && enRangoMMDD(hoy, t.desde, t.hasta)) || null;
+  }
+  return lista.find((t) => t && t.id === sel) || null;
+}
+
 // Cerebro del chat web, INDEPENDIENTE del de WhatsApp (panel → ⚙️ Bot → 💬 Chat de la web):
 // si el dueño escribió un config:webprompt, ese texto manda el tono; si está vacío, usa la
 // MISIÓN por defecto: captar suscriptores (avisos push + correo + WhatsApp), NO vender.
+// Además se anexan (si existen) la ficha de DATOS OFICIALES y la TEMPORADA activa.
 async function getPromptWeb() {
   let base = MISION_CAPTADOR;
   let extra = '';
+  let datos = '';
+  let campana = '';
   if (HAS_REDIS) {
     const propio = await redis(['GET', 'config:webprompt']);
     if (propio) base = propio;
@@ -59,8 +96,21 @@ async function getPromptWeb() {
       const club = raw ? (JSON.parse(raw) || {}) : {};
       if (club.login !== false) extra = REGLA_CUENTA;
     } catch (e) {}
+    // Ficha de datos oficiales del negocio: verdad absoluta para el bot (anti-invención)
+    const df = await redis(['GET', 'config:webdatos']);
+    if (df && String(df).trim()) {
+      datos = '\n\n## DATOS OFICIALES DEL NEGOCIO (única verdad; PROHIBIDO inventar lo que no esté aquí)\n' + String(df).trim();
+    }
+    // Temporada / campaña activa: instrucciones de estrategia del momento
+    try {
+      const t = await temporadaActiva();
+      if (t && t.extra && String(t.extra).trim()) {
+        campana = '\n\n## TEMPORADA ACTUAL: ' + String(t.nombre || 'campaña') +
+          '\nPrioriza estas indicaciones durante la campaña:\n' + String(t.extra).trim();
+      }
+    } catch (e) {}
   }
-  return base + REGLAS_WEB + extra;
+  return base + REGLAS_WEB + extra + datos + campana;
 }
 
 // Se anexa al prompt SOLO cuando el Club está activo (interruptor en panel → 👥 Club).
@@ -120,6 +170,7 @@ El cliente te escribe desde el chat de www.minimarketarakaki.com.
 - Esto es lo ÚNICO que cierras por aquí: para pedidos nuevos desde cero sigue orientando a la página de la categoría.
 
 ## Si no sabes algo
+- Si un dato NO está en DATOS OFICIALES ni en el catálogo, NO lo inventes ni lo supongas (horarios, delivery, zonas, precios, medios de pago, tiempos): mejor regístralo con registrar_consulta y deriva al WhatsApp.
 - registrar_consulta: si te preguntan un dato que no tienes o un producto que no encuentras, regístralo y dile al cliente que por WhatsApp (977 737 199) le damos respuesta personalizada.
 
 ## Estilo
@@ -454,7 +505,7 @@ async function ejecutarHerramienta(nombre, input, sid, uid) {
 }
 
 // Conversación con Claude + herramientas (loop tool_use → tool_result, como el asistente admin).
-async function venderConClaude(messages, systemPrompt, sid, uid) {
+async function venderConClaude(messages, systemPrompt, sid, uid, errMsg) {
   for (let vuelta = 0; vuelta < 5; vuelta++) {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -464,7 +515,7 @@ async function venderConClaude(messages, systemPrompt, sid, uid) {
     const data = await r.json();
     if (!r.ok) {
       console.error('Chat Claude error', JSON.stringify(data));
-      return 'Disculpa, tuve un problemita técnico 🙏 Escríbenos por WhatsApp al 977 737 199 y te atendemos al toque 📲';
+      return errMsg || 'Disculpa, tuve un problemita técnico 🙏 Escríbenos por WhatsApp al 977 737 199 y te atendemos al toque 📲';
     }
     messages.push({ role: 'assistant', content: data.content });
     if (data.stop_reason !== 'tool_use') {
@@ -537,16 +588,44 @@ module.exports = async (req, res) => {
           if (ui.subtitulo) out.subtitulo = String(ui.subtitulo).slice(0, 60);
         } catch (e) {}
       }
+      // La temporada/campaña activa PISA los textos base cuando los define (panel → 💬 Chat de la web)
+      try {
+        const t = await temporadaActiva();
+        if (t) {
+          if (t.saludo) out.saludo = String(t.saludo).slice(0, 500);
+          if (Array.isArray(t.botones) && t.botones.length) {
+            out.botones = t.botones.map((s) => String(s).slice(0, 48)).filter(Boolean).slice(0, 4);
+          }
+          if (t.invitacion) out.invitacion = String(t.invitacion).slice(0, 60);
+          if (t.subtitulo) out.subtitulo = String(t.subtitulo).slice(0, 60);
+        }
+      } catch (e) {}
     }
     res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
     return res.status(200).json(out);
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const APAGADO = 'Ahorita no estoy disponible por aquí 🙏 Escríbenos por WhatsApp al 977 737 199 y te atendemos al toque 📲';
+  // Mensajes de sistema editables (panel → 💬 Chat de la web, dentro de config:webchatui);
+  // si el dueño no los personalizó, se usan estos por defecto.
+  const DEF_APAGADO = 'Ahorita no estoy disponible por aquí 🙏 Escríbenos por WhatsApp al 977 737 199 y te atendemos al toque 📲';
+  const DEF_LIMITE = '¡Conversamos bastante! 😅 Mejor sigamos por WhatsApp al 977 737 199 para cerrar tu pedido 📲';
+  const DEF_ERROR = 'Disculpa, tuve un problemita técnico 🙏 Escríbenos por WhatsApp al 977 737 199 y te atendemos al toque 📲';
+  let msgApagado = DEF_APAGADO, msgLimite = DEF_LIMITE, msgError = DEF_ERROR;
+  if (HAS_REDIS) {
+    try {
+      const raw = await redis(['GET', 'config:webchatui']);
+      if (raw) {
+        const ui = JSON.parse(raw) || {};
+        if (ui.apagado) msgApagado = String(ui.apagado).slice(0, 300);
+        if (ui.limite) msgLimite = String(ui.limite).slice(0, 300);
+        if (ui.errtec) msgError = String(ui.errtec).slice(0, 300);
+      }
+    } catch (e) {}
+  }
   try {
-    if (!process.env.ANTHROPIC_API_KEY) return res.status(200).json({ reply: APAGADO });
-    if (HAS_REDIS && (await redis(['GET', 'config:webchat'])) === '0') return res.status(200).json({ reply: APAGADO });
+    if (!process.env.ANTHROPIC_API_KEY) return res.status(200).json({ reply: msgApagado });
+    if (HAS_REDIS && (await redis(['GET', 'config:webchat'])) === '0') return res.status(200).json({ reply: msgApagado });
 
     let b = req.body;
     if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } }
@@ -563,7 +642,7 @@ module.exports = async (req, res) => {
       if (nSid === 1) await redis(['EXPIRE', 'chatrl:s:' + hora + ':' + sid, '7200']);
       if (nIp === 1) await redis(['EXPIRE', 'chatrl:i:' + hora + ':' + ip, '7200']);
       if (Number(nSid) > 40 || Number(nIp) > 120) {
-        return res.status(429).json({ reply: '¡Conversamos bastante! 😅 Mejor sigamos por WhatsApp al 977 737 199 para cerrar tu pedido 📲' });
+        return res.status(429).json({ reply: msgLimite });
       }
       await redis(['INCR', 'stat:chatweb_msg']);
     }
@@ -571,14 +650,14 @@ module.exports = async (req, res) => {
     const messages = sanearMensajes(b.mensajes);
     if (!messages.length) return res.status(400).json({ error: 'Sin mensaje.' });
 
-    const texto = await venderConClaude(messages, await getPromptWeb(), sid, uid);
+    const texto = await venderConClaude(messages, await getPromptWeb(), sid, uid, msgError);
     // [[PUSH]] = el bot quiere ofrecer activar los avisos con un toque (botón en la web)
     const push = /\[\[PUSH\]\]/.test(texto);
     const { reply, sugerencias } = extraerSugerencias(texto.replace(/\[\[PUSH\]\]/g, '').trim());
     return res.status(200).json({ reply: reply || '¿Me repites porfa? 🙏', sugerencias, push });
   } catch (e) {
     console.error('chat error', e);
-    return res.status(200).json({ reply: APAGADO });
+    return res.status(200).json({ reply: msgError });
   }
 };
 
@@ -588,3 +667,4 @@ module.exports.resolverItems = resolverItems;
 module.exports.sanearMensajes = sanearMensajes;
 module.exports.registrarConsulta = registrarConsulta;
 module.exports.extraerSugerencias = extraerSugerencias;
+module.exports.enRangoMMDD = enRangoMMDD;

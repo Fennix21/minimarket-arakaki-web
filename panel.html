@@ -643,8 +643,59 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <div id="web-estado" style="font-size:12px;color:#aaa;margin-top:8px"></div>
       </div>
 
+      <div class="caja-bot">
+        <h3>📋 Datos oficiales del negocio</h3>
+        <p class="desc">Lo que el bot dará por CIERTO. Si algo no está aquí ni en el catálogo, NO lo inventa: lo deriva a tu WhatsApp. Esto es lo que más evita respuestas equivocadas.</p>
+        <div class="campo-bloque">
+          <label>Datos que el bot puede dar con seguridad</label>
+          <div class="hint">Horario · Delivery (zonas y costo) · Tiempo de entrega · Pedido mínimo · Medios de pago · Cambios/devoluciones · Cualquier dato clave.</div>
+          <textarea id="web-datos" style="min-height:140px" placeholder="Horario: Lun a Dom, 8am a 11pm&#10;Delivery: gratis desde S/ 30 en Pueblo Libre; S/ 3 en zonas cercanas&#10;Tiempo de entrega: 20 a 40 min&#10;Pedido mínimo: S/ 15&#10;Medios de pago: efectivo, Yape, Plin, tarjeta&#10;Cambios: hasta 24h con boleta"></textarea>
+        </div>
+      </div>
+
+      <div class="caja-bot">
+        <h3>📅 Temporadas / campañas</h3>
+        <p class="desc">Cambia toda la estrategia del chat en fechas especiales (Fiestas Patrias, Navidad, San Valentín…). Cada temporada tiene sus propios textos e instrucciones para el bot.</p>
+        <div class="campo-bloque">
+          <label>Temporada activa</label>
+          <div class="hint">"Automática por fechas" prende sola la que corresponda al día (hora de Lima). O elige una a mano.</div>
+          <select id="web-temp-activa" style="width:100%"></select>
+        </div>
+        <div id="web-temps"></div>
+        <button class="btn" type="button" onclick="nuevaTemporada()" style="margin-top:6px">➕ Nueva temporada</button>
+      </div>
+
+      <div class="caja-bot">
+        <h3>✍️ Mensajes del sistema</h3>
+        <p class="desc">Los textos automáticos del chat. Déjalos vacíos para usar los de por defecto.</p>
+        <div class="campo-bloque">
+          <label>Cuando el chat está apagado</label>
+          <input type="text" id="web-msg-apagado" maxlength="200" placeholder="Ahorita no estoy disponible por aquí 🙏 Escríbenos por WhatsApp al 977 737 199…" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Cuando se llega al límite de mensajes</label>
+          <input type="text" id="web-msg-limite" maxlength="200" placeholder="¡Conversamos bastante! 😅 Mejor sigamos por WhatsApp al 977 737 199…" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Cuando hay un error técnico</label>
+          <input type="text" id="web-msg-error" maxlength="200" placeholder="Disculpa, tuve un problemita técnico 🙏 Escríbenos por WhatsApp…" style="width:100%">
+        </div>
+      </div>
+
       <div class="fila-conf">
         <button class="btn" onclick="guardarWebchat()">💾 Guardar chat de la web</button>
+      </div>
+
+      <div class="caja-bot">
+        <h3>🧪 Probar el chat</h3>
+        <p class="desc">Conversa con el bot como si fueras un cliente y revisa que no invente datos. Prueba la configuración <b>ya guardada</b> (guarda primero).</p>
+        <div id="web-test-log" style="min-height:110px;max-height:300px;overflow:auto;border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:10px;font-size:14px"></div>
+        <div id="web-test-sug" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="web-test-in" placeholder="Escribe un mensaje de prueba…" style="flex:1" onkeydown="if(event.key==='Enter')probarChat()">
+          <button class="btn" type="button" onclick="probarChat()">Enviar</button>
+          <button class="btn" type="button" onclick="reiniciarPrueba()" title="Empezar de nuevo">🔄</button>
+        </div>
       </div>
     </div>
 
@@ -1580,7 +1631,8 @@ function cargarBot() {
   cargarPush();
   cargarCorreo();
 }
-// --- Chat de la web (on/off + textos + cerebro propio, independiente de WhatsApp) ---
+// --- Chat de la web (on/off + textos + cerebro propio + datos oficiales + temporadas) ---
+var WEB_TEMPS = [];
 function cargarWebchat() {
   api('getwebchat').then(function (j) {
     document.getElementById('conf-webchat').checked = j.on !== false;
@@ -1589,10 +1641,109 @@ function cargarWebchat() {
     document.getElementById('web-invitacion').value = j.invitacion || '';
     document.getElementById('web-subtitulo').value = j.subtitulo || '';
     document.getElementById('web-prompt').value = j.prompt || '';
+    document.getElementById('web-datos').value = j.datos || '';
+    document.getElementById('web-msg-apagado').value = j.apagado || '';
+    document.getElementById('web-msg-limite').value = j.limite || '';
+    document.getElementById('web-msg-error').value = j.errtec || '';
     document.getElementById('web-estado').textContent = j.prompt
       ? '🧠 Cerebro PROPIO: el chat web es independiente de WhatsApp.'
       : 'ℹ️ Sin cerebro propio: usa el de WhatsApp (enfoque vendedor).';
+    WEB_TEMPS = (Array.isArray(j.temporadas) ? j.temporadas : []).map(function (t) {
+      t = t || {};
+      return { id: t.id || ('t' + Math.random().toString(36).slice(2, 8)), nombre: t.nombre || '',
+        desde: t.desde || '', hasta: t.hasta || '', saludo: t.saludo || '',
+        botones: Array.isArray(t.botones) ? t.botones : [], subtitulo: t.subtitulo || '',
+        invitacion: t.invitacion || '', extra: t.extra || '' };
+    });
+    pintarTemporadas();
+    renTempSelector();
+    document.getElementById('web-temp-activa').value = j.temporada || '';
   }).catch(function () {});
+}
+// dd/mm <-> MM-DD (guardamos MM-DD; mostramos dd/mm, más natural para el dueño)
+function mmddToDDMM(v) { return /^\d{2}-\d{2}$/.test(v || '') ? (v.slice(3) + '/' + v.slice(0, 2)) : ''; }
+function ddmmToMMDD(v) {
+  var m = String(v || '').trim().match(/^(\d{1,2})[\/\-.](\d{1,2})$/);
+  if (!m) return '';
+  var d = ('0' + m[1]).slice(-2), mo = ('0' + m[2]).slice(-2);
+  if (+mo < 1 || +mo > 12 || +d < 1 || +d > 31) return '';
+  return mo + '-' + d;
+}
+function pintarTemporadas() {
+  var cont = document.getElementById('web-temps');
+  if (!WEB_TEMPS.length) { cont.innerHTML = '<p class="hint" style="margin:8px 0">Aún no tienes temporadas. Crea una para tener lista tu campaña.</p>'; return; }
+  cont.innerHTML = WEB_TEMPS.map(function (t) {
+    return '<div class="temp-card" data-id="' + esc(t.id) + '" style="border:1px solid rgba(128,128,128,.35);border-radius:10px;padding:12px;margin:10px 0">' +
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">' +
+        '<input type="text" class="t-nombre" maxlength="40" placeholder="Nombre (ej. Fiestas Patrias)" value="' + esc(t.nombre) + '" style="flex:1;font-weight:600" oninput="renTempSelector()">' +
+        '<button class="btn" type="button" onclick="quitarTemporada(\'' + esc(t.id) + '\')" title="Quitar" style="background:#7c0f14;color:#fff">🗑</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<label style="flex:1;font-size:12px">Desde (dd/mm)<input type="text" class="t-desde" maxlength="5" placeholder="01/07" value="' + esc(mmddToDDMM(t.desde)) + '" style="width:100%"></label>' +
+        '<label style="flex:1;font-size:12px">Hasta (dd/mm)<input type="text" class="t-hasta" maxlength="5" placeholder="28/07" value="' + esc(mmddToDDMM(t.hasta)) + '" style="width:100%"></label>' +
+      '</div>' +
+      '<div class="hint">Deja las fechas vacías si solo la activarás a mano.</div>' +
+      '<label style="font-size:12px;display:block;margin-top:6px">Bienvenida (opcional)</label>' +
+      '<textarea class="t-saludo" style="min-height:56px;width:100%" placeholder="Reemplaza la bienvenida durante la campaña">' + esc(t.saludo) + '</textarea>' +
+      '<label style="font-size:12px;display:block;margin-top:6px">Botones iniciales (uno por línea, máx 4)</label>' +
+      '<textarea class="t-botones" style="min-height:56px;width:100%" placeholder="🇵🇪 Ofertas de Fiestas Patrias&#10;🛒 Quiero hacer un pedido">' + esc((t.botones || []).join('\n')) + '</textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:6px">' +
+        '<label style="flex:1;font-size:12px">Subtítulo (opcional)<input type="text" class="t-subtitulo" maxlength="60" value="' + esc(t.subtitulo) + '" style="width:100%"></label>' +
+        '<label style="flex:1;font-size:12px">Burbuja del gato (opcional)<input type="text" class="t-invitacion" maxlength="60" value="' + esc(t.invitacion) + '" style="width:100%"></label>' +
+      '</div>' +
+      '<label style="font-size:12px;display:block;margin-top:6px">Instrucciones extra para el bot</label>' +
+      '<textarea class="t-extra" style="min-height:80px;width:100%" placeholder="Ej.: Es Fiestas Patrias. Saluda con orgullo peruano, resalta ofertas de cervezas y parrilla, e invita a activar los avisos para no perderse las promos del 28.">' + esc(t.extra) + '</textarea>' +
+    '</div>';
+  }).join('');
+}
+// Lee las tarjetas del DOM hacia WEB_TEMPS (guarda MM-DD) — antes de agregar/quitar/guardar.
+function sincTemps() {
+  var cards = document.querySelectorAll('#web-temps .temp-card');
+  var arr = [];
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i];
+    var q = function (s) { var el = c.querySelector(s); return el ? el.value : ''; };
+    arr.push({
+      id: c.getAttribute('data-id'),
+      nombre: q('.t-nombre').trim(),
+      desde: ddmmToMMDD(q('.t-desde')),
+      hasta: ddmmToMMDD(q('.t-hasta')),
+      saludo: q('.t-saludo'),
+      botones: q('.t-botones').split('\n').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 4),
+      subtitulo: q('.t-subtitulo'),
+      invitacion: q('.t-invitacion'),
+      extra: q('.t-extra'),
+    });
+  }
+  WEB_TEMPS = arr;
+}
+// Repuebla el selector "Temporada activa" leyendo los nombres actuales del DOM (sin perder selección).
+function renTempSelector() {
+  var sel = document.getElementById('web-temp-activa');
+  var actual = sel.value;
+  var cards = document.querySelectorAll('#web-temps .temp-card');
+  var opts = '<option value="">Ninguna (normal)</option><option value="auto">Automática por fechas</option>';
+  var ids = {};
+  for (var i = 0; i < cards.length; i++) {
+    var id = cards[i].getAttribute('data-id');
+    var nom = (cards[i].querySelector('.t-nombre').value || '').trim() || '(sin nombre)';
+    ids[id] = true;
+    opts += '<option value="' + esc(id) + '">' + esc(nom) + '</option>';
+  }
+  sel.innerHTML = opts;
+  sel.value = (actual === 'auto' || actual === '' || ids[actual]) ? actual : '';
+}
+function nuevaTemporada() {
+  sincTemps();
+  WEB_TEMPS.push({ id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), nombre: '', desde: '', hasta: '', saludo: '', botones: [], subtitulo: '', invitacion: '', extra: '' });
+  pintarTemporadas();
+  renTempSelector();
+}
+function quitarTemporada(id) {
+  sincTemps();
+  WEB_TEMPS = WEB_TEMPS.filter(function (t) { return t.id !== id; });
+  pintarTemporadas();
+  renTempSelector();
 }
 function avisoWeb(t, mal) {
   var a = document.getElementById('web-aviso');
@@ -1601,6 +1752,7 @@ function avisoWeb(t, mal) {
   setTimeout(function () { a.className = 'aviso'; }, 4000);
 }
 function guardarWebchat() {
+  sincTemps();
   api('setwebchat', {
     on: document.getElementById('conf-webchat').checked,
     saludo: document.getElementById('web-saludo').value,
@@ -1608,12 +1760,58 @@ function guardarWebchat() {
     invitacion: document.getElementById('web-invitacion').value,
     subtitulo: document.getElementById('web-subtitulo').value,
     prompt: document.getElementById('web-prompt').value,
+    datos: document.getElementById('web-datos').value,
+    temporadas: WEB_TEMPS,
+    temporada: document.getElementById('web-temp-activa').value,
+    apagado: document.getElementById('web-msg-apagado').value,
+    limite: document.getElementById('web-msg-limite').value,
+    errtec: document.getElementById('web-msg-error').value,
   }).then(function (j) {
     avisoWeb((j.on ? '✅ Guardado. ' : '✅ Guardado (chat OCULTO en la web). ') +
       'Cerebro: ' + (j.usaWhatsapp ? 'el de WhatsApp (vendedor)' : 'PROPIO del chat web') + '. Se ve en ~1 min.');
     cargarWebchat();
   }).catch(function (e) { avisoWeb(e.message, true); });
 }
+// --- Probar el chat: conversa contra /api/chat (usa la config YA guardada) ---
+var WEB_TEST_MSGS = [];
+var WEB_TEST_SID = 'panel' + Math.random().toString(36).slice(2, 10);
+function pintarPrueba() {
+  var log = document.getElementById('web-test-log');
+  if (!WEB_TEST_MSGS.length) { log.innerHTML = '<span class="hint">Escribe abajo para probar cómo responde el bot.</span>'; return; }
+  log.innerHTML = WEB_TEST_MSGS.map(function (m) {
+    var mine = m.role === 'user';
+    return '<div style="margin:4px 0;text-align:' + (mine ? 'right' : 'left') + '">' +
+      '<span style="display:inline-block;max-width:85%;padding:6px 10px;border-radius:12px;white-space:pre-wrap;' +
+      (mine ? 'background:#2b6cb0;color:#fff' : 'background:rgba(128,128,128,.2)') + '">' + esc(m.text) + '</span></div>';
+  }).join('');
+  log.scrollTop = log.scrollHeight;
+}
+function probarChatCon(t) { document.getElementById('web-test-in').value = t; probarChat(); }
+function probarChat() {
+  var inp = document.getElementById('web-test-in');
+  var t = (inp.value || '').trim();
+  if (!t) return;
+  inp.value = '';
+  document.getElementById('web-test-sug').innerHTML = '';
+  WEB_TEST_MSGS.push({ role: 'user', text: t });
+  pintarPrueba();
+  fetch('/api/chat', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ sid: WEB_TEST_SID, mensajes: WEB_TEST_MSGS.map(function (m) { return { role: m.role, text: m.text }; }) }),
+  }).then(function (r) { return r.json(); }).then(function (j) {
+    WEB_TEST_MSGS.push({ role: 'assistant', text: j.reply || '(sin respuesta)' });
+    pintarPrueba();
+    var chips = (j.sugerencias || []).map(function (s) {
+      return '<button class="btn" type="button" style="font-size:12px;padding:4px 10px" onclick="probarChatCon(' + esc(JSON.stringify(s)) + ')">' + esc(s) + '</button>';
+    });
+    if (j.push) chips.push('<span class="hint" style="align-self:center">🔔 (aquí ofrecería activar avisos)</span>');
+    document.getElementById('web-test-sug').innerHTML = chips.join('');
+  }).catch(function () {
+    WEB_TEST_MSGS.push({ role: 'assistant', text: '⚠️ No se pudo conectar con el chat. ¿Guardaste los cambios? ¿Está la API key configurada?' });
+    pintarPrueba();
+  });
+}
+function reiniciarPrueba() { WEB_TEST_MSGS = []; document.getElementById('web-test-sug').innerHTML = ''; pintarPrueba(); }
 // --- Textos del sitio (lema del header + footer): config:sitio, los lee /api/sitio ---
 var SITIO_CAMPOS = {
   lema: 'sitio-lema', visitanosTit: 'sitio-vtit', direccion: 'sitio-dir', referencia: 'sitio-ref',

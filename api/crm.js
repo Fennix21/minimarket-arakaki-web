@@ -543,6 +543,11 @@ module.exports = async (req, res) => {
       if (raw) { try { ui = JSON.parse(raw) || {}; } catch (e) {} }
       const webprompt = await redis(['GET', 'config:webprompt']);
       const webchat = await redis(['GET', 'config:webchat']);
+      const datos = await redis(['GET', 'config:webdatos']);
+      const traw = await redis(['GET', 'config:webtemporadas']);
+      let temporadas = [];
+      if (traw) { try { temporadas = JSON.parse(traw) || []; } catch (e) { temporadas = []; } }
+      const temporada = await redis(['GET', 'config:webtemporada']);
       return res.status(200).json({
         on: webchat !== '0',
         saludo: ui.saludo || '',
@@ -550,25 +555,65 @@ module.exports = async (req, res) => {
         invitacion: ui.invitacion || '',
         subtitulo: ui.subtitulo || '',
         prompt: webprompt || '',
+        datos: datos || '',
+        temporadas: Array.isArray(temporadas) ? temporadas : [],
+        temporada: temporada || '',
+        apagado: ui.apagado || '',
+        limite: ui.limite || '',
+        errtec: ui.errtec || '',
       });
     }
     if (b.action === 'setwebchat') {
       const txt = (s, n) => (s == null ? '' : String(s)).trim().slice(0, n);
+      const mmdd = (s) => { const v = txt(s, 5); return /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v) ? v : ''; };
       const ui = {};
       const saludo = txt(b.saludo, 500);
       const invitacion = txt(b.invitacion, 60);
       const subtitulo = txt(b.subtitulo, 60);
       const botones = (Array.isArray(b.botones) ? b.botones : []).map((s) => txt(s, 48)).filter(Boolean).slice(0, 4);
+      const apagado = txt(b.apagado, 200);
+      const limite = txt(b.limite, 200);
+      const errtec = txt(b.errtec, 200);
       if (saludo) ui.saludo = saludo;
       if (botones.length) ui.botones = botones;
       if (invitacion) ui.invitacion = invitacion;
       if (subtitulo) ui.subtitulo = subtitulo;
+      if (apagado) ui.apagado = apagado;
+      if (limite) ui.limite = limite;
+      if (errtec) ui.errtec = errtec;
       // Campo vacío = la web vuelve a su texto por defecto (nada queda guardado de más)
       if (Object.keys(ui).length) await redis(['SET', 'config:webchatui', JSON.stringify(ui)]);
       else await redis(['DEL', 'config:webchatui']);
       const webprompt = txt(b.prompt, 20000);
       if (webprompt) await redis(['SET', 'config:webprompt', webprompt]);
       else await redis(['DEL', 'config:webprompt']);
+      // Ficha de datos oficiales del negocio (verdad para el bot, anti-invención)
+      const datos = txt(b.datos, 4000);
+      if (datos) await redis(['SET', 'config:webdatos', datos]);
+      else await redis(['DEL', 'config:webdatos']);
+      // Temporadas / campañas: cada una con sus textos + instrucciones + fechas (MM-DD)
+      const temporadas = (Array.isArray(b.temporadas) ? b.temporadas : []).slice(0, 12).map((t) => {
+        t = t || {};
+        const tb = (Array.isArray(t.botones) ? t.botones : []).map((s) => txt(s, 48)).filter(Boolean).slice(0, 4);
+        return {
+          id: txt(t.id, 24) || ('t' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)),
+          nombre: txt(t.nombre, 40),
+          desde: mmdd(t.desde),
+          hasta: mmdd(t.hasta),
+          saludo: txt(t.saludo, 500),
+          botones: tb,
+          subtitulo: txt(t.subtitulo, 60),
+          invitacion: txt(t.invitacion, 60),
+          extra: txt(t.extra, 3000),
+        };
+      }).filter((t) => t.nombre);
+      if (temporadas.length) await redis(['SET', 'config:webtemporadas', JSON.stringify(temporadas)]);
+      else await redis(['DEL', 'config:webtemporadas']);
+      // Temporada activa: '' ninguna · 'auto' por fechas · '<id>' forzada a mano
+      let temporada = txt(b.temporada, 24);
+      if (temporada && temporada !== 'auto' && !temporadas.some((t) => t.id === temporada)) temporada = '';
+      if (temporada) await redis(['SET', 'config:webtemporada', temporada]);
+      else await redis(['DEL', 'config:webtemporada']);
       // El interruptor on/off del chat web ahora vive aquí (antes en setnotify)
       const on = b.on !== false;
       await redis(['SET', 'config:webchat', on ? '1' : '0']);
