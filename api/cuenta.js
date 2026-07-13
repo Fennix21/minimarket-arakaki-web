@@ -2,8 +2,11 @@
 // Cada función se prende/apaga desde el panel (👥 Club → config:club). El PIN se guarda SOLO
 // como hash (scrypt + salt por cliente); la sesión es un token aleatorio en Redis (sess:<token>).
 //   GET  sin token      -> { on, funciones }                (caché CDN 60s; site.js decide si muestra "Mi cuenta")
-//   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, promos, sorteos)
-//   POST { action: 'crear'|'entrar'|'salir'|'fav'|'sorteo'|'visita', ... }
+//   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, promos, sorteos,
+//                                                            email, foto, direcciones y preguntas con respuesta)
+//   POST { action: 'crear'|'entrar'|'salir'|'recuperar'                          (sin sesión)
+//                 |'fav'|'sorteo'|'visita'                                       (beneficios)
+//                 |'perfil'|'foto'|'dirs'|'pin'|'pregunta', ... }                (editar mi cuenta)
 
 const crypto = require('crypto');
 const { PRODUCTOS } = require('./_catalogo');
@@ -147,6 +150,19 @@ async function guardarCliente(tel, cli) {
 
 function vigente(x) { return !x.hasta || Date.now() <= Number(x.hasta); }
 
+// Preguntas de ESTE cliente (lista global `preguntas`; el dueño responde en el panel → ❓ Consultas)
+async function preguntasDe(tel) {
+  const raws = (await redis(['LRANGE', 'preguntas', '0', '199'])) || [];
+  const out = [];
+  for (const r of raws) {
+    let q; try { q = JSON.parse(r); } catch (e) { continue; }
+    if (q.tel !== tel) continue;
+    out.push({ id: q.id, pregunta: q.pregunta, ts: q.ts, respuesta: q.respuesta || '', respTs: q.respTs || null });
+    if (out.length >= 10) break;
+  }
+  return out;
+}
+
 async function perfilCompleto(tel, cli, club) {
   const vivos = await getPreciosVivos();
 
@@ -195,12 +211,17 @@ async function perfilCompleto(tel, cli, club) {
     conocido: true,
     nombre: cli.nombre || '',
     telefono: tel,
+    email: cli.email || '',
+    foto: cli.foto || '',
+    direccion: cli.direccion || '',
+    direcciones: Array.isArray(cli.direcciones) ? cli.direcciones : [],
     pedidos: Number(cli.pedidos) || 0,
     puntos: Number(cli.puntos) || 0,
     favs,
     habitual,
     promos,
     sorteos,
+    preguntas: await preguntasDe(tel),
   };
 }
 
@@ -316,6 +337,34 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    // ----- Recuperar cuenta con el correo registrado (resetea el PIN y entra de una) -----
+    if (b.action === 'recuperar') {
+      const telR = normTel(b.telefono);
+      const email = limpio(b.email, 80).toLowerCase();
+      const pin = limpio(b.pin, 6);
+      if (!telR || !email) return res.status(400).json({ error: 'Ingresa tu celular y el correo que registraste en tu cuenta.' });
+      if (!/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'El PIN nuevo debe tener de 4 a 6 números.' });
+      if (await frenoPin(req, telR)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
+      const cliR = await cargarCliente(telR);
+      // Mensaje genérico a propósito: no revela qué dato falló
+      if (!cliR || !cliR.pinHash || !cliR.email || String(cliR.email).toLowerCase() !== email) {
+        return res.status(400).json({ error: 'Los datos no coinciden. Revisa tu celular y el correo que registraste (o pídenos ayuda por WhatsApp).' });
+      }
+      cliR.pinSalt = crypto.randomBytes(8).toString('hex');
+      cliR.pinHash = hashPin(pin, cliR.pinSalt);
+      // Se cierran TODAS las sesiones anteriores (por si alguien más tenía la cuenta abierta)
+      for (const t of (Array.isArray(cliR.sess) ? cliR.sess : [])) await redis(['DEL', 'sess:' + t]);
+      cliR.sess = [];
+      const nuevoToken = await crearSesion(cliR, telR, uid);
+      await guardarCliente(telR, cliR);
+      await notifyOwner('🔓 *Cuenta recuperada con correo (web)*\n👤 ' + (cliR.nombre || 'Cliente') + ' (+' + telR + ')' +
+        '\nCambió su PIN usando su correo registrado. Si no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
+      const perfil = await perfilCompleto(telR, cliR, club);
+      perfil.on = true;
+      perfil.funciones = funcionesDe(club);
+      return res.status(200).json({ ok: true, token: nuevoToken, perfil });
+    }
+
     // Lo que sigue requiere sesión válida
     const tel = await telDeSesion(token);
     const cli = tel ? await cargarCliente(tel) : null;
@@ -359,6 +408,75 @@ module.exports = async (req, res) => {
       await redis(['ZADD', 'sorteo:' + id, 'NX', String(Date.now()), tel]);
       await redis(['INCR', 'stat:club_sorteo']);
       return res.status(200).json({ ok: true, participando: true });
+    }
+
+    // ----- Editar mis datos (nombre y correo; el correo habilita la recuperación) -----
+    if (b.action === 'perfil') {
+      const nombre = limpio(b.nombre, 60);
+      const email = limpio(b.email, 80).toLowerCase();
+      if (!nombre || nombre.length < 2) return res.status(400).json({ error: 'Cuéntanos tu nombre 🙂' });
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return res.status(400).json({ error: 'Revisa tu correo: parece incompleto.' });
+      cli.nombre = nombre;
+      cli.email = email; // vacío = lo quita (pierde la recuperación por correo)
+      await guardarCliente(tel, cli);
+      return res.status(200).json({ ok: true, nombre, email });
+    }
+
+    // ----- Foto de perfil (dataURL chiquito, ya comprimido por el navegador a 144px) -----
+    if (b.action === 'foto') {
+      const foto = String(b.foto || '');
+      if (foto && (!/^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(foto) || foto.length > 90000)) {
+        return res.status(400).json({ error: 'No pudimos leer esa foto. Prueba con otra imagen 🙏' });
+      }
+      if (foto) cli.foto = foto; else delete cli.foto;
+      await guardarCliente(tel, cli);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ----- Direcciones de entrega (principal + hasta 5 adicionales; las usa el carrito) -----
+    if (b.action === 'dirs') {
+      const principal = limpio(b.direccion, 200);
+      const otras = (Array.isArray(b.direcciones) ? b.direcciones : [])
+        .map((d) => limpio(d, 200)).filter(Boolean).slice(0, 5);
+      cli.direccion = principal;
+      cli.direcciones = otras;
+      await guardarCliente(tel, cli);
+      return res.status(200).json({ ok: true, direccion: principal, direcciones: otras });
+    }
+
+    // ----- Cambiar mi PIN (pide el actual; cierra las demás sesiones por seguridad) -----
+    if (b.action === 'pin') {
+      const nuevo = limpio(b.pinNuevo, 6);
+      if (!/^\d{4,6}$/.test(nuevo)) return res.status(400).json({ error: 'El PIN nuevo debe tener de 4 a 6 números.' });
+      if (await frenoPin(req, tel)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
+      if (!pinCorrecto(limpio(b.pinActual, 6), cli)) return res.status(400).json({ error: 'Tu PIN actual no coincide.' });
+      cli.pinSalt = crypto.randomBytes(8).toString('hex');
+      cli.pinHash = hashPin(nuevo, cli.pinSalt);
+      const vivas = Array.isArray(cli.sess) ? cli.sess : [];
+      for (const t of vivas) if (t !== token) await redis(['DEL', 'sess:' + t]);
+      cli.sess = vivas.indexOf(token) >= 0 ? [token] : [];
+      await guardarCliente(tel, cli);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ----- Pregunta al negocio (el dueño responde desde el panel → ❓ Consultas) -----
+    if (b.action === 'pregunta') {
+      const texto = limpio(b.texto, 400);
+      if (!texto || texto.length < 5) return res.status(400).json({ error: 'Cuéntanos tu pregunta con un poquito más de detalle 🙂' });
+      const kDia = 'pregrl:' + diaLima(Date.now()) + ':' + tel; // máx 5 por día por cliente
+      const n = await redis(['INCR', kDia]);
+      if (Number(n) === 1) await redis(['EXPIRE', kDia, '90000']);
+      if (Number(n) > 5) return res.status(429).json({ error: 'Ya nos dejaste 5 preguntas hoy 🙌 Te respondemos pronto; mañana puedes hacer más.' });
+      const q = {
+        id: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        tel, nombre: cli.nombre || '', pregunta: texto, ts: Date.now(),
+      };
+      await redis(['LPUSH', 'preguntas', JSON.stringify(q)]);
+      await redis(['LTRIM', 'preguntas', '0', '199']);
+      await redis(['INCR', 'stat:club_pregunta']);
+      await notifyOwner('❓ *Pregunta del Club (web)*\n👤 ' + (cli.nombre || 'Cliente') + ' (+' + tel + ')\n💬 ' + texto +
+        '\n\nRespóndele en el panel 👉 /panel (❓ Consultas): la verá en su cuenta.');
+      return res.status(200).json({ ok: true, pregunta: { id: q.id, pregunta: q.pregunta, ts: q.ts, respuesta: '', respTs: null } });
     }
 
     // ----- Visita del día (recurrencia; el navegador la manda 1 vez por día) -----

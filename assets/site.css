@@ -440,6 +440,8 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   border: 1.5px solid rgba(212, 169, 65, 0.6); border-radius: 10px; overflow: hidden; background: #fdf8ec;
 }
 .car-dir-chip.activo { border-color: var(--dorado); background: #f7e9c3; }
+/* Chips 👤 = direcciones de la cuenta del Club (se administran en /mi-cuenta) */
+.car-dir-chip.cuenta { border-style: dashed; background: #fbf3dd; }
 .car-dir-chip .cdc-usar {
   border: none; background: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
   color: #5a4310; padding: 8px 10px; text-align: left; max-width: 250px;
@@ -865,14 +867,21 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .ct-tab.activo { background: linear-gradient(180deg, #f6d98a, #d4a941); color: #3a2708; border-color: var(--dorado); }
 
-/* Formulario de acceso */
-.cuenta-acceso label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: #cfc4a8; margin: 12px 0 6px; }
-.cuenta-acceso input {
+/* Formularios de la cuenta (acceso + Mis datos, direcciones, PIN, preguntas) */
+.cuenta-acceso label, .cuenta-form label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: #cfc4a8; margin: 12px 0 6px; }
+.cuenta-acceso input, .cuenta-form input:not([type=checkbox]):not([type=file]), .cuenta-form textarea {
   width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 12px;
   background: rgba(255, 255, 255, 0.06); color: #f4ebd6;
   border: 1.5px solid rgba(212, 169, 65, 0.35); font-size: 16px; outline: none;
 }
-.cuenta-acceso input:focus { border-color: var(--dorado); box-shadow: 0 0 0 3px rgba(212, 169, 65, 0.16); }
+.cuenta-form textarea { resize: vertical; font-family: inherit; margin-top: 8px; }
+.cuenta-acceso input:focus, .cuenta-form input:focus, .cuenta-form textarea:focus { border-color: var(--dorado); box-shadow: 0 0 0 3px rgba(212, 169, 65, 0.16); }
+/* Check "Mantener mi sesión iniciada" */
+label.ct-check {
+  display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: #e4dcc6;
+  text-transform: none; letter-spacing: 0; font-weight: 600; margin: 14px 0 0; cursor: pointer;
+}
+label.ct-check input { width: 17px; height: 17px; margin: 0; accent-color: var(--dorado); cursor: pointer; flex: none; }
 .ct-error { color: #ff9d8f; font-size: 13.5px; min-height: 18px; margin: 10px 0 4px; }
 .ct-enviar {
   display: block; width: 100%; box-sizing: border-box; margin-top: 8px;
@@ -930,6 +939,62 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
   background: transparent; color: #cfc4a8; border: 1.5px solid rgba(212, 169, 65, 0.3); font-size: 13px;
 }
 .cfav-x:hover { color: #ff9d8f; border-color: #ff9d8f; }
+
+/* Saludo con foto de perfil */
+.ch-cab { display: flex; align-items: center; gap: 14px; }
+.ch-foto {
+  width: 58px; height: 58px; border-radius: 50%; object-fit: cover; flex: none;
+  border: 2px solid var(--dorado); box-shadow: 0 0 14px rgba(212, 169, 65, 0.25);
+}
+span.ch-foto-vacia {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(212, 169, 65, 0.14); font-size: 26px;
+}
+
+/* Nota informativa (beneficios del correo) */
+.ct-nota {
+  font-size: 13px !important; line-height: 1.55; color: #e4dcc6;
+  background: rgba(212, 169, 65, 0.08); border-left: 3px solid var(--dorado);
+  border-radius: 0 10px 10px 0; padding: 10px 12px; margin: 12px 0 4px;
+}
+.ct-nota b { color: #f2d894; }
+
+/* Botón chico dorado (subir foto, direcciones) */
+.ct-mini {
+  cursor: pointer; background: rgba(212, 169, 65, 0.16); color: #f2d894;
+  border: 1.5px solid rgba(212, 169, 65, 0.6); border-radius: 10px;
+  padding: 7px 12px; font-size: 12.5px; font-weight: 700; font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ct-mini:hover { background: rgba(212, 169, 65, 0.3); color: #fff9ec; border-color: var(--dorado); }
+.ct-mini:disabled { opacity: 0.6; cursor: default; }
+
+/* Fila de la foto de perfil en Mis datos */
+.cd-foto-fila { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+.cd-foto-fila .ch-foto { width: 68px; height: 68px; }
+.cd-foto-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Mis direcciones de entrega */
+.cdir {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1.5px solid rgba(212, 169, 65, 0.28); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 10px; font-size: 13.5px; line-height: 1.4;
+}
+.cdir.principal { border-color: var(--dorado); background: rgba(212, 169, 65, 0.08); }
+.cdir-txt { flex: 1; min-width: 0; overflow-wrap: break-word; }
+.cdir-txt small { color: var(--dorado); font-weight: 700; white-space: nowrap; }
+.cdir-btns { display: flex; gap: 6px; flex: none; }
+
+/* Mis preguntas al negocio */
+.cpreg { border: 1.5px solid rgba(212, 169, 65, 0.28); border-radius: 12px; padding: 11px 13px; margin-top: 10px; }
+.cpreg p { margin: 0; font-size: 14px; }
+.cpreg small { color: var(--dorado); font-size: 11.5px; white-space: nowrap; }
+.cq-q { font-weight: 600; }
+.cq-r {
+  margin-top: 8px !important; padding: 8px 10px; border-radius: 8px;
+  background: rgba(212, 169, 65, 0.12); color: #f4ebd6;
+}
+.cq-esp { margin-top: 6px !important; opacity: 0.7; font-size: 13px !important; }
 
 /* Botón "Mi cuenta" del chat (variante perfilada del pastel dorado) */
 .chat-opt.cuenta { border-style: dashed; }

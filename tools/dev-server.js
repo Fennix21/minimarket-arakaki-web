@@ -41,13 +41,27 @@ http.createServer((req, res) => {
       const funciones = { favoritos: true, puntos: true, promos: true, sorteos: true };
       const perfil = {
         on: true, conocido: true, funciones, nombre: 'Cliente de prueba', telefono: '51999999999',
+        email: 'prueba@correo.com', foto: '',
+        direccion: 'Av. Prueba 123, San Isidro (portón verde)',
+        direcciones: ['Calle Los Pinos 456, Miraflores'],
         pedidos: 3, puntos: 120,
         favs: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105 }],
         habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
         promos: [{ id: 'cp1', titulo: 'Promo de prueba', texto: '2x1 en helados solo para el Club (dev)' }],
         sorteos: [{ id: 'so1', titulo: 'Sorteo de prueba', premio: 'Canasta Arakaki', participando: false }],
+        preguntas: [
+          { id: 'q2', pregunta: '¿Hacen delivery los domingos?', ts: Date.now() - 3600000, respuesta: '', respTs: null },
+          { id: 'q1', pregunta: '¿Tienen pisco quebranta?', ts: Date.now() - 86400000, respuesta: '¡Sí! Nos llega el viernes 🙌', respTs: Date.now() - 7200000 },
+        ],
       };
-      if (req.method === 'POST') return res.end(JSON.stringify({ ok: true, token: 'sdevtoken', perfil, favs: perfil.favs.map(f => f.name), participando: true }));
+      if (req.method === 'POST') {
+        return res.end(JSON.stringify({
+          ok: true, token: 'sdevtoken', perfil, favs: perfil.favs.map(f => f.name), participando: true,
+          nombre: 'Cliente de prueba', email: 'prueba@correo.com',
+          direccion: perfil.direccion, direcciones: perfil.direcciones,
+          pregunta: { id: 'q' + Date.now().toString(36), pregunta: '(pregunta de prueba)', ts: Date.now(), respuesta: '', respTs: null },
+        }));
+      }
       const conToken = (req.url || '').indexOf('token=') >= 0;
       return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones }));
     }

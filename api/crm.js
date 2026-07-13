@@ -8,6 +8,7 @@
 //   rename / note / tags / clearchat / delete
 //   pedidos                   -> pedidos hechos desde la web  · pedidoestado { id, estado }
 //   consultas                 -> preguntas que el chat web no pudo responder · consultadel { id }
+//   preguntas                 -> preguntas del Club (/mi-cuenta) · pregresp { id, respuesta } · pregdel { id }
 //   clientes                  -> registros del Club Arakaki   · clientedel { telefono }
 //   stats                     -> analítica del sitio
 //   getprompt / setprompt / resetprompt / setnotify / getwebchat / setwebchat
@@ -252,6 +253,38 @@ module.exports = async (req, res) => {
         }
       }
       return res.status(404).json({ error: 'Consulta no encontrada.' });
+    }
+
+    // --- Preguntas del Club (las deja el cliente logueado en /mi-cuenta; la respuesta la ve en su panel) ---
+    if (b.action === 'preguntas') {
+      const raws = (await redis(['LRANGE', 'preguntas', '0', '199'])) || [];
+      const preguntas = [];
+      for (const r of raws) { try { preguntas.push(JSON.parse(r)); } catch (e) {} }
+      return res.status(200).json({ preguntas });
+    }
+    if (b.action === 'pregresp') {
+      const raws = (await redis(['LRANGE', 'preguntas', '0', '199'])) || [];
+      for (let i = 0; i < raws.length; i++) {
+        let q; try { q = JSON.parse(raws[i]); } catch (e) { continue; }
+        if (q.id === b.id) {
+          q.respuesta = String(b.respuesta || '').trim().slice(0, 500);
+          q.respTs = q.respuesta ? Date.now() : null;
+          await redis(['LSET', 'preguntas', String(i), JSON.stringify(q)]);
+          return res.status(200).json({ ok: true });
+        }
+      }
+      return res.status(404).json({ error: 'Pregunta no encontrada.' });
+    }
+    if (b.action === 'pregdel') {
+      const raws = (await redis(['LRANGE', 'preguntas', '0', '199'])) || [];
+      for (const r of raws) {
+        let q; try { q = JSON.parse(r); } catch (e) { continue; }
+        if (q.id === b.id) {
+          await redis(['LREM', 'preguntas', '1', r]);
+          return res.status(200).json({ ok: true });
+        }
+      }
+      return res.status(404).json({ error: 'Pregunta no encontrada.' });
     }
 
     // --- Clientes del Club Arakaki ---

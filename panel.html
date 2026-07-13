@@ -464,6 +464,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <tbody id="tabla-consultas"></tbody>
     </table></div>
     <p class="vacio" id="consultas-vacio" style="display:none">No hay consultas pendientes 🎉<br>Cuando el chat de la web no sepa responder algo, aparecerá aquí (y te llega aviso por WhatsApp).</p>
+
+    <h2 class="tit-vista" style="margin-top:30px">💬 Preguntas del Club</h2>
+    <p class="sub-vista">Preguntas que los miembros del Club dejan desde su cuenta (/mi-cuenta). Escribe la respuesta y guárdala con 💾: el cliente la verá reflejada en su panel. 🗑 la borra de la lista (y el cliente deja de verla).</p>
+    <div class="tabla-scroll"><table>
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>Pregunta</th><th style="min-width:220px">Respuesta (la ve en su cuenta)</th><th></th></tr></thead>
+      <tbody id="tabla-preguntas"></tbody>
+    </table></div>
+    <p class="vacio" id="preguntas-vacio" style="display:none">No hay preguntas del Club por ahora 🎉<br>Cuando un cliente pregunte algo desde su cuenta, aparecerá aquí (y te llega aviso).</p>
   </div>
 
   <!-- PRECIOS -->
@@ -1132,12 +1140,18 @@ function cargarPedidos() {
 function estadoPedido(id, estado) { api('pedidoestado', { id: id, estado: estado }).then(cargarPedidos); }
 
 // ---------- Consultas del chat web (las registra el bot cuando no sabe responder) ----------
+var N_CONSULTAS = 0, N_PREGUNTAS = 0; // el badge ❓ suma consultas del chat + preguntas del Club sin responder
+function badgeConsultas() {
+  var badge = document.getElementById('badge-consultas');
+  var n = N_CONSULTAS + N_PREGUNTAS;
+  badge.style.display = n ? 'inline' : 'none';
+  badge.textContent = n;
+}
 function cargarConsultas() {
   api('consultas').then(function (j) {
     var cs = j.consultas || [];
-    var badge = document.getElementById('badge-consultas');
-    badge.style.display = cs.length ? 'inline' : 'none';
-    badge.textContent = cs.length;
+    N_CONSULTAS = cs.length;
+    badgeConsultas();
     document.getElementById('consultas-vacio').style.display = cs.length ? 'none' : 'block';
     document.getElementById('tabla-consultas').innerHTML = cs.map(function (c) {
       return '<tr><td>' + hora(c.ts) + '</td><td>' + esc(c.producto || '—') + '</td>' +
@@ -1145,8 +1159,33 @@ function cargarConsultas() {
         '<td><button class="mini" title="Marcar como revisada (se quita de la lista)" onclick="revisarConsulta(\'' + c.id + '\')">✓</button></td></tr>';
     }).join('');
   }).catch(function () {});
+  cargarPreguntas();
 }
 function revisarConsulta(id) { api('consultadel', { id: id }).then(cargarConsultas); }
+
+// Preguntas del Club: el cliente pregunta desde /mi-cuenta y la respuesta se refleja en su panel
+function cargarPreguntas() {
+  api('preguntas').then(function (j) {
+    var ps = j.preguntas || [];
+    N_PREGUNTAS = ps.filter(function (q) { return !q.respuesta; }).length;
+    badgeConsultas();
+    document.getElementById('preguntas-vacio').style.display = ps.length ? 'none' : 'block';
+    document.getElementById('tabla-preguntas').innerHTML = ps.map(function (q) {
+      return '<tr' + (q.respuesta ? ' style="opacity:.65"' : '') + '><td>' + hora(q.ts) + '</td>' +
+        '<td>' + esc(q.nombre || 'Cliente') + '<br><small style="color:var(--sub)">+' + esc(q.tel || '') + '</small></td>' +
+        '<td>' + esc(q.pregunta || '') + '</td>' +
+        '<td><input id="preg-r-' + esc(q.id) + '" value="' + esc(q.respuesta || '') + '" placeholder="Escribe tu respuesta…" maxlength="500" style="width:100%;box-sizing:border-box"' +
+          ' onkeydown="if(event.key===\'Enter\')responderPregunta(\'' + esc(q.id) + '\')"></td>' +
+        '<td style="white-space:nowrap"><button class="mini" title="Guardar la respuesta (el cliente la ve en su cuenta)" onclick="responderPregunta(\'' + esc(q.id) + '\')">💾</button> ' +
+        '<button class="mini" title="Borrar esta pregunta" onclick="borrarPregunta(\'' + esc(q.id) + '\')">🗑</button></td></tr>';
+    }).join('');
+  }).catch(function () {});
+}
+function responderPregunta(id) {
+  var inp = document.getElementById('preg-r-' + id);
+  api('pregresp', { id: id, respuesta: (inp && inp.value) || '' }).then(cargarPreguntas);
+}
+function borrarPregunta(id) { api('pregdel', { id: id }).then(cargarPreguntas); }
 
 // ---------- Precios ----------
 var PRECIOS = {};        // overrides vivos { 'slug|nombre': '85' }

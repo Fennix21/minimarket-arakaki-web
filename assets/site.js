@@ -434,32 +434,49 @@
     d.unshift(dir);
     guardarDirs(d.slice(0, 5));
   }
+  // Direcciones de la cuenta del Club (viajan con el cliente a cualquier dispositivo)
+  function dirsDeCuenta() {
+    var out = [];
+    if (cuentaPerfil) {
+      if (cuentaPerfil.direccion) out.push(cuentaPerfil.direccion);
+      (cuentaPerfil.direcciones || []).forEach(function (d) { if (d) out.push(d); });
+    }
+    return out;
+  }
   function pintarDirs() {
     var cont = document.getElementById('car-dirs');
     if (!cont) return;
-    var d = leerDirs();
-    if (!d.length) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
+    // Primero las de la cuenta (👤, se administran en /mi-cuenta); luego las de este navegador
+    var deCuenta = dirsDeCuenta();
+    var vistos = {};
+    deCuenta.forEach(function (x) { vistos[x.toLowerCase()] = 1; });
+    var locales = leerDirs().filter(function (x) { return !vistos[x.toLowerCase()]; });
+    if (!deCuenta.length && !locales.length) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
     cont.style.display = '';
     cont.innerHTML = '<span class="car-dirs-tit">💾 Tus direcciones guardadas — toca una para usarla:</span>' +
-      d.map(function (x, i) {
-        return '<div class="car-dir-chip" data-i="' + i + '">' +
-          '<button type="button" class="cdc-usar">📍 ' + esc(x) + '</button>' +
-          '<button type="button" class="cdc-x" aria-label="Borrar esta dirección">✕</button></div>';
+      deCuenta.map(function (x) {
+        return '<div class="car-dir-chip cuenta">' +
+          '<button type="button" class="cdc-usar" data-dir="' + esc(x) + '">👤 ' + esc(x) + '</button></div>';
+      }).join('') +
+      locales.map(function (x) {
+        return '<div class="car-dir-chip">' +
+          '<button type="button" class="cdc-usar" data-dir="' + esc(x) + '">📍 ' + esc(x) + '</button>' +
+          '<button type="button" class="cdc-x" data-dir="' + esc(x) + '" aria-label="Borrar esta dirección">✕</button></div>';
       }).join('');
     var chips = cont.querySelectorAll('.car-dir-chip');
     for (var i = 0; i < chips.length; i++) {
       (function (chip) {
         chip.querySelector('.cdc-usar').onclick = function () {
           var ta = document.getElementById('car-dir');
-          ta.value = leerDirs()[Number(chip.getAttribute('data-i'))] || '';
+          ta.value = this.getAttribute('data-dir') || '';
           ta.classList.remove('car-dir-falta');
           var todos = cont.querySelectorAll('.car-dir-chip');
           for (var j = 0; j < todos.length; j++) todos[j].classList.toggle('activo', todos[j] === chip);
         };
-        chip.querySelector('.cdc-x').onclick = function () {
-          var arr = leerDirs();
-          arr.splice(Number(chip.getAttribute('data-i')), 1);
-          guardarDirs(arr);
+        var x = chip.querySelector('.cdc-x');
+        if (x) x.onclick = function () {
+          var val = this.getAttribute('data-dir');
+          guardarDirs(leerDirs().filter(function (d) { return d !== val; }));
           pintarDirs();
         };
       })(chips[i]);
@@ -702,9 +719,22 @@
   var cuentaFlags = null;   // { on, funciones } — qué funciones del Club están prendidas
   var cuentaPerfil = null;  // perfil del cliente logueado (GET /api/cuenta?token=...)
 
-  function leerSesion() { try { return localStorage.getItem('arakaki_sesion') || ''; } catch (e) { return ''; } }
-  function guardarSesion(t) { try { localStorage.setItem('arakaki_sesion', t); } catch (e) {} }
-  function borrarSesion() { cuentaPerfil = null; try { localStorage.removeItem('arakaki_sesion'); } catch (e) {} }
+  // La sesión vive en localStorage (queda iniciada) o en sessionStorage (solo hasta cerrar el
+  // navegador), según el check "Mantener mi sesión iniciada" del formulario de acceso.
+  function leerSesion() {
+    try { return localStorage.getItem('arakaki_sesion') || sessionStorage.getItem('arakaki_sesion') || ''; } catch (e) { return ''; }
+  }
+  function guardarSesion(t, recordar) {
+    try {
+      if (recordar === false) { sessionStorage.setItem('arakaki_sesion', t); localStorage.removeItem('arakaki_sesion'); }
+      else { localStorage.setItem('arakaki_sesion', t); sessionStorage.removeItem('arakaki_sesion'); }
+    } catch (e) {}
+  }
+  function borrarSesion() {
+    cuentaPerfil = null;
+    try { localStorage.removeItem('arakaki_sesion'); } catch (e) {}
+    try { sessionStorage.removeItem('arakaki_sesion'); } catch (e) {}
+  }
 
   // Flags del Club con caché de 5 min en sessionStorage (una sola consulta por ratito)
   function cuentaFlagsCargar(cb) {
@@ -746,6 +776,7 @@
           if (!j || !j.conocido) return;
           cuentaPerfil = j;
           pintarFavStars();
+          prefillDirCuenta();
           pingVisita();
         }).catch(function () {});
     });
@@ -766,6 +797,15 @@
     var primero = lista.querySelector('.menu-item'); // "Página principal" (grupo Inicio)
     if (primero && primero.nextSibling) lista.insertBefore(a, primero.nextSibling);
     else lista.appendChild(a);
+  }
+
+  // La dirección principal de la cuenta se refleja en el carrito: prefill si el campo
+  // está vacío y chips 👤 con todas las direcciones guardadas en /mi-cuenta.
+  function prefillDirCuenta() {
+    if (!cuentaPerfil) return;
+    var dir = document.getElementById('car-dir');
+    if (dir && !dir.value && cuentaPerfil.direccion) dir.value = cuentaPerfil.direccion;
+    pintarDirs();
   }
 
   // Cuenta 1 visita por día (recurrencia que ve el dueño en el panel). El guard vive
@@ -899,12 +939,13 @@
           '<input id="ct-tel" inputmode="tel" maxlength="15" placeholder="Ej. 999 999 999">' +
           '<label for="ct-pin">Tu PIN (4 a 6 números)</label>' +
           '<input id="ct-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+          '<label class="ct-check"><input type="checkbox" id="ct-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
           '<p class="ct-error" id="ct-error"></p>' +
           '<button type="submit" class="ct-enviar" id="ct-enviar">Entrar</button>' +
         '</form>' +
-        '<p class="ct-ayuda">¿Olvidaste tu PIN? <a href="https://wa.me/' + WA + '?text=' +
+        '<p class="ct-ayuda">¿Olvidaste tu PIN? <a href="#" id="ct-rec">Recupéralo con tu correo</a> o <a href="https://wa.me/' + WA + '?text=' +
           encodeURIComponent('Hola 👋 Olvidé el PIN de mi cuenta del Club Arakaki, ¿me ayudan a recuperarla?') +
-          '" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></p>' +
+          '" target="_blank" rel="noopener">escríbenos por WhatsApp</a></p>' +
       '</div>' +
       '<div class="cuenta-card cuenta-beneficios"><h3>¿Qué gano con mi cuenta?</h3><ul>' +
         (fnClub('favoritos') ? '<li>⭐ Guarda tus favoritos y pide en 2 toques</li>' : '') +
@@ -939,9 +980,10 @@
       if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN debe tener de 4 a 6 números.'; return; }
       btn.disabled = true;
       btn.textContent = 'Un momento…';
+      var recordar = !!(document.getElementById('ct-recordar') && document.getElementById('ct-recordar').checked);
       cuentaPost({ action: modo, nombre: nombre, telefono: tel, pin: pin }).then(function (j) {
         if (j && j.ok && j.token) {
-          guardarSesion(j.token);
+          guardarSesion(j.token, recordar);
           cuentaPerfil = j.perfil || null;
           if (window.arkTrack) window.arkTrack(modo === 'crear' ? 'club_cuenta_creada' : 'club_login');
           window.renderCuenta();
@@ -956,12 +998,114 @@
         err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
       });
     };
+    document.getElementById('ct-rec').onclick = function (e) { e.preventDefault(); pintarRecuperar(int); };
   }
 
-  // Panel del cliente logueado: puntos, promos, sorteos, favoritos y su último pedido
+  // Recuperar la cuenta con el correo registrado en "Mis datos": celular + correo + PIN nuevo
+  function pintarRecuperar(int) {
+    int.innerHTML =
+      '<div class="cuenta-card cuenta-acceso cuenta-form">' +
+        '<h3>🔓 Recuperar mi cuenta</h3>' +
+        '<p>Ingresa tu celular, el correo que registraste en tu cuenta y elige un PIN nuevo.</p>' +
+        '<form id="cr-form" autocomplete="off">' +
+          '<label for="cr-tel">Tu celular (WhatsApp)</label>' +
+          '<input id="cr-tel" inputmode="tel" maxlength="15" placeholder="Ej. 999 999 999">' +
+          '<label for="cr-email">Tu correo registrado</label>' +
+          '<input id="cr-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
+          '<label for="cr-pin">Tu PIN nuevo (4 a 6 números)</label>' +
+          '<input id="cr-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+          '<label class="ct-check"><input type="checkbox" id="cr-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
+          '<p class="ct-error" id="cr-error"></p>' +
+          '<button type="submit" class="ct-enviar" id="cr-enviar">Recuperar y entrar</button>' +
+        '</form>' +
+        '<p class="ct-ayuda"><a href="#" id="cr-volver">← Volver</a> · ¿No registraste un correo? <a href="https://wa.me/' + WA + '?text=' +
+          encodeURIComponent('Hola 👋 Olvidé el PIN de mi cuenta del Club Arakaki y no registré correo, ¿me ayudan a recuperarla?') +
+          '" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></p>' +
+      '</div>';
+    document.getElementById('cr-volver').onclick = function (e) { e.preventDefault(); pintarAcceso(int); };
+    document.getElementById('cr-form').onsubmit = function (e) {
+      e.preventDefault();
+      var err = document.getElementById('cr-error');
+      var btn = document.getElementById('cr-enviar');
+      var tel = (document.getElementById('cr-tel').value || '').replace(/\D/g, '');
+      var email = (document.getElementById('cr-email').value || '').trim();
+      var pin = (document.getElementById('cr-pin').value || '').trim();
+      err.textContent = '';
+      if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
+      if (!email) { err.textContent = 'Ingresa el correo que registraste en tu cuenta.'; return; }
+      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      var recordar = !!(document.getElementById('cr-recordar') && document.getElementById('cr-recordar').checked);
+      btn.disabled = true;
+      btn.textContent = 'Un momento…';
+      cuentaPost({ action: 'recuperar', telefono: tel, email: email, pin: pin }).then(function (j) {
+        if (j && j.ok && j.token) {
+          guardarSesion(j.token, recordar);
+          cuentaPerfil = j.perfil || null;
+          if (window.arkTrack) window.arkTrack('club_recupero');
+          window.renderCuenta();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Recuperar y entrar';
+          err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Recuperar y entrar';
+        err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
+      });
+    };
+  }
+
+  // Historial de preguntas del cliente (con la respuesta del negocio cuando ya llegó)
+  function preguntasHtml(lista) {
+    if (!lista || !lista.length) return '<p class="ct-vacio" style="margin-top:14px">Aún no haces preguntas. ¡Anímate! 🙌</p>';
+    return lista.map(function (q) {
+      return '<div class="cpreg">' +
+        '<p class="cq-q">🙋 ' + esc(q.pregunta) + (q.ts ? ' <small>' + new Date(Number(q.ts)).toLocaleDateString('es-PE') + '</small>' : '') + '</p>' +
+        (q.respuesta
+          ? '<p class="cq-r">💬 ' + esc(q.respuesta) + (q.respTs ? ' <small>' + new Date(Number(q.respTs)).toLocaleDateString('es-PE') + '</small>' : '') + '</p>'
+          : '<p class="cq-esp">⏳ Esperando respuesta… te la mostramos aquí mismo.</p>') +
+        '</div>';
+    }).join('');
+  }
+
+  // Foto de perfil: recorte cuadrado centrado a 144px y JPEG liviano (dataURL de pocos KB)
+  function comprimirFoto(file, cb) {
+    try {
+      var lector = new FileReader();
+      lector.onerror = function () { cb(null); };
+      lector.onload = function () {
+        var img = new Image();
+        img.onerror = function () { cb(null); };
+        img.onload = function () {
+          try {
+            var S = 144;
+            var lienzo = document.createElement('canvas');
+            lienzo.width = S; lienzo.height = S;
+            var ctx = lienzo.getContext('2d');
+            var m = Math.min(img.width, img.height);
+            ctx.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+            cb(lienzo.toDataURL('image/jpeg', 0.82));
+          } catch (e) { cb(null); }
+        };
+        img.src = lector.result;
+      };
+      lector.readAsDataURL(file);
+    } catch (e) { cb(null); }
+  }
+
+  function fotoHtml(p, id) {
+    return p.foto
+      ? '<img class="ch-foto"' + (id ? ' id="' + id + '"' : '') + ' src="' + esc(p.foto) + '" alt="">'
+      : '<span class="ch-foto ch-foto-vacia"' + (id ? ' id="' + id + '"' : '') + '>👤</span>';
+  }
+
+  // Panel del cliente logueado: puntos, promos, sorteos, favoritos, su último pedido,
+  // sus preguntas al negocio y la gestión de su cuenta (datos, foto, direcciones, PIN)
   function pintarPanelCliente(int, p) {
-    var html = '<div class="cuenta-card cuenta-hola"><h3>¡Hola, ' + esc(p.nombre || 'casero') + '! 👋</h3>' +
-      '<p>' + (p.pedidos ? 'Llevas <b>' + p.pedidos + '</b> pedido' + (p.pedidos === 1 ? '' : 's') + ' con nosotros 💛' : 'Bienvenido al Club Arakaki 💛') + '</p>' +
+    var html = '<div class="cuenta-card cuenta-hola"><div class="ch-cab">' + fotoHtml(p) +
+      '<div><h3>¡Hola, ' + esc(p.nombre || 'casero') + '! 👋</h3>' +
+      '<p>' + (p.pedidos ? 'Llevas <b>' + p.pedidos + '</b> pedido' + (p.pedidos === 1 ? '' : 's') + ' con nosotros 💛' : 'Bienvenido al Club Arakaki 💛') + '</p></div></div>' +
       '<button type="button" class="ct-salir" id="ct-salir">🚪 Cerrar sesión</button></div>';
 
     if (fnClub('puntos')) {
@@ -1005,6 +1149,42 @@
         '<div class="cfav-grid">' + p.habitual.slice(0, 6).map(function (h) { return favItemHtml(h, false); }).join('') + '</div>' +
         '<button type="button" class="ct-enviar" id="ch-todos">🛒 Repetir mi último pedido</button></div>';
     }
+
+    // ❓ Mis preguntas: el cliente pregunta y el dueño le responde desde el panel
+    html += '<div class="cuenta-card cuenta-form cuenta-preguntas"><h3>❓ Mis preguntas</h3>' +
+      '<p>Pregúntanos lo que quieras (un producto, precios, tu pedido) y te respondemos aquí mismo.</p>' +
+      '<textarea id="cq-texto" rows="2" maxlength="400" placeholder="Escribe tu pregunta o consulta…"></textarea>' +
+      '<p class="ct-error" id="cq-error"></p>' +
+      '<button type="button" class="ct-enviar" id="cq-enviar">📨 Enviar mi pregunta</button>' +
+      '<div id="cq-lista">' + preguntasHtml(p.preguntas) + '</div></div>';
+
+    // 👤 Mis datos: foto de perfil, nombre y correo (recuperación + avisos exclusivos)
+    html += '<div class="cuenta-card cuenta-form cuenta-datos"><h3>👤 Mis datos</h3>' +
+      '<div class="cd-foto-fila">' + fotoHtml(p, 'cd-foto-prev') +
+      '<div class="cd-foto-btns"><button type="button" class="ct-mini" id="cd-foto-btn">📷 ' + (p.foto ? 'Cambiar mi foto' : 'Subir mi foto') + '</button>' +
+      (p.foto ? '<button type="button" class="ct-mini" id="cd-foto-del">🗑 Quitar</button>' : '') +
+      '<input type="file" id="cd-foto-input" accept="image/*" style="display:none"></div></div>' +
+      '<label for="cd-nombre">Tu nombre</label><input id="cd-nombre" maxlength="60" value="' + esc(p.nombre || '') + '">' +
+      '<label for="cd-email">Tu correo (opcional)</label><input id="cd-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com" value="' + esc(p.email || '') + '">' +
+      '<p class="ct-nota">📬 Registrando tu correo puedes <b>recuperar tu cuenta</b> si olvidas tu PIN y recibes <b>avisos exclusivos solo para miembros</b> — descuentos, regalos y la respuesta a tus preguntas — que verás reflejados aquí en tu panel.</p>' +
+      '<p class="ct-error" id="cd-error"></p>' +
+      '<button type="button" class="ct-enviar" id="cd-guardar">💾 Guardar mis datos</button></div>';
+
+    // 📍 Mis direcciones de entrega (se reflejan en el carrito como chips 👤)
+    html += '<div class="cuenta-card cuenta-form cuenta-dirs"><h3>📍 Mis direcciones de entrega</h3>' +
+      '<p>La <b>principal</b> ⭐ se llena sola en el carrito; todas aparecen como opciones al hacer tu pedido.</p>' +
+      '<div id="cd-dirs"></div>' +
+      '<textarea id="cd-dir-nueva" rows="2" maxlength="200" placeholder="Calle, número, distrito y referencia"></textarea>' +
+      '<p class="ct-error" id="cd-dir-error"></p>' +
+      '<button type="button" class="ct-enviar" id="cd-dir-add">➕ Guardar dirección</button></div>';
+
+    // 🔑 Cambiar mi PIN
+    html += '<div class="cuenta-card cuenta-form cuenta-pin"><h3>🔑 Cambiar mi PIN</h3>' +
+      '<label for="cp-actual">Tu PIN actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+      '<label for="cp-nuevo">Tu PIN nuevo (4 a 6 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+      '<p class="ct-error" id="cp-error"></p>' +
+      '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi PIN</button></div>';
+
     int.innerHTML = html;
 
     document.getElementById('ct-salir').onclick = function () {
@@ -1059,6 +1239,178 @@
         };
       })(sorteos[k]);
     }
+
+    // Enviar una pregunta al negocio (aparece en el panel del dueño → ❓ Consultas)
+    var cqBtn = document.getElementById('cq-enviar');
+    cqBtn.onclick = function () {
+      var ta = document.getElementById('cq-texto');
+      var errQ = document.getElementById('cq-error');
+      var texto = (ta.value || '').trim();
+      errQ.textContent = '';
+      if (texto.length < 5) { errQ.textContent = 'Cuéntanos tu pregunta con un poquito más de detalle 🙂'; return; }
+      cqBtn.disabled = true; cqBtn.textContent = 'Enviando…';
+      cuentaPost({ action: 'pregunta', texto: texto }).then(function (j) {
+        cqBtn.disabled = false; cqBtn.textContent = '📨 Enviar mi pregunta';
+        if (j && j.ok && j.pregunta) {
+          ta.value = '';
+          p.preguntas = [j.pregunta].concat(p.preguntas || []).slice(0, 10);
+          if (cuentaPerfil) cuentaPerfil.preguntas = p.preguntas;
+          document.getElementById('cq-lista').innerHTML = preguntasHtml(p.preguntas);
+          if (window.arkTrack) window.arkTrack('club_pregunta');
+        } else errQ.textContent = (j && j.error) || 'No pudimos enviar tu pregunta. Prueba de nuevo 🙏';
+      }).catch(function () {
+        cqBtn.disabled = false; cqBtn.textContent = '📨 Enviar mi pregunta';
+        errQ.textContent = 'No pudimos enviar tu pregunta. Prueba de nuevo 🙏';
+      });
+    };
+
+    // Guardar nombre y correo
+    var cdBtn = document.getElementById('cd-guardar');
+    cdBtn.onclick = function () {
+      var errD = document.getElementById('cd-error');
+      var nombre = (document.getElementById('cd-nombre').value || '').trim();
+      var email = (document.getElementById('cd-email').value || '').trim();
+      errD.textContent = '';
+      if (nombre.length < 2) { errD.textContent = 'Cuéntanos tu nombre 🙂'; return; }
+      cdBtn.disabled = true; cdBtn.textContent = 'Guardando…';
+      cuentaPost({ action: 'perfil', nombre: nombre, email: email }).then(function (j) {
+        cdBtn.disabled = false;
+        if (j && j.ok) {
+          p.nombre = j.nombre; p.email = j.email;
+          if (cuentaPerfil) { cuentaPerfil.nombre = j.nombre; cuentaPerfil.email = j.email; }
+          cdBtn.textContent = '✅ ¡Datos guardados!';
+          setTimeout(function () { cdBtn.textContent = '💾 Guardar mis datos'; }, 2500);
+        } else {
+          cdBtn.textContent = '💾 Guardar mis datos';
+          errD.textContent = (j && j.error) || 'No se pudo guardar. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        cdBtn.disabled = false; cdBtn.textContent = '💾 Guardar mis datos';
+        errD.textContent = 'No se pudo guardar. Prueba de nuevo 🙏';
+      });
+    };
+
+    // Foto de perfil: elegir → comprimir en el navegador → subir
+    var fotoBtn = document.getElementById('cd-foto-btn');
+    var fotoInput = document.getElementById('cd-foto-input');
+    fotoBtn.onclick = function () { fotoInput.click(); };
+    fotoInput.onchange = function () {
+      var f = fotoInput.files && fotoInput.files[0];
+      if (!f) return;
+      fotoBtn.disabled = true; fotoBtn.textContent = '⏳ Subiendo…';
+      comprimirFoto(f, function (dataURL) {
+        if (!dataURL) {
+          fotoBtn.disabled = false; fotoBtn.textContent = '📷 Subir mi foto';
+          document.getElementById('cd-error').textContent = 'No pudimos leer esa imagen. Prueba con otra 🙏';
+          return;
+        }
+        cuentaPost({ action: 'foto', foto: dataURL }).then(function (j) {
+          if (j && j.ok) {
+            p.foto = dataURL;
+            if (cuentaPerfil) cuentaPerfil.foto = dataURL;
+            pintarPanelCliente(int, p); // re-pinta con la foto nueva (avatar del saludo + botón Quitar)
+          } else {
+            fotoBtn.disabled = false; fotoBtn.textContent = '📷 Subir mi foto';
+            document.getElementById('cd-error').textContent = (j && j.error) || 'No se pudo subir la foto 🙏';
+          }
+        }).catch(function () {
+          fotoBtn.disabled = false; fotoBtn.textContent = '📷 Subir mi foto';
+          document.getElementById('cd-error').textContent = 'No se pudo subir la foto 🙏';
+        });
+      });
+    };
+    var fotoDel = document.getElementById('cd-foto-del');
+    if (fotoDel) fotoDel.onclick = function () {
+      fotoDel.disabled = true;
+      cuentaPost({ action: 'foto', foto: '' }).then(function (j) {
+        if (j && j.ok) { p.foto = ''; if (cuentaPerfil) cuentaPerfil.foto = ''; pintarPanelCliente(int, p); }
+        else fotoDel.disabled = false;
+      }).catch(function () { fotoDel.disabled = false; });
+    };
+
+    // Direcciones de entrega: viven en la cuenta (el carrito las pinta como chips 👤)
+    var dirsCont = document.getElementById('cd-dirs');
+    function dirsPlano() { // [principal, ...adicionales]
+      var plano = [];
+      if (p.direccion) plano.push(p.direccion);
+      (p.direcciones || []).forEach(function (d) { if (d) plano.push(d); });
+      return plano;
+    }
+    function guardarDirsCuenta(principal, otras, cb) {
+      cuentaPost({ action: 'dirs', direccion: principal, direcciones: otras }).then(function (j) {
+        if (j && j.ok) {
+          p.direccion = j.direccion; p.direcciones = j.direcciones;
+          if (cuentaPerfil) { cuentaPerfil.direccion = j.direccion; cuentaPerfil.direcciones = j.direcciones; }
+          pintarDirsCuenta();
+          pintarDirs(); // refresca los chips del carrito
+        } else document.getElementById('cd-dir-error').textContent = (j && j.error) || 'No se pudo guardar 🙏';
+        if (cb) cb(!!(j && j.ok));
+      }).catch(function () {
+        document.getElementById('cd-dir-error').textContent = 'No se pudo guardar 🙏';
+        if (cb) cb(false);
+      });
+    }
+    function pintarDirsCuenta() {
+      var plano = dirsPlano();
+      dirsCont.innerHTML = plano.length ? plano.map(function (d, idx) {
+        var esPrin = idx === 0;
+        return '<div class="cdir' + (esPrin ? ' principal' : '') + '">' +
+          '<span class="cdir-txt">' + (esPrin ? '⭐ ' : '📍 ') + esc(d) + (esPrin ? ' <small>Principal</small>' : '') + '</span>' +
+          '<span class="cdir-btns">' +
+          (esPrin ? '' : '<button type="button" class="ct-mini cdir-main" data-i="' + idx + '" title="Usarla como principal">⭐ Principal</button>') +
+          '<button type="button" class="ct-mini cdir-x" data-i="' + idx + '" aria-label="Borrar esta dirección">✕</button></span></div>';
+      }).join('') : '<p class="ct-vacio">Aún no guardas direcciones. Agrega la primera aquí abajo 👇</p>';
+      var mains = dirsCont.querySelectorAll('.cdir-main');
+      for (var d1 = 0; d1 < mains.length; d1++) mains[d1].onclick = function () {
+        var plano2 = dirsPlano();
+        var elegida = plano2.splice(Number(this.getAttribute('data-i')), 1)[0];
+        guardarDirsCuenta(elegida, plano2);
+      };
+      var eqs = dirsCont.querySelectorAll('.cdir-x');
+      for (var d2 = 0; d2 < eqs.length; d2++) eqs[d2].onclick = function () {
+        var plano3 = dirsPlano();
+        plano3.splice(Number(this.getAttribute('data-i')), 1);
+        guardarDirsCuenta(plano3[0] || '', plano3.slice(1));
+      };
+    }
+    pintarDirsCuenta();
+    document.getElementById('cd-dir-add').onclick = function () {
+      var taD = document.getElementById('cd-dir-nueva');
+      var errDir = document.getElementById('cd-dir-error');
+      var val = (taD.value || '').trim();
+      errDir.textContent = '';
+      if (val.length < 5) { errDir.textContent = 'Escribe la dirección con calle, número y distrito 🙂'; return; }
+      var plano4 = dirsPlano();
+      if (plano4.length >= 6) { errDir.textContent = 'Ya tienes 6 direcciones guardadas. Borra una para agregar otra 🙏'; return; }
+      plano4.push(val);
+      guardarDirsCuenta(plano4[0], plano4.slice(1), function (ok) { if (ok) taD.value = ''; });
+    };
+
+    // Cambiar el PIN (pide el actual; el servidor cierra las otras sesiones)
+    var cpBtn = document.getElementById('cp-cambiar');
+    cpBtn.onclick = function () {
+      var errP = document.getElementById('cp-error');
+      var actual = (document.getElementById('cp-actual').value || '').trim();
+      var nuevo = (document.getElementById('cp-nuevo').value || '').trim();
+      errP.textContent = '';
+      if (!/^\d{4,6}$/.test(nuevo)) { errP.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      cpBtn.disabled = true; cpBtn.textContent = 'Un momento…';
+      cuentaPost({ action: 'pin', pinActual: actual, pinNuevo: nuevo }).then(function (j) {
+        cpBtn.disabled = false;
+        if (j && j.ok) {
+          cpBtn.textContent = '✅ PIN actualizado';
+          document.getElementById('cp-actual').value = '';
+          document.getElementById('cp-nuevo').value = '';
+          setTimeout(function () { cpBtn.textContent = 'Cambiar mi PIN'; }, 2500);
+        } else {
+          cpBtn.textContent = 'Cambiar mi PIN';
+          errP.textContent = (j && j.error) || 'No se pudo cambiar. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        cpBtn.disabled = false; cpBtn.textContent = 'Cambiar mi PIN';
+        errP.textContent = 'No se pudo cambiar. Prueba de nuevo 🙏';
+      });
+    };
   }
 
   // ---------- Chat vendedor flotante (→ /api/chat) ----------
