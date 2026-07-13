@@ -805,7 +805,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <!-- SITIO: textos editables del header y del footer -->
   <div class="vista" id="v-sitio">
     <h2 class="tit-vista">📝 Textos del sitio</h2>
-    <p class="sub-vista">Edita el lema del encabezado y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
+    <p class="sub-vista">Edita el lema del encabezado, los textos del carrito y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
     <div class="aviso" id="sitio-aviso"></div>
 
     <div class="caja-bot">
@@ -814,6 +814,20 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <label>Lema (junto al logo)</label>
         <div class="hint">Se oculta solo en pantallas de celular por espacio.</div>
         <input type="text" id="sitio-lema" maxlength="80" placeholder="Lo que necesitas, cuando lo necesitas" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot">
+      <h3>🛒 Carrito: entrega</h3>
+      <div class="campo-bloque">
+        <label>Nota bajo el botón “Usar mi ubicación”</label>
+        <div class="hint">Aclara al cliente que compartir su GPS es <b>opcional</b> (solo hace la entrega más precisa) y que escribir la dirección es lo obligatorio.</div>
+        <textarea id="sitio-cargeo" maxlength="220" style="min-height:70px" placeholder="📍 Compartir tu ubicación es opcional: solo hace la entrega más precisa. Escribir tu dirección arriba es lo obligatorio."></textarea>
+      </div>
+      <div class="campo-bloque">
+        <label>Aviso cuando falta la dirección</label>
+        <div class="hint">El mensaje rojo que aparece si el cliente intenta enviar el pedido sin escribir su dirección.</div>
+        <textarea id="sitio-cardir" maxlength="200" style="min-height:70px" placeholder="Falta tu dirección de entrega ✍️ Escríbela arriba (calle, número y referencia) para llevarte tu pedido."></textarea>
       </div>
     </div>
 
@@ -1606,6 +1620,7 @@ var SITIO_CAMPOS = {
   mapLabel: 'sitio-maplabel', horarioTit: 'sitio-htit', horario: 'sitio-horario',
   contactoTit: 'sitio-ctit', telefonos: 'sitio-tels', redesTit: 'sitio-rtit',
   facebook: 'sitio-fb', instagram: 'sitio-ig', youtube: 'sitio-yt', copy: 'sitio-copy',
+  carGeoNota: 'sitio-cargeo', carDirFalta: 'sitio-cardir',
 };
 function cargarSitio() {
   api('getsitio').then(function (j) {

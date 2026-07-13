@@ -453,6 +453,13 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   70% { box-shadow: 0 0 0 10px rgba(212, 169, 65, 0); }
   100% { box-shadow: 0 0 0 0 rgba(212, 169, 65, 0); }
 }
+/* Nota bajo el botón de ubicación: aclara que el GPS es opcional (solo precisión) */
+.car-geo-nota {
+  font-size: 12px; line-height: 1.45; color: #6a5a2e; opacity: 0.92;
+  margin: 7px 2px 0; padding: 8px 11px; border-radius: 9px;
+  background: #fdf8ec; border: 1px solid rgba(212, 169, 65, 0.35);
+}
+.car-geo-nota:empty { display: none; }
 /* Dirección obligatoria */
 .car-oblig { color: var(--rojo); font-size: 12px; font-weight: 700; }
 #car-dir.car-dir-falta { border: 2px solid var(--rojo); background: #fdf3f3; }

@@ -95,6 +95,9 @@
     instagram: REDES.instagram.url,
     youtube: REDES.youtube.url,
     copy: 'Minimarket Arakaki {año} — Todos los derechos reservados',
+    // Carrito / entrega (editables desde panel → 📝 Sitio)
+    carGeoNota: '📍 Compartir tu ubicación es opcional: solo hace la entrega más precisa. Escribir tu dirección arriba es lo obligatorio.',
+    carDirFalta: 'Falta tu dirección de entrega ✍️ Escríbela arriba (calle, número y referencia) para llevarte tu pedido.',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -126,11 +129,16 @@
       '<p class="copy">' + esc(copy) + '</p>' +
       '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
   }
+  var sitioActual = SITIO_DEF; // último config aplicado (para textos del carrito en enviarPedido)
   function aplicarSitio(cfg) {
+    sitioActual = cfg;
     var lema = document.querySelector('.cab .lema-cab');
     if (lema) lema.textContent = cfg.lema || '';
     var pie = document.querySelector('footer.pie');
     if (pie) pie.innerHTML = footerHTML(cfg);
+    // Nota bajo el botón de ubicación del carrito (el modal puede no existir aún)
+    var geoNota = document.getElementById('car-geo-nota');
+    if (geoNota) geoNota.textContent = cfg.carGeoNota || '';
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
   }
   function cargarSitio() {
@@ -399,6 +407,7 @@
         '<div id="car-dirs" style="display:none"></div>' +
         '<textarea id="car-dir" rows="2" placeholder="Calle, número, distrito y referencia" maxlength="200"></textarea>' +
         '<button class="car-geo" id="car-geo" type="button">📍 Usar mi ubicación</button>' +
+        '<p class="car-geo-nota" id="car-geo-nota">' + esc(SITIO_DEF.carGeoNota) + '</p>' +
         '<div id="car-aviso" class="car-aviso" style="display:none" role="alert"></div>' +
         '<button class="btn-wa-grande" id="car-enviar">Enviar pedido por WhatsApp 📲</button>' +
         '<button class="car-vaciar" id="car-vaciar">Vaciar pedido</button>' +
@@ -676,7 +685,7 @@
     var ta = document.getElementById('car-dir');
     var dir = (ta.value || '').trim();
     if (!dir) {
-      avisoCarrito('📍 <b>Falta tu dirección de entrega.</b><br>Escríbela o toca <b>📍 Usar mi ubicación</b> para llevarte tu pedido.', 'error');
+      avisoCarrito(esc(sitioActual.carDirFalta || SITIO_DEF.carDirFalta), 'error');
       ta.classList.add('car-dir-falta');
       ta.focus();
       return;
