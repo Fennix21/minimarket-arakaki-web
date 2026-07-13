@@ -156,15 +156,20 @@ async function perfilCompleto(tel, cli, club) {
     return { name, price: pr ? precioVivo(pr, vivos) : null, pagina: pr ? '/' + pr.c : '' };
   });
 
-  // "Lo de siempre" = top del archivo de consumo (mismo criterio que api/perfil.js)
+  // "Mi último pedido" = la foto exacta que guarda pedido.js (ultimoItems, con cantidades).
+  // Clientes de antes de guardarla: se deduce del consumo (lo comprado en la última tanda).
   const consumo = (cli.consumo && typeof cli.consumo === 'object') ? cli.consumo : {};
-  const claves = Object.keys(consumo).sort((a, b) =>
-    (consumo[b].veces - consumo[a].veces) || ((consumo[b].ultima || 0) - (consumo[a].ultima || 0)));
-  const habitual = claves.slice(0, 12).map((name) => {
-    const c = consumo[name];
-    const pr = PORNOMBRE[normalizar(name)];
-    const price = pr ? precioVivo(pr, vivos) : (c.price != null ? Number(c.price) : null);
-    return { name, price, img: c.img || '', qty: 1, veces: c.veces };
+  let ultimos = (Array.isArray(cli.ultimoItems) ? cli.ultimoItems : []).filter((it) => it && it.name);
+  if (!ultimos.length) {
+    const tope = Object.keys(consumo).reduce((m, k) => Math.max(m, Number(consumo[k].ultima) || 0), 0);
+    ultimos = Object.keys(consumo)
+      .filter((k) => tope && (Number(consumo[k].ultima) || 0) >= tope - 60000)
+      .map((name) => ({ name, qty: 1, price: consumo[name].price, img: consumo[name].img || '' }));
+  }
+  const habitual = ultimos.slice(0, 12).map((it) => {
+    const pr = PORNOMBRE[normalizar(it.name)];
+    const price = pr ? precioVivo(pr, vivos) : (it.price != null ? Number(it.price) : null);
+    return { name: it.name, price, img: it.img || '', qty: Number(it.qty) || 1 };
   });
 
   // Promos exclusivas del Club (vigentes)

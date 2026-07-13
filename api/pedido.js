@@ -78,6 +78,14 @@ async function upsertPerfil(full, datos) {
     if (cli.uids.indexOf(datos.uid) < 0) { cli.uids.unshift(datos.uid); cli.uids = cli.uids.slice(0, 8); }
     await redis(['SET', 'uid:' + datos.uid, full, 'EX', String(400 * 86400)]);
   }
+  // Foto exacta del último pedido (con cantidades): la usa /mi-cuenta para "Repetir mi último pedido"
+  const itemsPedido = (datos.items || []).filter((it) => it && it.name);
+  if (itemsPedido.length) {
+    cli.ultimoItems = itemsPedido.slice(0, 30).map((it) => ({
+      name: it.name, qty: Number(it.qty) || 1,
+      price: it.price != null ? it.price : null, img: it.img || '',
+    }));
+  }
   const consumo = (cli.consumo && typeof cli.consumo === 'object') ? cli.consumo : {};
   (datos.items || []).forEach((it) => {
     if (!it.name) return;

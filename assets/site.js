@@ -832,7 +832,7 @@
         (fnClub('puntos') ? '<li>🪙 Acumula puntos con cada compra entregada</li>' : '') +
         (fnClub('promos') ? '<li>🎁 Promos exclusivas solo para miembros</li>' : '') +
         (fnClub('sorteos') ? '<li>🎟️ Participa en sorteos con un toque</li>' : '') +
-        '<li>🔁 Tu "pedido de siempre" listo para repetir</li>' +
+        '<li>🔁 Tu último pedido listo para repetir</li>' +
       '</ul></div>';
 
     var modo = 'entrar';
@@ -879,11 +879,11 @@
     };
   }
 
-  // Panel del cliente logueado: puntos, promos, sorteos, favoritos y "lo de siempre"
+  // Panel del cliente logueado: puntos, promos, sorteos, favoritos y su último pedido
   function pintarPanelCliente(int, p) {
     var html = '<div class="cuenta-card cuenta-hola"><h3>¡Hola, ' + esc(p.nombre || 'casero') + '! 👋</h3>' +
       '<p>' + (p.pedidos ? 'Llevas <b>' + p.pedidos + '</b> pedido' + (p.pedidos === 1 ? '' : 's') + ' con nosotros 💛' : 'Bienvenido al Club Arakaki 💛') + '</p>' +
-      '<button type="button" class="ct-salir" id="ct-salir">Cerrar sesión</button></div>';
+      '<button type="button" class="ct-salir" id="ct-salir">🚪 Cerrar sesión</button></div>';
 
     if (fnClub('puntos')) {
       html += '<div class="cuenta-card cuenta-puntos"><h3>🪙 Mis puntos</h3>' +
@@ -922,9 +922,9 @@
       html += '</div>';
     }
     if (p.habitual && p.habitual.length) {
-      html += '<div class="cuenta-card cuenta-habitual"><h3>🔁 Lo de siempre</h3><p>Tus productos más pedidos:</p>' +
+      html += '<div class="cuenta-card cuenta-habitual"><h3>🔁 Mi último pedido</h3><p>Lo que pediste la última vez:</p>' +
         '<div class="cfav-grid">' + p.habitual.slice(0, 6).map(function (h) { return favItemHtml(h, false); }).join('') + '</div>' +
-        '<button type="button" class="ct-enviar" id="ch-todos">🛒 Repetir mi pedido de siempre</button></div>';
+        '<button type="button" class="ct-enviar" id="ch-todos">🛒 Repetir mi último pedido</button></div>';
     }
     int.innerHTML = html;
 
