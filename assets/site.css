@@ -846,10 +846,12 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
 /* Panel del cliente logueado */
 .ct-salir {
   position: absolute; top: 20px; right: 20px; cursor: pointer;
-  background: transparent; color: #cfc4a8; border: 1.5px solid rgba(212, 169, 65, 0.35);
-  border-radius: 10px; padding: 7px 12px; font-size: 12.5px; font-weight: 600;
+  background: rgba(212, 169, 65, 0.16); color: #f2d894;
+  border: 1.5px solid rgba(212, 169, 65, 0.6);
+  border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 700;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.ct-salir:hover { color: #f4ebd6; border-color: var(--dorado); }
+.ct-salir:hover { background: rgba(212, 169, 65, 0.3); color: #fff9ec; border-color: var(--dorado); }
 .cp-num {
   font-family: Georgia, 'Times New Roman', serif; font-size: 52px; font-weight: 700;
   color: #e9c877; text-shadow: 0 0 22px rgba(212, 169, 65, 0.35); line-height: 1; margin: 6px 0 12px;
