@@ -562,9 +562,31 @@
     // Saludo al cliente reconocido: texto sobre el video de la portada (solo el home lo tiene)
     var hola = document.getElementById('portada-hola');
     if (hola && p.nombre) {
-      hola.textContent = '¡Hola, ' + p.nombre + '!';
       hola.style.display = '';
+      escribirSaludo(hola, saludoHora(p.nombre)); // máquina de escribir + saludo por franja horaria
     }
+  }
+
+  // Saludo según la hora local del cliente: mañana / tarde / noche.
+  function saludoHora(nombre) {
+    var h = new Date().getHours();
+    var franja = (h >= 5 && h < 12) ? '¡Bonito día' : (h < 19) ? '¡Bonita tarde' : '¡Bonita noche';
+    return franja + ', ' + nombre + '!';
+  }
+
+  // Efecto máquina de escribir: revela el saludo letra por letra con cursor parpadeante.
+  var twTimer = null;
+  function escribirSaludo(el, texto) {
+    if (el.getAttribute('data-tw') === texto) return; // ya escrito: no reiniciar (aplicarPerfil corre 2 veces)
+    el.setAttribute('data-tw', texto);
+    if (twTimer) { clearTimeout(twTimer); twTimer = null; }
+    el.innerHTML = '<span class="tw-txt"></span><span class="tw-cursor" aria-hidden="true"></span>';
+    var span = el.querySelector('.tw-txt');
+    var i = 0;
+    (function paso() {
+      span.textContent = texto.slice(0, i);
+      if (i < texto.length) { i++; twTimer = setTimeout(paso, 55); }
+    })();
   }
 
   // Pide la ubicación GPS (solo si el cliente acepta el permiso del navegador). Adjunta las
