@@ -616,6 +616,7 @@
     var i = -1;
     for (var j = 0; j < c.length; j++) if (c[j].name === p.name) { i = j; break; }
     if (i >= 0) c.splice(i, 1);
+    else if (p.agotado) return; // agotado (panel 💰): no se puede añadir, solo quitar
     else c.push({ name: p.name, price: p.price, img: p.img, qty: 1 });
     guardarCarrito(c);
     pintarBadge();
@@ -654,7 +655,10 @@
       var nom = cards[i].getAttribute('data-nombre');
       cards[i].classList.toggle('en-carrito', !!nombres[nom]);
       var b = cards[i].querySelector('.btn-elegir');
-      if (b) b.textContent = nombres[nom] ? 'Quitar del pedido' : 'Elegir producto';
+      if (b) {
+        if (nombres[nom]) b.textContent = 'Quitar del pedido';
+        else b.textContent = cards[i].classList.contains('agotado') ? 'Agotado 😕' : 'Elegir producto';
+      }
     }
   }
   function totalCarrito(c) {
@@ -1782,6 +1786,19 @@
   }
 
   // ---------- Render de página de categoría ----------
+  // Tarjeta premium de producto (misma para el catálogo y los productos subidos desde el panel)
+  function cardProdHTML(p, si, pi) {
+    return '<div class="prod" data-nombre="' + esc(p.name) + '" data-sec="' + si + '" data-idx="' + pi + '">' +
+      '<div class="prod-img"><img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">' +
+        '<div class="prod-check" aria-hidden="true">✓</div>' +
+        '<div class="prod-elegido"><span class="pe-check">✓</span>Producto elegido<small>toca para quitar</small></div></div>' +
+      '<div class="prod-info">' +
+        '<div class="prod-nombre">' + esc(p.name) + '</div>' +
+        (p.price ? '<div class="prod-precio">S/ ' + esc(p.price) + '</div>' : '<div class="prod-precio" style="font-size:13px;opacity:.7">Precio en tienda / WhatsApp</div>') +
+        '<button class="btn-elegir">Elegir producto</button>' +
+      '</div></div>';
+  }
+
   window.renderCategoria = function (slug) {
     var cat = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
     var cont = document.getElementById('contenido-categoria');
@@ -1796,38 +1813,53 @@
       html += '<section class="seccion premium"><div class="interior">' +
         '<h2 class="titulo-seccion">' + esc(sec.title) + '</h2>' +
         '<div class="grilla-prods">' +
-        sec.products.map(function (p, pi) {
-          return '<div class="prod" data-nombre="' + esc(p.name) + '" data-sec="' + si + '" data-idx="' + pi + '">' +
-            '<div class="prod-img"><img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">' +
-              '<div class="prod-check" aria-hidden="true">✓</div>' +
-              '<div class="prod-elegido"><span class="pe-check">✓</span>Producto elegido<small>toca para quitar</small></div></div>' +
-            '<div class="prod-info">' +
-              '<div class="prod-nombre">' + esc(p.name) + '</div>' +
-              (p.price ? '<div class="prod-precio">S/ ' + esc(p.price) + '</div>' : '<div class="prod-precio" style="font-size:13px;opacity:.7">Precio en tienda / WhatsApp</div>') +
-              '<button class="btn-elegir">Elegir producto</button>' +
-            '</div></div>';
-        }).join('') +
+        sec.products.map(function (p, pi) { return cardProdHTML(p, si, pi); }).join('') +
         '</div></div></section>';
     });
     cont.innerHTML = html;
 
+    function conectarCard(card, p) {
+      card.querySelector('.btn-elegir').onclick = function () { alternarProducto(p); };
+      card.querySelector('.prod-img').onclick = function () { alternarProducto(p); };
+    }
     var cards = cont.querySelectorAll('.prod');
     for (var i = 0; i < cards.length; i++) {
       (function (card) {
         var sec = cat.sections[Number(card.getAttribute('data-sec'))];
-        var p = sec.products[Number(card.getAttribute('data-idx'))];
-        card.querySelector('.btn-elegir').onclick = function () { alternarProducto(p); };
-        card.querySelector('.prod-img').onclick = function () { alternarProducto(p); };
+        conectarCard(card, sec.products[Number(card.getAttribute('data-idx'))]);
       })(cards[i]);
     }
     marcarProds();
     pintarFavStars(); // estrellas ⭐ del Club si el cliente ya está logueado
 
-    // Precios "en vivo": los overrides (panel 💰 / WhatsApp del dueño) pisan los del catálogo.
-    // Si falla o responde el stub del dev-server, se quedan los precios base.
+    // Catálogo "en vivo" (panel 💰 / WhatsApp del dueño) sobre el catálogo base:
+    //   x = productos nuevos subidos desde el panel · p = precios · s = stock (agotado/oculto).
+    // Si falla o responde el stub del dev-server, se queda el catálogo base.
     fetch('/api/precios').then(function (r) { return r.json(); }).then(function (data) {
-      if (!data || !data.p) return;
-      cat.sections.forEach(function (sec, si) {
+      if (!data) return;
+
+      // 1) Productos nuevos del panel: se suman a su sección con la misma tarjeta premium
+      var yaEsta = {};
+      cat.sections.forEach(function (sec) { sec.products.forEach(function (p) { yaEsta[p.name] = 1; }); });
+      (data.x || []).forEach(function (e) {
+        if (e.cat !== slug || !e.nombre || yaEsta[e.nombre] || !cat.sections.length) return;
+        yaEsta[e.nombre] = 1;
+        var si = 0;
+        cat.sections.forEach(function (sec, i) { if (e.sec && sec.title === e.sec) si = i; });
+        var sec = cat.sections[si];
+        var p = { name: e.nombre, price: e.precio || '', img: e.img };
+        sec.products.push(p); // el carrito captura este objeto al elegir
+        var grilla = cont.querySelectorAll('.grilla-prods')[si];
+        if (!grilla) return;
+        var caja = document.createElement('div');
+        caja.innerHTML = cardProdHTML(p, si, sec.products.length - 1);
+        var card = caja.firstChild;
+        grilla.appendChild(card);
+        conectarCard(card, p);
+      });
+
+      // 2) Precios en vivo: los overrides pisan los del catálogo
+      if (data.p) cat.sections.forEach(function (sec, si) {
         sec.products.forEach(function (p, pi) {
           var nuevo = data.p[slug + '|' + p.name];
           if (nuevo === undefined || nuevo === p.price) return;
@@ -1837,6 +1869,28 @@
           if (el) { el.textContent = 'S/ ' + nuevo; el.removeAttribute('style'); }
         });
       });
+
+      // 3) Stock en vivo: 'agotado' apaga la tarjeta con su sello (no se puede elegir), 'oculto' la esconde
+      if (data.s) cat.sections.forEach(function (sec, si) {
+        sec.products.forEach(function (p, pi) {
+          var st = data.s[slug + '|' + p.name];
+          if (!st) return;
+          var card = cont.querySelector('.prod[data-sec="' + si + '"][data-idx="' + pi + '"]');
+          if (!card) return;
+          if (st === 'oculto') { card.style.display = 'none'; return; }
+          if (st === 'agotado') {
+            p.agotado = 1; // alternarProducto no lo deja añadir (sí quitar si ya estaba)
+            card.classList.add('agotado');
+            var sello = document.createElement('div');
+            sello.className = 'prod-agotado';
+            sello.textContent = 'AGOTADO';
+            card.querySelector('.prod-img').appendChild(sello);
+          }
+        });
+      });
+
+      marcarProds();
+      pintarFavStars(); // estrellas también en las tarjetas recién añadidas
     }).catch(function () {});
   };
 

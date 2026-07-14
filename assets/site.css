@@ -414,6 +414,28 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .prod.en-carrito .btn-elegir:hover { filter: none; transform: translateY(-2px); background: linear-gradient(180deg, #4a181c 0%, #2c0e11 100%); }
 
+/* Producto agotado (panel → 💰 Precios): la tarjeta se apaga con sello dorado y el botón queda inerte.
+   Se muestra a propósito (estrategia del dueño): que se vea que existió y se agotó */
+.prod.agotado .prod-img img { filter: grayscale(1) brightness(0.55); }
+.prod.agotado:hover { transform: none; border-color: rgba(212, 169, 65, 0.42); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
+.prod.agotado .prod-img { cursor: default; }
+.prod-agotado {
+  position: absolute; left: 50%; top: 50%; z-index: 2;
+  transform: translate(-50%, -50%) rotate(-11deg);
+  padding: 8px 20px; border: 2px solid var(--dorado); border-radius: 10px;
+  background: rgba(12, 10, 8, 0.82); color: #f2d894;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 19px;
+  letter-spacing: 3px; line-height: 1; white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.prod.agotado .prod-precio { opacity: 0.5; }
+.prod.agotado .btn-elegir {
+  background: linear-gradient(180deg, #2a251f 0%, #17140f 100%);
+  color: #9a8e77; border: 1.5px solid rgba(212, 169, 65, 0.35);
+  cursor: default; box-shadow: none;
+}
+.prod.agotado .btn-elegir:hover { transform: none; filter: none; box-shadow: none; }
+
 /* Tablet: 2 productos por fila */
 @media (max-width: 900px) { .seccion.premium .interior { max-width: 100%; } .grilla-prods { grid-template-columns: repeat(2, 1fr); gap: 30px; } }
 
