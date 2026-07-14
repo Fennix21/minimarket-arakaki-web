@@ -1041,6 +1041,7 @@ function entrar() {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     cargarTodo();
+    restaurarVista();
   }).catch(function (e) {
     document.getElementById('login-err').textContent = e.message;
   });
@@ -1054,6 +1055,7 @@ if (PASS) {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     cargarTodo();
+    restaurarVista();
   }).catch(function () {
     // Sesión guardada inválida: limpia y muestra el login (quita data-auth del <html>).
     localStorage.removeItem('arakaki_pass'); PASS = '';
@@ -1069,6 +1071,7 @@ for (var i = 0; i < tabs.length; i++) {
   tabs[i].onclick = (function (t) { return function () { verVista(t.getAttribute('data-v')); }; })(tabs[i]);
 }
 function verVista(v) {
+  try { localStorage.setItem('arakaki_vista', v); } catch (e) {} // recordar la sección al recargar
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('activa', tabs[i].getAttribute('data-v') === v);
   var vistas = document.querySelectorAll('.vista');
   for (var j = 0; j < vistas.length; j++) vistas[j].classList.toggle('activa', vistas[j].id === 'v-' + v);
@@ -1094,6 +1097,16 @@ function verSubpanel(sub) {
 }
 
 function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarConsultas(); cargarTpls(); }
+
+// Al recargar, vuelve a la última sección que estabas viendo (guardada en verVista).
+function restaurarVista() {
+  var v = '';
+  try { v = localStorage.getItem('arakaki_vista') || ''; } catch (e) {}
+  if (!v || v === 'inicio') return; // 'inicio' ya es la vista por defecto
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].getAttribute('data-v') === v) { verVista(v); return; }
+  }
+}
 
 // ---------- Inicio (resumen del negocio) ----------
 function actualizarBadgeChats() {
