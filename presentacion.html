@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimarket Arakaki | La segunda puerta de la tienda</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<meta name="theme-color" content="#262626">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Presentacion para los duenos — autocontenida, no usa site.css ni site.js */
+  :root {
+    --rojo: #7c0f14;
+    --naranja: #e64831;
+    --negro: #262626;
+    --fondo: #1a1a1a;
+    --carta: #232323;
+    --dorado: #d4a941;
+    --dorado-cl: #f7dc8f;
+    --blanco: #ffffff;
+    --tenue: #b9b3a6;
+    --verde-wa: #25d366;
+    --linea: rgba(212, 169, 65, 0.28);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--fondo);
+    color: var(--blanco);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    /* Letra base grande: los duenos son mayores */
+    font-size: 19px;
+    line-height: 1.6;
+  }
+  img { max-width: 100%; display: block; }
+  h1, h2, h3 { font-family: 'Poppins', 'Montserrat', sans-serif; line-height: 1.2; }
+
+  /* ---------- Barra superior ---------- */
+  .barra {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 22px;
+    background: linear-gradient(180deg, #2e2e2e 0%, #202020 100%);
+    border-bottom: 2px solid var(--linea);
+  }
+  .barra img { height: 40px; width: auto; }
+  .barra .tit { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; color: var(--dorado); letter-spacing: .3px; }
+  .barra .esp { flex: 1; }
+  .barra .cont { font-size: 14px; color: var(--tenue); font-weight: 700; white-space: nowrap; }
+  .progreso { position: fixed; top: 62px; left: 0; height: 3px; z-index: 100; background: linear-gradient(90deg, var(--dorado-cl), var(--dorado)); width: 0; transition: width .35s ease; }
+
+  /* ---------- Diapositivas ---------- */
+  main { padding: 92px 22px 130px; max-width: 1000px; margin: 0 auto; min-height: 100vh; }
+  .dia { display: none; animation: entra .45s ease both; }
+  .dia.activa { display: block; }
+  @keyframes entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .dia { animation: none; } }
+
+  .kicker { display: inline-block; font-size: 14px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dorado); border: 1px solid var(--linea); border-radius: 999px; padding: 5px 14px; margin-bottom: 18px; }
+  h1 { font-size: clamp(30px, 5vw, 52px); font-weight: 800; margin-bottom: 18px; }
+  h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 800; margin-bottom: 16px; }
+  h3 { font-size: clamp(19px, 2.2vw, 24px); font-weight: 700; margin-bottom: 8px; }
+  .grande { font-size: clamp(21px, 2.4vw, 26px); line-height: 1.55; color: #e8e4dc; }
+  .tenue { color: var(--tenue); }
+  p + p { margin-top: 14px; }
+  strong { color: var(--dorado-cl); }
+  .oro { color: var(--dorado); }
+
+  .carta { background: var(--carta); border: 1px solid var(--linea); border-radius: 16px; padding: 24px; }
+  .carta + .carta { margin-top: 16px; }
+  .grid { display: grid; gap: 16px; }
+  @media (min-width: 760px) { .g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } }
+
+  /* Portada */
+  .portada { text-align: center; padding-top: 20px; }
+  .portada .gato { height: 150px; width: auto; margin: 0 auto 22px; filter: drop-shadow(0 8px 22px rgba(212,169,65,.25)); }
+  .portada .quien { margin-top: 34px; color: var(--tenue); font-size: 17px; }
+
+  /* Cita / golpe */
+  .golpe { font-family: 'Poppins', sans-serif; font-size: clamp(24px, 3.6vw, 38px); font-weight: 700; line-height: 1.3; border-left: 5px solid var(--dorado); padding-left: 22px; margin: 26px 0; }
+
+  /* Las 3 preguntas */
+  .paso { border-radius: 16px; padding: 22px; border: 1px solid var(--linea); background: var(--carta); }
+  .paso .num { font-family: 'Poppins', sans-serif; font-size: 46px; font-weight: 800; color: rgba(212,169,65,.32); line-height: 1; }
+  .paso h3 { margin-top: 6px; color: var(--dorado-cl); }
+  .paso p { font-size: 17px; color: #ddd8ce; }
+
+  /* Recorrido de Rosa */
+  .rosa-caja { background: var(--carta); border: 1px solid var(--linea); border-radius: 18px; overflow: hidden; }
+  .rosa-cinta { display: flex; }
+  .rosa-cinta div { flex: 1; text-align: center; padding: 11px 4px; font-size: 13px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--tenue); background: #1c1c1c; border-bottom: 3px solid transparent; transition: all .3s ease; }
+  .rosa-cinta div.on { color: var(--negro); background: linear-gradient(180deg, var(--dorado-cl), var(--dorado)); border-bottom-color: var(--dorado); }
+  .rosa-cuerpo { padding: 28px 26px; min-height: 250px; }
+  .rosa-escena { font-family: 'Poppins', sans-serif; font-size: clamp(20px, 2.6vw, 27px); font-weight: 600; line-height: 1.4; margin-bottom: 20px; }
+  .rosa-eti { display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--negro); background: linear-gradient(180deg, var(--dorado-cl), var(--dorado)); border-radius: 999px; padding: 4px 12px; margin-bottom: 10px; }
+  .rosa-que { background: #1b1b1b; border: 1px solid var(--linea); border-radius: 12px; padding: 16px 18px; }
+  .rosa-que h4 { font-family: 'Poppins', sans-serif; font-size: 17px; color: var(--dorado-cl); margin-bottom: 6px; }
+  .rosa-que p { font-size: 16px; color: #ddd8ce; }
+  .rosa-pie { display: flex; align-items: center; gap: 14px; padding: 14px 26px; background: #1c1c1c; border-top: 1px solid var(--linea); }
+  .rosa-pie .marca { flex: 1; height: 6px; background: #2f2f2f; border-radius: 999px; overflow: hidden; }
+  .rosa-pie .marca i { display: block; height: 100%; background: linear-gradient(90deg, var(--dorado-cl), var(--dorado)); width: 0; transition: width .3s ease; }
+  .rosa-pie .paso-n { font-size: 14px; font-weight: 800; color: var(--tenue); white-space: nowrap; }
+
+  /* Botones */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 800; border: none; border-radius: 999px; padding: 12px 24px; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.07); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: .35; cursor: default; transform: none; filter: none; }
+  .btn-oro { background: linear-gradient(180deg, var(--dorado-cl) 0%, var(--dorado) 60%, #b8912f 100%); color: #4a0c10; box-shadow: 0 3px 10px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.5); }
+  .btn-fan { background: transparent; color: var(--dorado); border: 1px solid var(--linea); }
+
+  /* Caja fuerte */
+  .tesoro { display: grid; gap: 12px; }
+  @media (min-width: 700px) { .tesoro { grid-template-columns: 1fr 1fr; } }
+  .cosa { display: flex; gap: 14px; align-items: flex-start; background: var(--carta); border: 1px solid var(--linea); border-radius: 14px; padding: 16px 18px; }
+  .cosa .ico { font-size: 27px; line-height: 1; flex-shrink: 0; }
+  .cosa h4 { font-family: 'Poppins', sans-serif; font-size: 17px; color: var(--dorado-cl); margin-bottom: 3px; }
+  .cosa p { font-size: 15px; color: #cfc9be; line-height: 1.5; }
+
+  /* Calculadora */
+  .calc-fila { margin-bottom: 22px; }
+  .calc-fila label { display: block; font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+  .calc-fila .ayuda { font-size: 14px; color: var(--tenue); margin-bottom: 10px; }
+  .calc-fila .val { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: var(--dorado); }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 999px; background: #333; outline: none; margin-top: 6px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(180deg, var(--dorado-cl), var(--dorado)); border: 2px solid #8a6c22; cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: var(--dorado); border: 2px solid #8a6c22; cursor: pointer; }
+  .resultado { background: linear-gradient(160deg, #2a2317 0%, #201d16 100%); border: 1px solid var(--dorado); border-radius: 16px; padding: 24px; text-align: center; }
+  .resultado .cifra { font-family: 'Poppins', sans-serif; font-size: clamp(34px, 6vw, 54px); font-weight: 800; color: var(--dorado-cl); line-height: 1.1; }
+  .resultado .rot { font-size: 15px; color: var(--tenue); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 800; }
+
+  /* Tabla de la propuesta */
+  .plata { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .plata td { padding: 14px 10px; border-bottom: 1px solid rgba(212,169,65,.18); font-size: 17px; vertical-align: top; }
+  .plata td.monto { text-align: right; font-family: 'Poppins', sans-serif; font-weight: 800; color: var(--dorado); white-space: nowrap; }
+  .plata tr.total td { border-bottom: none; border-top: 2px solid var(--dorado); font-size: 21px; font-weight: 800; padding-top: 16px; }
+  .plata td .sub { display: block; font-size: 14px; color: var(--tenue); margin-top: 3px; line-height: 1.45; }
+
+  /* Listas si/no */
+  .lista { list-style: none; }
+  .lista li { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.07); font-size: 17px; line-height: 1.5; }
+  .lista li:last-child { border-bottom: none; }
+  .lista li .mk { flex-shrink: 0; font-weight: 800; font-size: 19px; }
+  .si .mk { color: var(--verde-wa); }
+  .no .mk { color: var(--naranja); }
+
+  .alerta { background: rgba(230, 72, 49, .1); border: 1px solid rgba(230, 72, 49, .5); border-radius: 14px; padding: 20px 22px; }
+  .alerta h3 { color: #ff9b88; }
+
+  /* Navegacion inferior */
+  .nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 14px 20px; background: linear-gradient(0deg, #1a1a1a 55%, rgba(26,26,26,0)); }
+  .nav .puntos { display: flex; gap: 7px; }
+  .nav .puntos b { width: 9px; height: 9px; border-radius: 50%; background: #3d3d3d; cursor: pointer; transition: all .25s ease; }
+  .nav .puntos b.on { background: var(--dorado); transform: scale(1.35); }
+  .pista { position: fixed; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 12px; color: #5f5a52; pointer-events: none; }
+  @media (max-width: 700px) {
+    body { font-size: 18px; }
+    main { padding: 86px 15px 120px; }
+    .carta { padding: 18px; }
+    .rosa-cuerpo { padding: 20px 18px; }
+    .nav .puntos { display: none; }
+    .pista { display: none; }
+    .btn { padding: 12px 18px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <img src="/img/logo-gato.png" alt="Minimarket Arakaki">
+  <span class="tit">La segunda puerta de la tienda</span>
+  <span class="esp"></span>
+  <span class="cont" id="cont">1 / 12</span>
+</div>
+<div class="progreso" id="progreso"></div>
+
+<main>
+
+  <!-- ============ 1. PORTADA ============ -->
+  <section class="dia activa portada">
+    <img class="gato" src="/img/logo-gato.png" alt="">
+    <span class="kicker">Para los dueños de Minimarket Arakaki</span>
+    <h1>Su tienda ya tiene<br>una segunda puerta.</h1>
+    <p class="grande tenue">Está abierta, tiene los 341 productos adentro,<br>y todavía no le hemos dicho a nadie que existe.</p>
+    <p class="quien">Presentado por Martín Córdova &middot; Julio 2026</p>
+  </section>
+
+  <!-- ============ 2. EL GANCHO ============ -->
+  <section class="dia">
+    <span class="kicker">Empecemos por algo que ustedes ya saben</span>
+    <h2>A las 10 de la noche ustedes bajan la reja.</h2>
+    <p class="grande">Y desde ese momento, hasta que la vuelven a subir, la tienda vende <strong>S/ 0</strong>.</p>
+    <p class="grande" style="margin-top:14px">No es un problema de ustedes. Es así desde siempre: una tienda vende cuando está abierta y cuando alguien pasa por la puerta.</p>
+    <div class="golpe">La web no baja la reja.<br>Y no espera a que alguien pase por la puerta.</div>
+    <div class="carta">
+      <p class="tenue">Eso es todo lo que hace una página web bien hecha. No es magia, no es moda, no es "porque todos tienen una". Es una <strong>segunda puerta</strong>: una que está abierta a las 11 de la noche, un domingo, cuando llueve, y que la puede encontrar alguien que nunca ha caminado por su cuadra.</p>
+    </div>
+  </section>
+
+  <!-- ============ 3. LAS 3 PREGUNTAS ============ -->
+  <section class="dia">
+    <span class="kicker">El esqueleto de todo lo que sigue</span>
+    <h2>Toda tienda del mundo vive de tres preguntas.</h2>
+    <p class="grande tenue" style="margin-bottom:26px">Ustedes las contestan todos los días sin pensarlo. La web las contesta también, pero de noche y sin cansarse.</p>
+    <div class="grid g3">
+      <div class="paso">
+        <div class="num">1</div>
+        <h3>¿Cómo entra gente?</h3>
+        <p>En la tienda: el letrero, la vitrina, que los conozcan del barrio.</p>
+        <p style="margin-top:10px"><span class="oro">En la web: <strong>CAPTAR</strong>.</span></p>
+      </div>
+      <div class="paso">
+        <div class="num">2</div>
+        <h3>¿Cómo compran?</h3>
+        <p>En la tienda: que encuentren el producto, que vean el precio, que sea fácil pagar.</p>
+        <p style="margin-top:10px"><span class="oro">En la web: <strong>CONVERTIR</strong>.</span></p>
+      </div>
+      <div class="paso">
+        <div class="num">3</div>
+        <h3>¿Cómo vuelven?</h3>
+        <p>En la tienda: que los saluden por su nombre, la yapa, la confianza.</p>
+        <p style="margin-top:10px"><span class="oro">En la web: <strong>FIDELIZAR</strong>.</span></p>
+      </div>
+    </div>
+    <div class="carta" style="margin-top:22px">
+      <p>Cada cosa que les voy a mostrar existe para contestar <strong>una</strong> de estas tres preguntas. Si no contesta ninguna, no debería estar en la web.</p>
+    </div>
+  </section>
+
+  <!-- ============ 4. EL RECORRIDO DE ROSA ============ -->
+  <section class="dia">
+    <span class="kicker">Veámoslo con una persona, no con palabras técnicas</span>
+    <h2>La señora Rosa.</h2>
+    <p class="grande tenue" style="margin-bottom:22px">Rosa no existe todavía, es un ejemplo. Pero cada paso que va a dar es algo que la web <em>ya sabe hacer hoy</em>. Vayan tocando el botón.</p>
+
+    <div class="rosa-caja">
+      <div class="rosa-cinta">
+        <div id="ci-0">Captar</div>
+        <div id="ci-1">Convertir</div>
+        <div id="ci-2">Fidelizar</div>
+      </div>
+      <div class="rosa-cuerpo">
+        <div class="rosa-escena" id="rosa-escena"></div>
+        <div class="rosa-que">
+          <span class="rosa-eti" id="rosa-eti"></span>
+          <h4 id="rosa-tit"></h4>
+          <p id="rosa-txt"></p>
+        </div>
+      </div>
+      <div class="rosa-pie">
+        <button class="btn btn-fan" id="rosa-atras">← Atrás</button>
+        <div class="marca"><i id="rosa-marca"></i></div>
+        <span class="paso-n" id="rosa-n"></span>
+        <button class="btn btn-oro" id="rosa-sig">Siguiente →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. LA CAJA FUERTE ============ -->
+  <section class="dia">
+    <span class="kicker">Antes de pedirles un sol, quiero ser claro</span>
+    <h2>Todo esto ya está construido.<br>Ya es de ustedes.</h2>
+    <p class="grande tenue" style="margin-bottom:24px">No les estoy pidiendo plata para construir la web. La web ya está hecha, funcionando, y no me deben nada por ella.</p>
+    <div class="tesoro">
+      <div class="cosa"><span class="ico">🏪</span><div><h4>341 productos en 20 categorías</h4><p>Con foto propia y precio. Nada de fotos robadas de internet: son las de su tienda.</p></div></div>
+      <div class="cosa"><span class="ico">🛒</span><div><h4>Carrito que termina en su WhatsApp</h4><p>El cliente arma su pedido y a ustedes les llega escrito, con dirección. Sin llamadas, sin "¿qué era lo que querías?".</p></div></div>
+      <div class="cosa"><span class="ico">💬</span><div><h4>Un asistente que atiende de madrugada</h4><p>Conversa con quien entra, lo orienta, y le pide su WhatsApp o correo para que ustedes puedan hablarle después.</p></div></div>
+      <div class="cosa"><span class="ico">🔔</span><div><h4>Avisos gratis al celular del cliente</h4><p>Como un volante, pero que llega solo al que quiso recibirlo, al instante, y no cuesta ni un sol imprimirlo.</p></div></div>
+      <div class="cosa"><span class="ico">👥</span><div><h4>Club Arakaki con puntos</h4><p>El cliente junta puntos, guarda sus favoritos, entra a sorteos. Es la yapa de toda la vida, pero anotada sola.</p></div></div>
+      <div class="cosa"><span class="ico">📊</span><div><h4>Un panel donde ustedes mandan</h4><p>Cambiar precios, textos, promociones, prender y apagar cosas. Sin llamarme, sin saber nada de computación.</p></div></div>
+      <div class="cosa"><span class="ico">📧</span><div><h4>Correos a los clientes</h4><p>Para avisar una promoción a todos los del Club de una sola vez.</p></div></div>
+      <div class="cosa"><span class="ico">📱</span><div><h4>Se instala como una aplicación</h4><p>El cliente la pone en su pantalla igual que WhatsApp. Su tienda vive en su celular.</p></div></div>
+    </div>
+    <div class="carta" style="margin-top:20px">
+      <p><strong>¿Por qué se los regalo?</strong> Porque hasta acá fue mi aprendizaje y mi gusto. Lo que les voy a pedir es para lo que <em>sigue</em>, y prefiero que primero vean lo que ya hay.</p>
+    </div>
+  </section>
+
+  <!-- ============ 6. LA VERDAD INCOMODA ============ -->
+  <section class="dia">
+    <span class="kicker">Ahora la parte incómoda</span>
+    <h2>Nada de lo que acaban de ver<br>lo está viendo su cliente.</h2>
+    <div class="alerta" style="margin:22px 0">
+      <h3>⚠️ Hoy, quien escribe "minimarketarakaki.com" NO llega a esta web.</h3>
+      <p style="margin-top:8px">Llega a la página antigua, la de Systeme.io. Esta que les estoy mostrando vive en otra dirección, esperando.</p>
+    </div>
+    <p class="grande">Es como si hubiéramos construido el local nuevo, con todo adentro, ordenado y limpio... y la gente siguiera entrando al local viejo porque el letrero de la calle todavía apunta para allá.</p>
+    <div class="carta" style="margin-top:22px">
+      <h3>Lo primero que les pido no cuesta plata:</h3>
+      <p style="margin-top:8px">Apuntar el dominio <strong>minimarketarakaki.com</strong> a la web nueva. Es un cambio de una tarde. Sin eso, todo lo demás — los avisos, el Club, las campañas — le habla a un local vacío.</p>
+    </div>
+  </section>
+
+  <!-- ============ 7. LA CALCULADORA ============ -->
+  <section class="dia">
+    <span class="kicker">Los números los ponen ustedes, no yo</span>
+    <h2>¿Cuánto tendría que vender la web<br>para que valga la pena?</h2>
+    <p class="grande tenue" style="margin-bottom:26px">No les voy a mostrar un gráfico bonito con números que me inventé. Mueva usted las barras con lo que <em>usted</em> crea. Yo no sé cuántos pedidos van a llegar, y quien les diga que sí lo sabe, les está mintiendo.</p>
+
+    <div class="carta">
+      <div class="calc-fila">
+        <label for="s-ped">Pedidos por la web al día: <span class="val" id="v-ped">2</span></label>
+        <div class="ayuda">¿Cuántos pedidos por internet cree usted que llegarían al día?</div>
+        <input type="range" id="s-ped" min="0" max="20" step="1" value="2">
+      </div>
+      <div class="calc-fila">
+        <label for="s-tic">Cuánto gasta cada pedido: <span class="val" id="v-tic">S/ 45</span></label>
+        <div class="ayuda">Lo que se lleva un cliente en un pedido normal.</div>
+        <input type="range" id="s-tic" min="10" max="200" step="5" value="45">
+      </div>
+      <div class="calc-fila" style="margin-bottom:0">
+        <label for="s-mar">De cada S/ 100 que vende, le queda: <span class="val" id="v-mar">S/ 20</span></label>
+        <div class="ayuda">Esto es lo importante. No lo que entra a la caja: lo que <strong>sobra</strong> después de pagar el producto.</div>
+        <input type="range" id="s-mar" min="5" max="50" step="1" value="20">
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:18px">
+      <div class="resultado">
+        <div class="rot">Le quedaría al mes</div>
+        <div class="cifra" id="r-mes">S/ 540</div>
+        <p class="tenue" style="font-size:14px;margin-top:6px">Ganancia limpia, no venta</p>
+      </div>
+      <div class="resultado">
+        <div class="rot">Recupera los S/ 3,000 en</div>
+        <div class="cifra" id="r-rec">6 meses</div>
+        <p class="tenue" style="font-size:14px;margin-top:6px" id="r-nota">Después de eso, es ganancia</p>
+      </div>
+    </div>
+    <p class="tenue" style="font-size:15px;margin-top:18px;text-align:center">Esta cuenta supone que la web trae clientes <em>nuevos</em>. Si solo mueve a los que ya venían a la tienda, la web no suma venta: le ahorra trabajo. Eso también vale, pero es otra cosa y hay que decirlo.</p>
+  </section>
+
+  <!-- ============ 8. LA PROPUESTA ============ -->
+  <section class="dia">
+    <span class="kicker">La propuesta, con todo a la vista</span>
+    <h2>Les pido S/ 3,000.<br>Así se gastan.</h2>
+    <div class="carta" style="margin-top:20px">
+      <table class="plata">
+        <tr>
+          <td>Desarrollo de funciones nuevas
+            <span class="sub">Pago en línea (Yape / Plin / tarjeta), seguimiento del delivery, y las herramientas de campaña que hoy faltan. Es trabajo de programación, medido en semanas.</span>
+          </td>
+          <td class="monto">S/ 2,000</td>
+        </tr>
+        <tr>
+          <td>Mi pago por el trabajo
+            <span class="sub">Se los digo de frente en vez de esconderlo dentro de otra línea. Es mi honorario por el tiempo que le meto.</span>
+          </td>
+          <td class="monto">S/ 1,000</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td class="monto">S/ 3,000</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="alerta" style="margin-top:20px">
+      <h3>Lo que estos S/ 3,000 NO incluyen</h3>
+      <p style="margin-top:8px"><strong>No incluyen publicidad pagada.</strong> Ni un sol de esto se va a Facebook ni a Google. Yo construyo las herramientas para hacer campañas; poner plata en anuncios sería una decisión aparte, con su propio presupuesto, y la conversamos cuando la web ya esté recibiendo gente.</p>
+    </div>
+  </section>
+
+  <!-- ============ 9. LO QUE NO PROMETO ============ -->
+  <section class="dia">
+    <span class="kicker">Esto es lo que más quiero que escuchen</span>
+    <h2>Lo que NO les prometo.</h2>
+    <div class="carta">
+      <ul class="lista no">
+        <li><span class="mk">✕</span><span>No les prometo una cantidad de pedidos. <span class="tenue">No la sé.</span></span></li>
+        <li><span class="mk">✕</span><span>No les prometo que las ventas suban un porcentaje. <span class="tenue">Nadie honesto puede.</span></span></li>
+        <li><span class="mk">✕</span><span>No les prometo resultados en un mes. <span class="tenue">Que la gente encuentre y confíe en una web toma tiempo.</span></span></li>
+        <li><span class="mk">✕</span><span>No les prometo que esto reemplace a la tienda. <span class="tenue">La tienda es el negocio. La web es una puerta más.</span></span></li>
+      </ul>
+    </div>
+    <h2 style="margin-top:30px">Lo que SÍ les prometo.</h2>
+    <div class="carta">
+      <ul class="lista si">
+        <li><span class="mk">✓</span><span>Todo lo que se construya <strong>es de ustedes</strong>. Si mañana no quieren trabajar conmigo, se quedan con todo.</span></li>
+        <li><span class="mk">✓</span><span>Un reporte cada mes, con los números <strong>reales</strong> del panel. Buenos o malos, tal como salgan.</span></li>
+        <li><span class="mk">✓</span><span>Ustedes pueden <strong>apagar cualquier cosa</strong> desde el panel, sin pedirme permiso.</span></li>
+        <li><span class="mk">✓</span><span>A los <strong>3 meses nos sentamos</strong>. Si no hay movimiento, lo miramos de frente y ustedes deciden si seguimos.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 10. CIERRE ============ -->
+  <section class="dia" style="text-align:center">
+    <img class="gato" src="/img/logo-gato.png" alt="" style="height:110px;margin:0 auto 20px;filter:drop-shadow(0 8px 22px rgba(212,169,65,.25))">
+    <span class="kicker">La decisión</span>
+    <h2>No les pido fe.<br>Les pido tres meses.</h2>
+    <p class="grande" style="max-width:660px;margin:20px auto 0">La segunda puerta ya está construida y ya es de ustedes. Lo único que falta es <strong>ponerle el letrero</strong> — apuntar el dominio — y darme con qué terminar de equiparla.</p>
+    <p class="grande" style="max-width:660px;margin:16px auto 0">Si en tres meses no pasa nada, lo hablamos de frente y ustedes deciden. Y aun así, la web se queda con ustedes.</p>
+    <div class="carta" style="max-width:520px;margin:32px auto 0">
+      <h3 style="color:var(--dorado-cl)">¿Qué necesito de ustedes?</h3>
+      <p style="margin-top:10px">1. Apuntar <strong>minimarketarakaki.com</strong> a la web nueva. <span class="tenue">(no cuesta plata)</span></p>
+      <p>2. <strong>S/ 3,000</strong> para terminar de equiparla.</p>
+      <p>3. <strong>Tres meses</strong> y una conversación honesta al final.</p>
+    </div>
+    <p class="tenue" style="margin-top:30px;font-size:16px">Gracias por escuchar. — Martín</p>
+  </section>
+
+</main>
+
+<div class="nav">
+  <button class="btn btn-fan" id="atras">← Atrás</button>
+  <div class="puntos" id="puntos"></div>
+  <button class="btn btn-oro" id="sig">Siguiente →</button>
+</div>
+<div class="pista">Use las flechas ← → del teclado</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Navegacion de diapositivas ---------- */
+  var dias = [].slice.call(document.querySelectorAll('.dia'));
+  var puntos = document.getElementById('puntos');
+  var bAtras = document.getElementById('atras');
+  var bSig = document.getElementById('sig');
+  var cont = document.getElementById('cont');
+  var barra = document.getElementById('progreso');
+  var actual = 0;
+
+  dias.forEach(function (d, i) {
+    var b = document.createElement('b');
+    b.title = 'Ir a la ' + (i + 1);
+    b.addEventListener('click', function () { ir(i); });
+    puntos.appendChild(b);
+  });
+  var bolitas = [].slice.call(puntos.children);
+
+  function ir(n) {
+    if (n < 0 || n >= dias.length) return;
+    dias[actual].classList.remove('activa');
+    bolitas[actual].classList.remove('on');
+    actual = n;
+    dias[actual].classList.add('activa');
+    bolitas[actual].classList.add('on');
+    cont.textContent = (actual + 1) + ' / ' + dias.length;
+    barra.style.width = ((actual + 1) / dias.length * 100) + '%';
+    bAtras.disabled = actual === 0;
+    bSig.disabled = actual === dias.length - 1;
+    window.scrollTo(0, 0);
+  }
+
+  bAtras.addEventListener('click', function () { ir(actual - 1); });
+  bSig.addEventListener('click', function () { ir(actual + 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { ir(actual + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { ir(actual - 1); }
+  });
+
+  /* ---------- Recorrido de la senora Rosa ---------- */
+  var PASOS = [
+    { m: 0, escena: 'Son las 9 de la noche. Rosa quiere un vino y no piensa salir a buscarlo. Agarra el celular y escribe en Google: "vino tinto San Isidro".',
+      eti: 'Captar', tit: 'La web no cierra', txt: 'La tienda está con la reja abajo. La web está abierta. Este pedido, hoy, simplemente no existiría.' },
+    { m: 0, escena: 'Encuentra Minimarket Arakaki y entra. Lo primero que ve son fotos de verdad: las botellas de su tienda, con su precio al lado.',
+      eti: 'Captar', tit: 'Fotos reales, precio a la vista', txt: 'Nada genera más desconfianza que una tienda sin precios. Rosa ve el precio y ya sabe que puede pagarlo. Todavía no le pedimos nada.' },
+    { m: 0, escena: 'Mientras mira, aparece el gatito en una esquina y le conversa: le pregunta qué busca y la manda derechito a la categoría de vinos.',
+      eti: 'Captar', tit: 'Un asistente que no duerme', txt: 'Nadie de ustedes está despierto a esa hora. El asistente sí. Orienta a Rosa como lo haría usted desde el mostrador.' },
+    { m: 0, escena: 'El gatito le ofrece: "¿Quiere que le avisemos cuando haya ofertas?". Rosa toca sí. Deja su WhatsApp.',
+      eti: 'Captar', tit: 'Rosa dejó de ser una desconocida', txt: 'Este es el momento más importante de todos. Antes: una visita anónima que se va y nunca vuelve. Ahora: una persona a la que ustedes le pueden hablar. Gratis. Cuando quieran.' },
+    { m: 1, escena: 'Rosa elige dos vinos y, de paso, un chocolate que vio en el camino. Los va poniendo en el carrito.',
+      eti: 'Convertir', tit: 'El chocolate que no pensaba comprar', txt: 'Igual que en la tienda: entra por una cosa y sale con tres. La web ordena los productos para que eso pase, sin presionar a nadie.' },
+    { m: 1, escena: 'Al momento de enviar, la web le pide su dirección. Se la guarda para la próxima vez.',
+      eti: 'Convertir', tit: 'Nunca más "¿dónde vives?"', txt: 'El pedido llega completo, con dirección exacta. Se acabó el ida y vuelta por WhatsApp que hace que la gente se arrepienta a medio camino.' },
+    { m: 1, escena: 'Rosa toca el botón verde. El pedido llega al WhatsApp de la tienda ya escrito, ordenado, con los precios sumados.',
+      eti: 'Convertir', tit: 'El pedido se escribe solo', txt: 'Ustedes no escriben nada, no suman nada, no se equivocan. Solo leen y despachan.' },
+    { m: 1, escena: 'Al mismo tiempo, a ustedes les suena el celular con un aviso: "Nuevo pedido".',
+      eti: 'Convertir', tit: 'Ningún pedido se pierde', txt: 'El aviso es gratis y llega al instante, aunque el WhatsApp esté enterrado entre mensajes.' },
+    { m: 2, escena: 'Le llevan el pedido. Ustedes entran al panel y lo marcan como "entregado".',
+      eti: 'Fidelizar', tit: 'Los puntos se anotan solos', txt: 'Con ese solo toque, Rosa gana sus puntos. Nadie apunta nada en un cuaderno. Nadie se olvida.' },
+    { m: 2, escena: 'Rosa entra a su cuenta y ve sus puntos acumulados, sus vinos favoritos guardados con una estrella, y un sorteo en el que puede participar.',
+      eti: 'Fidelizar', tit: 'Ahora Rosa tiene algo que perder', txt: 'Un cliente con puntos acumulados no se va a la competencia por S/ 2 de diferencia. Es la lealtad de toda la vida, pero anotada sola.' },
+    { m: 2, escena: 'El viernes, a Rosa le suena el celular: "20% en vinos solo hoy". Sin que ustedes paguen un sol de publicidad.',
+      eti: 'Fidelizar', tit: 'El volante que no se tira a la basura', txt: 'Mil volantes cuestan plata y van al tacho. Este aviso cuesta cero, llega solo a quien pidió recibirlo, y llega justo cuando ustedes quieren vender.' },
+    { m: 2, escena: 'Rosa vuelve a entrar y le escribe al gatito: "lo de siempre". El asistente arma su pedido de la última vez, ella confirma, y listo.',
+      eti: 'Fidelizar', tit: 'De cliente a costumbre', txt: 'Acá se cerró el círculo. Rosa ya no compara precios ni busca en Google: ya tiene su tienda. Ese es el negocio de verdad.' }
+  ];
+
+  var escena = document.getElementById('rosa-escena');
+  var eti = document.getElementById('rosa-eti');
+  var rtit = document.getElementById('rosa-tit');
+  var rtxt = document.getElementById('rosa-txt');
+  var rmarca = document.getElementById('rosa-marca');
+  var rn = document.getElementById('rosa-n');
+  var rAtras = document.getElementById('rosa-atras');
+  var rSig = document.getElementById('rosa-sig');
+  var cintas = [document.getElementById('ci-0'), document.getElementById('ci-1'), document.getElementById('ci-2')];
+  var p = 0;
+
+  function pintarRosa() {
+    var s = PASOS[p];
+    escena.textContent = s.escena;
+    eti.textContent = s.eti;
+    rtit.textContent = s.tit;
+    rtxt.textContent = s.txt;
+    rn.textContent = (p + 1) + ' / ' + PASOS.length;
+    rmarca.style.width = ((p + 1) / PASOS.length * 100) + '%';
+    cintas.forEach(function (c, i) { c.classList.toggle('on', i === s.m); });
+    rAtras.disabled = p === 0;
+    rSig.disabled = p === PASOS.length - 1;
+    rSig.textContent = p === PASOS.length - 1 ? 'Fin del recorrido' : 'Siguiente →';
+  }
+  rAtras.addEventListener('click', function () { if (p > 0) { p--; pintarRosa(); } });
+  rSig.addEventListener('click', function () { if (p < PASOS.length - 1) { p++; pintarRosa(); } });
+  pintarRosa();
+
+  /* ---------- Calculadora honesta ---------- */
+  var sPed = document.getElementById('s-ped');
+  var sTic = document.getElementById('s-tic');
+  var sMar = document.getElementById('s-mar');
+  var vPed = document.getElementById('v-ped');
+  var vTic = document.getElementById('v-tic');
+  var vMar = document.getElementById('v-mar');
+  var rMes = document.getElementById('r-mes');
+  var rRec = document.getElementById('r-rec');
+  var rNota = document.getElementById('r-nota');
+  var META = 3000;
+
+  function sol(n) { return 'S/ ' + Math.round(n).toLocaleString('es-PE'); }
+
+  function calcular() {
+    var ped = +sPed.value, tic = +sTic.value, mar = +sMar.value;
+    vPed.textContent = ped;
+    vTic.textContent = sol(tic);
+    vMar.textContent = sol(mar);
+
+    var mes = ped * tic * 30 * (mar / 100);
+    rMes.textContent = sol(mes);
+
+    if (mes <= 0) {
+      rRec.textContent = 'Nunca';
+      rNota.textContent = 'Con cero pedidos no se recupera nada. Así de simple.';
+      return;
+    }
+    var meses = META / mes;
+    if (meses < 1) {
+      rRec.textContent = 'Menos de 1 mes';
+      rNota.textContent = 'Ojo: son números optimistas. Revíselos.';
+    } else if (meses > 60) {
+      rRec.textContent = 'Más de 5 años';
+      rNota.textContent = 'Con estos números, no conviene. Y prefiero decírselo.';
+    } else {
+      var m = Math.ceil(meses);
+      rRec.textContent = m + (m === 1 ? ' mes' : ' meses');
+      rNota.textContent = 'Después de eso, es ganancia';
+    }
+  }
+  [sPed, sTic, sMar].forEach(function (s) { s.addEventListener('input', calcular); });
+  calcular();
+
+  ir(0);
+})();
+</script>
+</body>
+</html>
