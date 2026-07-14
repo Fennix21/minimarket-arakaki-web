@@ -219,7 +219,8 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 
 /* ---------- Hero ---------- */
-.hero { background: var(--negro); color: var(--blanco); text-align: center; padding: 42px 18px 34px; }
+/* Mismo fondo premium que las secciones de productos (.seccion.premium): sin corte de color entre el video y las tarjetas */
+.hero { background: radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%); color: var(--blanco); text-align: center; padding: 42px 18px 34px; }
 .hero h1 { font-size: clamp(26px, 5vw, 44px); font-weight: 800; }
 .hero .sub { font-size: clamp(16px, 3vw, 22px); margin-top: 8px; opacity: 0.9; }
 .hero video {

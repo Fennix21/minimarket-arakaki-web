@@ -254,6 +254,18 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .aviso { padding:11px 15px; border-radius:12px; margin:10px 0; font-size:13.5px; display:none; }
 .aviso.ok { background:rgba(37,211,102,.12); border:1px solid rgba(37,211,102,.3); color:#a9f0c6; display:block; }
 .aviso.mal { background:rgba(230,72,49,.12); border:1px solid rgba(230,72,49,.35); color:#ffb4a8; display:block; }
+/* 🎬 Videos de las categorías (📝 Sitio): una fila por página, select + título + subtítulo + vista previa */
+.vid-cabecera, .vid-fila { display:grid; grid-template-columns:150px 1.1fr 1fr 1fr 30px; gap:8px; align-items:center; }
+.vid-cabecera { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--sub); padding:0 0 7px; }
+.vid-fila { padding:7px 0; border-top:1px solid var(--borde); }
+.vid-fila .vid-cat { font-size:13px; font-weight:600; line-height:1.35; }
+.vid-fila select, .vid-fila input { width:100%; box-sizing:border-box; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; font-size:12.5px; }
+.vid-fila a { text-align:center; font-size:15px; text-decoration:none; color:var(--dorado2); }
+@media (max-width:860px) {
+  .vid-cabecera { display:none; }
+  .vid-fila { grid-template-columns:1fr 30px; }
+  .vid-fila .vid-cat, .vid-fila input { grid-column:1 / -1; }
+}
 .plantillas-edit .p-item { display:flex; gap:8px; margin-bottom:8px; }
 .plantillas-edit input { flex:0 0 160px; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; }
 .plantillas-edit textarea { flex:1; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; min-height:38px; }
@@ -1028,6 +1040,19 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <div class="fila-conf">
       <button class="btn" onclick="guardarSitio()">💾 Guardar textos del sitio</button>
     </div>
+
+    <div class="caja-bot">
+      <h3>🎬 Videos de las categorías</h3>
+      <div class="campo-bloque">
+        <div class="hint">El video y los textos que salen arriba de los productos en cada página. Elige otro video del repertorio, cambia el título o el subtítulo y guarda: se ve en la web en ~1 minuto, sin tocar código. Campo vacío = el de siempre. ▶ abre el video elegido para verlo.</div>
+      </div>
+      <div class="vid-cabecera"><span>Página</span><span>Video</span><span>Título</span><span>Subtítulo</span><span></span></div>
+      <div id="vid-lista"></div>
+      <div class="aviso" id="vid-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" onclick="guardarVideos()">💾 Guardar videos</button>
+      </div>
+    </div>
   </div>
 
   </main>
@@ -1121,7 +1146,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') cargarSitio();
+  if (v === 'sitio') { cargarSitio(); cargarVideos(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -2191,6 +2216,94 @@ function guardarSitio() {
     avisoSitio('✅ Guardado. Se ve en la web en ~1 minuto.');
     cargarSitio();
   }).catch(function (e) { avisoSitio(e.message, true); });
+}
+// --- 🎬 Videos del hero por categoría: config:videos (los sirve /api/precios y los pinta site.js) ---
+// Archivos disponibles en img/videos/ del repo (si se sube un video nuevo al repo, añadirlo aquí):
+var VIDEOS_REPO = ['aguas-importadas', 'backtoschool', 'bienvenida', 'chocolates-importados', 'dulces', 'frutas-y-vegetales', 'galletas', 'helados', 'machu-picchu', 'pisco', 'refrescos'];
+var VID_SUB_DEF = 'Lo que necesitas, cuando lo necesitas';
+function vidCats() {
+  var cats = (window.ARAKAKI_CATALOG && ARAKAKI_CATALOG.categories) || {};
+  return Object.keys(cats).map(function (slug) { return { slug: slug, c: cats[slug] }; });
+}
+function armarVideos() {
+  var cont = document.getElementById('vid-lista');
+  if (!cont || cont.children.length) return; // las filas se arman una sola vez
+  var html = '';
+  vidCats().forEach(function (it) {
+    var def = it.c.video ? it.c.video.split('/').pop() : '';
+    var ops = '<option value="">' + (def ? 'El de siempre · ' + esc(def) : 'Sin video (así está)') + '</option>';
+    VIDEOS_REPO.forEach(function (n) { ops += '<option value="/img/videos/' + n + '.mp4">' + n + '.mp4</option>'; });
+    ops += '<option value="no">🚫 Sin video</option><option value="otro">🔗 Otra URL…</option>';
+    html += '<div class="vid-fila">' +
+      '<div class="vid-cat">' + (it.c.emoji ? it.c.emoji + ' ' : '') + esc(it.c.title) + '</div>' +
+      '<select id="vid-v-' + it.slug + '" onchange="vidCambio(\'' + it.slug + '\')">' + ops + '</select>' +
+      '<input id="vid-t-' + it.slug + '" maxlength="60" placeholder="' + esc(it.c.hero || '') + '">' +
+      '<input id="vid-s-' + it.slug + '" maxlength="90" placeholder="' + esc(VID_SUB_DEF) + '">' +
+      '<a id="vid-p-' + it.slug + '" href="#" target="_blank" title="Ver el video elegido">▶</a>' +
+      '</div>';
+  });
+  cont.innerHTML = html;
+  vidCats().forEach(function (it) { vidPreview(it.slug); });
+}
+function vidOpcionExtra(sel, u) {
+  // Una URL propia entra como opción del select (si ya existe, no se duplica)
+  for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === u) return;
+  var op = document.createElement('option');
+  op.value = u;
+  op.textContent = '🔗 ' + u.slice(0, 60);
+  sel.insertBefore(op, sel.querySelector('option[value="otro"]'));
+}
+function vidCambio(slug) {
+  var sel = document.getElementById('vid-v-' + slug);
+  if (sel.value === 'otro') {
+    var u = (prompt('Pega la URL del video (.mp4, debe empezar con https://):') || '').trim();
+    if (/^https:\/\/\S+$/i.test(u)) { vidOpcionExtra(sel, u); sel.value = u; }
+    else { if (u) alert('La URL debe empezar con https://'); sel.value = ''; }
+  }
+  vidPreview(slug);
+}
+function vidPreview(slug) {
+  var sel = document.getElementById('vid-v-' + slug);
+  var a = document.getElementById('vid-p-' + slug);
+  var cat = ((window.ARAKAKI_CATALOG && ARAKAKI_CATALOG.categories) || {})[slug] || {};
+  var src = sel.value === 'no' ? '' : (sel.value || cat.video || '');
+  if (src) { a.href = src; a.style.visibility = 'visible'; }
+  else { a.removeAttribute('href'); a.style.visibility = 'hidden'; }
+}
+function cargarVideos() {
+  armarVideos();
+  api('getvideos').then(function (j) {
+    var v = j.v || {};
+    vidCats().forEach(function (it) {
+      var o = v[it.slug] || {};
+      var sel = document.getElementById('vid-v-' + it.slug);
+      if (o.v && o.v !== 'no') vidOpcionExtra(sel, o.v);
+      sel.value = o.v || '';
+      document.getElementById('vid-t-' + it.slug).value = o.t || '';
+      document.getElementById('vid-s-' + it.slug).value = o.s || '';
+      vidPreview(it.slug);
+    });
+  }).catch(function () {});
+}
+function avisoVideos(t, mal) {
+  var a = document.getElementById('vid-aviso');
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function guardarVideos() {
+  var videos = {};
+  vidCats().forEach(function (it) {
+    videos[it.slug] = {
+      v: document.getElementById('vid-v-' + it.slug).value,
+      t: document.getElementById('vid-t-' + it.slug).value,
+      s: document.getElementById('vid-s-' + it.slug).value,
+    };
+  });
+  api('setvideos', { videos: videos }).then(function () {
+    avisoVideos('✅ Videos guardados. Se ven en la web en ~1 minuto.');
+    cargarVideos();
+  }).catch(function (e) { avisoVideos(e.message, true); });
 }
 function avisoBot(t, mal) {
   var a = document.getElementById('bot-aviso');
