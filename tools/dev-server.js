@@ -41,6 +41,14 @@ http.createServer((req, res) => {
     }
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
+    // Stub de precios/stock/productos nuevos: muestras para ver el diseño en /pisco en local
+    if (url === '/api/precios') {
+      return res.end(JSON.stringify({
+        p: {},
+        s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' },
+        x: [{ id: 'xdemo', cat: 'pisco', sec: '', nombre: 'Producto nuevo de prueba (solo en local)', precio: '25', img: '/img/productos/pisco/02-pisco-biondi-acholado-x-500-ml.webp', ts: 0 }],
+      }));
+    }
     // Stub de la cuenta del Club: permite ver /mi-cuenta y las estrellas ⭐ en local
     if (url === '/api/cuenta') {
       const funciones = { favoritos: true, puntos: true, promos: true, sorteos: true };

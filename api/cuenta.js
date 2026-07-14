@@ -59,6 +59,13 @@ async function getPreciosVivos() {
   return {};
 }
 
+// Productos nuevos subidos desde el panel (config:prodextra): también valen como favoritos
+async function getExtras() {
+  const raw = await redis(['GET', 'config:prodextra']);
+  if (raw) { try { const x = JSON.parse(raw); if (Array.isArray(x)) return x; } catch (e) {} }
+  return [];
+}
+
 // Interruptores del Club (panel → 👥 Club). Sin config guardada, todo prendido.
 const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
 async function getClub() {
@@ -169,10 +176,18 @@ async function preguntasDe(tel) {
 async function perfilCompleto(tel, cli, club) {
   const vivos = await getPreciosVivos();
 
-  // Favoritos marcados a mano (⭐), con precio vigente
-  const favs = (Array.isArray(cli.favs) ? cli.favs : []).map((name) => {
+  // Favoritos marcados a mano (⭐), con precio vigente. Los que no están en el catálogo
+  // pueden ser productos nuevos subidos desde el panel (config:prodextra).
+  const favsRaw = Array.isArray(cli.favs) ? cli.favs : [];
+  const extrasIdx = {};
+  if (favsRaw.some((n) => !PORNOMBRE[normalizar(n)])) {
+    (await getExtras()).forEach((e) => { extrasIdx[normalizar(e.nombre)] = e; });
+  }
+  const favs = favsRaw.map((name) => {
     const pr = PORNOMBRE[normalizar(name)];
-    return { name, price: pr ? precioVivo(pr, vivos) : null, pagina: pr ? '/' + pr.c : '' };
+    if (pr) return { name, price: precioVivo(pr, vivos), pagina: '/' + pr.c };
+    const ex = extrasIdx[normalizar(name)];
+    return { name, price: (ex && ex.precio && Number(ex.precio) > 0) ? Number(ex.precio) : null, pagina: ex ? '/' + ex.cat : '' };
   });
 
   // "Mi último pedido" = la foto exacta que guarda pedido.js (ultimoItems, con cantidades).
@@ -447,7 +462,10 @@ module.exports = async (req, res) => {
     if (b.action === 'fav') {
       if (!club.favoritos) return res.status(400).json({ error: 'Los favoritos están en pausa por ahora.' });
       const nombre = limpio(b.producto, 120);
-      if (!PORNOMBRE[normalizar(nombre)]) return res.status(400).json({ error: 'Producto no encontrado.' });
+      if (!PORNOMBRE[normalizar(nombre)] &&
+          !(await getExtras()).some((e) => normalizar(e.nombre) === normalizar(nombre))) {
+        return res.status(400).json({ error: 'Producto no encontrado.' });
+      }
       let favs = Array.isArray(cli.favs) ? cli.favs : [];
       favs = favs.filter((n) => normalizar(n) !== normalizar(nombre));
       if (b.on) favs.unshift(nombre);

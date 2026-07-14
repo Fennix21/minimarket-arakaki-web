@@ -15,6 +15,10 @@
 //   getprompt / setprompt / resetprompt / setnotify / getwebchat / setwebchat
 //   gettemplates / settemplates -> respuestas rápidas
 //   getprecios / setprecio { clave, precio } -> precios en vivo (overrides sobre el catálogo)
+//   setstock { clave, estado }   -> stock en vivo (''=se vende | 'agotado' | 'oculto'; config:stock)
+//   addprod { id?, cat, seccion?, nombre, precio?, img? } -> producto nuevo desde el panel (config:prodextra;
+//                                  la foto dataURL se guarda en prodimg:<id> y la sirve /api/precios?img=)
+//   delprod { id }               -> quita un producto subido desde el panel (y borra su foto)
 //   getsitio / setsitio        -> textos editables del sitio (lema + footer; los lee /api/sitio)
 //   getclub / setclub          -> interruptores + promos exclusivas + sorteos del Club (los lee /api/cuenta)
 //   resetpin { telefono }      -> borra el PIN del cliente y cierra sus sesiones
@@ -67,6 +71,13 @@ async function getClubCfg() {
   const out = {};
   Object.keys(CLUB_DEF).forEach((k) => { out[k] = (c[k] === undefined) ? CLUB_DEF[k] : c[k]; });
   return out;
+}
+
+// Productos nuevos subidos desde el panel (config:prodextra; site.js los pinta en su categoría)
+async function getExtras() {
+  const raw = await redis(['GET', 'config:prodextra']);
+  if (raw) { try { const x = JSON.parse(raw); if (Array.isArray(x)) return x; } catch (e) {} }
+  return [];
 }
 
 async function loadLead(phone) {
@@ -683,12 +694,14 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, ownerPhone });
     }
 
-    // --- Precios en vivo (overrides sobre data/catalog.js; los lee /api/precios) ---
+    // --- Precios, stock y productos nuevos en vivo (sobre data/catalog.js; los lee /api/precios) ---
     if (b.action === 'getprecios') {
-      const raw = await redis(['GET', 'config:precios']);
-      let p = {};
-      if (raw) { try { p = JSON.parse(raw); } catch (e) {} }
-      return res.status(200).json({ p });
+      const vals = (await redis(['MGET', 'config:precios', 'config:stock', 'config:prodextra'])) || [];
+      let p = {}, s = {}, x = [];
+      try { if (vals[0]) p = JSON.parse(vals[0]); } catch (e) {}
+      try { if (vals[1]) s = JSON.parse(vals[1]); } catch (e) {}
+      try { if (vals[2]) { const arr = JSON.parse(vals[2]); if (Array.isArray(arr)) x = arr; } } catch (e) {}
+      return res.status(200).json({ p, s, x });
     }
     if (b.action === 'setprecio') {
       const clave = (b.clave || '').toString().slice(0, 200);
@@ -709,6 +722,103 @@ module.exports = async (req, res) => {
       }
       await redis(['SET', 'config:precios', JSON.stringify(p)]);
       return res.status(200).json({ ok: true, p });
+    }
+    if (b.action === 'setstock') {
+      // Estado en vivo de un producto: '' = se vende · 'agotado' = visible con sello · 'oculto' = no se muestra
+      const clave = (b.clave || '').toString().slice(0, 200);
+      const extras = await getExtras();
+      const existe = PRODUCTOS.some((pr) => pr.c + '|' + pr.n === clave) ||
+        extras.some((e) => e.cat + '|' + e.nombre === clave);
+      if (!existe) return res.status(400).json({ error: 'Producto no encontrado en el catálogo.' });
+      const estado = (b.estado || '').toString();
+      if (estado && estado !== 'agotado' && estado !== 'oculto') {
+        return res.status(400).json({ error: 'Estado inválido (vacío, agotado u oculto).' });
+      }
+      const raw = await redis(['GET', 'config:stock']);
+      let s = {};
+      if (raw) { try { s = JSON.parse(raw); } catch (e) {} }
+      if (estado) s[clave] = estado; else delete s[clave];
+      await redis(['SET', 'config:stock', JSON.stringify(s)]);
+      return res.status(200).json({ ok: true, s });
+    }
+    if (b.action === 'addprod') {
+      // Producto nuevo (o edición si viene id) desde el panel: vive en Redis, sin tocar el catálogo del repo
+      const cat = (b.cat || '').toString().slice(0, 60);
+      if (!PRODUCTOS.some((pr) => pr.c === cat)) return res.status(400).json({ error: 'Categoría no encontrada.' });
+      const nombre = (b.nombre || '').toString().trim().slice(0, 120);
+      if (nombre.length < 3) return res.status(400).json({ error: 'Escribe el nombre del producto (mínimo 3 letras).' });
+      const seccion = (b.seccion || '').toString().slice(0, 120);
+      let precio = (b.precio === null || b.precio === undefined) ? '' : String(b.precio).replace(',', '.').trim();
+      if (precio !== '') {
+        if (!/^\d+(\.\d{1,2})?$/.test(precio) || Number(precio) <= 0) {
+          return res.status(400).json({ error: 'Precio inválido. Ejemplos: 85 o 85.50 (o déjalo vacío).' });
+        }
+        precio = String(Number(precio));
+      }
+      const extras = await getExtras();
+      const id = (b.id || '').toString().slice(0, 24);
+      const idx = id ? extras.findIndex((e) => e.id === id) : -1;
+      if (id && idx < 0) return res.status(400).json({ error: 'Ese producto ya no existe (recarga la página).' });
+      // El nombre identifica al producto en el carrito y los favoritos: no puede repetirse
+      const nlc = nombre.toLowerCase();
+      const repetido = PRODUCTOS.some((pr) => pr.n.toLowerCase() === nlc) ||
+        extras.some((e, i) => i !== idx && (e.nombre || '').toLowerCase() === nlc);
+      if (repetido) return res.status(400).json({ error: 'Ya existe un producto con ese nombre exacto.' });
+      if (idx < 0 && extras.length >= 80) {
+        return res.status(400).json({ error: 'Llegaste al tope de 80 productos añadidos: consolídalos al catálogo o borra alguno.' });
+      }
+      // Foto: dataURL ya comprimida por el panel → prodimg:<id>, la sirve /api/precios?img=<id>
+      let img = idx >= 0 ? extras[idx].img : '';
+      if (b.img) {
+        const data = String(b.img);
+        if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(data) || data.length > 470000) {
+          return res.status(400).json({ error: 'Formato de imagen inválido.' });
+        }
+        const iid = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        await redis(['SET', 'prodimg:' + iid, data]);
+        const vieja = img.match(/^\/api\/precios\?img=([a-z0-9]+)$/i);
+        if (vieja) await redis(['DEL', 'prodimg:' + vieja[1]]);
+        img = '/api/precios?img=' + iid;
+      }
+      if (!img) return res.status(400).json({ error: 'Falta la foto del producto.' });
+      const item = {
+        id: idx >= 0 ? extras[idx].id : 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        cat, sec: seccion, nombre, precio, img, ts: idx >= 0 ? extras[idx].ts : Date.now(),
+      };
+      if (idx >= 0) {
+        // Si cambió el nombre, el estado de stock guardado sigue al producto
+        if (extras[idx].nombre !== nombre || extras[idx].cat !== cat) {
+          const rawS = await redis(['GET', 'config:stock']);
+          let s = {};
+          if (rawS) { try { s = JSON.parse(rawS); } catch (e) {} }
+          const viejaClave = extras[idx].cat + '|' + extras[idx].nombre;
+          if (s[viejaClave]) { s[cat + '|' + nombre] = s[viejaClave]; delete s[viejaClave]; await redis(['SET', 'config:stock', JSON.stringify(s)]); }
+        }
+        extras[idx] = item;
+      } else {
+        extras.push(item);
+      }
+      await redis(['SET', 'config:prodextra', JSON.stringify(extras)]);
+      return res.status(200).json({ ok: true, x: extras });
+    }
+    if (b.action === 'delprod') {
+      const id = (b.id || '').toString().slice(0, 24);
+      const extras = await getExtras();
+      const idx = extras.findIndex((e) => e.id === id);
+      if (idx < 0) return res.status(400).json({ error: 'Ese producto ya no existe.' });
+      const [e] = extras.splice(idx, 1);
+      const m = (e.img || '').match(/^\/api\/precios\?img=([a-z0-9]+)$/i);
+      if (m) await redis(['DEL', 'prodimg:' + m[1]]);
+      // Limpia su estado de stock si lo tenía
+      const rawS = await redis(['GET', 'config:stock']);
+      if (rawS) {
+        try {
+          const s = JSON.parse(rawS);
+          if (s[e.cat + '|' + e.nombre] !== undefined) { delete s[e.cat + '|' + e.nombre]; await redis(['SET', 'config:stock', JSON.stringify(s)]); }
+        } catch (er) {}
+      }
+      await redis(['SET', 'config:prodextra', JSON.stringify(extras)]);
+      return res.status(200).json({ ok: true, x: extras });
     }
 
     // --- Analítica del sitio ---

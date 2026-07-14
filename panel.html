@@ -129,6 +129,15 @@ h2.tit-vista { font-size:19px; font-weight:800; margin-bottom:4px; }
 .chip.pedido{background:rgba(230,72,49,.2);color:#ff9c8b} .chip.entregado{background:rgba(37,211,102,.16);color:#7fe3a9}
 .chip.descartado{background:var(--switch-off);color:var(--sub)}
 .chip.bot-off{background:rgba(124,15,20,.55);color:#ffb3b3} .chip.v24{background:rgba(37,211,102,.16);color:#7fe3a9} .chip.v24off{background:var(--switch-off);color:#8f8f98}
+/* Precios: botón de disponibilidad (rota ✅ Se vende → 😕 Agotado → 🙈 Oculto) y productos subidos desde el panel */
+.btn-stock { background:rgba(37,211,102,.14); color:#7fe3a9; border:1px solid rgba(37,211,102,.3); border-radius:999px; padding:5px 11px; font-size:11.5px; font-weight:700; white-space:nowrap; }
+.btn-stock.agotado { background:rgba(230,72,49,.14); color:#ff9c8b; border-color:rgba(230,72,49,.35); }
+.btn-stock.oculto { background:var(--switch-off); color:var(--sub); border-color:var(--borde); }
+.np-item { display:flex; align-items:center; gap:10px; border:1px solid var(--borde); border-radius:12px; background:var(--card); padding:8px 10px; margin-bottom:8px; flex-wrap:wrap; }
+.np-item > img { width:52px; height:52px; object-fit:contain; border-radius:8px; background:#fff; flex:none; }
+.np-item .np-datos { flex:1; min-width:160px; display:flex; flex-direction:column; gap:2px; font-size:13px; }
+.np-item .np-datos span { font-size:11.5px; color:var(--sub); }
+.np-item .btn { padding:7px 10px; }
 /* Club: orden + favoritos por cliente */
 .club-orden { margin-bottom:14px; font-size:13px; color:var(--sub); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .club-orden .btn { font-size:12px; padding:6px 12px; }
@@ -409,7 +418,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <ol>
         <li><b>💬 Chats</b>: responde a tus clientes de WhatsApp. Si escribes tú, el bot se pausa solo para ese cliente.</li>
         <li><b>🛒 Pedidos</b>: revisa lo que piden desde la web y avanza su estado (nuevo → preparando → enviado → entregado).</li>
-        <li><b>💰 Precios</b>: cambia cualquier precio de la web al instante, sin tocar código.</li>
+        <li><b>💰 Precios</b>: cambia precios, marca productos como <b>agotados</b> u ocúltalos, y sube <b>productos nuevos</b> con foto — todo al instante, sin tocar código.</li>
       </ol>
     </div>
   </div>
@@ -477,19 +486,50 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <p class="vacio" id="preguntas-vacio" style="display:none">No hay preguntas del Club por ahora 🎉<br>Cuando un cliente pregunte algo desde su cuenta, aparecerá aquí (y te llega aviso).</p>
   </div>
 
-  <!-- PRECIOS -->
+  <!-- PRECIOS, STOCK Y PRODUCTOS -->
   <div class="vista" id="v-precios">
-    <h2 class="tit-vista">💰 Precios de la web</h2>
-    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Cambia el precio que se ve en la web al instante (~1 minuto), sin tocar código. La fila dorada ⭐ tiene precio especial guardado; deja el campo vacío y guarda (o usa ↩) para volver al precio base del catálogo. También se pueden cambiar precios escribiéndole al WhatsApp del negocio desde los números autorizados (⚙️ Bot → Números autorizados).</p>
+    <h2 class="tit-vista">💰 Precios y productos de la web</h2>
+    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Todo lo de esta pestaña sale en la web al instante (~1 minuto), sin tocar código: precios, disponibilidad (agotado/oculto) y productos nuevos con foto.</p>
     <div class="aviso" id="pr-aviso"></div>
-    <div class="fila-conf" style="margin-bottom:12px">
-      <select id="pr-cat"></select>
-      <input id="pr-buscar" placeholder="🔍 Buscar producto en todo el catálogo" oninput="pintarPrecios()" style="flex:1;min-width:180px">
+
+    <div class="caja-bot">
+      <h3>➕ Subir producto nuevo</h3>
+      <p class="desc">Se publica en su página de categoría con el <b>mismo diseño</b> que los demás (tarjeta negra-oro, carrito y ⭐ favoritos incluidos). La foto se comprime sola en tu navegador. Consejo: foto vertical o cuadrada del producto sobre fondo claro, como las del catálogo.</p>
+      <div class="fila-conf" style="margin-top:0">
+        <select id="np-cat" onchange="armarSeccionesNuevo()"></select>
+        <select id="np-sec" title="Sección de la página donde saldrá"></select>
+      </div>
+      <div class="fila-conf">
+        <input type="text" id="np-nombre" placeholder="Nombre exacto (ej. Ron Abuelo 7 Años x 750 ml)" style="flex:2;min-width:220px">
+        <input type="text" id="np-precio" placeholder="Precio S/ (vacío = «precio en tienda»)" inputmode="decimal" style="width:230px">
+      </div>
+      <div class="cci-foto">
+        <img id="np-foto-prev" style="display:none" alt="">
+        <div class="cci-nofoto" id="np-foto-nada">Sin foto</div>
+        <div>
+          <input type="file" id="np-foto" accept="image/*" style="display:none" onchange="fotoProdElegida(this)">
+          <button class="btn gris" onclick="document.getElementById('np-foto').click()">📷 Elegir foto</button>
+        </div>
+      </div>
+      <div class="fila-conf" style="margin-bottom:0">
+        <button class="btn" id="np-guardar" onclick="guardarProdNuevo()">💾 Publicar producto</button>
+        <button class="btn gris" id="np-cancelar" style="display:none" onclick="limpiarProdForm()">✖ Cancelar edición</button>
+      </div>
+      <div id="pr-extras" style="margin-top:16px"></div>
     </div>
-    <div class="tabla-scroll"><table>
-      <thead><tr><th>Producto</th><th>Categoría</th><th>Precio base</th><th>Precio en la web</th><th></th></tr></thead>
-      <tbody id="tabla-precios"></tbody>
-    </table></div>
+
+    <div class="caja-bot">
+      <h3>💰 Precios y disponibilidad</h3>
+      <p class="desc">La fila dorada ⭐ tiene precio especial guardado; deja el campo vacío y guarda (o usa ↩) para volver al precio base del catálogo. También se pueden cambiar precios por WhatsApp desde los números autorizados (⚙️ Bot). El botón de la columna <b>En la web</b> rota entre <b>✅ Se vende</b> → <b>😕 Agotado</b> (la tarjeta se ve apagada con sello AGOTADO, sin poder pedirla: ideal para mostrar que un producto vuela) → <b>🙈 Oculto</b> (desaparece de la página).</p>
+      <div class="fila-conf" style="margin:0 0 12px">
+        <select id="pr-cat"></select>
+        <input id="pr-buscar" placeholder="🔍 Buscar producto en todo el catálogo" oninput="pintarPrecios()" style="flex:1;min-width:180px">
+      </div>
+      <div class="tabla-scroll"><table>
+        <thead><tr><th>Producto</th><th>Categoría</th><th>Precio base</th><th>Precio en la web</th><th></th><th>En la web</th></tr></thead>
+        <tbody id="tabla-precios"></tbody>
+      </table></div>
+    </div>
   </div>
 
   <!-- CLUB -->
@@ -1330,9 +1370,13 @@ function responderPregunta(id) {
 }
 function borrarPregunta(id) { api('pregdel', { id: id }).then(cargarPreguntas); }
 
-// ---------- Precios ----------
+// ---------- Precios, stock y productos nuevos ----------
 var PRECIOS = {};        // overrides vivos { 'slug|nombre': '85' }
 var PRECIOS_LISTA = [];  // catálogo plano para la tabla
+var STOCK = {};          // { 'slug|nombre': 'agotado'|'oculto' } (ausente = se vende)
+var EXTRAS = [];         // productos subidos desde el panel (config:prodextra)
+var NP_FOTO = '';        // dataURL de la foto ya comprimida, lista para subir
+var NP_EDIT = '';        // id del producto en edición ('' = nuevo)
 
 function avisoPr(t, mal) {
   var a = document.getElementById('pr-aviso');
@@ -1361,9 +1405,11 @@ function armarListaPrecios() {
 }
 function cargarPrecios() {
   armarListaPrecios();
-  api('getprecios').then(function (j) { PRECIOS = j.p || {}; pintarPrecios(); })
+  armarSelectorNuevo();
+  api('getprecios').then(function (j) { PRECIOS = j.p || {}; STOCK = j.s || {}; EXTRAS = j.x || []; pintarPrecios(); pintarExtras(); })
     .catch(function (e) { avisoPr(e.message, true); });
 }
+function etiquetaStock(st) { return st === 'agotado' ? '😕 Agotado' : st === 'oculto' ? '🙈 Oculto' : '✅ Se vende'; }
 function pintarPrecios() {
   var slug = document.getElementById('pr-cat').value;
   var q = (document.getElementById('pr-buscar').value || '').toLowerCase();
@@ -1373,6 +1419,7 @@ function pintarPrecios() {
   });
   document.getElementById('tabla-precios').innerHTML = filas.map(function (p) {
     var esp = PRECIOS[p.clave]; // precio especial (override) si existe
+    var st = STOCK[p.clave] || '';
     return '<tr' + (esp !== undefined ? ' style="background:rgba(212,169,65,0.12)"' : '') + '>' +
       '<td><b>' + esc(p.nombre) + '</b></td><td>' + esc(p.catTitulo) + '</td>' +
       '<td>' + (p.base ? 'S/ ' + esc(p.base) : '—') + '</td>' +
@@ -1381,8 +1428,22 @@ function pintarPrecios() {
         (esp !== undefined ? ' ⭐' : '') + '</td>' +
       '<td><button class="btn" onclick="guardarPrecio(this.closest(\'tr\').querySelector(\'input\'))" title="Guardar">💾</button>' +
         (esp !== undefined ? ' <button class="btn gris" onclick="restaurarPrecio(this)" title="Volver al precio base">↩</button>' : '') +
-      '</td></tr>';
-  }).join('') || '<tr><td colspan="5" style="color:#888">Sin productos que coincidan.</td></tr>';
+      '</td>' +
+      '<td><button class="btn-stock' + (st ? ' ' + st : '') + '" data-clave="' + esc(p.clave) + '" onclick="ciclarStock(this)" title="Tocar para cambiar: se vende → agotado → oculto">' + etiquetaStock(st) + '</button></td></tr>';
+  }).join('') || '<tr><td colspan="6" style="color:#888">Sin productos que coincidan.</td></tr>';
+}
+function ciclarStock(btn) {
+  var clave = btn.getAttribute('data-clave');
+  var actual = STOCK[clave] || '';
+  var sig = actual === '' ? 'agotado' : actual === 'agotado' ? 'oculto' : '';
+  btn.disabled = true;
+  api('setstock', { clave: clave, estado: sig }).then(function (j) {
+    STOCK = j.s || {};
+    pintarPrecios(); pintarExtras();
+    avisoPr(sig === 'agotado' ? '😕 Marcado como AGOTADO: la tarjeta se ve apagada con su sello (~1 min).'
+      : sig === 'oculto' ? '🙈 Oculto: el producto ya no sale en la web (~1 min).'
+      : '✅ Disponible: el producto se vende de nuevo en la web (~1 min).');
+  }).catch(function (e) { btn.disabled = false; avisoPr(e.message, true); });
 }
 function guardarPrecio(inp) {
   if (!inp) return;
@@ -1398,6 +1459,130 @@ function restaurarPrecio(btn) {
   var inp = btn.closest('tr').querySelector('input');
   inp.value = '';
   guardarPrecio(inp);
+}
+
+// --- Producto nuevo desde el panel (vive en Redis config:prodextra; site.js lo pinta en su categoría) ---
+function armarSelectorNuevo() {
+  var sel = document.getElementById('np-cat');
+  if (sel.options.length || !window.ARAKAKI_CATALOG) return;
+  var C = window.ARAKAKI_CATALOG;
+  sel.innerHTML = C.order.map(function (slug) {
+    var c = C.categories[slug];
+    return c ? '<option value="' + slug + '">' + c.emoji + ' ' + esc(c.title) + '</option>' : '';
+  }).join('');
+  armarSeccionesNuevo();
+}
+function armarSeccionesNuevo() {
+  var C = window.ARAKAKI_CATALOG;
+  var cat = C && C.categories[document.getElementById('np-cat').value];
+  var sel = document.getElementById('np-sec');
+  if (!cat) { sel.innerHTML = ''; sel.style.display = 'none'; return; }
+  sel.innerHTML = cat.sections.map(function (s) {
+    return '<option value="' + esc(s.title) + '">📄 ' + esc(s.title) + '</option>';
+  }).join('');
+  // Con una sola sección no hay nada que elegir: el selector se esconde
+  sel.style.display = cat.sections.length > 1 ? '' : 'none';
+}
+function fotoProdElegida(inp) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f) return;
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    // Mismo tamaño que las fotos del catálogo (≤640px); fondo blanco por si el PNG trae transparencia
+    var esc2 = Math.min(1, 640 / img.naturalWidth, 640 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * esc2)), h = Math.max(1, Math.round(img.naturalHeight * esc2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    var ctx = cv.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 300000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 300000) return avisoPr('La foto pesa demasiado incluso comprimida: prueba con otra.', true);
+    NP_FOTO = data;
+    var prev = document.getElementById('np-foto-prev');
+    prev.src = data; prev.style.display = '';
+    document.getElementById('np-foto-nada').style.display = 'none';
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoPr('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
+}
+function guardarProdNuevo() {
+  var nombre = document.getElementById('np-nombre').value.trim();
+  if (nombre.length < 3) return avisoPr('Escribe el nombre del producto (mínimo 3 letras).', true);
+  if (!NP_EDIT && !NP_FOTO) return avisoPr('Elige la foto del producto (📷).', true);
+  var btn = document.getElementById('np-guardar');
+  btn.disabled = true;
+  api('addprod', {
+    id: NP_EDIT || undefined, cat: document.getElementById('np-cat').value,
+    seccion: document.getElementById('np-sec').value, nombre: nombre,
+    precio: document.getElementById('np-precio').value.trim(), img: NP_FOTO || undefined,
+  }).then(function (j) {
+    btn.disabled = false;
+    EXTRAS = j.x || [];
+    avisoPr(NP_EDIT ? '✅ Producto actualizado. Se ve en la web en ~1 minuto.' : '✅ Producto publicado en su categoría. Se ve en la web en ~1 minuto.');
+    limpiarProdForm();
+    pintarExtras();
+  }).catch(function (e) { btn.disabled = false; avisoPr(e.message, true); });
+}
+function limpiarProdForm() {
+  NP_EDIT = ''; NP_FOTO = '';
+  document.getElementById('np-nombre').value = '';
+  document.getElementById('np-precio').value = '';
+  var prev = document.getElementById('np-foto-prev');
+  prev.src = ''; prev.style.display = 'none';
+  document.getElementById('np-foto-nada').style.display = '';
+  document.getElementById('np-guardar').textContent = '💾 Publicar producto';
+  document.getElementById('np-guardar').disabled = false;
+  document.getElementById('np-cancelar').style.display = 'none';
+}
+function pintarExtras() {
+  var cont = document.getElementById('pr-extras');
+  if (!cont) return;
+  if (!EXTRAS.length) { cont.innerHTML = ''; return; }
+  var C = window.ARAKAKI_CATALOG || { categories: {} };
+  cont.innerHTML = '<div style="font-size:12.5px;font-weight:700;color:var(--label);margin-bottom:8px">🆕 Productos subidos desde el panel (' + EXTRAS.length + ')</div>' +
+    EXTRAS.slice().reverse().map(function (e) {
+      var cat = C.categories[e.cat];
+      var st = STOCK[e.cat + '|' + e.nombre] || '';
+      return '<div class="np-item">' +
+        '<img src="' + esc(e.img) + '" alt="" loading="lazy">' +
+        '<div class="np-datos"><b>' + esc(e.nombre) + '</b>' +
+        '<span>' + (cat ? cat.emoji + ' ' + esc(cat.title) : esc(e.cat)) + (e.sec ? ' · ' + esc(e.sec) : '') + ' · ' + (e.precio ? 'S/ ' + esc(e.precio) : 'precio en tienda') + '</span></div>' +
+        '<button class="btn-stock' + (st ? ' ' + st : '') + '" data-clave="' + esc(e.cat + '|' + e.nombre) + '" onclick="ciclarStock(this)" title="Tocar para cambiar: se vende → agotado → oculto">' + etiquetaStock(st) + '</button>' +
+        '<button class="btn gris" onclick="editarProd(\'' + e.id + '\')" title="Editar">✏️</button>' +
+        '<button class="btn gris" onclick="borrarProd(\'' + e.id + '\')" title="Quitar de la web">🗑</button>' +
+        '</div>';
+    }).join('');
+}
+function editarProd(id) {
+  var e = null;
+  EXTRAS.forEach(function (x) { if (x.id === id) e = x; });
+  if (!e) return;
+  NP_EDIT = id; NP_FOTO = '';
+  document.getElementById('np-cat').value = e.cat;
+  armarSeccionesNuevo();
+  if (e.sec) document.getElementById('np-sec').value = e.sec;
+  document.getElementById('np-nombre').value = e.nombre;
+  document.getElementById('np-precio').value = e.precio || '';
+  var prev = document.getElementById('np-foto-prev');
+  prev.src = e.img; prev.style.display = '';
+  document.getElementById('np-foto-nada').style.display = 'none';
+  document.getElementById('np-guardar').textContent = '💾 Guardar cambios';
+  document.getElementById('np-cancelar').style.display = '';
+  document.getElementById('np-cat').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function borrarProd(id) {
+  if (!confirm('¿Quitar este producto de la web? (no toca el catálogo del código)')) return;
+  api('delprod', { id: id }).then(function (j) {
+    EXTRAS = j.x || [];
+    if (NP_EDIT === id) limpiarProdForm();
+    pintarExtras();
+    avisoPr('🗑 Producto quitado de la web.');
+  }).catch(function (e) { avisoPr(e.message, true); });
 }
 
 // ---------- Club ----------
