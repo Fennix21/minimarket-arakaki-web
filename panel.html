@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Panel | Minimarket Arakaki</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/png" href="/img/favicon.png">
@@ -106,7 +106,8 @@ h2.tit-vista { font-size:19px; font-weight:800; margin-bottom:4px; }
 
 /* ---------- Chats ---------- */
 #v-chats { display:none; }
-#v-chats.activa { display:grid; grid-template-columns:340px 1fr; gap:14px; height:calc(100vh - 54px); max-width:none; }
+/* Sin animación: el translateY de "aparecer" rompería el position:fixed del chat abierto en móvil */
+#v-chats.activa { display:grid; grid-template-columns:340px 1fr; gap:14px; height:calc(100vh - 54px); max-width:none; animation:none; }
 @media (max-width:860px){ #v-chats.activa { grid-template-columns:1fr; height:auto; } #chat-der { display:none; } #chat-der.abierto { display:flex; position:fixed; inset:0; z-index:100; border-radius:0; } #chat-izq.oculto { display:none; } }
 #chat-izq { background:var(--panel); border:1px solid var(--borde); border-radius:var(--radius); overflow-y:auto; }
 #chat-izq .buscador { padding:10px; position:sticky; top:0; background:var(--panel); z-index:2; }
@@ -293,20 +294,74 @@ td a.wa { color:var(--verde); text-decoration:none; }
 
 /* ---------- Móvil: barra superior + navegación inferior ---------- */
 @media (max-width:860px){
-  #topbar { display:flex; align-items:center; gap:9px; position:fixed; top:0; left:0; right:0; height:54px; background:var(--panel); border-bottom:1px solid var(--borde); padding:0 14px; z-index:60; }
+  #topbar { display:flex; align-items:center; gap:9px; position:fixed; top:0; left:0; right:0; background:var(--panel); border-bottom:1px solid var(--borde); padding:0 14px; z-index:60; height:54px; height:calc(54px + env(safe-area-inset-top)); padding-top:env(safe-area-inset-top); }
   #topbar img { width:32px; }
   #topbar b { font-size:14px; }
   #topbar .esp { flex:1; }
-  #topbar button { background:none; border:none; color:var(--sub); font-size:17px; padding:6px 8px; }
-  #menu { top:auto; bottom:0; left:0; right:0; width:auto; height:66px; flex-direction:row; padding:0 4px; border-right:none; border-top:1px solid var(--borde); }
+  #topbar button { background:none; border:none; color:var(--sub); font-size:18px; padding:9px 10px; }
+  #menu { top:auto; bottom:0; left:0; right:0; width:auto; flex-direction:row; padding:0 4px; border-right:none; border-top:1px solid var(--borde); height:64px; height:calc(64px + env(safe-area-inset-bottom)); padding-bottom:env(safe-area-inset-bottom); }
   #menu .marca, #menu .menu-pie { display:none; }
   #menu nav { flex-direction:row; width:100%; gap:0; }
-  .tab { flex:1; flex-direction:column; justify-content:center; gap:3px; padding:7px 2px; border-radius:10px; font-size:9px; font-weight:700; }
+  /* En la barra solo van los 4 accesos de cada día + "Más"; el resto vive en el menú Más */
+  #menu .tab[data-v="consultas"], #menu .tab[data-v="club"], #menu .tab[data-v="stats"],
+  #menu .tab[data-v="sitio"], #menu .tab[data-v="bot"] { display:none; }
+  #menu #tab-mas { display:flex; }
+  .tab { flex:1; flex-direction:column; justify-content:center; gap:3px; padding:6px 2px; border-radius:10px; font-size:10px; font-weight:700; }
   .tab.activa { box-shadow:none; background:rgba(212,169,65,.14); }
-  .tab .ico { font-size:18px; width:auto; }
-  .tab .badge { position:absolute; top:4px; right:50%; margin:0 -22px 0 0; padding:1px 5px; font-size:9px; }
-  main#contenido { margin-left:0; padding:68px 14px 84px; }
+  .tab .ico { font-size:19px; width:auto; }
+  .tab .badge { position:absolute; top:3px; right:50%; margin:0 -24px 0 0; padding:1px 5px; font-size:9px; }
+  main#contenido { margin-left:0; padding:66px 12px 88px; padding-top:calc(66px + env(safe-area-inset-top)); padding-bottom:calc(88px + env(safe-area-inset-bottom)); }
   #v-chats.activa { height:auto; }
+  /* La lista de chats scrollea con la página y el buscador se queda pegado bajo la barra */
+  #chat-izq { overflow:visible; }
+  #chat-izq .buscador { top:54px; top:calc(54px + env(safe-area-inset-top)); }
+  /* Chat abierto a pantalla completa: respeta el notch y el home indicator del iPhone */
+  #chat-der.abierto { background:var(--panel); padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom); }
+  .msg { max-width:86%; }
+  #chat-cab { padding:10px 12px; gap:8px; }
+  #chat-cab .mini { padding:8px 11px; }
+  /* Campos a 16px en el teléfono: iOS ya no hace zoom al tocarlos */
+  input:not([type=checkbox]):not([type=file]), textarea, select { font-size:16px !important; }
+  .caja-bot { padding:16px 14px; }
+  .toggle-fila { padding:13px 14px; }
+  .btn { padding:12px 15px; }
+  .fila-conf .btn { flex:1 1 auto; }
+  th,td { padding:9px 10px; font-size:13px; }
+}
+@media (max-width:480px){
+  #login { margin:7vh auto 0; width:calc(100% - 32px); padding:30px 22px 24px; }
+}
+
+/* ---------- Menú "Más" (móvil): accesos que no caben en la barra inferior ---------- */
+#tab-mas { display:none; }
+#mas-fondo { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:64; }
+#mas-panel { display:none; position:fixed; left:10px; right:10px; background:var(--panel); border:1px solid var(--borde); border-radius:18px; padding:12px; z-index:65; box-shadow:var(--sombra); bottom:74px; bottom:calc(74px + env(safe-area-inset-bottom)); }
+#mas-fondo.abierto { display:block; }
+#mas-panel.abierto { display:block; animation:sube .16s ease; }
+@keyframes sube { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+.mas-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.mas-item { position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; background:var(--card); border:1px solid var(--borde); border-radius:14px; padding:14px 4px 12px; color:var(--texto); font-size:12px; font-weight:700; }
+.mas-item .ico { font-size:22px; }
+.mas-item.activa { border-color:var(--dorado); color:var(--dorado2); background:rgba(212,169,65,.1); }
+.mas-item .badge { position:absolute; top:6px; right:10px; background:var(--naranja); color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 6px; }
+@media (min-width:861px){ #mas-panel, #mas-fondo { display:none !important; } }
+
+/* ---------- Tablas → tarjetas en el teléfono (nada de scroll lateral) ---------- */
+@media (max-width:640px){
+  .t-cards { border:none; border-radius:0; overflow:visible; }
+  .t-cards table { background:none; }
+  .t-cards thead { display:none; }
+  .t-cards tbody, .t-cards td { display:block; width:100%; }
+  .t-cards tr { display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--borde); border-radius:14px; padding:8px 0; margin-bottom:10px; }
+  .t-cards tr:hover td { background:none; }
+  .t-cards td { border-bottom:none; padding:5px 14px; font-size:14px; }
+  .t-cards td:empty { display:none; }
+  .t-cards td[data-e]::before { content:attr(data-e); display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--sub); margin-bottom:2px; }
+  .t-cards .td-meta { order:5; font-size:11.5px; color:var(--sub); }
+  .t-cards .td-nombre { order:-1; font-size:15px; }
+  .t-cards td select { width:100%; padding:11px 12px; }
+  .t-cards .mini { padding:9px 13px; font-size:14px; }
+  .td-favs { max-width:none; }
 }
 
 /* Compositor push: buscador de imágenes del catálogo + vista previa de la notificación */
@@ -406,6 +461,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="tab" data-v="stats"><span class="ico">📊</span><span class="eti">Analíticas</span></button>
       <button class="tab" data-v="sitio"><span class="ico">📝</span><span class="eti">Sitio</span></button>
       <button class="tab" data-v="bot"><span class="ico">⚙️</span><span class="eti">Bot</span></button>
+      <button class="tab" id="tab-mas" onclick="toggleMas()"><span class="ico">⋯</span><span class="eti">Más</span><span class="badge" id="badge-mas" style="display:none">0</span></button>
     </nav>
     <div class="menu-pie">
       <div class="tema-toggle" id="tema-toggle">
@@ -416,6 +472,18 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button onclick="salir()">🚪 Salir</button>
     </div>
   </aside>
+
+  <!-- Menú "Más" (solo móvil): las secciones que no caben en la barra inferior -->
+  <div id="mas-fondo" onclick="cerrarMas()"></div>
+  <div id="mas-panel">
+    <div class="mas-grid">
+      <button class="mas-item" data-v="consultas"><span class="ico">❓</span>Consultas<span class="badge" id="badge-consultas-m" style="display:none">0</span></button>
+      <button class="mas-item" data-v="club"><span class="ico">👥</span>Club</button>
+      <button class="mas-item" data-v="stats"><span class="ico">📊</span>Analíticas</button>
+      <button class="mas-item" data-v="sitio"><span class="ico">📝</span>Sitio</button>
+      <button class="mas-item" data-v="bot"><span class="ico">⚙️</span>Bot</button>
+    </div>
+  </div>
 
   <main id="contenido">
 
@@ -480,7 +548,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <div class="vista" id="v-pedidos">
     <h2 class="tit-vista">🛒 Pedidos desde la web</h2>
     <p class="sub-vista">Todo lo que tus clientes arman en el carrito de la web llega aquí. Cambia el estado para llevar el control de cada entrega.</p>
-    <div class="tabla-scroll"><table>
+    <div class="tabla-scroll t-cards"><table>
       <thead><tr><th>Fecha</th><th>Cliente</th><th>Pedido</th><th>Total</th><th>Entrega</th><th>Estado</th></tr></thead>
       <tbody id="tabla-pedidos"></tbody>
     </table></div>
@@ -491,7 +559,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <div class="vista" id="v-consultas">
     <h2 class="tit-vista">❓ Consultas del chat de la web</h2>
     <p class="sub-vista">Preguntas que el asistente de la web no pudo responder (un producto que no encontró o un dato que no tenía). Úsalas para completar el catálogo o el prompt del bot, y toca ✓ cuando ya la revisaste.</p>
-    <div class="tabla-scroll"><table>
+    <div class="tabla-scroll t-cards"><table>
       <thead><tr><th>Fecha</th><th>Producto</th><th>Pregunta del cliente</th><th></th></tr></thead>
       <tbody id="tabla-consultas"></tbody>
     </table></div>
@@ -499,7 +567,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
     <h2 class="tit-vista" style="margin-top:30px">💬 Preguntas del Club</h2>
     <p class="sub-vista">Preguntas que los miembros del Club dejan desde su cuenta (/mi-cuenta). Escribe la respuesta y guárdala con 💾: el cliente la verá reflejada en su panel. 🗑 la borra de la lista (y el cliente deja de verla).</p>
-    <div class="tabla-scroll"><table>
+    <div class="tabla-scroll t-cards"><table>
       <thead><tr><th>Fecha</th><th>Cliente</th><th>Pregunta</th><th style="min-width:220px">Respuesta (la ve en su cuenta)</th><th></th></tr></thead>
       <tbody id="tabla-preguntas"></tbody>
     </table></div>
@@ -545,7 +613,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <select id="pr-cat"></select>
         <input id="pr-buscar" placeholder="🔍 Buscar producto en todo el catálogo" oninput="pintarPrecios()" style="flex:1;min-width:180px">
       </div>
-      <div class="tabla-scroll"><table>
+      <div class="tabla-scroll t-cards"><table>
         <thead><tr><th>Producto</th><th>Categoría</th><th>Precio base</th><th>Precio en la web</th><th></th><th>En la web</th></tr></thead>
         <tbody id="tabla-precios"></tbody>
       </table></div>
@@ -610,7 +678,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="btn gris" id="club-ord-rec" onclick="ordenarClub('reciente')">🕑 Más reciente</button>
       <button class="btn gris" id="club-ord-frec" onclick="ordenarClub('frecuencia')">🔁 Más pedidos</button>
     </div>
-    <div class="tabla-scroll"><table>
+    <div class="tabla-scroll t-cards"><table>
       <thead><tr><th>Registro</th><th>Nombre</th><th>WhatsApp</th><th>Pedidos</th><th>🪙 Puntos</th><th>Gasto</th><th>Última visita</th><th>Sus favoritos</th><th></th></tr></thead>
       <tbody id="tabla-club"></tbody>
     </table></div>
@@ -1154,9 +1222,28 @@ var tabs = document.querySelectorAll('.tab[data-v]');
 for (var i = 0; i < tabs.length; i++) {
   tabs[i].onclick = (function (t) { return function () { verVista(t.getAttribute('data-v')); }; })(tabs[i]);
 }
+
+// Menú "Más" (móvil): las secciones que no caben en la barra inferior
+var MAS_VISTAS = ['consultas', 'club', 'stats', 'sitio', 'bot'];
+var masItems = document.querySelectorAll('.mas-item');
+for (var mi = 0; mi < masItems.length; mi++) {
+  masItems[mi].onclick = (function (b) { return function () { verVista(b.getAttribute('data-v')); }; })(masItems[mi]);
+}
+function toggleMas() {
+  document.getElementById('mas-panel').classList.toggle('abierto');
+  document.getElementById('mas-fondo').classList.toggle('abierto');
+}
+function cerrarMas() {
+  document.getElementById('mas-panel').classList.remove('abierto');
+  document.getElementById('mas-fondo').classList.remove('abierto');
+}
 function verVista(v) {
   try { localStorage.setItem('arakaki_vista', v); } catch (e) {} // recordar la sección al recargar
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('activa', tabs[i].getAttribute('data-v') === v);
+  // Menú "Más" (móvil): se marca si la sección abierta vive dentro de él, y se cierra al navegar
+  document.getElementById('tab-mas').classList.toggle('activa', MAS_VISTAS.indexOf(v) >= 0);
+  for (var m = 0; m < masItems.length; m++) masItems[m].classList.toggle('activa', masItems[m].getAttribute('data-v') === v);
+  cerrarMas();
   var vistas = document.querySelectorAll('.vista');
   for (var j = 0; j < vistas.length; j++) vistas[j].classList.toggle('activa', vistas[j].id === 'v-' + v);
   if (v === 'inicio') cargarInicio();
@@ -1355,9 +1442,9 @@ function cargarPedidos() {
     document.getElementById('pedidos-vacio').style.display = ps.length ? 'none' : 'block';
     document.getElementById('tabla-pedidos').innerHTML = ps.map(function (p) {
       var items = (p.items || []).map(function (i) { return i.qty + ' × ' + esc(i.name); }).join('<br>');
-      return '<tr><td>' + hora(p.ts) + '</td><td><b>' + esc(p.nombre) + '</b></td><td>' + items + '</td>' +
-        '<td>S/ ' + (p.total || 0) + '</td><td>' + esc(p.direccion || '—') + '</td>' +
-        '<td><select onchange="estadoPedido(\'' + p.id + '\', this.value)">' +
+      return '<tr><td class="td-meta">' + hora(p.ts) + '</td><td class="td-nombre"><b>' + esc(p.nombre) + '</b></td><td>' + items + '</td>' +
+        '<td data-e="Total">S/ ' + (p.total || 0) + '</td><td data-e="Entrega">' + esc(p.direccion || '—') + '</td>' +
+        '<td data-e="Estado"><select onchange="estadoPedido(\'' + p.id + '\', this.value)">' +
         ['nuevo', 'preparando', 'enviado', 'entregado', 'cancelado'].map(function (e) {
           return '<option' + (p.estado === e ? ' selected' : '') + '>' + e + '</option>';
         }).join('') + '</select></td></tr>';
@@ -1369,10 +1456,12 @@ function estadoPedido(id, estado) { api('pedidoestado', { id: id, estado: estado
 // ---------- Consultas del chat web (las registra el bot cuando no sabe responder) ----------
 var N_CONSULTAS = 0, N_PREGUNTAS = 0; // el badge ❓ suma consultas del chat + preguntas del Club sin responder
 function badgeConsultas() {
-  var badge = document.getElementById('badge-consultas');
   var n = N_CONSULTAS + N_PREGUNTAS;
-  badge.style.display = n ? 'inline' : 'none';
-  badge.textContent = n;
+  // El mismo número en la pestaña (escritorio), en el botón "Más" y dentro del menú Más (móvil)
+  ['badge-consultas', 'badge-mas', 'badge-consultas-m'].forEach(function (id) {
+    var b = document.getElementById(id);
+    if (b) { b.style.display = n ? 'inline' : 'none'; b.textContent = n; }
+  });
 }
 function cargarConsultas() {
   api('consultas').then(function (j) {
@@ -1381,8 +1470,8 @@ function cargarConsultas() {
     badgeConsultas();
     document.getElementById('consultas-vacio').style.display = cs.length ? 'none' : 'block';
     document.getElementById('tabla-consultas').innerHTML = cs.map(function (c) {
-      return '<tr><td>' + hora(c.ts) + '</td><td>' + esc(c.producto || '—') + '</td>' +
-        '<td>' + esc(c.pregunta || '') + '</td>' +
+      return '<tr><td class="td-meta">' + hora(c.ts) + '</td><td data-e="Producto">' + esc(c.producto || '—') + '</td>' +
+        '<td data-e="Pregunta">' + esc(c.pregunta || '') + '</td>' +
         '<td><button class="mini" title="Marcar como revisada (se quita de la lista)" onclick="revisarConsulta(\'' + c.id + '\')">✓</button></td></tr>';
     }).join('');
   }).catch(function () {});
@@ -1398,10 +1487,10 @@ function cargarPreguntas() {
     badgeConsultas();
     document.getElementById('preguntas-vacio').style.display = ps.length ? 'none' : 'block';
     document.getElementById('tabla-preguntas').innerHTML = ps.map(function (q) {
-      return '<tr' + (q.respuesta ? ' style="opacity:.65"' : '') + '><td>' + hora(q.ts) + '</td>' +
-        '<td>' + esc(q.nombre || 'Cliente') + '<br><small style="color:var(--sub)">+' + esc(q.tel || '') + '</small></td>' +
-        '<td>' + esc(q.pregunta || '') + '</td>' +
-        '<td><input id="preg-r-' + esc(q.id) + '" value="' + esc(q.respuesta || '') + '" placeholder="Escribe tu respuesta…" maxlength="500" style="width:100%;box-sizing:border-box"' +
+      return '<tr' + (q.respuesta ? ' style="opacity:.65"' : '') + '><td class="td-meta">' + hora(q.ts) + '</td>' +
+        '<td class="td-nombre">' + esc(q.nombre || 'Cliente') + '<br><small style="color:var(--sub)">+' + esc(q.tel || '') + '</small></td>' +
+        '<td data-e="Pregunta">' + esc(q.pregunta || '') + '</td>' +
+        '<td data-e="Respuesta"><input id="preg-r-' + esc(q.id) + '" value="' + esc(q.respuesta || '') + '" placeholder="Escribe tu respuesta…" maxlength="500" style="width:100%;box-sizing:border-box"' +
           ' onkeydown="if(event.key===\'Enter\')responderPregunta(\'' + esc(q.id) + '\')"></td>' +
         '<td style="white-space:nowrap"><button class="mini" title="Guardar la respuesta (el cliente la ve en su cuenta)" onclick="responderPregunta(\'' + esc(q.id) + '\')">💾</button> ' +
         '<button class="mini" title="Borrar esta pregunta" onclick="borrarPregunta(\'' + esc(q.id) + '\')">🗑</button></td></tr>';
@@ -1465,15 +1554,15 @@ function pintarPrecios() {
     var esp = PRECIOS[p.clave]; // precio especial (override) si existe
     var st = STOCK[p.clave] || '';
     return '<tr' + (esp !== undefined ? ' style="background:rgba(212,169,65,0.12)"' : '') + '>' +
-      '<td><b>' + esc(p.nombre) + '</b></td><td>' + esc(p.catTitulo) + '</td>' +
-      '<td>' + (p.base ? 'S/ ' + esc(p.base) : '—') + '</td>' +
-      '<td><input data-clave="' + esc(p.clave) + '" value="' + esc(esp !== undefined ? esp : '') + '" placeholder="' + esc(p.base || 'sin precio') + '"' +
+      '<td class="td-nombre"><b>' + esc(p.nombre) + '</b></td><td data-e="Categoría">' + esc(p.catTitulo) + '</td>' +
+      '<td data-e="Precio base">' + (p.base ? 'S/ ' + esc(p.base) : '—') + '</td>' +
+      '<td data-e="Precio en la web"><input data-clave="' + esc(p.clave) + '" value="' + esc(esp !== undefined ? esp : '') + '" placeholder="' + esc(p.base || 'sin precio') + '"' +
         ' style="width:90px" inputmode="decimal" onkeydown="if(event.key===\'Enter\')guardarPrecio(this)">' +
         (esp !== undefined ? ' ⭐' : '') + '</td>' +
       '<td><button class="btn" onclick="guardarPrecio(this.closest(\'tr\').querySelector(\'input\'))" title="Guardar">💾</button>' +
         (esp !== undefined ? ' <button class="btn gris" onclick="restaurarPrecio(this)" title="Volver al precio base">↩</button>' : '') +
       '</td>' +
-      '<td><button class="btn-stock' + (st ? ' ' + st : '') + '" data-clave="' + esc(p.clave) + '" onclick="ciclarStock(this)" title="Tocar para cambiar: se vende → agotado → oculto">' + etiquetaStock(st) + '</button></td></tr>';
+      '<td data-e="En la web"><button class="btn-stock' + (st ? ' ' + st : '') + '" data-clave="' + esc(p.clave) + '" onclick="ciclarStock(this)" title="Tocar para cambiar: se vende → agotado → oculto">' + etiquetaStock(st) + '</button></td></tr>';
   }).join('') || '<tr><td colspan="6" style="color:#888">Sin productos que coincidan.</td></tr>';
 }
 function ciclarStock(btn) {
@@ -1921,17 +2010,17 @@ function pintarClub() {
       ? c.top.map(function (t) { return '<span class="chip-prod">' + esc(t.nombre) + (t.veces > 1 ? ' ·' + t.veces : '') + '</span>'; }).join(' ')
       : (c.interes ? '<span class="chip-prod tenue">' + esc(c.interes) + '</span>' : '—');
     var llave = esc(c.id || c.telefono);
-    return '<tr><td>' + hora(c.creado) + '</td><td><b>' + esc(c.nombre || '—') + '</b>' +
+    return '<tr><td class="td-meta" data-e="Registro">' + hora(c.creado) + '</td><td class="td-nombre"><b>' + esc(c.nombre || '—') + '</b>' +
       (c.tienePin ? ' <span title="Tiene cuenta del Club (PIN)">🔑</span>' : '') +
       (c.email ? '<br><a class="cli-mail" href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : '') + '</td>' +
-      '<td>' + wa + '</td>' +
-      '<td>' + (ped ? '<b>' + ped + '</b>' : '—') + '</td>' +
+      '<td data-e="WhatsApp">' + wa + '</td>' +
+      '<td data-e="Pedidos">' + (ped ? '<b>' + ped + '</b>' : '—') + '</td>' +
       (c.telefono
-        ? '<td style="cursor:pointer" title="Toca para ajustar los puntos (canjes)" onclick="editarPuntos(\'' + esc(c.telefono) + '\',' + pts + ')">🪙 <b>' + pts + '</b></td>'
-        : '<td>—</td>') +
-      '<td>' + (gasto ? 'S/ ' + gasto : '—') + '</td>' +
-      '<td>' + visita + '</td>' +
-      '<td class="td-favs">' + top + '</td>' +
+        ? '<td data-e="Puntos" style="cursor:pointer" title="Toca para ajustar los puntos (canjes)" onclick="editarPuntos(\'' + esc(c.telefono) + '\',' + pts + ')">🪙 <b>' + pts + '</b></td>'
+        : '<td data-e="Puntos">—</td>') +
+      '<td data-e="Gasto">' + (gasto ? 'S/ ' + gasto : '—') + '</td>' +
+      '<td data-e="Última visita">' + visita + '</td>' +
+      '<td class="td-favs" data-e="Sus favoritos">' + top + '</td>' +
       '<td>' + (c.tienePin && c.telefono ? '<button class="btn gris" title="Resetear PIN (si lo olvidó o no lo reconoces)" onclick="resetearPin(\'' + esc(c.telefono) + '\')">🔑↺</button> ' : '') +
         '<button class="btn gris" onclick="borrarCliente(\'' + llave + '\')">🗑️</button></td></tr>';
   }).join('');
