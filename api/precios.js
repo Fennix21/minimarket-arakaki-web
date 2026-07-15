@@ -5,6 +5,8 @@
 //            x: [ {id,cat,sec,nombre,precio,img,ts} ],      productos nuevos del panel (config:prodextra)
 //            v: { "<slug>": {v,t,s} } }                     video/título/subtítulo del hero por categoría (config:videos)
 //   GET ?img=<id> -> foto de un producto subida desde el panel (Redis prodimg:<id>, caché inmutable)
+//   GET ?vid=<id> -> video subido desde el panel (trozos base64 en vidext:<id>:<i>, índice en
+//                    config:vidsubidos), con caché inmutable y soporte de Range (iPhone lo exige)
 // Sin env vars de Redis devuelve { p:{}, s:{}, x:[], v:{} }: el sitio funciona igual con el catálogo base.
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -30,6 +32,39 @@ module.exports = async (req, res) => {
     res.setHeader('Content-Type', m[1]);
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // el id es único: cachear para siempre
     return res.status(200).end(Buffer.from(m[2], 'base64'));
+  }
+
+  // GET ?vid=<id> → sirve un video subido desde el panel (ensambla los trozos base64 de Redis).
+  // Safari/iPhone solo reproduce si el servidor responde 206 a los Range (manda "bytes=0-1" de sondeo).
+  if (req.method === 'GET' && req.query && req.query.vid) {
+    const id = String(req.query.vid).replace(/[^a-z0-9]/gi, '').slice(0, 24);
+    let meta = null;
+    if (id && REDIS_URL) {
+      const raw = await redis(['GET', 'config:vidsubidos']);
+      if (raw) { try { meta = (JSON.parse(raw) || []).find((s) => s && s.id === id) || null; } catch (e) {} }
+    }
+    if (!meta || !meta.n) return res.status(404).json({ error: 'Video no encontrado.' });
+    const keys = [];
+    for (let i = 0; i < meta.n; i++) keys.push('vidext:' + id + ':' + i);
+    const partes = (await redis(['MGET', ...keys])) || [];
+    if (partes.some((p) => !p)) return res.status(404).json({ error: 'Video incompleto.' });
+    const buf = Buffer.concat(partes.map((p) => Buffer.from(p, 'base64')));
+    res.setHeader('Content-Type', 'video/mp4');
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // el id es único: cachear para siempre
+    const rango = /^bytes=(\d*)-(\d*)$/.exec((req.headers && req.headers.range) || '');
+    if (rango && (rango[1] || rango[2])) {
+      const ini = rango[1] ? parseInt(rango[1], 10) : Math.max(0, buf.length - parseInt(rango[2], 10));
+      const fin = (rango[1] && rango[2]) ? Math.min(parseInt(rango[2], 10), buf.length - 1) : buf.length - 1;
+      if (ini >= buf.length || ini > fin) {
+        res.setHeader('Content-Range', 'bytes */' + buf.length);
+        return res.status(416).end();
+      }
+      res.statusCode = 206;
+      res.setHeader('Content-Range', 'bytes ' + ini + '-' + fin + '/' + buf.length);
+      return res.end(buf.subarray(ini, fin + 1));
+    }
+    return res.status(200).end(buf);
   }
 
   // El CDN de Vercel cachea 60s: aunque entren cientos de personas, Redis recibe ~1 consulta/min.

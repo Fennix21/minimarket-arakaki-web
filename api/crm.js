@@ -21,6 +21,9 @@
 //   delprod { id }               -> quita un producto subido desde el panel (y borra su foto)
 //   getsitio / setsitio        -> textos editables del sitio (lema + footer; los lee /api/sitio)
 //   getvideos / setvideos      -> video/título/subtítulo del hero por categoría (config:videos; los sirve /api/precios)
+//   vidini / vidchunk / vidfin -> subir un video desde el panel en trozos base64 ≤512KB (vidext:<id>:<i>;
+//                                  el panel lo comprime antes en el navegador; lo sirve /api/precios?vid=<id>)
+//   viddel { id }              -> borra un video subido (chunks + índice config:vidsubidos + overrides que lo usaban)
 //   getclub / setclub          -> interruptores + promos exclusivas + sorteos del Club (los lee /api/cuenta)
 //   resetpin { telefono }      -> borra el PIN del cliente y cierra sus sesiones
 //   setpuntos { telefono, puntos } -> ajuste manual de puntos (canjes)
@@ -80,6 +83,18 @@ async function getExtras() {
   if (raw) { try { const x = JSON.parse(raw); if (Array.isArray(x)) return x; } catch (e) {} }
   return [];
 }
+
+// Videos subidos desde el panel: índice [{id,nombre,n,size,ts}] (los bytes viven en vidext:<id>:<i>)
+async function getVidSubidos() {
+  const raw = await redis(['GET', 'config:vidsubidos']);
+  if (raw) { try { const x = JSON.parse(raw); if (Array.isArray(x)) return x; } catch (e) {} }
+  return [];
+}
+// Topes de la subida de videos: 7 trozos de ≤512KB binario (≈700K chars base64) = 3.5MB máximo,
+// porque Upstash acepta requests de ≤1MB y la respuesta de /api/precios?vid= debe caber en Vercel (≤4.5MB).
+const VID_MAX_CHUNKS = 7;
+const VID_MAX_B64 = 700000;
+const VID_MAX_SUBIDOS = 10;
 
 async function loadLead(phone) {
   const raw = await redis(['GET', 'lead:' + phone]);
@@ -690,7 +705,7 @@ module.exports = async (req, res) => {
       const raw = await redis(['GET', 'config:videos']);
       let v = {};
       if (raw) { try { v = JSON.parse(raw) || {}; } catch (e) {} }
-      return res.status(200).json({ v });
+      return res.status(200).json({ v, subidos: await getVidSubidos() });
     }
     if (b.action === 'setvideos') {
       const entrada = b.videos && typeof b.videos === 'object' ? b.videos : {};
@@ -700,7 +715,8 @@ module.exports = async (req, res) => {
         const e = entrada[slug] || {};
         const o = {};
         const src = (e.v == null ? '' : String(e.v)).trim().slice(0, 300);
-        if (src === 'no' || /^\/img\/videos\/[a-z0-9._-]+\.mp4$/i.test(src) || /^https:\/\/\S+$/i.test(src)) o.v = src;
+        if (src === 'no' || /^\/img\/videos\/[a-z0-9._-]+\.mp4$/i.test(src) ||
+            /^\/api\/precios\?vid=[a-z0-9]+$/i.test(src) || /^https:\/\/\S+$/i.test(src)) o.v = src;
         const t = (e.t == null ? '' : String(e.t)).trim().slice(0, 60);
         const s = (e.s == null ? '' : String(e.s)).trim().slice(0, 90);
         if (t) o.t = t;
@@ -710,6 +726,87 @@ module.exports = async (req, res) => {
       if (Object.keys(out).length) await redis(['SET', 'config:videos', JSON.stringify(out)]);
       else await redis(['DEL', 'config:videos']);
       return res.status(200).json({ ok: true, v: out });
+    }
+
+    // --- 📤 Subida de videos desde el panel, en trozos (el navegador los comprime antes) ---
+    // Flujo: vidini (valida y reserva id) → vidchunk ×n (base64, TTL 1h por si se corta) →
+    // vidfin (verifica que estén todos y que sea un MP4, los vuelve permanentes y los anota
+    // en config:vidsubidos). Los sirve GET /api/precios?vid=<id> con caché inmutable y Range.
+    if (b.action === 'vidini') {
+      const chunks = Number(b.chunks);
+      if (!Number.isInteger(chunks) || chunks < 1 || chunks > VID_MAX_CHUNKS) {
+        return res.status(400).json({ error: 'El video pesa demasiado: máximo 3.5 MB ya comprimido.' });
+      }
+      if ((await getVidSubidos()).length >= VID_MAX_SUBIDOS) {
+        return res.status(400).json({ error: 'Llegaste al tope de ' + VID_MAX_SUBIDOS + ' videos subidos: borra alguno primero.' });
+      }
+      const id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      return res.status(200).json({ ok: true, id });
+    }
+    if (b.action === 'vidchunk') {
+      const id = String(b.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 24);
+      const i = Number(b.i);
+      const data = String(b.data || '');
+      if (!id || !Number.isInteger(i) || i < 0 || i >= VID_MAX_CHUNKS) return res.status(400).json({ error: 'Trozo inválido.' });
+      if (!data || data.length > VID_MAX_B64 || !/^[A-Za-z0-9+/=]+$/.test(data)) {
+        return res.status(400).json({ error: 'Trozo de video inválido o demasiado grande.' });
+      }
+      await redis(['SET', 'vidext:' + id + ':' + i, data, 'EX', '3600']); // si la subida se corta, se limpia solo
+      return res.status(200).json({ ok: true });
+    }
+    if (b.action === 'vidfin') {
+      const id = String(b.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 24);
+      const chunks = Number(b.chunks);
+      const nombre = String(b.nombre || '').trim().slice(0, 40) || 'video';
+      if (!id || !Number.isInteger(chunks) || chunks < 1 || chunks > VID_MAX_CHUNKS) return res.status(400).json({ error: 'Subida inválida.' });
+      const subidos = await getVidSubidos();
+      if (subidos.length >= VID_MAX_SUBIDOS) return res.status(400).json({ error: 'Llegaste al tope de ' + VID_MAX_SUBIDOS + ' videos subidos.' });
+      const keys = [];
+      for (let i = 0; i < chunks; i++) keys.push('vidext:' + id + ':' + i);
+      const partes = (await redis(['MGET', ...keys])) || [];
+      if (partes.some((p) => !p)) return res.status(400).json({ error: 'La subida quedó incompleta: intenta de nuevo.' });
+      // Debe ser un MP4 de verdad ('ftyp' en los bytes 4-8) para que se reproduzca también en iPhone
+      const cabecera = Buffer.from(String(partes[0]).slice(0, 24), 'base64');
+      if (cabecera.length < 12 || cabecera.toString('latin1', 4, 8) !== 'ftyp') {
+        for (const k of keys) await redis(['DEL', k]);
+        return res.status(400).json({ error: 'El archivo no es un video MP4: expórtalo o conviértelo a .mp4.' });
+      }
+      let size = 0;
+      for (const p of partes) size += Math.floor(String(p).length * 3 / 4);
+      for (const k of keys) await redis(['PERSIST', k]); // ya está completo: se queda para siempre
+      subidos.push({ id, nombre, n: chunks, size, ts: Date.now() });
+      await redis(['SET', 'config:vidsubidos', JSON.stringify(subidos)]);
+      return res.status(200).json({ ok: true, url: '/api/precios?vid=' + id, subidos });
+    }
+    if (b.action === 'viddel') {
+      const id = String(b.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 24);
+      const subidos = await getVidSubidos();
+      const idx = subidos.findIndex((s) => s.id === id);
+      if (idx < 0) return res.status(400).json({ error: 'Ese video ya no existe.' });
+      const [muerto] = subidos.splice(idx, 1);
+      for (let i = 0; i < (muerto.n || VID_MAX_CHUNKS); i++) await redis(['DEL', 'vidext:' + id + ':' + i]);
+      if (subidos.length) await redis(['SET', 'config:vidsubidos', JSON.stringify(subidos)]);
+      else await redis(['DEL', 'config:vidsubidos']);
+      // Las páginas que usaban este video vuelven a su video de siempre
+      const rawV = await redis(['GET', 'config:videos']);
+      if (rawV) {
+        try {
+          const v = JSON.parse(rawV) || {};
+          let cambio = false;
+          Object.keys(v).forEach((k) => {
+            if ((v[k] || {}).v === '/api/precios?vid=' + id) {
+              delete v[k].v;
+              if (!Object.keys(v[k]).length) delete v[k];
+              cambio = true;
+            }
+          });
+          if (cambio) {
+            if (Object.keys(v).length) await redis(['SET', 'config:videos', JSON.stringify(v)]);
+            else await redis(['DEL', 'config:videos']);
+          }
+        } catch (e) {}
+      }
+      return res.status(200).json({ ok: true, subidos });
     }
 
     if (b.action === 'setnotify') {
