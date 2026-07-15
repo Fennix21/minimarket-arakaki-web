@@ -141,9 +141,35 @@
     if (geoNota) geoNota.textContent = cfg.carGeoNota || '';
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
   }
+
+  // ---------- Fondos editables (secciones y tarjetas) ----------
+  // El dueño elige color sólido o degradado en /panel → 📝 Sitio → 🎨 Fondos. /api/sitio devuelve el
+  // CSS ya armado y aquí se pisa la variable --bg-<clave> de site.css (sin override manda el default).
+  // Se cachean en localStorage y se aplican al arrancar: si no, cada visita mostraría el fondo viejo
+  // hasta que llegue el fetch.
+  var FONDO_CLAVES = ['pagina', 'vino', 'roja', 'premium', 'card'];
+  // El valor lo arma nuestra propia API con colores validados; el filtro es por si el caché
+  // del navegador quedó tocado a mano.
+  function fondoOk(v) { return typeof v === 'string' && v.length < 300 && !/url\s*\(|[<>{};]/.test(v); }
+  function aplicarFondos(f) {
+    var raiz = document.documentElement;
+    for (var i = 0; i < FONDO_CLAVES.length; i++) {
+      var k = FONDO_CLAVES[i], v = f && f[k];
+      if (fondoOk(v)) raiz.style.setProperty('--bg-' + k, v);
+      else raiz.style.removeProperty('--bg-' + k);
+    }
+  }
+  function fondosCache() {
+    try { return JSON.parse(localStorage.getItem('arakaki_fondos') || '{}'); } catch (e) { return {}; }
+  }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
-      if (!j || !j.s || typeof j.s !== 'object') return;
+      if (!j) return;
+      if (j.f && typeof j.f === 'object') {
+        aplicarFondos(j.f);
+        try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
+      }
+      if (!j.s || typeof j.s !== 'object') return;
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
       aplicarSitio(m);
@@ -380,8 +406,9 @@
       pieMini.innerHTML = '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
       document.body.appendChild(pieMini);
     }
-    aplicarSitio(SITIO_DEF); // render inmediato con los textos por defecto (el lema; y el pie si es home)
-    cargarSitio();           // y luego los del panel, si el dueño los editó
+    aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
+    aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
+    cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
 
     // Carrito flotante + modal
     var btn = document.createElement('button');

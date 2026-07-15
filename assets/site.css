@@ -9,12 +9,20 @@
   --verde-wa: #25d366;
   --dorado: #d4a941;
   --sombra: 0 4px 14px rgba(0, 0, 0, 0.18);
+  /* Fondos editables desde /panel → 📝 Sitio → 🎨 Fondos (Redis config:fondos → /api/sitio → site.js
+     los pisa con style.setProperty en <html>). Estos son los valores por defecto: sin backend el sitio
+     se ve exactamente igual. Aceptan color sólido o degradado indistintamente. */
+  --bg-pagina: var(--gris);
+  --bg-vino: radial-gradient(120% 80% at 50% 0%, #9c1c20 0%, #720e12 50%, #4c090c 100%);
+  --bg-roja: var(--rojo);
+  --bg-premium: radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%);
+  --bg-card: linear-gradient(180deg, #211d19 0%, #100e0c 100%);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   font-family: 'Montserrat', sans-serif;
-  background: var(--gris);
+  background: var(--bg-pagina);
   color: var(--negro);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -220,7 +228,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 
 /* ---------- Hero ---------- */
 /* Mismo fondo premium que las secciones de productos (.seccion.premium): sin corte de color entre el video y las tarjetas */
-.hero { background: radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%); color: var(--blanco); text-align: center; padding: 42px 18px 34px; }
+.hero { background: var(--bg-premium); color: var(--blanco); text-align: center; padding: 42px 18px 34px; }
 .hero h1 { font-size: clamp(26px, 5vw, 44px); font-weight: 800; }
 .hero .sub { font-size: clamp(16px, 3vw, 22px); margin-top: 8px; opacity: 0.9; }
 .hero video {
@@ -332,9 +340,9 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* ---------- Secciones genéricas ---------- */
 .seccion { padding: 46px 18px; }
 .seccion.osc { background: var(--negro); color: var(--blanco); }
-.seccion.roja { background: var(--rojo); color: var(--blanco); }
-.seccion.vino { background: radial-gradient(120% 80% at 50% 0%, #9c1c20 0%, #720e12 50%, #4c090c 100%); color: var(--blanco); }
-.seccion.premium { background: radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%); color: var(--blanco); }
+.seccion.roja { background: var(--bg-roja); color: var(--blanco); }
+.seccion.vino { background: var(--bg-vino); color: var(--blanco); }
+.seccion.premium { background: var(--bg-premium); color: var(--blanco); }
 .seccion.premium .titulo-seccion { color: #f4ebd6; }
 .seccion.premium .titulo-seccion::after { content: ""; display: block; width: 64px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, #f6d98a, #d4a941); }
 .seccion .interior { max-width: 1100px; margin: 0 auto; }
@@ -351,7 +359,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   gap: 34px; margin-top: 28px;
 }
 .prod {
-  background: linear-gradient(180deg, #211d19 0%, #100e0c 100%); color: var(--blanco);
+  background: var(--bg-card); color: var(--blanco);
   border: 2px solid rgba(212, 169, 65, 0.42); border-radius: 20px; overflow: hidden;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); display: flex; flex-direction: column;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -922,7 +930,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* Página /mi-cuenta: tarjetas premium dark-gold (mismo lenguaje que .prod) */
 .cuenta-int { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
 .cuenta-card {
-  background: linear-gradient(180deg, #211d19 0%, #100e0c 100%); color: #f4ebd6;
+  background: var(--bg-card); color: #f4ebd6;
   border: 2px solid rgba(212, 169, 65, 0.42); border-radius: 20px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); padding: 24px 22px;
 }

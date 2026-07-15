@@ -267,6 +267,25 @@ td a.wa { color:var(--verde); text-decoration:none; }
   .vid-fila { grid-template-columns:1fr 30px; }
   .vid-fila .vid-cat, .vid-fila input { grid-column:1 / -1; }
 }
+/* 🎨 Fondos (📝 Sitio): una tarjeta por zona, tipo + colores + vista previa en vivo */
+.fondo-item { border:1px solid var(--borde); border-radius:12px; background:var(--card); padding:13px 15px; margin-bottom:11px; }
+.fondo-cab { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
+.fondo-cab b { font-size:13.5px; }
+.fondo-cuerpo { display:grid; grid-template-columns:1fr 190px; gap:14px; align-items:start; margin-top:10px; }
+.fondo-campos { display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
+.fondo-item select { background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; font-size:12.5px; }
+.fondo-col { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--sub); }
+.fondo-col input[type=color] { width:40px; height:32px; padding:0; border:1px solid var(--borde); border-radius:8px; background:var(--campo); cursor:pointer; }
+.fondo-c3 { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--sub); cursor:pointer; }
+/* La vista previa se pinta con el mismo CSS que verá el cliente (background inline desde JS) */
+.fondo-prev { height:104px; border-radius:11px; border:1px solid var(--borde); display:flex; align-items:center; justify-content:center; }
+.fondo-prev span { font-size:11px; letter-spacing:.5px; text-transform:uppercase; opacity:.7; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.6); }
+.fondo-prev.claro span { color:#262626; text-shadow:none; }
+.fondo-prev.card-demo { height:104px; box-shadow:0 8px 20px rgba(0,0,0,.35); border:2px solid rgba(212,169,65,.42); border-radius:14px; }
+@media (max-width:860px) {
+  .fondo-cuerpo { grid-template-columns:1fr; }
+  .fondo-item select, .fondo-col input[type=color] { font-size:16px; } /* 16px = iOS no hace zoom */
+}
 /* 📤 Subir video desde el equipo (se comprime en el navegador y viaja a Redis en trozos) */
 .vid-subir { border:1.5px dashed var(--borde); border-radius:12px; padding:13px 15px; margin-bottom:16px; }
 .vid-subir > b { font-size:13.5px; }
@@ -1118,6 +1137,18 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     </div>
 
     <div class="caja-bot">
+      <h3>🎨 Fondos de la web</h3>
+      <div class="campo-bloque">
+        <div class="hint">El color de fondo de cada zona de la web. Elige un <b>color sólido</b> o un <b>degradado</b> (una mezcla suave entre 2 o 3 colores) y míralo al toque en la vista previa. Guardas y se ve en la web en ~1 minuto, sin tocar código. <b>El de siempre</b> = deja el fondo original de la marca.</div>
+      </div>
+      <div id="fondo-lista"></div>
+      <div class="aviso" id="fondo-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" onclick="guardarFondos()">💾 Guardar fondos</button>
+      </div>
+    </div>
+
+    <div class="caja-bot">
       <h3>🎬 Videos de las categorías</h3>
       <div class="campo-bloque">
         <div class="hint">El video y los textos que salen arriba de los productos en cada página. Elige otro video del repertorio, cambia el título o el subtítulo y guarda: se ve en la web en ~1 minuto, sin tocar código. Campo vacío = el de siempre. ▶ abre el video elegido para verlo.</div>
@@ -1252,7 +1283,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarVideos(); }
+  if (v === 'sitio') { cargarSitio(); cargarFondos(); cargarVideos(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -2308,8 +2339,8 @@ function cargarSitio() {
     }
   }).catch(function () {});
 }
-function avisoSitio(t, mal) {
-  var a = document.getElementById('sitio-aviso');
+function avisoSitio(t, mal, id) {
+  var a = document.getElementById(id || 'sitio-aviso');
   a.textContent = t;
   a.className = 'aviso ' + (mal ? 'mal' : 'ok');
   setTimeout(function () { a.className = 'aviso'; }, 4000);
@@ -2324,6 +2355,119 @@ function guardarSitio() {
     avisoSitio('✅ Guardado. Se ve en la web en ~1 minuto.');
     cargarSitio();
   }).catch(function (e) { avisoSitio(e.message, true); });
+}
+// --- 🎨 Fondos de las secciones y las tarjetas: config:fondos (los sirve /api/sitio, los pinta site.js) ---
+// Cada zona = una variable --bg-<clave> del :root de assets/site.css. Si se añade una zona nueva hay que
+// declararla en los tres lados: FONDO_CLAVES de api/crm.js, FONDO_CLAVES de assets/site.js y aquí.
+//   def  = el fondo original de site.css (vista previa del modo "el de siempre")
+//   base = colores con los que arranca el editor cuando el dueño elige un tipo por primera vez
+var FONDO_ZONAS = [
+  { k: 'premium', n: '🛍️ Secciones de productos', d: 'El fondo oscuro de las 20 páginas de categoría: la franja del video y todo lo que rodea a las tarjetas.',
+    def: 'radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%)', base: { t: 'radial', c1: '#2b2723', c2: '#1a1715', c3: '#0c0b0a', a: 180 } },
+  { k: 'card', n: '🃏 Tarjetas de producto', d: 'El fondo de cada tarjeta de producto (y de las tarjetas de la cuenta del cliente). Ojo: el nombre y el precio van en letra clara, así que un fondo muy claro se leería mal.', card: 1,
+    def: 'linear-gradient(180deg, #211d19 0%, #100e0c 100%)', base: { t: 'lineal', c1: '#211d19', c2: '#100e0c', c3: '', a: 180 } },
+  { k: 'vino', n: '🍷 Franjas del inicio', d: 'Las franjas vino de la portada: los carruseles de categorías y los beneficios.',
+    def: 'radial-gradient(120% 80% at 50% 0%, #9c1c20 0%, #720e12 50%, #4c090c 100%)', base: { t: 'radial', c1: '#9c1c20', c2: '#720e12', c3: '#4c090c', a: 180 } },
+  { k: 'roja', n: '🎁 Franja del Club Arakaki', d: 'La franja del inicio con el formulario para inscribirse al Club.',
+    def: '#7c0f14', base: { t: 'solido', c1: '#7c0f14', c2: '#5d0b0f', c3: '', a: 180 } },
+  { k: 'pagina', n: '📄 Fondo general', d: 'El fondo de la página, detrás de todo: se ve en los bordes y entre una sección y otra.', claro: 1,
+    def: '#edecec', base: { t: 'solido', c1: '#edecec', c2: '#ffffff', c3: '', a: 180 } },
+];
+var FONDO_TIPOS = [['', 'El de siempre'], ['solido', 'Color sólido'], ['lineal', 'Degradado lineal'], ['radial', 'Degradado radial']];
+var FONDO_ANGS = [[180, '⬇ De arriba hacia abajo'], [0, '⬆ De abajo hacia arriba'], [90, '➡ De izquierda a derecha'], [270, '⬅ De derecha a izquierda'], [135, '↘ En diagonal'], [45, '↗ En diagonal']];
+var FONDOS = {}; // { clave: {t,c1,c2,c3,a} } estado del editor · t:'' = sin override (manda el default del CSS)
+function fondoZona(k) {
+  for (var i = 0; i < FONDO_ZONAS.length; i++) if (FONDO_ZONAS[i].k === k) return FONDO_ZONAS[i];
+  return null;
+}
+// Mismo armado que normFondo() de api/crm.js: la vista previa muestra exactamente lo que se guardará.
+function fondoCSS(f) {
+  if (!f || !f.t || !f.c1) return '';
+  if (f.t === 'solido') return f.c1;
+  if (!f.c2) return '';
+  var paradas = f.c3 ? f.c1 + ' 0%, ' + f.c2 + ' 50%, ' + f.c3 + ' 100%' : f.c1 + ' 0%, ' + f.c2 + ' 100%';
+  if (f.t === 'radial') return 'radial-gradient(120% 90% at 50% 0%, ' + paradas + ')';
+  return 'linear-gradient(' + (f.a == null ? 180 : f.a) + 'deg, ' + paradas + ')';
+}
+// El rótulo de la vista previa se pinta oscuro sobre fondos claros para que se pueda leer
+function fondoEsClaro(f, z) {
+  var hex = (f && f.t && f.c1) || (z.claro ? '#edecec' : '#000000');
+  var n = parseInt(hex.slice(1), 16);
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) > 150;
+}
+function pintarFondos() {
+  var opts = function (lista, sel) {
+    return lista.map(function (o) { return '<option value="' + o[0] + '"' + (String(o[0]) === String(sel) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('');
+  };
+  document.getElementById('fondo-lista').innerHTML = FONDO_ZONAS.map(function (z) {
+    var q = "'" + z.k + "'";
+    return '<div class="fondo-item">' +
+      '<div class="fondo-cab"><b>' + z.n + '</b></div>' +
+      '<div class="hint">' + z.d + '</div>' +
+      '<div class="fondo-cuerpo">' +
+        '<div class="fondo-campos">' +
+          '<select id="f-t-' + z.k + '" onchange="fondoTipo(' + q + ', this.value)">' + opts(FONDO_TIPOS) + '</select>' +
+          '<label class="fondo-col" id="f-l1-' + z.k + '">Color 1 <input type="color" id="f-c1-' + z.k + '" oninput="fondoSet(' + q + ", 'c1', this.value)\"></label>" +
+          '<label class="fondo-col" id="f-l2-' + z.k + '">Color 2 <input type="color" id="f-c2-' + z.k + '" oninput="fondoSet(' + q + ", 'c2', this.value)\"></label>" +
+          '<label class="fondo-c3" id="f-l3-' + z.k + '"><input type="checkbox" id="f-u3-' + z.k + '" onchange="fondoTercero(' + q + ', this.checked)"> 3er color</label>' +
+          '<label class="fondo-col" id="f-l3c-' + z.k + '"><input type="color" id="f-c3-' + z.k + '" oninput="fondoSet(' + q + ", 'c3', this.value)\"></label>" +
+          '<select id="f-a-' + z.k + '" onchange="fondoSet(' + q + ", 'a', +this.value)\">" + opts(FONDO_ANGS) + '</select>' +
+        '</div>' +
+        '<div class="fondo-prev" id="f-prev-' + z.k + '"><span>Vista previa</span></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  FONDO_ZONAS.forEach(function (z) { fondoFila(z.k); });
+}
+// Refresca UNA fila (campos visibles + vista previa) sin rehacer el HTML: si se recreara el DOM en
+// cada `oninput` se cerraría el selector de color mientras el dueño lo está arrastrando.
+function fondoFila(k) {
+  var z = fondoZona(k), f = FONDOS[k] || { t: '' };
+  var g = function (p) { return document.getElementById('f-' + p + '-' + k); };
+  g('t').value = f.t || '';
+  g('c1').value = f.c1 || z.base.c1;
+  g('c2').value = f.c2 || z.base.c2;
+  g('c3').value = f.c3 || z.base.c3 || '#000000';
+  g('u3').checked = !!f.c3;
+  g('a').value = String(f.a == null ? 180 : f.a);
+  var deg = f.t === 'lineal' || f.t === 'radial';
+  g('l1').style.display = f.t ? '' : 'none';
+  g('l2').style.display = deg ? '' : 'none';
+  g('l3').style.display = deg ? '' : 'none';
+  g('l3c').style.display = deg && f.c3 ? '' : 'none';
+  g('a').style.display = f.t === 'lineal' ? '' : 'none';
+  var prev = document.getElementById('f-prev-' + k);
+  prev.style.background = fondoCSS(f) || z.def; // sin override, la previa muestra el fondo original
+  prev.className = 'fondo-prev' + (z.card ? ' card-demo' : '') + (fondoEsClaro(f, z) ? ' claro' : '');
+}
+function fondoSet(k, campo, v) { (FONDOS[k] = FONDOS[k] || {})[campo] = v; fondoFila(k); }
+function fondoTipo(k, t) {
+  var z = fondoZona(k), f = FONDOS[k] || {};
+  // Al elegir un tipo por primera vez arranca con los colores originales de la zona
+  FONDOS[k] = t ? { t: t, c1: f.c1 || z.base.c1, c2: f.c2 || z.base.c2, c3: f.c3 || '', a: f.a == null ? z.base.a : f.a } : { t: '' };
+  fondoFila(k);
+}
+function fondoTercero(k, on) {
+  var z = fondoZona(k);
+  FONDOS[k].c3 = on ? (document.getElementById('f-c3-' + k).value || z.base.c3 || '#000000') : '';
+  fondoFila(k);
+}
+function cargarFondos() {
+  api('getfondos').then(function (j) {
+    var f = j.f || {};
+    FONDOS = {};
+    FONDO_ZONAS.forEach(function (z) {
+      var v = f[z.k];
+      FONDOS[z.k] = v ? { t: v.t, c1: v.c1, c2: v.c2, c3: v.c3 || '', a: v.a } : { t: '' };
+    });
+    pintarFondos();
+  }).catch(function () {});
+}
+function guardarFondos() {
+  api('setfondos', { fondos: FONDOS }).then(function () {
+    avisoSitio('✅ Fondos guardados. Se ven en la web en ~1 minuto.', false, 'fondo-aviso');
+    cargarFondos();
+  }).catch(function (e) { avisoSitio(e.message, true, 'fondo-aviso'); });
 }
 // --- 🎬 Videos del hero por categoría: config:videos (los sirve /api/precios y los pinta site.js) ---
 // Archivos disponibles en img/videos/ del repo (si se sube un video nuevo al repo, añadirlo aquí):

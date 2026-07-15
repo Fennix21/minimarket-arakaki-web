@@ -20,6 +20,8 @@
 //                                  la foto dataURL se guarda en prodimg:<id> y la sirve /api/precios?img=)
 //   delprod { id }               -> quita un producto subido desde el panel (y borra su foto)
 //   getsitio / setsitio        -> textos editables del sitio (lema + footer; los lee /api/sitio)
+//   getfondos / setfondos      -> fondos de las secciones y las tarjetas (color o degradado;
+//                                  config:fondos, los lee /api/sitio y los aplica site.js)
 //   getvideos / setvideos      -> video/título/subtítulo del hero por categoría (config:videos; los sirve /api/precios)
 //   vidini / vidchunk / vidfin -> subir un video desde el panel en trozos base64 ≤512KB (vidext:<id>:<i>;
 //                                  el panel lo comprime antes en el navegador; lo sirve /api/precios?vid=<id>)
@@ -57,6 +59,30 @@ async function sendWhatsApp(to, body) {
     body: JSON.stringify({ messaging_product: 'whatsapp', to, type: 'text', text: { body } }),
   });
   if (!r.ok) throw new Error(await r.text());
+}
+
+// Fondos editables (config:fondos): las 5 zonas que el dueño puede repintar desde el panel.
+// Cada clave se aplica en el sitio como la variable CSS --bg-<clave> (ver :root de assets/site.css).
+const FONDO_CLAVES = ['pagina', 'vino', 'roja', 'premium', 'card'];
+// Modelo del panel → { t, c1, c2, c3, a, css } normalizado, o null = sin override (default del CSS).
+// Solo acepta #rrggbb y un ángulo entero: el `css` resultante no puede contener nada inyectable.
+function normFondo(f) {
+  if (!f || typeof f !== 'object') return null;
+  const hex = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v).toLowerCase() : '');
+  const t = ['solido', 'lineal', 'radial'].includes(f.t) ? f.t : '';
+  const c1 = hex(f.c1);
+  if (!t || !c1) return null; // sin tipo o sin color base = "el de siempre"
+  if (t === 'solido') return { t, c1, css: c1 };
+  const c2 = hex(f.c2);
+  if (!c2) return null; // un degradado necesita 2 colores como mínimo
+  const c3 = hex(f.c3); // tercer color opcional (queda al 50%, como los degradados de la marca)
+  const paradas = c3 ? `${c1} 0%, ${c2} 50%, ${c3} 100%` : `${c1} 0%, ${c2} 100%`;
+  // El radial copia la forma de los fondos originales: foco arriba al centro, abriéndose hacia abajo
+  if (t === 'radial') return { t, c1, c2, c3, css: `radial-gradient(120% 90% at 50% 0%, ${paradas})` };
+  let a = Math.round(Number(f.a));
+  if (!Number.isFinite(a)) a = 180; // 180deg = de arriba hacia abajo
+  a = ((a % 360) + 360) % 360;
+  return { t, c1, c2, c3, a, css: `linear-gradient(${a}deg, ${paradas})` };
 }
 
 // Teléfono → llave de identidad normalizada (Perú por defecto: 9 dígitos → 51+num). '' si inválido.
@@ -696,6 +722,27 @@ module.exports = async (req, res) => {
       if (Object.keys(s).length) await redis(['SET', 'config:sitio', JSON.stringify(s)]);
       else await redis(['DEL', 'config:sitio']);
       return res.status(200).json({ ok: true, s });
+    }
+
+    // --- Fondos editables de las secciones y las tarjetas: config:fondos ---
+    // { fondos: { "<clave>": { t:'solido'|'lineal'|'radial', c1, c2, c3?, a? } } }
+    // Se guarda el modelo (lo repinta el panel) + el `css` ya armado (lo aplica site.js como
+    // variable --bg-<clave>). El CSS se arma AQUÍ desde colores #rrggbb y un ángulo entero:
+    // así el valor que llega al navegador es seguro por construcción (nada de url() ni inyección).
+    if (b.action === 'getfondos') {
+      const raw = await redis(['GET', 'config:fondos']);
+      let f = {};
+      if (raw) { try { f = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ f });
+    }
+    if (b.action === 'setfondos') {
+      const fondos = b.fondos && typeof b.fondos === 'object' ? b.fondos : {};
+      const out = {};
+      FONDO_CLAVES.forEach((k) => { const f = normFondo(fondos[k]); if (f) out[k] = f; });
+      // Sin override (tipo "el de siempre") = se borra y manda el default de site.css
+      if (Object.keys(out).length) await redis(['SET', 'config:fondos', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:fondos']);
+      return res.status(200).json({ ok: true, f: out });
     }
 
     // --- Videos del hero de cada categoría: config:videos (los sirve /api/precios como v) ---

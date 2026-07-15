@@ -39,6 +39,9 @@ http.createServer((req, res) => {
         habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
       }));
     }
+    // Stub de textos y fondos del sitio: sin overrides, como una instalación recién hecha
+    // (el sitio pinta sus defaults: SITIO_DEF de site.js y las variables --bg-* de site.css)
+    if (url === '/api/sitio') return res.end('{"s":{},"f":{}}');
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
     // Stub de precios/stock/productos nuevos/videos: muestras para ver el diseño en /pisco en local
