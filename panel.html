@@ -266,6 +266,14 @@ td a.wa { color:var(--verde); text-decoration:none; }
   .vid-fila { grid-template-columns:1fr 30px; }
   .vid-fila .vid-cat, .vid-fila input { grid-column:1 / -1; }
 }
+/* 📤 Subir video desde el equipo (se comprime en el navegador y viaja a Redis en trozos) */
+.vid-subir { border:1.5px dashed var(--borde); border-radius:12px; padding:13px 15px; margin-bottom:16px; }
+.vid-subir > b { font-size:13.5px; }
+.vid-subir input[type=file] { max-width:100%; font-size:12.5px; color:var(--sub); }
+.vid-sub-item { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; padding:7px 0 0; margin-top:7px; border-top:1px dashed var(--borde); }
+.vid-sub-item span { color:var(--sub); }
+.vid-sub-item a { color:var(--dorado2); font-weight:600; }
+.vid-sub-item .btn { padding:4px 10px; font-size:12px; margin-left:auto; }
 .plantillas-edit .p-item { display:flex; gap:8px; margin-bottom:8px; }
 .plantillas-edit input { flex:0 0 160px; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; }
 .plantillas-edit textarea { flex:1; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; min-height:38px; }
@@ -1045,6 +1053,17 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <h3>🎬 Videos de las categorías</h3>
       <div class="campo-bloque">
         <div class="hint">El video y los textos que salen arriba de los productos en cada página. Elige otro video del repertorio, cambia el título o el subtítulo y guarda: se ve en la web en ~1 minuto, sin tocar código. Campo vacío = el de siempre. ▶ abre el video elegido para verlo.</div>
+      </div>
+
+      <div class="vid-subir">
+        <b>📤 Subir un video desde tu equipo</b>
+        <div class="hint" style="margin:6px 0 10px">Se comprime solo en tu navegador a ~540p y sin sonido, como los videos que ya tiene la web, y aparece en la lista de cada página como 📤. Ideal: clips de 5 a 20 segundos (máximo 60s y 3.5&nbsp;MB ya comprimido, hasta 10 videos). Si tu navegador no puede comprimirlo, se sube tal cual siempre que sea un .mp4 liviano.</div>
+        <div class="fila-conf" style="margin:0">
+          <input type="file" id="vid-file" accept="video/mp4,video/quicktime,video/webm,video/*">
+          <button class="btn" id="vid-subir-btn" onclick="subirVideo()">📤 Subir video</button>
+        </div>
+        <div class="hint" id="vid-sub-estado" style="display:none;margin:9px 0 0"></div>
+        <div id="vid-subidos"></div>
       </div>
       <div class="vid-cabecera"><span>Página</span><span>Video</span><span>Título</span><span>Subtítulo</span><span></span></div>
       <div id="vid-lista"></div>
@@ -2225,14 +2244,17 @@ function vidCats() {
   var cats = (window.ARAKAKI_CATALOG && ARAKAKI_CATALOG.categories) || {};
   return Object.keys(cats).map(function (slug) { return { slug: slug, c: cats[slug] }; });
 }
+var SUBIDOS = []; // videos subidos desde el panel [{id,nombre,n,size,ts}] (config:vidsubidos)
+function vidUrl(id) { return '/api/precios?vid=' + id; }
 function armarVideos() {
   var cont = document.getElementById('vid-lista');
-  if (!cont || cont.children.length) return; // las filas se arman una sola vez
+  if (!cont) return;
   var html = '';
   vidCats().forEach(function (it) {
     var def = it.c.video ? it.c.video.split('/').pop() : '';
     var ops = '<option value="">' + (def ? 'El de siempre · ' + esc(def) : 'Sin video (así está)') + '</option>';
     VIDEOS_REPO.forEach(function (n) { ops += '<option value="/img/videos/' + n + '.mp4">' + n + '.mp4</option>'; });
+    SUBIDOS.forEach(function (sv) { ops += '<option value="' + esc(vidUrl(sv.id)) + '">📤 ' + esc(sv.nombre) + '</option>'; });
     ops += '<option value="no">🚫 Sin video</option><option value="otro">🔗 Otra URL…</option>';
     html += '<div class="vid-fila">' +
       '<div class="vid-cat">' + (it.c.emoji ? it.c.emoji + ' ' : '') + esc(it.c.title) + '</div>' +
@@ -2273,6 +2295,9 @@ function vidPreview(slug) {
 function cargarVideos() {
   armarVideos();
   api('getvideos').then(function (j) {
+    SUBIDOS = j.subidos || [];
+    armarVideos(); // rearma las listas con los videos subidos incluidos
+    pintarSubidos();
     var v = j.v || {};
     vidCats().forEach(function (it) {
       var o = v[it.slug] || {};
@@ -2304,6 +2329,151 @@ function guardarVideos() {
     avisoVideos('✅ Videos guardados. Se ven en la web en ~1 minuto.');
     cargarVideos();
   }).catch(function (e) { avisoVideos(e.message, true); });
+}
+// --- 📤 Subida de videos: se comprimen en el navegador (canvas + MediaRecorder → ~540p H.264
+// sin audio, como los videos del repo) y viajan a Redis en trozos de 512KB vía /api/crm ---
+var VID_MAX_MB = 3.5;
+var VID_MAX_BYTES = Math.floor(VID_MAX_MB * 1024 * 1024);
+function vidEstado(t) {
+  var el = document.getElementById('vid-sub-estado');
+  el.textContent = t;
+  el.style.display = t ? 'block' : 'none';
+}
+function pintarSubidos() {
+  var cont = document.getElementById('vid-subidos');
+  if (!cont) return;
+  var html = '';
+  SUBIDOS.forEach(function (sv) {
+    html += '<div class="vid-sub-item">🎞 <b>' + esc(sv.nombre) + '</b><span>' + (sv.size / 1048576).toFixed(1) + ' MB</span>' +
+      '<a href="' + esc(vidUrl(sv.id)) + '" target="_blank">▶ ver</a>' +
+      '<button class="btn gris" onclick="borrarVideoSubido(\'' + sv.id + '\')">🗑</button></div>';
+  });
+  cont.innerHTML = html;
+}
+function borrarVideoSubido(id) {
+  if (!confirm('¿Quitar este video? Las páginas que lo usaban vuelven a su video de siempre.')) return;
+  api('viddel', { id: id }).then(function (j) {
+    SUBIDOS = j.subidos || [];
+    avisoVideos('🗑 Video quitado.');
+    cargarVideos();
+  }).catch(function (e) { avisoVideos(e.message, true); });
+}
+function leerBase64(blob) {
+  // Trozo de video → base64 puro (cada trozo se decodifica solo en el backend)
+  return new Promise(function (listo, fallo) {
+    var r = new FileReader();
+    r.onload = function () { listo(String(r.result).split(',')[1] || ''); };
+    r.onerror = function () { fallo(new Error('No se pudo leer el archivo.')); };
+    r.readAsDataURL(blob);
+  });
+}
+function subirVideo() {
+  var inp = document.getElementById('vid-file');
+  var f = inp.files && inp.files[0];
+  if (!f) return avisoVideos('Elige primero un archivo de video.', true);
+  var btn = document.getElementById('vid-subir-btn');
+  btn.disabled = true;
+  vidEstado('🗜 Comprimiendo en tu navegador… (tarda lo que dura el video)');
+  comprimirVideo(f, function (blob, comprimido) {
+    if (!blob) { btn.disabled = false; return vidEstado(''); } // comprimirVideo ya mostró el motivo
+    var nombre = f.name.replace(/\.[^.]+$/, '').replace(/[^\wáéíóúñü .-]/gi, '').trim().slice(0, 40) || 'video';
+    var CHUNK = 512 * 1024;
+    var total = Math.ceil(blob.size / CHUNK);
+    var mb = (blob.size / 1048576).toFixed(1);
+    api('vidini', { nombre: nombre, size: blob.size, chunks: total }).then(function (j) {
+      var id = j.id, i = 0;
+      function siguiente() {
+        if (i >= total) {
+          return api('vidfin', { id: id, nombre: nombre, size: blob.size, chunks: total }).then(function (jf) {
+            SUBIDOS = jf.subidos || [];
+            btn.disabled = false;
+            inp.value = '';
+            vidEstado('');
+            avisoVideos('✅ Video subido (' + mb + ' MB' + (comprimido ? ', comprimido en tu navegador' : '') + '). Ya puedes elegirlo en la lista de cada página y guardar.');
+            cargarVideos();
+          });
+        }
+        return leerBase64(blob.slice(i * CHUNK, (i + 1) * CHUNK)).then(function (b64) {
+          vidEstado('⬆️ Subiendo trozo ' + (i + 1) + ' de ' + total + ' (' + mb + ' MB)…');
+          return api('vidchunk', { id: id, i: i, data: b64 }).then(function () { i++; return siguiente(); });
+        });
+      }
+      return siguiente();
+    }).catch(function (e) {
+      btn.disabled = false;
+      vidEstado('');
+      avisoVideos(e.message, true);
+    });
+  });
+}
+// Recomprime el video con el mismo espíritu de los del repo: ≤540p, H.264, sin audio, ~1.1 Mbps.
+// Usa canvas.captureStream + MediaRecorder EN TIEMPO REAL (dura lo que dura el clip). Si el
+// navegador no sabe grabar MP4 (p. ej. Firefox), cae a subir el archivo original tal cual
+// siempre que sea un .mp4 dentro del tope; webm NO se acepta (los iPhone viejos no lo reproducen).
+function comprimirVideo(f, cb) {
+  var mime = '';
+  try {
+    if (window.MediaRecorder) {
+      if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) mime = 'video/mp4;codecs=avc1';
+      else if (MediaRecorder.isTypeSupported('video/mp4')) mime = 'video/mp4';
+    }
+  } catch (e) {}
+  function talCual() {
+    if (!/mp4|quicktime/i.test(f.type || '') && !/\.(mp4|mov)$/i.test(f.name)) {
+      avisoVideos('Tu navegador no puede convertir este formato: sube un archivo .mp4.', true);
+      return cb(null);
+    }
+    if (f.size > VID_MAX_BYTES) {
+      avisoVideos('El video pesa ' + (f.size / 1048576).toFixed(1) + ' MB y tu navegador no puede comprimirlo (tope: ' + VID_MAX_MB + ' MB). Tip: mándatelo por WhatsApp y descarga esa copia (queda liviana), o recórtalo.', true);
+      return cb(null);
+    }
+    cb(f, false);
+  }
+  if (!mime || !document.createElement('canvas').captureStream) return talCual();
+  var video = document.createElement('video');
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  video.src = URL.createObjectURL(f);
+  video.onerror = function () { URL.revokeObjectURL(video.src); talCual(); };
+  video.onloadedmetadata = function () {
+    if (!video.videoWidth || !video.duration || video.duration === Infinity) return talCual();
+    if (video.duration > 60) {
+      URL.revokeObjectURL(video.src);
+      avisoVideos('El video dura ' + Math.round(video.duration) + 's y el hero usa clips cortos: recórtalo a menos de 60s (ideal 5–20s).', true);
+      return cb(null);
+    }
+    var factor = Math.min(1, 540 / video.videoHeight);
+    var w = Math.round(video.videoWidth * factor / 2) * 2;
+    var h = Math.round(video.videoHeight * factor / 2) * 2;
+    var cv = document.createElement('canvas');
+    cv.width = w;
+    cv.height = h;
+    var ctx = cv.getContext('2d');
+    var rec, trozos = [];
+    try { rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 1100000 }); }
+    catch (e) { return talCual(); }
+    rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) trozos.push(ev.data); };
+    rec.onstop = function () {
+      URL.revokeObjectURL(video.src);
+      var blob = new Blob(trozos, { type: 'video/mp4' });
+      if (!blob.size) return talCual();
+      if (blob.size > VID_MAX_BYTES) {
+        avisoVideos('Aun comprimido pesa ' + (blob.size / 1048576).toFixed(1) + ' MB (tope ' + VID_MAX_MB + ' MB): usa un clip más corto.', true);
+        return cb(null);
+      }
+      // Si el original ya era un mp4 más liviano que el resultado, gana el original
+      if (/mp4/i.test(f.type || '') && f.size <= blob.size && f.size <= VID_MAX_BYTES) return cb(f, false);
+      cb(blob, true);
+    };
+    function pintar() {
+      if (video.ended) return;
+      ctx.drawImage(video, 0, 0, w, h);
+      requestAnimationFrame(pintar);
+    }
+    video.onended = function () { setTimeout(function () { try { rec.stop(); } catch (e) {} }, 150); };
+    video.play().then(function () { rec.start(250); pintar(); }).catch(function () { talCual(); });
+  };
 }
 function avisoBot(t, mal) {
   var a = document.getElementById('bot-aviso');
