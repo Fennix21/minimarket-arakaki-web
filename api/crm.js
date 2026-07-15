@@ -20,6 +20,7 @@
 //                                  la foto dataURL se guarda en prodimg:<id> y la sirve /api/precios?img=)
 //   delprod { id }               -> quita un producto subido desde el panel (y borra su foto)
 //   getsitio / setsitio        -> textos editables del sitio (lema + footer; los lee /api/sitio)
+//   getvideos / setvideos      -> video/título/subtítulo del hero por categoría (config:videos; los sirve /api/precios)
 //   getclub / setclub          -> interruptores + promos exclusivas + sorteos del Club (los lee /api/cuenta)
 //   resetpin { telefono }      -> borra el PIN del cliente y cierra sus sesiones
 //   setpuntos { telefono, puntos } -> ajuste manual de puntos (canjes)
@@ -680,6 +681,35 @@ module.exports = async (req, res) => {
       if (Object.keys(s).length) await redis(['SET', 'config:sitio', JSON.stringify(s)]);
       else await redis(['DEL', 'config:sitio']);
       return res.status(200).json({ ok: true, s });
+    }
+
+    // --- Videos del hero de cada categoría: config:videos (los sirve /api/precios como v) ---
+    // { videos: { "<slug>": { v:'no'|'/img/videos/x.mp4'|'https://…', t:'Título', s:'Subtítulo' } } }
+    // Campo vacío = default del catálogo (no se guarda nada de más); sin overrides se borra la clave.
+    if (b.action === 'getvideos') {
+      const raw = await redis(['GET', 'config:videos']);
+      let v = {};
+      if (raw) { try { v = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ v });
+    }
+    if (b.action === 'setvideos') {
+      const entrada = b.videos && typeof b.videos === 'object' ? b.videos : {};
+      const out = {};
+      Object.keys(entrada).slice(0, 40).forEach((slug) => {
+        if (!/^[a-z0-9-]{1,40}$/.test(slug)) return;
+        const e = entrada[slug] || {};
+        const o = {};
+        const src = (e.v == null ? '' : String(e.v)).trim().slice(0, 300);
+        if (src === 'no' || /^\/img\/videos\/[a-z0-9._-]+\.mp4$/i.test(src) || /^https:\/\/\S+$/i.test(src)) o.v = src;
+        const t = (e.t == null ? '' : String(e.t)).trim().slice(0, 60);
+        const s = (e.s == null ? '' : String(e.s)).trim().slice(0, 90);
+        if (t) o.t = t;
+        if (s) o.s = s;
+        if (Object.keys(o).length) out[slug] = o;
+      });
+      if (Object.keys(out).length) await redis(['SET', 'config:videos', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:videos']);
+      return res.status(200).json({ ok: true, v: out });
     }
 
     if (b.action === 'setnotify') {

@@ -2,9 +2,10 @@
 // Se editan desde /panel → 💰 Precios (o por WhatsApp del dueño, api/whatsapp.js).
 //   GET -> { p: { "<slug>|<nombre>": "85" },        precios en vivo (config:precios)
 //            s: { "<slug>|<nombre>": "agotado"|"oculto" },  stock en vivo (config:stock)
-//            x: [ {id,cat,sec,nombre,precio,img,ts} ] }     productos nuevos del panel (config:prodextra)
+//            x: [ {id,cat,sec,nombre,precio,img,ts} ],      productos nuevos del panel (config:prodextra)
+//            v: { "<slug>": {v,t,s} } }                     video/título/subtítulo del hero por categoría (config:videos)
 //   GET ?img=<id> -> foto de un producto subida desde el panel (Redis prodimg:<id>, caché inmutable)
-// Sin env vars de Redis devuelve { p:{}, s:{}, x:[] }: el sitio funciona igual con el catálogo base.
+// Sin env vars de Redis devuelve { p:{}, s:{}, x:[], v:{} }: el sitio funciona igual con el catálogo base.
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -33,14 +34,15 @@ module.exports = async (req, res) => {
 
   // El CDN de Vercel cachea 60s: aunque entren cientos de personas, Redis recibe ~1 consulta/min.
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-  let p = {}, s = {}, x = [];
+  let p = {}, s = {}, x = [], v = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const vals = (await redis(['MGET', 'config:precios', 'config:stock', 'config:prodextra'])) || [];
+      const vals = (await redis(['MGET', 'config:precios', 'config:stock', 'config:prodextra', 'config:videos'])) || [];
       if (vals[0]) p = JSON.parse(vals[0]);
       if (vals[1]) s = JSON.parse(vals[1]);
       if (vals[2]) { const arr = JSON.parse(vals[2]); if (Array.isArray(arr)) x = arr; }
+      if (vals[3]) v = JSON.parse(vals[3]);
     }
   } catch (e) { console.error('precios error', e); }
-  return res.status(200).json({ p, s, x });
+  return res.status(200).json({ p, s, x, v });
 };

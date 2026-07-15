@@ -1889,6 +1889,30 @@
         });
       });
 
+      // 4) Video y textos del hero en vivo (panel → 📝 Sitio → 🎬 Videos): config:videos
+      //    v = 'no' quita el video · ruta/URL lo cambia · t/s pisan título y subtítulo
+      var vv = data.v && data.v[slug];
+      var hero = vv && cont.querySelector('.hero');
+      if (hero) {
+        if (vv.t) { var h1 = hero.querySelector('h1'); if (h1) h1.textContent = vv.t; }
+        if (vv.s) { var sub = hero.querySelector('.sub'); if (sub) sub.textContent = vv.s; }
+        var vid = hero.querySelector('video');
+        if (vv.v === 'no') {
+          if (vid) vid.parentNode.removeChild(vid);
+        } else if (vv.v && (!vid || vid.getAttribute('src') !== vv.v)) {
+          if (!vid) {
+            vid = document.createElement('video');
+            vid.autoplay = true; vid.loop = true;
+            vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
+            hero.appendChild(vid);
+          }
+          vid.muted = true; // antes de play(): los navegadores solo dejan autoplay silenciado
+          vid.setAttribute('src', vv.v);
+          var pr = vid.play && vid.play();
+          if (pr && pr.catch) pr.catch(function () {});
+        }
+      }
+
       marcarProds();
       pintarFavStars(); // estrellas también en las tarjetas recién añadidas
     }).catch(function () {});
