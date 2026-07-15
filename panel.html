@@ -255,6 +255,29 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .aviso { padding:11px 15px; border-radius:12px; margin:10px 0; font-size:13.5px; display:none; }
 .aviso.ok { background:rgba(37,211,102,.12); border:1px solid rgba(37,211,102,.3); color:#a9f0c6; display:block; }
 .aviso.mal { background:rgba(230,72,49,.12); border:1px solid rgba(230,72,49,.35); color:#ffb4a8; display:block; }
+/* ---------- Seguro de cambios: popup central + estado "sin guardar" ---------- */
+#modal-fondo { position:fixed; inset:0; z-index:120; display:none; align-items:center; justify-content:center; padding:20px;
+  background:rgba(0,0,0,.62); backdrop-filter:blur(3px); }
+#modal-fondo.abierto { display:flex; }
+.modal-caja { background:var(--panel); border:1px solid var(--borde); border-top:3px solid var(--dorado); border-radius:var(--radius);
+  box-shadow:var(--sombra); width:100%; max-width:400px; padding:24px 22px; text-align:center; animation:modal-in .18s ease-out; }
+.modal-caja.peligro { border-top-color:var(--naranja); }
+.modal-caja.ok { border-top-color:var(--verde); }
+@keyframes modal-in { from { opacity:0; transform:translateY(12px) scale(.96); } to { opacity:1; transform:none; } }
+#modal-ico { font-size:42px; line-height:1; margin-bottom:8px; }
+#modal-tit { margin:0 0 8px; font-size:17px; font-weight:800; }
+#modal-txt { margin:0; font-size:14px; color:var(--txt-soft); line-height:1.55; white-space:pre-line; }
+.modal-btns { display:flex; gap:10px; margin-top:20px; }
+.modal-btns .btn { flex:1; padding:12px 14px; font-size:13.5px; }
+.btn.peligro { background:linear-gradient(135deg,var(--naranja),var(--rojo)); color:#fff; }
+/* Sección con cambios pendientes: el 💾 late y sale el chip "sin guardar" */
+.btn.sucio { animation:latir 1.7s ease-in-out infinite; }
+@keyframes latir { 0%,100% { box-shadow:0 0 0 0 rgba(212,169,65,.5); } 50% { box-shadow:0 0 0 8px rgba(212,169,65,0); } }
+.chip-sucio { display:none; font-size:12px; font-weight:700; color:var(--naranja); }
+.chip-sucio.on { display:inline; }
+/* ● en la pestaña (y en el acceso "Más" del móvil) de la sección con cambios pendientes */
+.tab.sucio .eti::after, .mas-item.sucio::after { content:' ●'; color:var(--naranja); font-size:11px; }
+@media (max-width:860px) { .tab.sucio .ico::after { content:'●'; color:var(--naranja); font-size:9px; vertical-align:super; } }
 /* 🎬 Videos de las categorías (📝 Sitio): una fila por página, select + título + subtítulo + vista previa */
 .vid-cabecera, .vid-fila { display:grid; grid-template-columns:150px 1.1fr 1fr 1fr 30px; gap:8px; align-items:center; }
 .vid-cabecera { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--sub); padding:0 0 7px; }
@@ -645,7 +668,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <p class="sub-vista">Tus clientes y su consumo, y el Club con cuenta en la web (login con PIN, favoritos ⭐, puntos 🪙, promos 🎁 y sorteos 🎟️). Prende y apaga cada función según tu estrategia.</p>
     <div class="aviso" id="club-aviso"></div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="club">
       <h3>⚙️ Funciones del Club en la web</h3>
       <p class="desc">Los cambios se ven en la web en ~1 minuto. Si apagas la <b>cuenta de clientes</b>, se apaga TODO el Club y la web queda como antes.</p>
       <div class="toggle-fila"><div class="tf-txt"><b>👤 Cuenta de clientes (interruptor general)</b><span>Login con celular + PIN y la página /mi-cuenta</span></div><label class="switch"><input type="checkbox" id="club-login"><span class="pista"></span></label></div>
@@ -656,39 +679,39 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="toggle-fila"><div class="tf-txt"><b>🎫 Cupones exclusivos</b><span>Cupón con imagen y código, solo para clientes logueados</span></div><label class="switch"><input type="checkbox" id="club-cupones-sw"><span class="pista"></span></label></div>
       <div class="fila-conf">
         <label style="font-size:13px">🪙 Puntos por cada sol de compra: <input type="text" id="club-pps" inputmode="decimal" placeholder="1" style="width:70px"></label>
-        <button class="btn" onclick="guardarClub()">💾 Guardar funciones</button>
+        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar funciones</button>
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="club">
       <h3>🎁 Promos exclusivas del Club</h3>
       <p class="desc">Solo las ven los clientes logueados en su cuenta (/mi-cuenta). La fecha límite es opcional: vencida, la promo deja de mostrarse sola.</p>
       <div id="club-promos"></div>
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarPromoClub()">+ Añadir promo</button>
-        <button class="btn" onclick="guardarClub()">💾 Guardar promos</button>
+        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar promos</button>
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="club">
       <h3>🎫 Cupones exclusivos</h3>
       <p class="desc">Solo los ven los clientes logueados (/mi-cuenta). Sube la imagen del cupón desde tu dispositivo (obligatoria), ponle un título y un código que muestren en caja. La fecha límite es opcional: vencido, el cupón deja de mostrarse solo.</p>
       <div id="club-cupones"></div>
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarCuponClub()">+ Añadir cupón</button>
-        <button class="btn" onclick="guardarClub()">💾 Guardar cupones</button>
+        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar cupones</button>
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="club">
       <h3>🎟️ Sorteos</h3>
       <p class="desc">Crea el sorteo y tus clientes participan desde su cuenta. Con 🎲 eliges un ganador al azar (puedes repetir si no contesta). Al borrar un sorteo se borra también su lista de participantes.</p>
       <div id="club-sorteos"></div>
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarSorteoClub()">+ Añadir sorteo</button>
-        <button class="btn" onclick="guardarClub()">💾 Guardar sorteos</button>
+        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar sorteos</button>
       </div>
-      <div id="club-sorteo-info"></div>
+      <div id="club-sorteo-info" data-sin-seguro></div>
     </div>
 
     <h3 style="margin:22px 0 8px">📇 Tus clientes</h3>
@@ -738,32 +761,32 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
     <!-- ===== Sub-panel: bot de WhatsApp ===== -->
     <div class="subpanel activa" id="sp-wa">
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="prompt">
         <h3>🧠 Cerebro del bot</h3>
         <p class="desc">Las instrucciones que sigue el bot al responder en tu WhatsApp. Guardas y el cambio es inmediato.</p>
         <div class="aviso" id="bot-aviso"></div>
         <textarea id="bot-prompt" style="min-height:300px"></textarea>
         <div class="fila-conf">
-          <button class="btn" onclick="guardarPrompt()">💾 Guardar cerebro</button>
+          <button class="btn" data-guardar="prompt" onclick="pedirGuardar('prompt')">💾 Guardar cerebro</button>
           <button class="btn gris" onclick="restaurarPrompt()">↩️ Restaurar original</button>
           <span id="bot-custom" style="font-size:12px;color:#aaa"></span>
         </div>
       </div>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="tpls">
         <h3>⚡ Respuestas rápidas</h3>
         <p class="desc">Botones que ves sobre el chat del panel para contestarle a un cliente en un toque.</p>
         <div class="plantillas-edit" id="tpl-lista"></div>
         <div class="fila-conf">
           <button class="btn gris" onclick="agregarTpl()">+ Añadir</button>
-          <button class="btn" onclick="guardarTpls()">💾 Guardar respuestas</button>
+          <button class="btn" data-guardar="tpls" onclick="pedirGuardar('tpls')">💾 Guardar respuestas</button>
         </div>
       </div>
     </div>
 
     <!-- ===== Sub-panel: chat de la web ===== -->
     <div class="subpanel" id="sp-web">
-      <div class="toggle-fila">
+      <div class="toggle-fila" data-grupo="webchat">
         <div class="tf-txt"><b>💬 Chat en la página web</b><span>Muéstralo o escóndelo en minimarketarakaki.com</span></div>
         <label class="switch"><input type="checkbox" id="conf-webchat"><span class="pista"></span></label>
       </div>
@@ -774,7 +797,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <div class="cuerpo">Es <b>independiente</b>: aquí puedes probar un enfoque distinto sin tocar tu WhatsApp. Si dejas su cerebro vacío, usa la <b>misión por defecto</b> (captar suscriptores para los avisos, NO vende); escribe tu propio cerebro y el bot obedece TU estrategia. Cualquier campo que dejes en blanco vuelve a su texto por defecto. Los cambios se ven en la web en ~1 minuto.</div>
       </details>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="webchat">
         <h3>👋 Apariencia y mensajes</h3>
         <p class="desc">Lo primero que ve el cliente al abrir el chat.</p>
         <div class="campo-bloque">
@@ -797,7 +820,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         </div>
       </div>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="webchat">
         <h3>🧠 Cerebro propio</h3>
         <p class="desc">Aquí mandas TÚ: objetivo, tono y estrategia del bot (incluye qué proponen sus botones de seguimiento). Vacío = usa la misión por defecto (captar suscriptores para los avisos). ¿Quieres cambiar "eso de los avisos"? Copia la misión y edítala a tu antojo.</p>
         <button class="btn" type="button" onclick="usarPromptDefault()" style="margin-bottom:8px">📋 Copiar la misión por defecto para editarla</button>
@@ -809,7 +832,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         </details>
       </div>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="webchat">
         <h3>📋 Datos oficiales del negocio</h3>
         <p class="desc">Lo que el bot dará por CIERTO. Si algo no está aquí ni en el catálogo, NO lo inventa: lo deriva a tu WhatsApp. Esto es lo que más evita respuestas equivocadas.</p>
         <div class="campo-bloque">
@@ -819,14 +842,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         </div>
       </div>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="webchat">
         <h3>❓ Respuestas oficiales (preguntas frecuentes)</h3>
         <p class="desc">Prepara la respuesta EXACTA para las preguntas típicas de tus clientes. El bot contesta con esa información (con sus palabras, sin cambiar los datos) en vez de improvisar. Máximo 30.</p>
         <div id="web-faq"></div>
         <button class="btn" type="button" onclick="nuevaFaq()" style="margin-top:6px">➕ Nueva pregunta</button>
       </div>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="webchat">
         <h3>📅 Temporadas / campañas</h3>
         <p class="desc">Cambia toda la estrategia del chat en fechas especiales (Fiestas Patrias, Navidad, San Valentín…). Cada temporada tiene sus propios textos e instrucciones para el bot.</p>
         <div class="campo-bloque">
@@ -838,7 +861,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" type="button" onclick="nuevaTemporada()" style="margin-top:6px">➕ Nueva temporada</button>
       </div>
 
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="webchat">
         <h3>✍️ Mensajes del sistema</h3>
         <p class="desc">Los textos automáticos del chat. Déjalos vacíos para usar los de por defecto.</p>
         <div class="campo-bloque">
@@ -856,7 +879,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
 
       <div class="fila-conf">
-        <button class="btn" onclick="guardarWebchat()">💾 Guardar chat de la web</button>
+        <button class="btn" data-guardar="webchat" onclick="pedirGuardar('webchat')">💾 Guardar chat de la web</button>
       </div>
 
       <div class="caja-bot">
@@ -1006,7 +1029,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
 
       <!-- 4. Números autorizados (WhatsApp) -->
-      <div class="caja-bot">
+      <div class="caja-bot" data-grupo="notify">
         <h3>🔔 Números autorizados</h3>
         <p class="desc">Quién recibe los avisos y puede cambiar precios por WhatsApp.</p>
         <div class="aviso" id="avisos-aviso"></div>
@@ -1020,7 +1043,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         </div>
         <label class="check-fila"><input type="checkbox" id="conf-notify"> Avisarme de nuevos clientes y pedidos</label>
         <div class="fila-conf">
-          <button class="btn" onclick="guardarNotify()">💾 Guardar</button>
+          <button class="btn" data-guardar="notify" onclick="pedirGuardar('notify')">💾 Guardar</button>
         </div>
       </div>
     </div>
@@ -1032,7 +1055,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <p class="sub-vista">Edita el lema del encabezado, los textos del carrito y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
     <div class="aviso" id="sitio-aviso"></div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>🔝 Encabezado</h3>
       <div class="campo-bloque">
         <label>Lema (junto al logo)</label>
@@ -1041,7 +1064,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>🛒 Carrito: entrega</h3>
       <div class="campo-bloque">
         <label>Nota bajo el botón “Usar mi ubicación”</label>
@@ -1055,7 +1078,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>📍 Pie: Visítanos</h3>
       <div class="campo-bloque">
         <label>Título</label>
@@ -1076,7 +1099,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>🕗 Pie: Horario</h3>
       <div class="campo-bloque">
         <label>Título</label>
@@ -1089,7 +1112,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>📞 Pie: Contáctanos</h3>
       <div class="campo-bloque">
         <label>Título</label>
@@ -1102,7 +1125,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>📲 Pie: Redes</h3>
       <div class="campo-bloque">
         <label>Título</label>
@@ -1123,7 +1146,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="sitio">
       <h3>©️ Pie: Copyright</h3>
       <div class="campo-bloque">
         <label>Línea final</label>
@@ -1133,10 +1156,10 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     </div>
 
     <div class="fila-conf">
-      <button class="btn" onclick="guardarSitio()">💾 Guardar textos del sitio</button>
+      <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar textos del sitio</button>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="fondos">
       <h3>🎨 Fondos de la web</h3>
       <div class="campo-bloque">
         <div class="hint">El color de fondo de cada zona de la web. Elige un <b>color sólido</b> o un <b>degradado</b> (una mezcla suave entre 2 o 3 colores) y míralo al toque en la vista previa. Guardas y se ve en la web en ~1 minuto, sin tocar código. <b>El de siempre</b> = deja el fondo original de la marca.</div>
@@ -1144,17 +1167,17 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div id="fondo-lista"></div>
       <div class="aviso" id="fondo-aviso"></div>
       <div class="fila-conf">
-        <button class="btn" onclick="guardarFondos()">💾 Guardar fondos</button>
+        <button class="btn" data-guardar="fondos" onclick="pedirGuardar('fondos')">💾 Guardar fondos</button>
       </div>
     </div>
 
-    <div class="caja-bot">
+    <div class="caja-bot" data-grupo="videos">
       <h3>🎬 Videos de las categorías</h3>
       <div class="campo-bloque">
         <div class="hint">El video y los textos que salen arriba de los productos en cada página. Elige otro video del repertorio, cambia el título o el subtítulo y guarda: se ve en la web en ~1 minuto, sin tocar código. Campo vacío = el de siempre. ▶ abre el video elegido para verlo.</div>
       </div>
 
-      <div class="vid-subir">
+      <div class="vid-subir" data-sin-seguro>
         <b>📤 Subir un video desde tu equipo</b>
         <div class="hint" style="margin:6px 0 10px">Se comprime solo en tu navegador a ~540p y sin sonido, como los videos que ya tiene la web, y aparece en la lista de cada página como 📤. Ideal: clips de 5 a 20 segundos (máximo 60s y 3.5&nbsp;MB ya comprimido, hasta 10 videos). Si tu navegador no puede comprimirlo, se sube tal cual siempre que sea un .mp4 liviano.</div>
         <div class="fila-conf" style="margin:0">
@@ -1168,12 +1191,25 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div id="vid-lista"></div>
       <div class="aviso" id="vid-aviso"></div>
       <div class="fila-conf">
-        <button class="btn" onclick="guardarVideos()">💾 Guardar videos</button>
+        <button class="btn" data-guardar="videos" onclick="pedirGuardar('videos')">💾 Guardar videos</button>
       </div>
     </div>
   </div>
 
   </main>
+</div>
+
+<!-- Popup central: pregunta antes de borrar/guardar y confirma cuando el cambio ya quedó -->
+<div id="modal-fondo">
+  <div class="modal-caja" id="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-tit">
+    <div id="modal-ico">❓</div>
+    <h3 id="modal-tit"></h3>
+    <p id="modal-txt"></p>
+    <div class="modal-btns">
+      <button class="btn gris" id="modal-no" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn" id="modal-ok" onclick="modalSi()">Sí</button>
+    </div>
+  </div>
 </div>
 
 <script src="/data/catalog.js"></script>
@@ -1196,6 +1232,148 @@ function hora(ts) {
   if (d.toDateString() === hoy.toDateString()) return d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
   return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
 }
+
+// ---------- Seguro de cambios: popup central + estado "sin guardar" ----------
+// El popup reemplaza a los confirm() del navegador: pregunta antes de borrar o guardar,
+// y confirma al centro cuando el cambio ya quedó. cerrarModal/modalSi los llaman sus botones.
+var MODAL_CB = null;      // qué hacer si el dueño dice que sí
+var MODAL_T = null;       // autocierre del popup de éxito
+var MODAL_PELIGRO = false;  // acción que borra/envía: Enter NO la confirma, hay que tocar el botón
+function modal(o) {
+  clearTimeout(MODAL_T);
+  document.getElementById('modal-caja').className = 'modal-caja ' + (o.tipo || '');
+  document.getElementById('modal-ico').textContent = o.ico || '❓';
+  document.getElementById('modal-tit').textContent = o.titulo || '';
+  document.getElementById('modal-txt').textContent = o.texto || '';
+  var bOk = document.getElementById('modal-ok'), bNo = document.getElementById('modal-no');
+  bOk.textContent = o.ok || 'Sí';
+  bOk.className = 'btn' + (o.tipo === 'peligro' ? ' peligro' : '');
+  bNo.style.display = o.solo ? 'none' : '';
+  bNo.textContent = o.no || 'Cancelar';
+  MODAL_CB = o.cb || null;
+  MODAL_PELIGRO = o.tipo === 'peligro' && !o.solo;
+  document.getElementById('modal-fondo').className = 'abierto';
+  // Si la acción borra o envía algo, el foco arranca en Cancelar: un Enter de más no la dispara
+  setTimeout(function () { (MODAL_PELIGRO ? bNo : bOk).focus(); }, 30);
+}
+function cerrarModal() { clearTimeout(MODAL_T); document.getElementById('modal-fondo').className = ''; MODAL_CB = null; }
+function modalSi() { var cb = MODAL_CB; cerrarModal(); if (cb) cb(); }
+// Pregunta antes de una acción delicada; cb solo corre si el dueño confirma.
+// Por defecto es 'peligro' (rojo, Enter no confirma); tipo:'' = pregunta normal, como la de guardar.
+function confirmar(o, cb) { o.cb = cb; if (!o.ico) o.ico = '⚠️'; if (o.tipo === undefined) o.tipo = 'peligro'; modal(o); }
+// Popup central de confirmación (se cierra solo a los 2.5s)
+function exito(texto) {
+  modal({ tipo: 'ok', ico: '✅', titulo: '¡Listo!', texto: texto, ok: 'Entendido', solo: true });
+  MODAL_T = setTimeout(cerrarModal, 2500);
+}
+// Popup central cuando el guardado NO se pudo hacer (para que no pase desapercibido)
+function falla(texto) { modal({ tipo: 'peligro', ico: '⚠️', titulo: 'No se pudo guardar', texto: texto, ok: 'Entendido', solo: true }); }
+document.getElementById('modal-fondo').onclick = function (e) { if (e.target === this) cerrarModal(); };
+document.addEventListener('keydown', function (e) {
+  if (document.getElementById('modal-fondo').className !== 'abierto') return;
+  if (e.key === 'Escape') cerrarModal();
+  else if (e.key === 'Enter' && !MODAL_PELIGRO) modalSi();
+});
+
+// Grupos = cada bloque del panel que se guarda de una sola vez. En el HTML: data-grupo="<clave>"
+// marca los campos que le pertenecen y data-guardar="<clave>" su botón 💾. Al tocar un campo el
+// grupo queda "sucio": el 💾 late, la pestaña marca ● y avisamos si te vas sin guardar.
+var GRUPOS = {
+  club:    { nombre: 'del Club',                    vista: 'club',  aviso: 'club-aviso',   fn: 'guardarClub',    nota: 'Se ve en la web en ~1 minuto.' },
+  sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
+  fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
+  videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
+  webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
+  prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
+  tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
+  notify:  { nombre: 'de los números autorizados',  vista: 'bot',   aviso: 'avisos-aviso', fn: 'guardarNotify',  nota: '' }
+};
+var SUCIO = {};   // clave de grupo → true mientras tenga cambios sin guardar
+
+function marcarSucio(clave) { if (GRUPOS[clave] && !SUCIO[clave]) { SUCIO[clave] = true; pintarSucio(clave); } }
+function limpiarSucio(clave) { if (SUCIO[clave]) { delete SUCIO[clave]; pintarSucio(clave); } }
+function haySucio() { for (var k in SUCIO) return true; return false; }
+function vistaSucia(v) { for (var k in SUCIO) if (GRUPOS[k].vista === v) return true; return false; }
+function sinGuardarDe(v) {   // nombres de los grupos pendientes de una sección
+  var l = []; for (var k in SUCIO) if (GRUPOS[k].vista === v) l.push('• Los cambios ' + GRUPOS[k].nombre);
+  return l;
+}
+function pintarSucio(clave) {
+  var g = GRUPOS[clave], on = !!SUCIO[clave];
+  var bs = document.querySelectorAll('[data-guardar="' + clave + '"]');
+  for (var i = 0; i < bs.length; i++) {
+    bs[i].classList.toggle('sucio', on);
+    var chip = bs[i].parentNode.querySelector('.chip-sucio');
+    if (!chip) {
+      chip = document.createElement('span');
+      chip.className = 'chip-sucio';
+      chip.textContent = '● Sin guardar';
+      bs[i].parentNode.insertBefore(chip, bs[i].nextSibling);
+    }
+    chip.classList.toggle('on', on);
+  }
+  var pend = vistaSucia(g.vista);
+  var tabs = document.querySelectorAll('[data-v="' + g.vista + '"]');
+  for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('sucio', pend);
+  var mas = document.getElementById('tab-mas');   // acceso "Más" del móvil
+  if (mas) {
+    var pendMas = false;
+    for (var k in SUCIO) if (MAS_VISTAS.indexOf(GRUPOS[k].vista) >= 0) pendMas = true;
+    mas.classList.toggle('sucio', pendMas);
+  }
+}
+// Cualquier toque a un campo dentro de un [data-grupo] lo marca como pendiente.
+// [data-sin-seguro] excluye lo que no es configuración (probar el chat, subir un video…).
+function ojoSucio(e) {
+  var el = e.target;
+  if (!el || !el.closest || el.closest('[data-sin-seguro]')) return;
+  var caja = el.closest('[data-grupo]');
+  if (caja) marcarSucio(caja.getAttribute('data-grupo'));
+  // 💰 Precios se guarda fila por fila: mientras escribes, late el 💾 de ESA fila
+  if (el.hasAttribute('data-clave') && el.closest('#tabla-precios')) {
+    var b = el.closest('tr').querySelector('.btn');
+    if (b) b.classList.toggle('sucio', el.value.trim() !== (PRECIOS[el.getAttribute('data-clave')] || ''));
+  }
+}
+document.addEventListener('input', ojoSucio);
+document.addEventListener('change', ojoSucio);
+
+// Botón 💾 de cada sección: confirma antes de mandar los cambios
+function pedirGuardar(clave) {
+  var g = GRUPOS[clave];
+  if (!g) return;
+  confirmar({
+    tipo: '', ico: '💾', titulo: '¿Guardar los cambios ' + g.nombre + '?',
+    texto: 'Se reemplaza lo que había guardado antes. ' + g.nota,
+    ok: '💾 Sí, guardar', no: 'Todavía no'
+  }, function () { window[g.fn](); });
+}
+// La llaman los guardar* al terminar bien: caja verde de la sección + popup central + apaga el "sin guardar"
+function okGuardado(clave, texto) {
+  var g = GRUPOS[clave] || {};
+  if (g.aviso) avisoEn(g.aviso, '✅ ' + texto);
+  limpiarSucio(clave);
+  exito(texto);
+}
+function avisoEn(id, t, mal) {
+  var a = document.getElementById(id);
+  if (!a) return;
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+// Si el guardado falla: caja roja + popup central (para no perder el error de vista)
+function errGuardado(clave, e) {
+  var g = GRUPOS[clave] || {};
+  if (g.aviso) avisoEn(g.aviso, e.message, true);
+  falla(e.message);
+}
+// Aviso del navegador si cierras el panel con cambios pendientes
+window.addEventListener('beforeunload', function (e) {
+  if (!haySucio()) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
 
 // ---------- Tema claro/oscuro ----------
 function temaActual() { return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
@@ -1268,7 +1446,25 @@ function cerrarMas() {
   document.getElementById('mas-panel').classList.remove('abierto');
   document.getElementById('mas-fondo').classList.remove('abierto');
 }
+// Sección abierta ahora mismo ('inicio', 'sitio', …): la usa el seguro de cambios sin guardar
+function vistaActual() {
+  var a = document.querySelector('.vista.activa');
+  return a ? a.id.replace(/^v-/, '') : '';
+}
 function verVista(v) {
+  // Seguro: salir de una sección con cambios pendientes los pierde (al entrar se recargan del servidor)
+  var hoy = vistaActual();
+  if (hoy && hoy !== v && vistaSucia(hoy)) {
+    confirmar({
+      titulo: 'Tienes cambios sin guardar', ok: 'Salir sin guardar', no: '✍️ Seguir editando',
+      texto: 'En esta sección quedaron cambios que no guardaste:\n\n' + sinGuardarDe(hoy).join('\n') +
+             '\n\nSi sales ahora se pierden. Toca 💾 para guardarlos.'
+    }, function () {
+      for (var k in SUCIO) if (GRUPOS[k].vista === hoy) limpiarSucio(k);   // se descartan: al volver se recargan del servidor
+      verVista(v);
+    });
+    return;
+  }
   try { localStorage.setItem('arakaki_vista', v); } catch (e) {} // recordar la sección al recargar
   for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('activa', tabs[i].getAttribute('data-v') === v);
   // Menú "Más" (móvil): se marca si la sección abierta vive dentro de él, y se cierra al navegar
@@ -1437,14 +1633,19 @@ function editarNota() {
 }
 function borrarChat() {
   if (!CHAT) return;
-  if (!confirm('¿Eliminar este contacto y toda su conversación?')) return;
-  api('delete', { phone: CHAT }).then(function () {
-    document.getElementById('chat-cab').style.display = 'none';
-    document.getElementById('chat-msgs').style.display = 'none';
-    document.getElementById('chat-pie').style.display = 'none';
-    document.getElementById('chat-vacio').style.display = 'flex';
-    cerrarChat();
-    cargarLeads();
+  confirmar({
+    titulo: '¿Eliminar este contacto?', ok: '🗑️ Sí, eliminar',
+    texto: 'Se borra el contacto y TODA su conversación. Esto no se puede deshacer.'
+  }, function () {
+    api('delete', { phone: CHAT }).then(function () {
+      document.getElementById('chat-cab').style.display = 'none';
+      document.getElementById('chat-msgs').style.display = 'none';
+      document.getElementById('chat-pie').style.display = 'none';
+      document.getElementById('chat-vacio').style.display = 'flex';
+      cerrarChat();
+      cargarLeads();
+      exito('Contacto eliminado.');
+    }).catch(function (e) { falla(e.message); });
   });
 }
 
@@ -1532,7 +1733,16 @@ function responderPregunta(id) {
   var inp = document.getElementById('preg-r-' + id);
   api('pregresp', { id: id, respuesta: (inp && inp.value) || '' }).then(cargarPreguntas);
 }
-function borrarPregunta(id) { api('pregdel', { id: id }).then(cargarPreguntas); }
+function borrarPregunta(id) {
+  confirmar({
+    titulo: '¿Borrar esta pregunta?', ok: '🗑️ Sí, borrar',
+    texto: 'Desaparece de tu panel y el cliente ya no verá respuesta. No se puede deshacer.'
+  }, function () {
+    api('pregdel', { id: id })
+      .then(function () { cargarPreguntas(); exito('Pregunta borrada.'); })
+      .catch(function (e) { falla(e.message); });
+  });
+}
 
 // ---------- Precios, stock y productos nuevos ----------
 var PRECIOS = {};        // overrides vivos { 'slug|nombre': '85' }
@@ -1609,20 +1819,53 @@ function ciclarStock(btn) {
       : '✅ Disponible: el producto se vende de nuevo en la web (~1 min).');
   }).catch(function (e) { btn.disabled = false; avisoPr(e.message, true); });
 }
+// El precio sale EN VIVO a la web: antes de mandarlo, el popup muestra de cuánto a cuánto queda
 function guardarPrecio(inp) {
   if (!inp) return;
-  api('setprecio', { clave: inp.getAttribute('data-clave'), precio: inp.value.trim() })
+  var clave = inp.getAttribute('data-clave');
+  var nuevo = inp.value.trim();
+  var esp = PRECIOS[clave];
+  if (nuevo === (esp !== undefined ? esp : '')) { avisoPr('Ese producto ya tiene ese precio: no hay nada que cambiar.'); return; }
+  var base = precioBase(clave);
+  confirmar({
+    tipo: '', ico: '💰',
+    titulo: nuevo ? '¿Dejar este producto en S/ ' + nuevo + '?' : '¿Quitar el precio especial?',
+    texto: nombrePrecio(inp) + '\n\nAhora: ' + (esp !== undefined ? 'S/ ' + esp : base ? 'S/ ' + base : 'sin precio') +
+           '\nQueda: ' + (nuevo ? 'S/ ' + nuevo : base ? 'S/ ' + base + ' (vuelve el precio base del catálogo)' : 'sin precio') +
+           '\n\nSe ve en la web en ~1 minuto.',
+    ok: '💾 Sí, cambiar', no: 'No, dejarlo'
+  }, function () { aplicarPrecio(clave, nuevo); });
+}
+function nombrePrecio(inp) {
+  var td = inp.closest('tr') && inp.closest('tr').querySelector('.td-nombre');
+  return td ? td.textContent : '';
+}
+function precioBase(clave) {
+  var p = PRECIOS_LISTA.filter(function (x) { return x.clave === clave; })[0];
+  return (p && p.base) || '';
+}
+function aplicarPrecio(clave, precio) {
+  api('setprecio', { clave: clave, precio: precio })
     .then(function (j) {
       PRECIOS = j.p || {};
-      avisoPr(inp.value.trim() ? '✅ Precio guardado. Se ve en la web en ~1 minuto.' : '✅ Precio especial quitado: vuelve el precio base.');
+      var m = precio ? 'Precio guardado. Se ve en la web en ~1 minuto.' : 'Precio especial quitado: vuelve el precio base.';
+      avisoPr('✅ ' + m);
+      exito(m);
       pintarPrecios();
     })
-    .catch(function (e) { avisoPr(e.message, true); });
+    .catch(function (e) { avisoPr(e.message, true); falla(e.message); });
 }
 function restaurarPrecio(btn) {
   var inp = btn.closest('tr').querySelector('input');
-  inp.value = '';
-  guardarPrecio(inp);
+  var clave = inp.getAttribute('data-clave');
+  var base = precioBase(clave);
+  confirmar({
+    tipo: '', ico: '↩',
+    titulo: '¿Volver al precio base?',
+    texto: nombrePrecio(inp) + '\n\nAhora: S/ ' + PRECIOS[clave] + ' (precio especial)\nQueda: ' + (base ? 'S/ ' + base + ' (el del catálogo)' : 'sin precio') +
+           '\n\nSe ve en la web en ~1 minuto.',
+    ok: '↩ Sí, volver al base', no: 'No, dejarlo'
+  }, function () { aplicarPrecio(clave, ''); });
 }
 
 // --- Producto nuevo desde el panel (vive en Redis config:prodextra; site.js lo pinta en su categoría) ---
@@ -1740,13 +1983,18 @@ function editarProd(id) {
   document.getElementById('np-cat').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function borrarProd(id) {
-  if (!confirm('¿Quitar este producto de la web? (no toca el catálogo del código)')) return;
-  api('delprod', { id: id }).then(function (j) {
-    EXTRAS = j.x || [];
-    if (NP_EDIT === id) limpiarProdForm();
-    pintarExtras();
-    avisoPr('🗑 Producto quitado de la web.');
-  }).catch(function (e) { avisoPr(e.message, true); });
+  confirmar({
+    titulo: '¿Quitar este producto de la web?', ok: '🗑️ Sí, quitar',
+    texto: 'Deja de verse en su página junto con su foto. No toca el catálogo del código.'
+  }, function () {
+    api('delprod', { id: id }).then(function (j) {
+      EXTRAS = j.x || [];
+      if (NP_EDIT === id) limpiarProdForm();
+      pintarExtras();
+      avisoPr('🗑 Producto quitado de la web.');
+      exito('Producto quitado de la web.');
+    }).catch(function (e) { avisoPr(e.message, true); falla(e.message); });
+  });
 }
 
 // ---------- Club ----------
@@ -1820,11 +2068,19 @@ function agregarPromoClub() {
   CLUB_CFG.promos = leerPromosClubDOM();
   CLUB_CFG.promos.push({ id: '', titulo: '', texto: '', hasta: null });
   pintarPromosClub();
+  marcarSucio('club');
 }
 function quitarPromoClub(i) {
-  CLUB_CFG.promos = leerPromosClubDOM();
-  CLUB_CFG.promos.splice(i, 1);
-  pintarPromosClub();
+  var p = leerPromosClubDOM()[i];
+  confirmar({
+    titulo: '¿Quitar esta promo?', ok: '🗑️ Sí, quitar', no: 'No, dejarla',
+    texto: (p && p.titulo ? '"' + p.titulo + '"\n\n' : '') + 'Se va de la lista. Recién desaparece de la web cuando toques 💾 Guardar promos.'
+  }, function () {
+    CLUB_CFG.promos = leerPromosClubDOM();
+    CLUB_CFG.promos.splice(i, 1);
+    pintarPromosClub();
+    marcarSucio('club');
+  });
 }
 function pintarCuponesClub() {
   var cs = (CLUB_CFG && CLUB_CFG.cupones) || [];
@@ -1862,11 +2118,19 @@ function agregarCuponClub() {
   CLUB_CFG.cupones = leerCuponesClubDOM();
   CLUB_CFG.cupones.push({ id: '', titulo: '', codigo: '', imagen: '', hasta: null });
   pintarCuponesClub();
+  marcarSucio('club');
 }
 function quitarCuponClub(i) {
-  CLUB_CFG.cupones = leerCuponesClubDOM();
-  CLUB_CFG.cupones.splice(i, 1);
-  pintarCuponesClub();
+  var c = leerCuponesClubDOM()[i];
+  confirmar({
+    titulo: '¿Quitar este cupón?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (c && c.titulo ? '"' + c.titulo + '"\n\n' : '') + 'Se va de la lista con su imagen. Recién desaparece de la web cuando toques 💾 Guardar cupones.'
+  }, function () {
+    CLUB_CFG.cupones = leerCuponesClubDOM();
+    CLUB_CFG.cupones.splice(i, 1);
+    pintarCuponesClub();
+    marcarSucio('club');
+  });
 }
 // Subir la imagen del cupón desde el dispositivo: se reescala/comprime EN el navegador (máx 1200px,
 // JPEG) y se guarda en Redis vía imgup; el cupón guarda la URL /api/push?img=<id>.
@@ -1934,13 +2198,21 @@ function agregarSorteoClub() {
   CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
   CLUB_CFG.sorteos.push({ id: '', titulo: '', premio: '', hasta: null, activo: true });
   pintarSorteosClub();
+  marcarSucio('club');
 }
 function quitarSorteoClub(i) {
   var s = leerSorteosClubDOM()[i];
-  if (s && s.id && !confirm('¿Borrar este sorteo? También se borra su lista de participantes.')) return;
-  CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
-  CLUB_CFG.sorteos.splice(i, 1);
-  pintarSorteosClub();
+  confirmar({
+    titulo: '¿Quitar este sorteo?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (s && s.titulo ? '"' + s.titulo + '"\n\n' : '') +
+      (s && s.id ? 'Al guardar se borra TAMBIÉN su lista de participantes, y eso no se puede deshacer.'
+                 : 'Se va de la lista. Todavía no lo habías guardado.')
+  }, function () {
+    CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
+    CLUB_CFG.sorteos.splice(i, 1);
+    pintarSorteosClub();
+    marcarSucio('club');
+  });
 }
 // Conserva el nº de participantes que ya conocíamos (getclub) al releer del DOM
 function sorteosConConteo(lista) {
@@ -1971,8 +2243,8 @@ function guardarClub() {
     previos.forEach(function (s) { if (s.id) mapa[s.id] = s.participantes || 0; });
     (CLUB_CFG.sorteos || []).forEach(function (s) { s.participantes = mapa[s.id] || 0; });
     pintarClubCfg();
-    avisoClub('✅ Club guardado. Se ve en la web en ~1 minuto.');
-  }).catch(function (e) { avisoClub(e.message, true); });
+    okGuardado('club', 'Club guardado. Se ve en la web en ~1 minuto.');
+  }).catch(function (e) { errGuardado('club', e); });
 }
 function verParticipantes(id) {
   api('sorteoinfo', { id: id }).then(function (j) {
@@ -2014,11 +2286,16 @@ function editarPuntos(tel, actual) {
   }).catch(function (e) { avisoClub(e.message, true); });
 }
 function resetearPin(tel) {
-  if (!confirm('¿Resetear el PIN de este cliente? Se cierran sus sesiones y podrá crear un PIN nuevo desde /mi-cuenta.')) return;
-  api('resetpin', { telefono: tel }).then(function () {
-    avisoClub('✅ PIN reseteado. El cliente puede crear uno nuevo en /mi-cuenta.');
-    cargarClub();
-  }).catch(function (e) { avisoClub(e.message, true); });
+  confirmar({
+    titulo: '¿Resetear el PIN de este cliente?', ok: '🔑 Sí, resetear',
+    texto: 'Se cierran todas sus sesiones y tendrá que crear un PIN nuevo desde /mi-cuenta.'
+  }, function () {
+    api('resetpin', { telefono: tel }).then(function () {
+      avisoClub('✅ PIN reseteado. El cliente puede crear uno nuevo en /mi-cuenta.');
+      cargarClub();
+      exito('PIN reseteado. El cliente puede crear uno nuevo en /mi-cuenta.');
+    }).catch(function (e) { avisoClub(e.message, true); falla(e.message); });
+  });
 }
 function ordenarClub(modo) { clubOrden = modo; pintarClub(); }
 function pintarClub() {
@@ -2057,8 +2334,14 @@ function pintarClub() {
   }).join('');
 }
 function borrarCliente(t) {
-  if (!confirm('¿Eliminar este registro?')) return;
-  api('clientedel', { telefono: t }).then(cargarClub);
+  confirmar({
+    titulo: '¿Eliminar este cliente?', ok: '🗑️ Sí, eliminar',
+    texto: 'Se borra su registro con sus puntos, favoritos y su historial de consumo. No se puede deshacer.'
+  }, function () {
+    api('clientedel', { telefono: t })
+      .then(function () { cargarClub(); exito('Cliente eliminado.'); })
+      .catch(function (e) { falla(e.message); });
+  });
 }
 
 // ---------- Analíticas ----------
@@ -2209,12 +2492,20 @@ function nuevaTemporada() {
   WEB_TEMPS.push({ id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), nombre: '', desde: '', hasta: '', saludo: '', botones: [], subtitulo: '', invitacion: '', extra: '' });
   pintarTemporadas();
   renTempSelector();
+  marcarSucio('webchat');
 }
 function quitarTemporada(id) {
   sincTemps();
-  WEB_TEMPS = WEB_TEMPS.filter(function (t) { return t.id !== id; });
-  pintarTemporadas();
-  renTempSelector();
+  var t = WEB_TEMPS.filter(function (x) { return x.id === id; })[0];
+  confirmar({
+    titulo: '¿Quitar esta temporada?', ok: '🗑️ Sí, quitar', no: 'No, dejarla',
+    texto: (t && t.nombre ? '"' + t.nombre + '"\n\n' : '') + 'Se va con todos sus textos. Recién se aplica cuando toques 💾 Guardar chat de la web.'
+  }, function () {
+    WEB_TEMPS = WEB_TEMPS.filter(function (x) { return x.id !== id; });
+    pintarTemporadas();
+    renTempSelector();
+    marcarSucio('webchat');
+  });
 }
 function avisoWeb(t, mal) {
   var a = document.getElementById('web-aviso');
@@ -2240,10 +2531,10 @@ function guardarWebchat() {
     limite: document.getElementById('web-msg-limite').value,
     errtec: document.getElementById('web-msg-error').value,
   }).then(function (j) {
-    avisoWeb((j.on ? '✅ Guardado. ' : '✅ Guardado (chat OCULTO en la web). ') +
-      'Cerebro: ' + (j.usaWhatsapp ? 'la misión por defecto (captador)' : 'PROPIO (tu estrategia)') + '. Se ve en ~1 min.');
+    okGuardado('webchat', (j.on ? 'Chat de la web guardado. ' : 'Guardado (el chat queda OCULTO en la web). ') +
+      'Cerebro: ' + (j.usaWhatsapp ? 'la misión por defecto (captador)' : 'PROPIO (tu estrategia)') + '. Se ve en ~1 minuto.');
     cargarWebchat();
-  }).catch(function (e) { avisoWeb(e.message, true); });
+  }).catch(function (e) { errGuardado('webchat', e); });
 }
 // --- Respuestas oficiales (FAQ): el bot contesta con esta info en vez de improvisar ---
 function pintarFaq() {
@@ -2272,15 +2563,34 @@ function nuevaFaq() {
   if (WEB_FAQ.length >= 30) { avisoWeb('Máximo 30 preguntas.', true); return; }
   WEB_FAQ.push({ q: '', r: '' });
   pintarFaq();
+  marcarSucio('webchat');
 }
-function quitarFaq(i) { sincFaq(); WEB_FAQ.splice(i, 1); pintarFaq(); }
+function quitarFaq(i) {
+  sincFaq();
+  var f = WEB_FAQ[i];
+  confirmar({
+    titulo: '¿Quitar esta pregunta frecuente?', ok: '🗑️ Sí, quitar', no: 'No, dejarla',
+    texto: (f && f.q ? '"' + f.q + '"\n\n' : '') + 'El bot deja de tener esa respuesta oficial cuando toques 💾 Guardar chat de la web.'
+  }, function () {
+    WEB_FAQ.splice(i, 1);
+    pintarFaq();
+    marcarSucio('webchat');
+  });
+}
 // Copia la misión por defecto al cerebro para editarla a gusto (no guarda hasta tocar 💾)
 function usarPromptDefault() {
   var ta = document.getElementById('web-prompt');
   if (!WEB_PROMPT_DEF) { avisoWeb('Aún no cargó la misión por defecto: toca ↻ Actualizar e intenta de nuevo.', true); return; }
-  if (ta.value.trim() && !confirm('Esto reemplaza el texto actual del cerebro por la misión por defecto. ¿Continuar?')) return;
-  ta.value = WEB_PROMPT_DEF;
-  avisoWeb('📋 Misión por defecto copiada al cerebro: edítala a tu antojo y toca 💾 Guardar.');
+  var copiar = function () {
+    ta.value = WEB_PROMPT_DEF;
+    marcarSucio('webchat');
+    avisoWeb('📋 Misión por defecto copiada al cerebro: edítala a tu antojo y toca 💾 Guardar.');
+  };
+  if (!ta.value.trim()) { copiar(); return; }
+  confirmar({
+    titulo: '¿Reemplazar el cerebro que escribiste?', ok: '📋 Sí, reemplazar', no: 'No, dejarlo',
+    texto: 'Se borra lo que hay escrito y entra la misión por defecto. Todavía puedes editarla antes de guardar.'
+  }, copiar);
 }
 // --- Probar el chat: conversa contra /api/chat (usa la config YA guardada) ---
 var WEB_TEST_MSGS = [];
@@ -2352,9 +2662,9 @@ function guardarSitio() {
     extra[k] = el ? el.value : '';
   }
   api('setsitio', extra).then(function () {
-    avisoSitio('✅ Guardado. Se ve en la web en ~1 minuto.');
+    okGuardado('sitio', 'Textos del sitio guardados. Se ven en la web en ~1 minuto.');
     cargarSitio();
-  }).catch(function (e) { avisoSitio(e.message, true); });
+  }).catch(function (e) { errGuardado('sitio', e); });
 }
 // --- 🎨 Fondos de las secciones y las tarjetas: config:fondos (los sirve /api/sitio, los pinta site.js) ---
 // Cada zona = una variable --bg-<clave> del :root de assets/site.css. Si se añade una zona nueva hay que
@@ -2465,9 +2775,9 @@ function cargarFondos() {
 }
 function guardarFondos() {
   api('setfondos', { fondos: FONDOS }).then(function () {
-    avisoSitio('✅ Fondos guardados. Se ven en la web en ~1 minuto.', false, 'fondo-aviso');
+    okGuardado('fondos', 'Fondos guardados. Se ven en la web en ~1 minuto.');
     cargarFondos();
-  }).catch(function (e) { avisoSitio(e.message, true, 'fondo-aviso'); });
+  }).catch(function (e) { errGuardado('fondos', e); });
 }
 // --- 🎬 Videos del hero por categoría: config:videos (los sirve /api/precios y los pinta site.js) ---
 // Archivos disponibles en img/videos/ del repo (si se sube un video nuevo al repo, añadirlo aquí):
@@ -2559,9 +2869,9 @@ function guardarVideos() {
     };
   });
   api('setvideos', { videos: videos }).then(function () {
-    avisoVideos('✅ Videos guardados. Se ven en la web en ~1 minuto.');
+    okGuardado('videos', 'Videos guardados. Se ven en la web en ~1 minuto.');
     cargarVideos();
-  }).catch(function (e) { avisoVideos(e.message, true); });
+  }).catch(function (e) { errGuardado('videos', e); });
 }
 // --- 📤 Subida de videos: se comprimen en el navegador (canvas + MediaRecorder → ~540p H.264
 // sin audio, como los videos del repo) y viajan a Redis en trozos de 512KB vía /api/crm ---
@@ -2584,12 +2894,17 @@ function pintarSubidos() {
   cont.innerHTML = html;
 }
 function borrarVideoSubido(id) {
-  if (!confirm('¿Quitar este video? Las páginas que lo usaban vuelven a su video de siempre.')) return;
-  api('viddel', { id: id }).then(function (j) {
-    SUBIDOS = j.subidos || [];
-    avisoVideos('🗑 Video quitado.');
-    cargarVideos();
-  }).catch(function (e) { avisoVideos(e.message, true); });
+  confirmar({
+    titulo: '¿Quitar este video?', ok: '🗑️ Sí, quitar',
+    texto: 'Las páginas que lo estaban usando vuelven a su video de siempre. No se puede deshacer.'
+  }, function () {
+    api('viddel', { id: id }).then(function (j) {
+      SUBIDOS = j.subidos || [];
+      avisoVideos('🗑 Video quitado.');
+      cargarVideos();
+      exito('Video quitado.');
+    }).catch(function (e) { avisoVideos(e.message, true); falla(e.message); });
+  });
 }
 function leerBase64(blob) {
   // Trozo de video → base64 puro (cada trozo se decodifica solo en el backend)
@@ -2716,12 +3031,21 @@ function avisoBot(t, mal) {
 }
 function guardarPrompt() {
   api('setprompt', { prompt: document.getElementById('bot-prompt').value })
-    .then(function () { avisoBot('✅ Cerebro guardado. El bot ya responde con las nuevas instrucciones.'); cargarBot(); })
-    .catch(function (e) { avisoBot(e.message, true); });
+    .then(function () { okGuardado('prompt', 'Cerebro guardado. El bot ya responde con las nuevas instrucciones.'); cargarBot(); })
+    .catch(function (e) { errGuardado('prompt', e); });
 }
 function restaurarPrompt() {
-  if (!confirm('¿Restaurar el cerebro original? Se pierde lo personalizado.')) return;
-  api('resetprompt').then(function () { avisoBot('✅ Restaurado.'); cargarBot(); }).catch(function (e) { avisoBot(e.message, true); });
+  confirmar({
+    titulo: '¿Restaurar el cerebro original?', ok: '↩️ Sí, restaurar',
+    texto: 'Se pierden TODAS tus instrucciones personalizadas y el bot vuelve al cerebro que trae el código. No se puede deshacer.'
+  }, function () {
+    api('resetprompt').then(function () {
+      limpiarSucio('prompt');
+      avisoBot('✅ Restaurado.');
+      cargarBot();
+      exito('Cerebro original restaurado.');
+    }).catch(function (e) { avisoBot(e.message, true); falla(e.message); });
+  });
 }
 function avisoAv(t, mal) {
   var a = document.getElementById('avisos-aviso');
@@ -2734,9 +3058,9 @@ function guardarNotify() {
     .then(function (j) {
       var lista = (j.ownerPhone || '').split(',').filter(Boolean);
       document.getElementById('conf-owner').value = lista.join(', ');
-      avisoAv(lista.length ? '✅ ' + lista.length + ' número(s) con acceso y avisos.' : '✅ Guardado (sin números: nadie recibe avisos ni cambia precios por WhatsApp).');
+      okGuardado('notify', lista.length ? lista.length + ' número(s) con acceso y avisos.' : 'Guardado (sin números: nadie recibe avisos ni cambia precios por WhatsApp).');
     })
-    .catch(function (e) { avisoAv(e.message, true); });
+    .catch(function (e) { errGuardado('notify', e); });
 }
 // --- Notificaciones push (avisos al dueño + broadcast a clientes; ver /api/push) ---
 function apiPush(extra) {
@@ -2838,13 +3162,18 @@ function guardarPromo() {
 function borrarPromo(id) {
   var p = null;
   for (var i = 0; i < PUSH_PROMOS.length; i++) if (PUSH_PROMOS[i].id === id) p = PUSH_PROMOS[i];
-  if (!confirm('¿Borrar la promoción guardada "' + ((p && (p.nombre || p.title)) || '') + '"?')) return;
-  apiPush({ action: 'delpromo', id: id }).then(function (j) {
-    PUSH_PROMOS = j.promos || [];
-    if (PUSH_EDIT_ID === id) PUSH_EDIT_ID = null;
-    pintarPromos();
-    avisoPush('🗑️ Promoción borrada.');
-  }).catch(function (e) { avisoPush(e.message, true); });
+  confirmar({
+    titulo: '¿Borrar esta promoción guardada?', ok: '🗑️ Sí, borrar',
+    texto: '"' + ((p && (p.nombre || p.title)) || '') + '"\n\nSale de tus promociones reutilizables. No afecta a las que ya enviaste.'
+  }, function () {
+    apiPush({ action: 'delpromo', id: id }).then(function (j) {
+      PUSH_PROMOS = j.promos || [];
+      if (PUSH_EDIT_ID === id) PUSH_EDIT_ID = null;
+      pintarPromos();
+      avisoPush('🗑️ Promoción borrada.');
+      exito('Promoción borrada.');
+    }).catch(function (e) { avisoPush(e.message, true); falla(e.message); });
+  });
 }
 // Subir banner desde el dispositivo: se reescala/comprime EN el navegador (máx 1200px,
 // JPEG) y se guarda en Redis vía imgup; el campo recibe /api/push?img=<id>.
@@ -3000,13 +3329,18 @@ function enviarPush() {
   var imagen = document.getElementById('push-img').value.trim();
   var alerta = (PUSH_HIST[0] && Date.now() - PUSH_HIST[0].ts < 24 * 3600e3)
     ? '\n\n🕐 OJO: ya enviaste una ' + fmtHace(PUSH_HIST[0].ts) + '. Saturar hace perder suscriptores.' : '';
-  if (!confirm('¿Enviar esta notificación a TODOS tus clientes suscritos?\n\n' + titulo + '\n' + texto + (imagen ? '\n🖼️ Con imagen' : '') + alerta)) return;
-  apiPush({ action: 'send', target: 'clientes', title: titulo, body: texto, url: document.getElementById('push-url').value.trim(), image: imagen })
-    .then(function (j) {
-      avisoPush('📣 Enviada a ' + j.enviados + ' cliente(s).' + (j.podados ? ' (' + j.podados + ' suscripciones vencidas se limpiaron.)' : '') +
-        ' La promo sigue aquí: guárdala 💾 para reusarla cuando quieras.');
-      cargarPush(); // refresca historial y contadores; los campos NO se borran
-    }).catch(function (e) { avisoPush(e.message, true); });
+  confirmar({
+    titulo: '¿Enviar a TODOS tus clientes suscritos?', ok: '📣 Sí, enviar ahora', no: 'Todavía no',
+    texto: titulo + '\n' + texto + (imagen ? '\n🖼️ Con imagen' : '') + '\n\nLes llega al toque y no se puede deshacer.' + alerta
+  }, function () {
+    apiPush({ action: 'send', target: 'clientes', title: titulo, body: texto, url: document.getElementById('push-url').value.trim(), image: imagen })
+      .then(function (j) {
+        var m = '📣 Enviada a ' + j.enviados + ' cliente(s).' + (j.podados ? ' (' + j.podados + ' suscripciones vencidas se limpiaron.)' : '');
+        avisoPush(m + ' La promo sigue aquí: guárdala 💾 para reusarla cuando quieras.');
+        exito(m);
+        cargarPush(); // refresca historial y contadores; los campos NO se borran
+      }).catch(function (e) { avisoPush(e.message, true); falla(e.message); });
+  });
 }
 
 // ---------- Promos por CORREO (Resend) a los miembros del Club ----------
@@ -3030,17 +3364,23 @@ function enviarCorreoPromo() {
   if (!asunto || !texto) return avisoCorreo('Escribe el asunto y el mensaje.', true);
   if (!CORREO_TOTAL) return avisoCorreo('Ningún miembro del Club tiene correo registrado todavía.', true);
   var extra = CORREO_TOTAL > 100 ? '\n\n⚠️ OJO: el plan gratis de Resend envía máximo 100 correos por día.' : '';
-  if (!confirm('¿Enviar este correo a ' + CORREO_TOTAL + ' miembro(s) del Club?\n\n' + asunto + '\n' + texto.slice(0, 120) + extra)) return;
-  api('correopromo', {
-    asunto: asunto,
-    titulo: document.getElementById('correo-titulo').value.trim(),
-    texto: texto,
-    url: document.getElementById('correo-url').value.trim(),
-  }).then(function (j) {
-    var errs = (j.errores && j.errores.length) ? ' ⚠️ ' + j.errores[0] : '';
-    avisoCorreo('📧 Enviado a ' + j.enviados + ' de ' + j.total + ' miembro(s).' + errs, !j.enviados);
-    cargarCorreo();
-  }).catch(function (e) { avisoCorreo(e.message, true); });
+  confirmar({
+    titulo: '¿Enviar este correo a ' + CORREO_TOTAL + ' miembro(s) del Club?', ok: '📧 Sí, enviar ahora', no: 'Todavía no',
+    texto: asunto + '\n' + texto.slice(0, 120) + '\n\nLes llega al toque y no se puede deshacer.' + extra
+  }, function () {
+    api('correopromo', {
+      asunto: asunto,
+      titulo: document.getElementById('correo-titulo').value.trim(),
+      texto: texto,
+      url: document.getElementById('correo-url').value.trim(),
+    }).then(function (j) {
+      var errs = (j.errores && j.errores.length) ? ' ⚠️ ' + j.errores[0] : '';
+      var m = '📧 Enviado a ' + j.enviados + ' de ' + j.total + ' miembro(s).';
+      avisoCorreo(m + errs, !j.enviados);
+      if (j.enviados) exito(m + errs); else falla(m + errs);
+      cargarCorreo();
+    }).catch(function (e) { avisoCorreo(e.message, true); falla(e.message); });
+  });
 }
 function pintarTplsEdit() {
   api('gettemplates').then(function (j) {
@@ -3054,8 +3394,19 @@ function pintarTplsEdit() {
     }).join('');
   }).catch(function () {});
 }
-function agregarTpl() { TPLS.push({ label: 'Nueva', text: '' }); pintarTplsLocal(); }
-function quitarTpl(i) { leerTplsDom(); TPLS.splice(i, 1); pintarTplsLocal(); }
+function agregarTpl() { TPLS.push({ label: 'Nueva', text: '' }); pintarTplsLocal(); marcarSucio('tpls'); }
+function quitarTpl(i) {
+  leerTplsDom();
+  var t = TPLS[i];
+  confirmar({
+    titulo: '¿Quitar esta respuesta rápida?', ok: '🗑️ Sí, quitar', no: 'No, dejarla',
+    texto: (t && t.label ? '"' + t.label + '"\n\n' : '') + 'Se va de la lista. Recién se aplica cuando toques 💾 Guardar respuestas.'
+  }, function () {
+    TPLS.splice(i, 1);
+    pintarTplsLocal();
+    marcarSucio('tpls');
+  });
+}
 function pintarTplsLocal() {
   var cont = document.getElementById('tpl-lista');
   cont.innerHTML = TPLS.map(function (t, i) {
@@ -3075,8 +3426,8 @@ function leerTplsDom() {
 function guardarTpls() {
   leerTplsDom();
   api('settemplates', { templates: TPLS })
-    .then(function () { avisoBot('✅ Respuestas rápidas guardadas.'); cargarTpls(); pintarTplsEdit(); })
-    .catch(function (e) { avisoBot(e.message, true); });
+    .then(function () { okGuardado('tpls', 'Respuestas rápidas guardadas.'); cargarTpls(); pintarTplsEdit(); })
+    .catch(function (e) { errGuardado('tpls', e); });
 }
 
 // Refresco suave de chats cada 30s (solo si la pestaña está visible)
