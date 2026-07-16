@@ -3,11 +3,12 @@
 //   GET -> { p: { "<slug>|<nombre>": "85" },        precios en vivo (config:precios)
 //            s: { "<slug>|<nombre>": "agotado"|"oculto" },  stock en vivo (config:stock)
 //            x: [ {id,cat,sec,nombre,precio,img,ts} ],      productos nuevos del panel (config:prodextra)
-//            v: { "<slug>": {v,t,s} } }                     video/título/subtítulo del hero por categoría (config:videos)
+//            v: { "<slug>": {v,t,s} },                      video/título/subtítulo del hero por categoría (config:videos)
+//            c: { car?, cats? } }                            combos de venta cruzada (config:comple; panel → 📝 Sitio → 🧩)
 //   GET ?img=<id> -> foto de un producto subida desde el panel (Redis prodimg:<id>, caché inmutable)
 //   GET ?vid=<id> -> video subido desde el panel (trozos base64 en vidext:<id>:<i>, índice en
 //                    config:vidsubidos), con caché inmutable y soporte de Range (iPhone lo exige)
-// Sin env vars de Redis devuelve { p:{}, s:{}, x:[], v:{} }: el sitio funciona igual con el catálogo base.
+// Sin env vars de Redis devuelve { p:{}, s:{}, x:[], v:{}, c:{} }: el sitio funciona igual con el catálogo base.
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -69,15 +70,16 @@ module.exports = async (req, res) => {
 
   // El CDN de Vercel cachea 60s: aunque entren cientos de personas, Redis recibe ~1 consulta/min.
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-  let p = {}, s = {}, x = [], v = {};
+  let p = {}, s = {}, x = [], v = {}, c = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const vals = (await redis(['MGET', 'config:precios', 'config:stock', 'config:prodextra', 'config:videos'])) || [];
+      const vals = (await redis(['MGET', 'config:precios', 'config:stock', 'config:prodextra', 'config:videos', 'config:comple'])) || [];
       if (vals[0]) p = JSON.parse(vals[0]);
       if (vals[1]) s = JSON.parse(vals[1]);
       if (vals[2]) { const arr = JSON.parse(vals[2]); if (Array.isArray(arr)) x = arr; }
       if (vals[3]) v = JSON.parse(vals[3]);
+      if (vals[4]) c = JSON.parse(vals[4]);
     }
   } catch (e) { console.error('precios error', e); }
-  return res.status(200).json({ p, s, x, v });
+  return res.status(200).json({ p, s, x, v, c });
 };

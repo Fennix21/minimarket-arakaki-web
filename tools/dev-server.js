@@ -44,13 +44,15 @@ http.createServer((req, res) => {
     if (url === '/api/sitio') return res.end('{"s":{},"f":{}}');
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
-    // Stub de precios/stock/productos nuevos/videos: muestras para ver el diseño en /pisco en local
+    // Stub de precios/stock/productos nuevos/videos/combos: muestras para ver el diseño en /pisco en local
+    // (combos: /pisco muestra uno personalizado; el resto de páginas usa el pareo automático COMPLE_AUTO)
     if (url === '/api/precios') {
       return res.end(JSON.stringify({
         p: {},
         s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' },
         x: [{ id: 'xdemo', cat: 'pisco', sec: '', nombre: 'Producto nuevo de prueba (solo en local)', precio: '25', img: '/img/productos/pisco/02-pisco-biondi-acholado-x-500-ml.webp', ts: 0 }],
         v: { pisco: { v: '/img/videos/refrescos.mp4', t: 'Video cambiado desde el panel (dev)', s: 'Subtítulo de prueba (solo en local)' } },
+        c: { cats: { pisco: { t: '🥂 Para tu chilcano (combo de prueba local)', prods: ['Ginger Ale Canada Dry x 355 ml', 'Chocolate Ferrero Rocher x 8 unidades'] } } },
       }));
     }
     // Stub de la cuenta del Club: permite ver /mi-cuenta y las estrellas ⭐ en local
