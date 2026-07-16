@@ -290,6 +290,22 @@ td a.wa { color:var(--verde); text-decoration:none; }
   .vid-fila { grid-template-columns:1fr 30px; }
   .vid-fila .vid-cat, .vid-fila input { grid-column:1 / -1; }
 }
+/* 🧩 Combos de venta cruzada (📝 Sitio): por página, modo + editor con buscador y chips */
+.comple-fila { padding:9px 0; border-top:1px solid var(--borde); }
+.comple-cab { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.comple-cab .comple-cat { flex:1; min-width:150px; font-size:13px; font-weight:600; line-height:1.35; }
+.comple-cab select { background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; font-size:12.5px; max-width:100%; }
+.comple-editor { margin-top:8px; padding:10px 12px; border:1px dashed var(--borde); border-radius:11px; }
+.comple-editor input { width:100%; box-sizing:border-box; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:8px 10px; font-size:12.5px; margin-bottom:7px; }
+.comple-chips { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 7px; }
+.comple-chip { display:inline-flex; align-items:center; gap:6px; max-width:100%; font-size:12px; font-weight:600; padding:5px 8px 5px 11px; border:1px solid rgba(212,169,65,.5); border-radius:999px; background:rgba(212,169,65,.12); }
+.comple-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.comple-chip button { border:none; background:none; color:var(--sub); cursor:pointer; font-size:11px; padding:0 2px; }
+.comple-chip button:hover { color:var(--naranja); }
+.comple-res { display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+.comple-res-item { text-align:left; border:1px solid var(--borde); background:var(--card); color:inherit; border-radius:9px; padding:7px 10px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+.comple-res-item:hover { border-color:var(--dorado2); }
+.comple-res-item small { color:var(--sub); }
 /* 🎨 Fondos (📝 Sitio): una tarjeta por zona, tipo + colores + vista previa en vivo */
 .fondo-item { border:1px solid var(--borde); border-radius:12px; background:var(--card); padding:13px 15px; margin-bottom:11px; }
 .fondo-cab { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
@@ -1194,6 +1210,21 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="videos" onclick="pedirGuardar('videos')">💾 Guardar videos</button>
       </div>
     </div>
+
+    <div class="caja-bot" data-grupo="comple">
+      <h3>🧩 Combos: productos que combinan (venta cruzada)</h3>
+      <div class="campo-bloque">
+        <div class="hint">Debajo de los productos de cada página sale una sección con hasta 3 productos de <b>otras</b> categorías que combinan (whisky → ginger ale, vino → chocolates…): es la forma más fácil de subir el ticket de cada pedido. <b>🤖 Automática</b> = la web los elige sola y los <b>rota cada día</b> · <b>✍️ Yo elijo</b> = tú armas el combo, con su título y subtítulo (si no eliges productos, salen los automáticos con tus textos) · <b>🚫 Sin sección</b> = no sale en esa página. Nunca se ofrecen productos agotados u ocultos.</div>
+      </div>
+      <div class="campo-bloque">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="comple-car" style="margin-top:3px"> <span><b>✨ El toque final:</b> sugerir también DENTRO del carrito, justo antes de enviar el pedido (el mejor momento para un extra; usa los mismos combos según lo que el cliente ya eligió)</span></label>
+      </div>
+      <div id="comple-lista"></div>
+      <div class="aviso" id="comple-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="comple" onclick="pedirGuardar('comple')">💾 Guardar combos</button>
+      </div>
+    </div>
   </div>
 
   </main>
@@ -1283,6 +1314,7 @@ var GRUPOS = {
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
+  comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
   webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
   prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
   tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
@@ -1479,7 +1511,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarFondos(); cargarVideos(); }
+  if (v === 'sitio') { cargarSitio(); cargarFondos(); cargarVideos(); cargarComple(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -3022,6 +3054,139 @@ function comprimirVideo(f, cb) {
     video.onended = function () { setTimeout(function () { try { rec.stop(); } catch (e) {} }, 150); };
     video.play().then(function () { rec.start(250); pintar(); }).catch(function () { talCual(); });
   };
+}
+// --- 🧩 Combos de venta cruzada: config:comple (lo sirve /api/precios como c y lo pinta site.js) ---
+// Por página: 🤖 automática (pareo COMPLE_AUTO de site.js, rota cada día) · ✍️ yo elijo (título +
+// subtítulo + hasta 8 productos buscados del catálogo) · 🚫 sin sección. Más el interruptor del
+// "toque final" del carrito. Los chips se marcan sucios a mano (no son input/change de ojoSucio).
+var COMPLE_SEL = {};      // slug → [nombres elegidos] (modo "yo elijo")
+var COMPLE_RES = {};      // slug → últimos resultados del buscador (para el onclick por índice)
+var COMPLE_PICK = null;   // todos los productos elegibles [{n,p,tit}] (catálogo + subidos del panel)
+var COMPLE_TIT_DEF = '✨ El complemento perfecto';
+var COMPLE_SUB_DEF = 'Combinan con lo que estás viendo — complétalo de una vez';
+function compleLista() {
+  if (COMPLE_PICK) return COMPLE_PICK;
+  COMPLE_PICK = [];
+  var ya = {};
+  vidCats().forEach(function (it) {
+    (it.c.sections || []).forEach(function (sec) {
+      (sec.products || []).forEach(function (p) {
+        if (ya[p.name]) return;
+        ya[p.name] = 1;
+        COMPLE_PICK.push({ n: p.name, p: p.price || '', tit: it.c.title });
+      });
+    });
+  });
+  return COMPLE_PICK;
+}
+function armarComple() {
+  var cont = document.getElementById('comple-lista');
+  if (!cont) return;
+  var html = '';
+  vidCats().forEach(function (it) {
+    html += '<div class="comple-fila">' +
+      '<div class="comple-cab"><span class="comple-cat">' + (it.c.emoji ? it.c.emoji + ' ' : '') + esc(it.c.title) + '</span>' +
+      '<select id="comple-m-' + it.slug + '" onchange="compleModo(\'' + it.slug + '\')">' +
+        '<option value="">🤖 Automática (la web elige y rota)</option>' +
+        '<option value="custom">✍️ Yo armo el combo</option>' +
+        '<option value="off">🚫 Sin sección en esta página</option>' +
+      '</select></div>' +
+      '<div class="comple-editor" id="comple-ed-' + it.slug + '" style="display:none">' +
+        '<input id="comple-t-' + it.slug + '" maxlength="80" placeholder="Título · vacío = ' + esc(COMPLE_TIT_DEF) + '">' +
+        '<input id="comple-s-' + it.slug + '" maxlength="140" placeholder="Subtítulo · vacío = ' + esc(COMPLE_SUB_DEF) + '">' +
+        '<div class="comple-chips" id="comple-chips-' + it.slug + '"></div>' +
+        '<input id="comple-b-' + it.slug + '" placeholder="🔎 Busca un producto por su nombre y tócalo para sumarlo al combo…" oninput="compleBuscar(\'' + it.slug + '\')" data-sin-seguro>' +
+        '<div class="comple-res" id="comple-res-' + it.slug + '"></div>' +
+      '</div></div>';
+  });
+  cont.innerHTML = html;
+}
+function compleModo(slug) {
+  var modo = document.getElementById('comple-m-' + slug).value;
+  document.getElementById('comple-ed-' + slug).style.display = modo === 'custom' ? '' : 'none';
+  if (modo === 'custom') compleChips(slug);
+}
+function compleChips(slug) {
+  var cont = document.getElementById('comple-chips-' + slug);
+  var sel = COMPLE_SEL[slug] || [];
+  if (!sel.length) {
+    cont.innerHTML = '<p class="hint" style="margin:2px 0 4px">Aún sin productos: mientras tanto salen los automáticos con tus textos. Busca abajo y arma tu combo (hasta 8; en la web salen de a 3, rotando cada día).</p>';
+    return;
+  }
+  cont.innerHTML = sel.map(function (n, i) {
+    return '<span class="comple-chip"><span>' + esc(n) + '</span>' +
+      '<button type="button" onclick="compleQuitar(\'' + slug + '\',' + i + ')" aria-label="Quitar del combo">✕</button></span>';
+  }).join('');
+}
+function compleBuscar(slug) {
+  var q = document.getElementById('comple-b-' + slug).value.trim().toLowerCase();
+  var cont = document.getElementById('comple-res-' + slug);
+  if (q.length < 2) { cont.innerHTML = ''; COMPLE_RES[slug] = []; return; }
+  var sel = COMPLE_SEL[slug] || [];
+  var res = compleLista().filter(function (p) {
+    return p.n.toLowerCase().indexOf(q) >= 0 && sel.indexOf(p.n) < 0;
+  }).slice(0, 8);
+  COMPLE_RES[slug] = res;
+  cont.innerHTML = res.map(function (p, i) {
+    return '<button type="button" class="comple-res-item" onclick="compleAdd(\'' + slug + '\',' + i + ')">➕ ' +
+      esc(p.n) + ' <small>· ' + esc(p.tit) + (p.p ? ' · S/ ' + esc(p.p) : '') + '</small></button>';
+  }).join('') || '<p class="hint" style="margin:4px 0">Nada con ese nombre 🤷</p>';
+}
+function compleAdd(slug, i) {
+  var p = (COMPLE_RES[slug] || [])[i];
+  if (!p) return;
+  var sel = COMPLE_SEL[slug] = COMPLE_SEL[slug] || [];
+  if (sel.length >= 8) { avisoEn('comple-aviso', 'Máximo 8 productos por combo: quita alguno primero.', true); return; }
+  if (sel.indexOf(p.n) < 0) sel.push(p.n);
+  document.getElementById('comple-b-' + slug).value = '';
+  document.getElementById('comple-res-' + slug).innerHTML = '';
+  compleChips(slug);
+  marcarSucio('comple');
+}
+function compleQuitar(slug, i) {
+  (COMPLE_SEL[slug] || []).splice(i, 1);
+  compleChips(slug);
+  marcarSucio('comple');
+}
+function cargarComple() {
+  armarComple();
+  api('getcomple').then(function (j) {
+    var c = j.c || {};
+    // Los productos subidos desde el panel también se pueden ofrecer en un combo
+    var lista = compleLista(), ya = {};
+    lista.forEach(function (p) { ya[p.n] = 1; });
+    (j.extras || []).forEach(function (e) {
+      if (e && e.nombre && !ya[e.nombre]) { ya[e.nombre] = 1; lista.push({ n: e.nombre, p: e.precio || '', tit: '➕ Subido del panel' }); }
+    });
+    document.getElementById('comple-car').checked = String(c.car) !== '0';
+    COMPLE_SEL = {};
+    vidCats().forEach(function (it) {
+      var o = (c.cats || {})[it.slug] || {};
+      var modo = o.off ? 'off' : ((o.t || o.s || (o.prods && o.prods.length)) ? 'custom' : '');
+      document.getElementById('comple-m-' + it.slug).value = modo;
+      document.getElementById('comple-t-' + it.slug).value = o.t || '';
+      document.getElementById('comple-s-' + it.slug).value = o.s || '';
+      COMPLE_SEL[it.slug] = (o.prods || []).slice();
+      compleModo(it.slug);
+    });
+  }).catch(function () {});
+}
+function guardarComple() {
+  var cats = {};
+  vidCats().forEach(function (it) {
+    var modo = document.getElementById('comple-m-' + it.slug).value;
+    if (modo === 'off') { cats[it.slug] = { off: 1 }; return; }
+    if (modo !== 'custom') return;
+    cats[it.slug] = {
+      t: document.getElementById('comple-t-' + it.slug).value,
+      s: document.getElementById('comple-s-' + it.slug).value,
+      prods: COMPLE_SEL[it.slug] || [],
+    };
+  });
+  api('setcomple', { car: document.getElementById('comple-car').checked, cats: cats }).then(function () {
+    okGuardado('comple', 'Combos guardados. Se ven en la web en ~1 minuto.');
+    cargarComple();
+  }).catch(function (e) { errGuardado('comple', e); });
 }
 function avisoBot(t, mal) {
   var a = document.getElementById('bot-aviso');

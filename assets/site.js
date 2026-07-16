@@ -425,6 +425,7 @@
         '<h3>🛒 Tu pedido</h3>' +
         '<p class="car-nota">Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin</p>' +
         '<div id="car-lista"></div>' +
+        '<div id="car-comple" style="display:none"></div>' +
         '<div class="car-total"><span>Total</span><span id="car-total-monto">S/ 0</span></div>' +
         '<label for="car-nombre">Tu nombre</label>' +
         '<input id="car-nombre" placeholder="¿Cómo te llamas?" maxlength="60">' +
@@ -727,6 +728,7 @@
     var t = totalCarrito(c);
     document.getElementById('car-total-monto').textContent =
       'S/ ' + t.total.toFixed(2).replace(/\.00$/, '') + (t.sinPrecio ? ' +' : '');
+    pintarCompleCarrito(); // "el toque final": sugerencias que combinan, justo antes de enviar
   }
 
   function enviarPedido() {
@@ -1812,6 +1814,202 @@
     });
   }
 
+  // ---------- Combos de venta cruzada (subir el ticket) ----------
+  // Dos piezas: la sección "El complemento perfecto" al pie de cada página de categoría (tarjetas
+  // premium de OTRAS categorías que combinan) y "el toque final" dentro del carrito (mini-sugerencias
+  // con ➕, justo antes de enviar: el mejor momento para un extra). El dueño las administra en
+  // panel → 📝 Sitio → 🧩 Combos (config:comple, viaja en /api/precios como c); sin configurar nada,
+  // manda el pareo automático COMPLE_AUTO y las sugerencias rotan cada día para sentirse frescas.
+  var COMPLE_AUTO = {
+    'pisco': ['refrescos', 'aguas-importadas', 'chocolates-importados'],
+    'vinos': ['chocolates-importados', 'galletas', 'aguas-importadas'],
+    'vinos-peruanos': ['chocolates-importados', 'galletas', 'aguas-importadas'],
+    'vinos-argentinos': ['chocolates-importados', 'galletas', 'aguas-importadas'],
+    'vinos-chilenos': ['chocolates-importados', 'galletas', 'aguas-importadas'],
+    'whisky': ['refrescos', 'aguas-importadas', 'chocolates-importados'],
+    'ron': ['refrescos', 'aguas-importadas', 'dulces'],
+    'licor-frances': ['chocolates-importados', 'galletas', 'aguas-importadas'],
+    'licor-italiano': ['aguas-importadas', 'chocolates-importados', 'galletas'],
+    'vodka': ['refrescos', 'aguas-importadas', 'dulces'],
+    'tequila': ['refrescos', 'aguas-importadas', 'dulces'],
+    'anisado': ['galletas', 'chocolates-importados', 'dulces'],
+    'licores-variados': ['refrescos', 'chocolates-importados', 'aguas-importadas'],
+    'refrescos': ['ron', 'whisky', 'vodka'],
+    'aguas-importadas': ['licor-italiano', 'vinos', 'chocolates-importados'],
+    'helados': ['chocolates-importados', 'galletas', 'dulces'],
+    'chocolates-importados': ['vinos', 'helados', 'galletas'],
+    'dulces': ['chocolates-importados', 'galletas', 'helados'],
+    'galletas': ['chocolates-importados', 'dulces', 'backtoschool'],
+    'backtoschool': ['galletas', 'frutas-y-vegetales', 'chocolates-importados'],
+    'frutas-y-vegetales': ['backtoschool', 'aguas-importadas', 'helados'],
+  };
+  var COMPLE_TIT = '✨ El complemento perfecto';
+  var COMPLE_SUB = 'Combinan con lo que estás viendo — complétalo de una vez';
+  var COMPLE_CAR_TIT = '✨ El toque final para tu pedido';
+  var COMPLE_N = 3; // sugerencias visibles (el dueño puede elegir hasta 8: rotan cada día)
+
+  // Catálogo en vivo compartido (/api/precios): renderCategoria y el carrito usan LA MISMA respuesta.
+  var vivoData = null;   // última respuesta {p,s,x,v,c}
+  var vivoPend = null;   // callbacks esperando el fetch en curso (evita pedirlo 2 veces)
+  function cargarVivo(cb) {
+    if (vivoData) { cb(vivoData); return; }
+    if (vivoPend) { vivoPend.push(cb); return; }
+    vivoPend = [cb];
+    function avisar(data) {
+      var lista = vivoPend || [];
+      vivoPend = null;
+      lista.forEach(function (f) { try { f(data); } catch (e) {} });
+    }
+    fetch('/api/precios').then(function (r) { return r.json(); }).then(function (data) {
+      if (data) vivoData = data;
+      avisar(vivoData);
+    }).catch(function () { avisar(null); });
+  }
+
+  // Índice de TODO el catálogo (base + productos del panel) con precio/stock en vivo aplicados.
+  // Se arma una vez por página, después de que cargarVivo trajo los overrides.
+  var vivoIndice = null;
+  function indiceVivo() {
+    if (vivoIndice) return vivoIndice;
+    var porNombre = {}, porCat = {};
+    var cats = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories) || {};
+    var d = vivoData || {};
+    Object.keys(cats).forEach(function (slug) {
+      (cats[slug].sections || []).forEach(function (sec) {
+        (sec.products || []).forEach(function (p) {
+          if (porNombre[p.name]) return;
+          var it = { name: p.name, price: p.price, img: p.img, cat: slug };
+          porNombre[p.name] = it;
+          (porCat[slug] = porCat[slug] || []).push(it);
+        });
+      });
+    });
+    (d.x || []).forEach(function (e) {
+      if (!e || !e.nombre || porNombre[e.nombre]) return;
+      var it = { name: e.nombre, price: e.precio || '', img: e.img, cat: e.cat };
+      porNombre[e.nombre] = it;
+      (porCat[e.cat] = porCat[e.cat] || []).push(it);
+    });
+    Object.keys(porNombre).forEach(function (n) {
+      var it = porNombre[n];
+      var pv = d.p && d.p[it.cat + '|' + n];
+      if (pv !== undefined) it.price = pv;
+      var st = d.s && d.s[it.cat + '|' + n];
+      if (st === 'agotado') it.agotado = 1;
+      if (st === 'oculto') it.oculto = 1;
+    });
+    vivoIndice = { porNombre: porNombre, porCat: porCat };
+    return vivoIndice;
+  }
+
+  // Elige hasta n sugerencias para una categoría: el combo del dueño si lo armó, si no el pareo
+  // automático (1 producto por categoría pareja, intercalado). Nunca ofrece agotados ni ocultos.
+  // Devuelve { t, s, prods } o null si el dueño apagó la sección / no hay nada que ofrecer.
+  function elegirComple(slug, n, excluir) {
+    var cfgAll = (vivoData && vivoData.c) || {};
+    var cfg = (cfgAll.cats || {})[slug] || {};
+    if (cfg.off) return null;
+    var idx = indiceVivo();
+    var fuera = {};
+    (excluir || []).forEach(function (x) { fuera[x] = 1; });
+    function visible(it) { return it && !it.agotado && !it.oculto && !fuera[it.name]; }
+    var dia = Math.floor(Date.now() / 86400000); // la rotación diaria: hoy no ves lo mismo que ayer
+    var out = [];
+    var propios = (cfg.prods || []).map(function (nom) { return idx.porNombre[nom]; }).filter(visible);
+    if (propios.length) {
+      var ini = dia % propios.length;
+      for (var i = 0; i < propios.length && out.length < n; i++) out.push(propios[(ini + i) % propios.length]);
+    } else {
+      var pares = COMPLE_AUTO[slug] || [];
+      for (var v = 0; out.length < n && v < n; v++) {
+        for (var j = 0; j < pares.length && out.length < n; j++) {
+          var pool = (idx.porCat[pares[j]] || []).filter(function (it) {
+            return visible(it) && out.indexOf(it) < 0;
+          });
+          if (pool.length) out.push(pool[(dia + v) % pool.length]);
+        }
+      }
+    }
+    if (!out.length) return null;
+    return { t: cfg.t || COMPLE_TIT, s: cfg.s || COMPLE_SUB, prods: out };
+  }
+
+  function enCarrito(nombre) {
+    var c = leerCarrito();
+    for (var i = 0; i < c.length; i++) if (c[i].name === nombre) return true;
+    return false;
+  }
+
+  // Sección al pie de la página de categoría: mismas tarjetas premium, productos de otras categorías.
+  function pintarComple(slug, cont) {
+    var sel = elegirComple(slug, COMPLE_N, []);
+    if (!sel) return;
+    var html = '<section class="seccion premium comple"><div class="interior">' +
+      '<h2 class="titulo-seccion">' + esc(sel.t) + '</h2>' +
+      '<p class="sub-seccion">' + esc(sel.s) + '</p>' +
+      '<div class="grilla-prods">' +
+      sel.prods.map(function (p, i) { return cardProdHTML(p, 'c', i); }).join('') +
+      '</div></div></section>';
+    cont.insertAdjacentHTML('beforeend', html);
+    var cards = cont.querySelectorAll('.seccion.comple .prod');
+    for (var i = 0; i < cards.length; i++) {
+      (function (card, p) {
+        function elegir() {
+          if (!enCarrito(p.name) && !p.agotado && window.arkTrack) window.arkTrack('comple_elegir');
+          alternarProducto(p);
+        }
+        card.querySelector('.btn-elegir').onclick = elegir;
+        card.querySelector('.prod-img').onclick = elegir;
+      })(cards[i], sel.prods[i]);
+    }
+  }
+
+  // "El toque final" dentro del carrito: mira la categoría del ÚLTIMO producto elegido y ofrece
+  // hasta 3 que combinan (los del dueño o los automáticos), con ➕ para sumarlos en 1 toque.
+  function pintarCompleCarrito() {
+    var cont = document.getElementById('car-comple');
+    if (!cont) return;
+    function ocultar() { cont.innerHTML = ''; cont.style.display = 'none'; }
+    if (!leerCarrito().length || !window.ARAKAKI_CATALOG) { ocultar(); return; }
+    cargarVivo(function (data) {
+      if (data && data.c && String(data.c.car) === '0') { ocultar(); return; } // apagado desde el panel
+      var c = leerCarrito(); // releer: pudo cambiar mientras llegaba la respuesta
+      if (!c.length) { ocultar(); return; }
+      var idx = indiceVivo();
+      var enCar = c.map(function (p) { return p.name; });
+      var sel = null;
+      for (var i = c.length - 1; i >= 0 && !sel; i--) {
+        var it = idx.porNombre[c[i].name];
+        if (it && it.cat) sel = elegirComple(it.cat, COMPLE_N, enCar);
+      }
+      if (!sel) { ocultar(); return; }
+      cont.style.display = '';
+      cont.innerHTML = '<div class="car-comple-tit">' + esc(COMPLE_CAR_TIT) + '</div>' +
+        sel.prods.map(function (p) {
+          return '<div class="car-comple-item">' +
+            '<img loading="lazy" src="' + esc(p.img) + '" alt="">' +
+            '<div class="cci-nom">' + esc(p.name) + '</div>' +
+            '<div class="cci-precio">' + (p.price ? 'S/ ' + esc(p.price) : 'según tienda') + '</div>' +
+            '<button type="button" class="cci-add" data-n="' + esc(p.name) + '">➕ Sumar</button>' +
+          '</div>';
+        }).join('');
+      var botones = cont.querySelectorAll('.cci-add');
+      for (var b = 0; b < botones.length; b++) {
+        botones[b].onclick = function () {
+          var p = indiceVivo().porNombre[this.getAttribute('data-n')];
+          if (!p || p.agotado || enCarrito(p.name)) return;
+          var lista = leerCarrito();
+          lista.push({ name: p.name, price: p.price, img: p.img, qty: 1 });
+          guardarCarrito(lista);
+          if (window.arkTrack) window.arkTrack('comple_carrito');
+          pintarCarrito(); // repinta lista + total + nuevas sugerencias
+          pintarBadge();
+          marcarProds();
+        };
+      }
+    });
+  }
+
   // ---------- Render de página de categoría ----------
   // Tarjeta premium de producto (misma para el catálogo y los productos subidos desde el panel)
   function cardProdHTML(p, si, pi) {
@@ -1862,8 +2060,8 @@
     // Catálogo "en vivo" (panel 💰 / WhatsApp del dueño) sobre el catálogo base:
     //   x = productos nuevos subidos desde el panel · p = precios · s = stock (agotado/oculto).
     // Si falla o responde el stub del dev-server, se queda el catálogo base.
-    fetch('/api/precios').then(function (r) { return r.json(); }).then(function (data) {
-      if (!data) return;
+    cargarVivo(function (data) {
+      data = data || {};
 
       // 1) Productos nuevos del panel: se suman a su sección con la misma tarjeta premium
       var yaEsta = {};
@@ -1940,9 +2138,12 @@
         }
       }
 
+      // 5) Combos de venta cruzada: la sección "El complemento perfecto" al pie de la página
+      pintarComple(slug, cont);
+
       marcarProds();
       pintarFavStars(); // estrellas también en las tarjetas recién añadidas
-    }).catch(function () {});
+    });
   };
 
   // ---------- Arranque ----------

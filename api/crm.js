@@ -23,6 +23,8 @@
 //   getfondos / setfondos      -> fondos de las secciones y las tarjetas (color o degradado;
 //                                  config:fondos, los lee /api/sitio y los aplica site.js)
 //   getvideos / setvideos      -> video/título/subtítulo del hero por categoría (config:videos; los sirve /api/precios)
+//   getcomple / setcomple      -> combos de venta cruzada por categoría + interruptor del carrito
+//                                  (config:comple; los sirve /api/precios como c y los pinta site.js)
 //   vidini / vidchunk / vidfin -> subir un video desde el panel en trozos base64 ≤512KB (vidext:<id>:<i>;
 //                                  el panel lo comprime antes en el navegador; lo sirve /api/precios?vid=<id>)
 //   viddel { id }              -> borra un video subido (chunks + índice config:vidsubidos + overrides que lo usaban)
@@ -786,6 +788,46 @@ module.exports = async (req, res) => {
       if (Object.keys(out).length) await redis(['SET', 'config:videos', JSON.stringify(out)]);
       else await redis(['DEL', 'config:videos']);
       return res.status(200).json({ ok: true, v: out });
+    }
+
+    // --- 🧩 Combos de venta cruzada: config:comple (lo sirve /api/precios como c, lo pinta site.js) ---
+    // { car: true|false, cats: { "<slug>": {off:1} | {t?,s?,prods?:[nombres]} } }
+    // Slug ausente = sección automática (pareo COMPLE_AUTO de site.js) · off = sin sección en esa página ·
+    // prods = el combo que armó el dueño (nombres exactos del catálogo o de config:prodextra).
+    // car:'0' apaga las sugerencias del carrito ("el toque final"); sin overrides se borra la clave.
+    if (b.action === 'getcomple') {
+      const raw = await redis(['GET', 'config:comple']);
+      let c = {};
+      if (raw) { try { c = JSON.parse(raw) || {}; } catch (e) {} }
+      // extras = productos subidos desde el panel, para que el buscador del combo también los ofrezca
+      return res.status(200).json({ c, extras: await getExtras() });
+    }
+    if (b.action === 'setcomple') {
+      const validos = new Set(PRODUCTOS.map((p) => p.n));
+      (await getExtras()).forEach((e) => { if (e && e.nombre) validos.add(e.nombre); });
+      const entrada = b.cats && typeof b.cats === 'object' ? b.cats : {};
+      const cats = {};
+      Object.keys(entrada).slice(0, 40).forEach((slug) => {
+        if (!/^[a-z0-9-]{1,40}$/.test(slug)) return;
+        const e = entrada[slug] || {};
+        if (e.off) { cats[slug] = { off: 1 }; return; }
+        const o = {};
+        const t = (e.t == null ? '' : String(e.t)).trim().slice(0, 80);
+        const s = (e.s == null ? '' : String(e.s)).trim().slice(0, 140);
+        if (t) o.t = t;
+        if (s) o.s = s;
+        const prods = Array.isArray(e.prods)
+          ? e.prods.map((n) => String(n || '').trim()).filter((n) => n && validos.has(n))
+          : [];
+        if (prods.length) o.prods = [...new Set(prods)].slice(0, 8);
+        if (Object.keys(o).length) cats[slug] = o; // personalizado sin nada = vuelve a automático
+      });
+      const out = {};
+      if (b.car === false || b.car === 0 || b.car === '0') out.car = '0';
+      if (Object.keys(cats).length) out.cats = cats;
+      if (Object.keys(out).length) await redis(['SET', 'config:comple', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:comple']);
+      return res.status(200).json({ ok: true, c: out });
     }
 
     // --- 📤 Subida de videos desde el panel, en trozos (el navegador los comprime antes) ---
