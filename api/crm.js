@@ -92,6 +92,19 @@ function normTel(raw) {
   return t.length === 9 ? '51' + t : t;
 }
 
+// Precio en soles conservando los centavos que escribió el dueño.
+// Devuelve: '' si viene vacío (sin precio) · null si es inválido (>0, hasta 2 decimales) · el texto normalizado.
+// OJO: Number('8.50') es 8.5, así que NO usamos String(Number(...)) o perderíamos el centavo redondo.
+// '8.50' → '8.50' · '8.5' → '8.50' · '85' → '85' · '08.5' → '8.50'.
+function normPrecio(raw) {
+  const v = (raw === null || raw === undefined) ? '' : String(raw).replace(',', '.').trim();
+  if (v === '') return '';
+  if (!/^\d+(\.\d{1,2})?$/.test(v) || Number(v) <= 0) return null;
+  const par = v.split('.');
+  const entero = String(Number(par[0])); // quita ceros a la izquierda (08 → 8)
+  return par[1] === undefined ? entero : entero + '.' + (par[1] + '00').slice(0, 2);
+}
+
 // Interruptores del Club (config:club; los lee también /api/cuenta). Sin config, todo prendido.
 const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
 async function getClubCfg() {
@@ -885,14 +898,12 @@ module.exports = async (req, res) => {
       const raw = await redis(['GET', 'config:precios']);
       let p = {};
       if (raw) { try { p = JSON.parse(raw); } catch (e) {} }
-      const val = (b.precio === null || b.precio === undefined) ? '' : String(b.precio).replace(',', '.').trim();
+      const val = normPrecio(b.precio);
+      if (val === null) return res.status(400).json({ error: 'Precio inválido. Ejemplos: 85 o 85.50' });
       if (val === '') {
         delete p[clave]; // sin override -> vuelve el precio base del catálogo
       } else {
-        if (!/^\d+(\.\d{1,2})?$/.test(val) || Number(val) <= 0) {
-          return res.status(400).json({ error: 'Precio inválido. Ejemplos: 85 o 85.50' });
-        }
-        p[clave] = String(Number(val));
+        p[clave] = val; // conserva los centavos (8.50 no se aplasta a 8.5)
       }
       await redis(['SET', 'config:precios', JSON.stringify(p)]);
       return res.status(200).json({ ok: true, p });
@@ -922,12 +933,9 @@ module.exports = async (req, res) => {
       const nombre = (b.nombre || '').toString().trim().slice(0, 120);
       if (nombre.length < 3) return res.status(400).json({ error: 'Escribe el nombre del producto (mínimo 3 letras).' });
       const seccion = (b.seccion || '').toString().slice(0, 120);
-      let precio = (b.precio === null || b.precio === undefined) ? '' : String(b.precio).replace(',', '.').trim();
-      if (precio !== '') {
-        if (!/^\d+(\.\d{1,2})?$/.test(precio) || Number(precio) <= 0) {
-          return res.status(400).json({ error: 'Precio inválido. Ejemplos: 85 o 85.50 (o déjalo vacío).' });
-        }
-        precio = String(Number(precio));
+      const precio = normPrecio(b.precio); // '' = precio en tienda · conserva los centavos (8.50 no se vuelve 8.5)
+      if (precio === null) {
+        return res.status(400).json({ error: 'Precio inválido. Ejemplos: 85 o 85.50 (o déjalo vacío).' });
       }
       const extras = await getExtras();
       const id = (b.id || '').toString().slice(0, 24);

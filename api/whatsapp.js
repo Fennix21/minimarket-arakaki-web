@@ -143,6 +143,14 @@ async function notifyOwner(text, from) {
 
 function normalizar(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
+// Precio en soles conservando los centavos: '8.50' NO se aplasta a 8.5 (String(Number('8.50')) daría '8.5').
+// '8.5' → '8.50' · '85' → '85' · '08.5' → '8.50'. Espera un val ya validado (^\d+(\.\d{1,2})?$).
+function fmtPrecio(val) {
+  const par = val.split('.');
+  const entero = String(Number(par[0]));
+  return par[1] === undefined ? entero : entero + '.' + (par[1] + '00').slice(0, 2);
+}
+
 async function getPreciosVivos() {
   const raw = await redis(['GET', 'config:precios']);
   if (raw) { try { return JSON.parse(raw); } catch (e) {} }
@@ -169,7 +177,7 @@ async function cambiarPrecio(clave, precio) {
   if (!/^\d+(\.\d{1,2})?$/.test(val) || Number(val) <= 0) return { error: 'Precio inválido: ' + precio };
   const vivos = await getPreciosVivos();
   const antes = vivos[clave] || prod.p;
-  vivos[clave] = String(Number(val));
+  vivos[clave] = fmtPrecio(val); // conserva los centavos (8.50 no se vuelve 8.5)
   await redis(['SET', 'config:precios', JSON.stringify(vivos)]);
   return { ok: true, nombre: prod.n, antes: antes, ahora: vivos[clave] };
 }
