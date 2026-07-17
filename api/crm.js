@@ -35,6 +35,10 @@
 //   setpuntos { telefono, puntos } -> ajuste manual de puntos (canjes)
 //   sorteoinfo { id } / sorteoganador { id } -> participantes / ganador al azar
 //   zonas                      -> calles agrupadas (clientes, pedidos y gasto por calle)
+//   reset  { confirm:'REINICIAR' } -> borra métricas + actividad de prueba para estrenar el dominio
+//                                  (stat:*, pedidos, leads, consultas, preguntas, clientes/Club,
+//                                  sesiones, participantes de sorteos, historiales). NO toca productos
+//                                  ni configuración. Doble barrera: pass + confirm==='REINICIAR'.
 
 const crypto = require('crypto');
 const { DEFAULT_PROMPT } = require('./_prompt');
@@ -54,6 +58,33 @@ async function redis(cmd) {
   });
   const data = await r.json();
   return data.result;
+}
+
+// Enumera TODAS las claves que casan con un patrón (SCAN por lotes; Upstash REST no tiene KEYS).
+// El resultado de SCAN es [cursor, [claves...]]; se repite hasta que el cursor vuelve a '0'.
+async function scanKeys(match) {
+  let cursor = '0';
+  const keys = [];
+  let vueltas = 0;
+  do {
+    const out = await redis(['SCAN', cursor, 'MATCH', match, 'COUNT', 500]);
+    cursor = (out && out[0]) || '0';
+    const parte = (out && out[1]) || [];
+    for (const k of parte) keys.push(k);
+    vueltas++;
+  } while (cursor !== '0' && vueltas < 500); // tope de seguridad por si algo se descontrola
+  return keys;
+}
+// Borra claves en lotes (evita un DEL gigantesco). Devuelve cuántas existían realmente.
+async function delKeys(keys) {
+  let n = 0;
+  for (let i = 0; i < keys.length; i += 400) {
+    const lote = keys.slice(i, i + 400);
+    if (!lote.length) continue;
+    const r = await redis(['DEL', ...lote]);
+    n += Number(r) || 0;
+  }
+  return n;
 }
 
 async function sendWhatsApp(to, body) {
@@ -1159,6 +1190,40 @@ module.exports = async (req, res) => {
       });
       // daily = serie de pageviews del período (compatibilidad: la usa la tarjeta de Inicio)
       return res.status(200).json({ events: evTotals, pages: pageCounts, refs: refCounts, daily: series.pageview, dias, series, prev });
+    }
+
+    // --- Reiniciar los datos para estrenar el dominio oficial ---
+    // Borra las MÉTRICAS y TODOS los datos de actividad de prueba, SIN tocar productos ni
+    // configuración (precios, stock, textos, fondos, videos, combos, carrito, prompts del bot,
+    // promos/sorteos DEFINIDOS, interruptores del Club, fotos/videos subidos, suscripciones push).
+    // Segunda barrera además del pass: hay que mandar confirm === 'REINICIAR'.
+    if (b.action === 'reset') {
+      if (String(b.confirm || '') !== 'REINICIAR') {
+        return res.status(400).json({ error: 'Para reiniciar, escribe REINICIAR tal cual.' });
+      }
+      // Claves de nombre variable → se enumeran con SCAN por patrón.
+      const PATRONES = [
+        'stat:*',        // TODA la analítica: visitas, eventos, páginas, orígenes y series diarias
+        'lead:*',        // conversaciones de WhatsApp
+        'cliente:*',     // cuentas del Club (PIN/puntos/favoritos/direcciones) + archivo de consumo
+        'uid:*',         // token de dispositivo → teléfono (reconocer al cliente que vuelve)
+        'sess:*',        // sesiones abiertas del Club
+        'sorteo:*',      // participantes de cada sorteo (la definición vive en config:sorteos y se conserva)
+        'baja:*',        // tokens de baja de correo (apuntan a clientes que se borran)
+        'pinrl:*', 'pregrl:*', 'chatrl:*', 'reccode:*', 'reccodetry:*', // frenos/temporales
+      ];
+      // Claves fijas (LIST/ZSET): actividad e historiales, no configuración.
+      const FIJAS = ['pedidos', 'leads', 'clientes', 'consultas', 'preguntas', 'pushlog', 'correolog'];
+      const detalle = {};
+      let total = 0;
+      for (const pat of PATRONES) {
+        const ks = await scanKeys(pat);
+        const n = ks.length ? await delKeys(ks) : 0;
+        if (n) { detalle[pat] = n; total += n; }
+      }
+      const nf = await delKeys(FIJAS);
+      if (nf) { detalle.listas = nf; total += nf; }
+      return res.status(200).json({ ok: true, total, detalle });
     }
 
     return res.status(400).json({ error: 'Acción desconocida.' });

@@ -906,6 +906,27 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="stat-caja"><h3>🌍 De dónde llegan</h3><div id="st-refs"></div><p class="pie-nota">Por dónde encontraron tu web (histórico). «Directo» = escribieron la dirección o la tenían guardada.</p></div>
       <div class="stat-caja ancha"><h3>👣 Qué hacen tus visitantes</h3><div id="st-eventos"></div><p class="pie-nota">Totales desde que la web está en línea. Sirven para ver qué funciones se usan más.</p></div>
     </div>
+
+    <!-- Zona de peligro: reiniciar datos al estrenar el dominio oficial -->
+    <div class="stat-caja ancha" id="reset-caja" style="margin-top:18px;border:1px solid rgba(230,72,49,.45)">
+      <h3>🧹 Estrenar el dominio (reiniciar datos)</h3>
+      <p class="pie-nota" style="margin-top:0">
+        Úsalo <b>una sola vez</b>, cuando pases la web a tu dominio oficial, para dejar todo en cero.
+        Borra <b>estadísticas y visitas, pedidos, conversaciones de WhatsApp, consultas del chat,
+        preguntas del Club, cuentas de clientes</b> (puntos, favoritos, PIN, direcciones),
+        <b>participantes de sorteos</b> e historial de campañas.
+      </p>
+      <p class="pie-nota" style="margin-top:0;color:var(--txt-soft)">
+        <b>NO toca</b> tus productos, precios, stock, textos, fondos, videos, combos, el carrito,
+        el cerebro del bot, ni las promos y sorteos que tengas configurados. Es <b>irreversible</b>.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px">
+        <input id="reset-confirm" type="text" placeholder="Escribe REINICIAR" autocomplete="off"
+          style="flex:1;min-width:180px;font-size:16px;padding:11px 12px;border-radius:10px;background:var(--campo);color:var(--campo-txt);border:1px solid var(--borde)">
+        <button class="btn peligro" id="reset-btn" data-sin-seguro onclick="reiniciarDatos()">🧹 Reiniciar todos los datos</button>
+      </div>
+      <p id="reset-res" style="margin:10px 0 0;font-size:13px"></p>
+    </div>
   </div>
 
   <!-- BOT -->
@@ -2905,6 +2926,40 @@ function pintarStats(j) {
     .sort(function (a, b) { return b[1] - a[1]; }).slice(0, 10);
   document.getElementById('st-refs').innerHTML = hbarsHTML(topRef);
   document.getElementById('st-eventos').innerHTML = eventosHTML(j.events);
+}
+
+// Reiniciar los datos para estrenar el dominio oficial (borrón total; ver /api/crm action 'reset').
+// Doble barrera: hay que escribir REINICIAR y confirmar en el popup. Irreversible.
+function reiniciarDatos() {
+  var inp = document.getElementById('reset-confirm');
+  var out = document.getElementById('reset-res');
+  out.textContent = ''; out.style.color = '';
+  if ((inp.value || '').trim().toUpperCase() !== 'REINICIAR') {
+    out.style.color = 'var(--naranja)';
+    out.textContent = 'Escribe REINICIAR (así, en mayúsculas) en el recuadro para poder continuar.';
+    inp.focus();
+    return;
+  }
+  confirmar({
+    ico: '🧹', titulo: '¿Reiniciar TODOS los datos?',
+    texto: 'Se borrarán estadísticas, pedidos, conversaciones, consultas, preguntas, cuentas de clientes del Club y participantes de sorteos.\n\nTus productos y toda la configuración quedan intactos. Esto NO se puede deshacer.',
+    ok: 'Sí, reiniciar', no: 'Cancelar', tipo: 'peligro',
+  }, function () {
+    var btn = document.getElementById('reset-btn');
+    btn.disabled = true; btn.textContent = 'Reiniciando…';
+    api('reset', { confirm: 'REINICIAR' }).then(function (j) {
+      btn.disabled = false; btn.textContent = '🧹 Reiniciar todos los datos';
+      inp.value = '';
+      out.style.color = 'var(--verde)';
+      out.textContent = '✅ Listo: ' + (j.total || 0) + ' registros borrados. La web arranca limpia.';
+      exito('Datos reiniciados. La web arranca limpia. ✨');
+      if (typeof cargarStats === 'function') cargarStats(STATS_DIAS || 7);
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = '🧹 Reiniciar todos los datos';
+      out.style.color = 'var(--naranja)';
+      out.textContent = e.message || 'No se pudo reiniciar. Prueba de nuevo.';
+    });
+  });
 }
 
 // ---------- Bot ----------

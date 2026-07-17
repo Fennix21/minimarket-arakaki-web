@@ -158,6 +158,7 @@ http.createServer((req, res) => {
           },
           getprecios: { p: { 'pisco|Pisco Ocucaje Acholado x 700 ml': '48' }, s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' }, x: [] },
           list: { leads: [{ phone: '51999999999', name: 'Rosa Quispe', status: 'interesado', lastText: '¿Tienen pisco quebranta?', lastRole: 'user', updatedAt: Date.now() - 1800000, lastUserTs: Date.now() - 1800000, tags: [] }] },
+          reset: { ok: true, total: 137, detalle: { 'stat:*': 96, 'lead:*': 3, 'cliente:*': 5, 'sorteo:*': 2, listas: 6 } },
         };
         res.end(JSON.stringify(R[b.action] || { ok: true, stub: true }));
       });
