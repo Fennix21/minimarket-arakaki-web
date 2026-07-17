@@ -2842,7 +2842,7 @@ var EV_GRUPOS = [
   { tit: '🧩 Combos (venta cruzada)', evs: [['comple_elegir', 'Complemento elegido en la página'], ['comple_carrito', 'Toque final añadido en el carrito']] },
   { tit: '🔔 Avisos', evs: [['push_enviados', 'Notificaciones push enviadas'], ['push_click', 'Notificaciones abiertas'], ['correo_enviados', 'Correos de promo enviados']] },
 ];
-var EV_OCULTOS = ['pageview', 'club_cuenta_creada'];   // pageview ya es "Visitas"; club_cuenta_creada duplica club_cuenta
+var EV_OCULTOS = ['pageview', 'club_cuenta_creada'];   // pageview ya es "Visitas"; club_cuenta_creada es la clave VIEJA del navegador (hoy el servidor cuenta club_cuenta)
 function eventosHTML(events) {
   events = events || {};
   var usados = {}, html = '';

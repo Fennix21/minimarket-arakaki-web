@@ -1120,7 +1120,7 @@ module.exports = async (req, res) => {
       const dias = [7, 14, 30].indexOf(Number(b.dias)) >= 0 ? Number(b.dias) : 7;
       const SERIE_EVS = ['pageview', 'pedido_enviado', 'whatsapp_click', 'llamada_click',
         'chatweb_abierto', 'compartir_chat', 'compartir_estado', 'compartir_link',
-        'comple_elegir', 'comple_carrito', 'club_login', 'club_cuenta_creada', 'push_click'];
+        'comple_elegir', 'comple_carrito', 'club_login', 'club_cuenta', 'push_click'];
       const events = (await redis(['SMEMBERS', 'stat:events'])) || [];
       const evTotals = {};
       if (events.length) {

@@ -258,6 +258,18 @@ function funcionesDe(club) {
 // Día calendario de Lima (UTC-5), para contar 1 visita por día como máximo.
 function diaLima(ts) { return new Date(ts - 5 * 3600000).toISOString().slice(0, 10); }
 
+// Contador de analítica, espejo de /api/track (total + clave diaria + índice de eventos).
+// Los eventos del Club se cuentan SOLO aquí en el servidor: site.js NO debe mandarlos
+// también a /api/track o se contarían doble en el panel.
+async function stat(ev) {
+  try {
+    const day = new Date().toISOString().slice(0, 10); // mismo día UTC que usa /api/track
+    await redis(['INCR', 'stat:' + ev]);
+    await redis(['INCR', 'stat:' + ev + ':' + day]);
+    await redis(['SADD', 'stat:events', ev]);
+  } catch (e) {}
+}
+
 module.exports = async (req, res) => {
   try {
     // ----- GET: flags públicos (sin token) o perfil completo (con token) -----
@@ -321,7 +333,7 @@ module.exports = async (req, res) => {
       cli.pinHash = hashPin(pin, cli.pinSalt);
       const nuevoToken = await crearSesion(cli, tel, uid);
       await guardarCliente(tel, cli);
-      await redis(['INCR', 'stat:club_cuenta']);
+      await stat('club_cuenta');
       await notifyOwner('🔑 *Nueva cuenta del Club (web)*\n👤 ' + nombre + ' (+' + tel + ')' +
         (eraCliente ? '\n♻️ Era un cliente ya registrado: activó su cuenta con PIN.' : '') +
         '\n\nSi no lo reconoces, puedes resetear su PIN en el panel 👉 /panel (👥 Club)');
@@ -342,6 +354,7 @@ module.exports = async (req, res) => {
       if (!cli || !pinCorrecto(pin, cli)) return res.status(400).json({ error: 'Número o PIN incorrecto.' });
       const nuevoToken = await crearSesion(cli, tel, uid);
       await guardarCliente(tel, cli);
+      await stat('club_login');
       const perfil = await perfilCompleto(tel, cli, club);
       perfil.on = true;
       perfil.funciones = funcionesDe(club);
@@ -397,6 +410,7 @@ module.exports = async (req, res) => {
       cliR.sess = [];
       const nuevoToken = await crearSesion(cliR, telR, uid);
       await guardarCliente(telR, cliR);
+      await stat('club_recupero');
       await notifyOwner('🔓 *Cuenta recuperada con correo (web)*\n👤 ' + (cliR.nombre || 'Cliente') + ' (+' + telR + ')' +
         '\nCambió su PIN usando su correo registrado. Si no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
       const perfil = await perfilCompleto(telR, cliR, club);
@@ -431,6 +445,7 @@ module.exports = async (req, res) => {
       cliR.sess = [];
       const nuevoToken = await crearSesion(cliR, telR, uid);
       await guardarCliente(telR, cliR);
+      await stat('club_recupero');
       try { if (cliR.email) await enviarCorreo(cliR.email, '🔐 Tu PIN fue cambiado', htmlAvisoPin(cliR.nombre || '')); } catch (e) {}
       await notifyOwner('🔓 *Cuenta recuperada con código al correo (web)*\n👤 ' + (cliR.nombre || 'Cliente') + ' (+' + telR + ')' +
         '\nSi no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
@@ -484,7 +499,7 @@ module.exports = async (req, res) => {
       const s = lista.find((x) => x.id === id);
       if (!s || s.activo === false || !vigente(s)) return res.status(400).json({ error: 'Este sorteo ya no está disponible 🙏' });
       await redis(['ZADD', 'sorteo:' + id, 'NX', String(Date.now()), tel]);
-      await redis(['INCR', 'stat:club_sorteo']);
+      await stat('club_sorteo');
       return res.status(200).json({ ok: true, participando: true });
     }
 
@@ -553,7 +568,7 @@ module.exports = async (req, res) => {
       };
       await redis(['LPUSH', 'preguntas', JSON.stringify(q)]);
       await redis(['LTRIM', 'preguntas', '0', '199']);
-      await redis(['INCR', 'stat:club_pregunta']);
+      await stat('club_pregunta');
       await notifyOwner('❓ *Pregunta del Club (web)*\n👤 ' + (cli.nombre || 'Cliente') + ' (+' + tel + ')\n💬 ' + texto +
         '\n\nRespóndele en el panel 👉 /panel (❓ Consultas): la verá en su cuenta.');
       return res.status(200).json({ ok: true, pregunta: { id: q.id, pregunta: q.pregunta, ts: q.ts, respuesta: '', respTs: null } });

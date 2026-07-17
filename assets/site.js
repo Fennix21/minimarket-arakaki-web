@@ -1493,7 +1493,6 @@
         if (j && j.ok && j.token) {
           guardarSesion(j.token, recordar);
           cuentaPerfil = j.perfil || null;
-          if (window.arkTrack) window.arkTrack(modo === 'crear' ? 'club_cuenta_creada' : 'club_login');
           window.renderCuenta();
         } else {
           btn.disabled = false;
@@ -1559,7 +1558,6 @@
         } else if (j && j.ok && j.token) {
           guardarSesion(j.token, recordar);
           cuentaPerfil = j.perfil || null;
-          if (window.arkTrack) window.arkTrack('club_recupero');
           window.renderCuenta();
         } else {
           btn.disabled = false;
@@ -1608,7 +1606,6 @@
         if (j && j.ok && j.token) {
           guardarSesion(j.token, recordar);
           cuentaPerfil = j.perfil || null;
-          if (window.arkTrack) window.arkTrack('club_recupero');
           window.renderCuenta();
         } else {
           btn.disabled = false;
@@ -1807,7 +1804,6 @@
           cuentaPost({ action: 'sorteo', id: fila.getAttribute('data-id') }).then(function (j) {
             if (j && j.ok) {
               btn.textContent = '✅ Ya estás participando';
-              if (window.arkTrack) window.arkTrack('club_sorteo');
             } else {
               btn.disabled = false;
               btn.textContent = '🎟️ Participar gratis';
@@ -1834,7 +1830,6 @@
           p.preguntas = [j.pregunta].concat(p.preguntas || []).slice(0, 10);
           if (cuentaPerfil) cuentaPerfil.preguntas = p.preguntas;
           document.getElementById('cq-lista').innerHTML = preguntasHtml(p.preguntas);
-          if (window.arkTrack) window.arkTrack('club_pregunta');
         } else errQ.textContent = (j && j.error) || 'No pudimos enviar tu pregunta. Prueba de nuevo 🙏';
       }).catch(function () {
         cqBtn.disabled = false; cqBtn.textContent = '📨 Enviar mi pregunta';
