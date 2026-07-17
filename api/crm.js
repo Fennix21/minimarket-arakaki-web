@@ -25,6 +25,8 @@
 //   getvideos / setvideos      -> video/título/subtítulo del hero por categoría (config:videos; los sirve /api/precios)
 //   getcomple / setcomple      -> combos de venta cruzada por categoría + interruptor del carrito
 //                                  (config:comple; los sirve /api/precios como c y los pinta site.js)
+//   getcarrito / setcarrito    -> apariencia del modal "Tu pedido": textos, tamaños, colores/degradados,
+//                                  máquina de escribir y brillo (config:carrito; lo sirve /api/sitio como k)
 //   vidini / vidchunk / vidfin -> subir un video desde el panel en trozos base64 ≤512KB (vidext:<id>:<i>;
 //                                  el panel lo comprime antes en el navegador; lo sirve /api/precios?vid=<id>)
 //   viddel { id }              -> borra un video subido (chunks + índice config:vidsubidos + overrides que lo usaban)
@@ -830,6 +832,57 @@ module.exports = async (req, res) => {
       if (Object.keys(out).length) await redis(['SET', 'config:comple', JSON.stringify(out)]);
       else await redis(['DEL', 'config:comple']);
       return res.status(200).json({ ok: true, c: out });
+    }
+
+    // --- 🛒 Apariencia del carrito "Tu pedido": config:carrito (lo sirve /api/sitio como k) ---
+    // { txt:{titulo,nota,toqueTit,sumar,enviar,ver}, tam:{titulo,nota,toqueTit,item,sumar,total,enviar},
+    //   toqueBg:{t,c1,..,css}, toqueTitCol:'#rrggbb', btnSumar:{t,c1,..,css}, btnSumarTxt:'#rrggbb',
+    //   fx:{typing:1|0, brillo:1|0} }
+    // Campo ausente = default de site.js/site.css. Los colores los ARMA normFondo (seguro por construcción),
+    // igual que los fondos; los tamaños son una escala 0.8–1.5 que site.css multiplica por el px base (se
+    // adapta igual en móvil y escritorio porque el modal es una tarjeta de ancho fijo).
+    if (b.action === 'getcarrito') {
+      const raw = await redis(['GET', 'config:carrito']);
+      let k = {};
+      if (raw) { try { k = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ k });
+    }
+    if (b.action === 'setcarrito') {
+      const hex = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v).toLowerCase() : '');
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const esc = (v, n) => txt(v, n).replace(/[<>]/g, ''); // los textos van como textContent, pero limpiamos igual
+      const out = {};
+      // Textos (vacío = default)
+      const T = b.txt && typeof b.txt === 'object' ? b.txt : {};
+      const to = {};
+      const tCampos = { titulo: 40, nota: 160, toqueTit: 60, sumar: 24, enviar: 50, ver: 40 };
+      Object.keys(tCampos).forEach((c) => { const v = esc(T[c], tCampos[c]); if (v) to[c] = v; });
+      if (Object.keys(to).length) out.txt = to;
+      // Tamaños (escala; distinto de 1 = se guarda)
+      const Z = b.tam && typeof b.tam === 'object' ? b.tam : {};
+      const za = {};
+      ['titulo', 'nota', 'toqueTit', 'item', 'sumar', 'total', 'enviar'].forEach((c) => {
+        let n = Number(Z[c]);
+        if (!Number.isFinite(n)) return;
+        n = Math.min(1.5, Math.max(0.8, Math.round(n * 100) / 100));
+        if (n !== 1) za[c] = n;
+      });
+      if (Object.keys(za).length) out.tam = za;
+      // Colores / degradados (reutiliza normFondo: guarda modelo + css)
+      const bgT = normFondo(b.toqueBg); if (bgT) out.toqueBg = bgT;
+      const bgB = normFondo(b.btnSumar); if (bgB) out.btnSumar = bgB;
+      const tc = hex(b.toqueTitCol); if (tc) out.toqueTitCol = tc;
+      const bt = hex(b.btnSumarTxt); if (bt) out.btnSumarTxt = bt;
+      // Efectos
+      const fx = {};
+      if (b.fx && typeof b.fx === 'object') {
+        if (b.fx.typing) fx.typing = 1;
+        if (b.fx.brillo) fx.brillo = 1;
+      }
+      if (Object.keys(fx).length) out.fx = fx;
+      if (Object.keys(out).length) await redis(['SET', 'config:carrito', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:carrito']);
+      return res.status(200).json({ ok: true, k: out });
     }
 
     // --- 📤 Subida de videos desde el panel, en trozos (el navegador los comprime antes) ---

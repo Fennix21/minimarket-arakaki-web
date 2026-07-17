@@ -476,17 +476,25 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 #carrito-modal {
   background: var(--blanco); width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
   border-radius: 18px 18px 0 0; padding: 22px 20px 26px;
+  /* Apariencia editable desde el panel → 📝 Sitio → 🛒 Carrito (config:carrito, la aplica aplicarCarrito()
+     de site.js pisando estas variables). Los tamaños son una escala: el px base va en calc() para que
+     el modal (tarjeta de ancho fijo) se vea igual de proporcionado en móvil y escritorio. */
+  --car-esc-tit: 1; --car-esc-nota: 1; --car-esc-toquetit: 1; --car-esc-item: 1;
+  --car-esc-sumar: 1; --car-esc-total: 1; --car-esc-enviar: 1;
+  --car-toque-bg: #fdf8ec; --car-toque-titcol: #7a5c14;
+  --car-btn-sumar: linear-gradient(180deg, #f7dc8f 0%, #d4a941 60%, #b8912f 100%);
+  --car-btn-sumar-txt: #4a0c10;
 }
 @media (min-width: 600px) { #carrito-modal-fondo { align-items: center; } #carrito-modal { border-radius: 18px; } }
-#carrito-modal h3 { font-size: 19px; margin-bottom: 4px; }
-#carrito-modal .car-nota { font-size: 13px; opacity: 0.7; margin-bottom: 14px; }
+#carrito-modal h3 { font-size: calc(19px * var(--car-esc-tit)); margin-bottom: 4px; }
+#carrito-modal .car-nota { font-size: calc(13px * var(--car-esc-nota)); opacity: 0.7; margin-bottom: 14px; }
 .car-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #eee; }
 .car-item img { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; }
 .car-item .car-nom { flex: 1; font-size: 13.5px; line-height: 1.3; }
 .car-item .car-precio { font-weight: 700; font-size: 13.5px; white-space: nowrap; }
 .car-cant { display: flex; align-items: center; gap: 7px; }
 .car-cant button { width: 26px; height: 26px; border-radius: 7px; border: 1.5px solid #ccc; background: #fff; font-size: 15px; cursor: pointer; line-height: 1; }
-.car-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 800; padding: 15px 0 6px; }
+.car-total { display: flex; justify-content: space-between; font-size: calc(17px * var(--car-esc-total)); font-weight: 800; padding: 15px 0 6px; }
 #carrito-modal label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
 #carrito-modal input, #carrito-modal textarea {
   width: 100%; padding: 10px 12px; border: 1.5px solid #ccc; border-radius: 9px;
@@ -494,7 +502,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .btn-wa-grande {
   width: 100%; margin-top: 16px; background: var(--verde-wa); color: #fff; border: none;
-  border-radius: 12px; padding: 15px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+  border-radius: 12px; padding: 15px; font-size: calc(16px * var(--car-esc-enviar)); font-weight: 800; cursor: pointer; font-family: inherit;
 }
 .btn-wa-grande:disabled { opacity: 0.6; cursor: wait; }
 .car-vaciar { background: none; border: none; color: var(--rojo); font-size: 13px; cursor: pointer; margin-top: 10px; font-family: inherit; text-decoration: underline; }
@@ -568,24 +576,45 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* La sección "El complemento perfecto" (.seccion.premium.comple) reutiliza las tarjetas premium tal
    cual. Esto es solo "el toque final" del carrito: caja dorada con mini-sugerencias y ➕ en 1 toque. */
 #car-comple {
+  position: relative; overflow: hidden; /* recorta el brillo premium cuando está activo */
   margin: 6px 0 2px; padding: 10px 12px 4px;
-  border: 1.5px dashed rgba(212, 169, 65, 0.65); border-radius: 12px; background: #fdf8ec;
+  border: 1.5px dashed rgba(212, 169, 65, 0.65); border-radius: 12px; background: var(--car-toque-bg);
 }
-.car-comple-tit { font-size: 12.5px; font-weight: 800; letter-spacing: 0.3px; color: #7a5c14; padding-bottom: 3px; }
-.car-comple-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(212, 169, 65, 0.25); }
+/* Brillo premium: una banda de luz recorre la caja dorada de izquierda a derecha (igual que la barra
+   del header). Solo cuando el dueño lo prende → clase .brillo. */
+#car-comple.brillo::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
+  pointer-events: none; z-index: 2;
+  background: linear-gradient(100deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 40%,
+    rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.15) 60%, rgba(255,255,255,0) 100%);
+  transform: translateX(-160%) skewX(-20deg);
+  animation: car-comple-brillo 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes car-comple-brillo {
+  0% { transform: translateX(-160%) skewX(-20deg); }
+  55% { transform: translateX(360%) skewX(-20deg); }
+  100% { transform: translateX(360%) skewX(-20deg); }
+}
+.car-comple-tit { position: relative; z-index: 3; font-size: calc(12.5px * var(--car-esc-toquetit)); font-weight: 800; letter-spacing: 0.3px; color: var(--car-toque-titcol); padding-bottom: 3px; }
+/* Cursor parpadeante de la máquina de escribir (solo mientras se está escribiendo el título) */
+.car-comple-tit.escribiendo::after { content: '▌'; margin-left: 1px; opacity: 0.75; animation: car-caret 0.7s step-end infinite; }
+@keyframes car-caret { 0%, 100% { opacity: 0.75; } 50% { opacity: 0; } }
+.car-comple-item { position: relative; z-index: 3; display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(212, 169, 65, 0.25); flex-wrap: wrap; }
 .car-comple-tit + .car-comple-item { border-top: none; }
 .car-comple-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; }
-.car-comple-item .cci-nom { flex: 1; font-size: 12.5px; line-height: 1.3; }
-.car-comple-item .cci-precio { font-size: 12.5px; font-weight: 700; color: #7a5c14; white-space: nowrap; }
+.car-comple-item .cci-nom { flex: 1; min-width: 90px; font-size: calc(12.5px * var(--car-esc-item)); line-height: 1.3; }
+.car-comple-item .cci-precio { font-size: calc(12.5px * var(--car-esc-item)); font-weight: 700; color: var(--car-toque-titcol); white-space: nowrap; margin-left: auto; }
 .car-comple-item .cci-add {
-  border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 800;
-  color: #4a0c10; padding: 7px 12px; border-radius: 999px; white-space: nowrap;
-  background: linear-gradient(180deg, #f7dc8f 0%, #d4a941 60%, #b8912f 100%);
+  border: none; cursor: pointer; font-family: inherit; font-size: calc(12px * var(--car-esc-sumar)); font-weight: 800;
+  color: var(--car-btn-sumar-txt); padding: 7px 12px; border-radius: 999px; white-space: nowrap;
+  background: var(--car-btn-sumar);
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: transform .12s ease, filter .12s ease;
 }
 .car-comple-item .cci-add:hover { filter: brightness(1.05); transform: translateY(-1px); }
 .car-comple-item .cci-add:active { transform: scale(0.96); }
+@media (prefers-reduced-motion: reduce) { #car-comple.brillo::after { animation: none; display: none; } }
 
 /* ---------- Carruseles premium de categoría (home) ---------- */
 /* Escritorio: 2 categorías por fila (menos carga cognitiva, más percepción de valor) */

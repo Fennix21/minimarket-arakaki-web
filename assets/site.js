@@ -169,11 +169,83 @@
         aplicarFondos(j.f);
         try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
       }
+      if (j.k && typeof j.k === 'object') {
+        aplicarCarrito(j.k);
+        try { localStorage.setItem('arakaki_carrito_cfg', JSON.stringify(j.k)); } catch (e) {}
+      }
       if (!j.s || typeof j.s !== 'object') return;
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
       aplicarSitio(m);
     }).catch(function () {});
+  }
+
+  // ---------- Apariencia editable del carrito "Tu pedido" ----------
+  // El dueño la edita en /panel → 📝 Sitio → 🛒 Carrito (config:carrito). /api/sitio la trae en `k` y aquí
+  // se pisan las variables CSS del modal (tamaños, colores, fondo dorado), los textos y los efectos
+  // (máquina de escribir + brillo). Se cachea en localStorage y se aplica al crear el modal: así la primera
+  // vez que el cliente abre el carrito ya se ve con la configuración del dueño, sin parpadeo.
+  var CAR_DEF = {
+    titulo: '🛒 Tu pedido',
+    nota: 'Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin',
+    toqueTit: '✨ El toque final para tu pedido',
+    sumar: '➕ Sumar',
+    enviar: 'Enviar pedido por WhatsApp 📲',
+    ver: '🛒 Ver mi pedido',
+  };
+  var CAR_TXT = {}; for (var _ck in CAR_DEF) CAR_TXT[_ck] = CAR_DEF[_ck]; // textos vivos (arrancan en los defaults)
+  var CAR_FX = { typing: false, brillo: false };
+  function colorOk(v) { return typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v); }
+  function carritoCfgCache() { try { return JSON.parse(localStorage.getItem('arakaki_carrito_cfg') || 'null'); } catch (e) { return null; } }
+  function aplicarCarrito(k) {
+    if (!k || typeof k !== 'object') k = {};
+    var modal = document.getElementById('carrito-modal');
+    var tam = k.tam || {};
+    var mapEsc = { titulo: 'tit', nota: 'nota', toqueTit: 'toquetit', item: 'item', sumar: 'sumar', total: 'total', enviar: 'enviar' };
+    if (modal) {
+      for (var key in mapEsc) {
+        var v = Number(tam[key]);
+        if (v >= 0.8 && v <= 1.5) modal.style.setProperty('--car-esc-' + mapEsc[key], v);
+        else modal.style.removeProperty('--car-esc-' + mapEsc[key]);
+      }
+      // fondoOk (definido para los fondos): valida el css armado por nuestra API antes de inyectarlo
+      if (fondoOk(k.toqueBg)) modal.style.setProperty('--car-toque-bg', k.toqueBg); else modal.style.removeProperty('--car-toque-bg');
+      if (colorOk(k.toqueTitCol)) modal.style.setProperty('--car-toque-titcol', k.toqueTitCol); else modal.style.removeProperty('--car-toque-titcol');
+      if (fondoOk(k.btnSumar)) modal.style.setProperty('--car-btn-sumar', k.btnSumar); else modal.style.removeProperty('--car-btn-sumar');
+      if (colorOk(k.btnSumarTxt)) modal.style.setProperty('--car-btn-sumar-txt', k.btnSumarTxt); else modal.style.removeProperty('--car-btn-sumar-txt');
+    }
+    // Textos (vacío = default)
+    var t = k.txt || {};
+    for (var kk in CAR_DEF) CAR_TXT[kk] = (t[kk] ? String(t[kk]) : CAR_DEF[kk]);
+    var h3 = modal && modal.querySelector('h3'); if (h3) h3.textContent = CAR_TXT.titulo;
+    var nota = modal && modal.querySelector('.car-nota'); if (nota) nota.textContent = CAR_TXT.nota;
+    var env = document.getElementById('car-enviar'); if (env) env.textContent = CAR_TXT.enviar;
+    var vb = document.getElementById('carrito-btn');
+    if (vb) { var badge = vb.querySelector('.badge'); vb.textContent = CAR_TXT.ver + ' '; if (badge) vb.appendChild(badge); }
+    // Efectos
+    CAR_FX.typing = !!(k.fx && k.fx.typing);
+    CAR_FX.brillo = !!(k.fx && k.fx.brillo);
+    var cc = document.getElementById('car-comple');
+    if (cc) cc.classList.toggle('brillo', CAR_FX.brillo);
+    // Si el carrito ya está abierto (poco común al arrancar), repinta para reflejar textos nuevos
+    var fondoM = document.getElementById('carrito-modal-fondo');
+    if (fondoM && fondoM.classList.contains('abierto')) pintarCarrito();
+  }
+  // Máquina de escribir del título "El toque final": teclea una sola vez cuando aparece (no en cada
+  // cambio de cantidad) y respeta la preferencia de menos movimiento del sistema.
+  var carTypeTimer = null, ultimoToqueTit = '';
+  function menosMovimiento() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  function escribirTitulo(el, texto) {
+    if (!el) return;
+    if (ultimoToqueTit === texto || menosMovimiento()) { el.textContent = texto; return; }
+    ultimoToqueTit = texto;
+    el.textContent = ''; el.classList.add('escribiendo');
+    var i = 0;
+    if (carTypeTimer) clearInterval(carTypeTimer);
+    carTypeTimer = setInterval(function () {
+      i++; el.textContent = texto.slice(0, i);
+      if (i >= texto.length) { clearInterval(carTypeTimer); carTypeTimer = null; el.classList.remove('escribiendo'); }
+    }, 42);
   }
 
   // ---------- Notificaciones push (ofertas para clientes) ----------
@@ -448,6 +520,7 @@
     document.getElementById('car-enviar').onclick = enviarPedido;
     document.getElementById('car-geo').onclick = pedirUbicacion;
     document.getElementById('car-dir').oninput = function () { this.classList.remove('car-dir-falta'); };
+    aplicarCarrito(carritoCfgCache()); // apariencia del dueño desde la visita anterior (sin parpadeo)
     pintarBadge();
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
@@ -702,7 +775,10 @@
     pintarDirs();
     document.getElementById('carrito-modal-fondo').classList.add('abierto');
   }
-  function cerrarCarrito() { document.getElementById('carrito-modal-fondo').classList.remove('abierto'); }
+  function cerrarCarrito() {
+    document.getElementById('carrito-modal-fondo').classList.remove('abierto');
+    ultimoToqueTit = ''; // que el título vuelva a teclearse la próxima vez que se abra el carrito
+  }
 
   function pintarCarrito() {
     var c = leerCarrito();
@@ -1845,7 +1921,6 @@
   };
   var COMPLE_TIT = '✨ El complemento perfecto';
   var COMPLE_SUB = 'Combinan con lo que estás viendo — complétalo de una vez';
-  var COMPLE_CAR_TIT = '✨ El toque final para tu pedido';
   var COMPLE_N = 3; // sugerencias visibles (el dueño puede elegir hasta 8: rotan cada día)
 
   // Catálogo en vivo compartido (/api/precios): renderCategoria y el carrito usan LA MISMA respuesta.
@@ -1985,15 +2060,19 @@
       }
       if (!sel) { ocultar(); return; }
       cont.style.display = '';
-      cont.innerHTML = '<div class="car-comple-tit">' + esc(COMPLE_CAR_TIT) + '</div>' +
+      cont.classList.toggle('brillo', CAR_FX.brillo);
+      cont.innerHTML = '<div class="car-comple-tit"></div>' +
         sel.prods.map(function (p) {
           return '<div class="car-comple-item">' +
             '<img loading="lazy" src="' + esc(p.img) + '" alt="">' +
             '<div class="cci-nom">' + esc(p.name) + '</div>' +
             '<div class="cci-precio">' + (p.price ? 'S/ ' + esc(p.price) : 'según tienda') + '</div>' +
-            '<button type="button" class="cci-add" data-n="' + esc(p.name) + '">➕ Sumar</button>' +
+            '<button type="button" class="cci-add" data-n="' + esc(p.name) + '">' + esc(CAR_TXT.sumar) + '</button>' +
           '</div>';
         }).join('');
+      var titEl = cont.querySelector('.car-comple-tit');
+      if (CAR_FX.typing) escribirTitulo(titEl, CAR_TXT.toqueTit);
+      else if (titEl) titEl.textContent = CAR_TXT.toqueTit;
       var botones = cont.querySelectorAll('.cci-add');
       for (var b = 0; b < botones.length; b++) {
         botones[b].onclick = function () {

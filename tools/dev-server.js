@@ -40,8 +40,18 @@ http.createServer((req, res) => {
       }));
     }
     // Stub de textos y fondos del sitio: sin overrides, como una instalación recién hecha
-    // (el sitio pinta sus defaults: SITIO_DEF de site.js y las variables --bg-* de site.css)
-    if (url === '/api/sitio') return res.end('{"s":{},"f":{}}');
+    // (el sitio pinta sus defaults: SITIO_DEF de site.js y las variables --bg-* de site.css).
+    // `k` = apariencia del carrito con muestra para ver en local el toque final editado (máquina de
+    // escribir + brillo + degradado dorado del botón Sumar + fondo crema); en producción viene de config:carrito.
+    if (url === '/api/sitio') return res.end(JSON.stringify({
+      s: {}, f: {},
+      k: {
+        txt: {}, tam: { toqueTit: 1.1 }, fx: { typing: 1, brillo: 1 },
+        toqueTitCol: '#7a5c14', btnSumarTxt: '#4a0c10',
+        toqueBg: 'linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)',
+        btnSumar: 'linear-gradient(180deg, #f7dc8f 0%, #d4a941 60%, #b8912f 100%)',
+      },
+    }));
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
     // Stub de precios/stock/productos nuevos/videos/combos: muestras para ver el diseño en /pisco en local

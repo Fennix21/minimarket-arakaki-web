@@ -325,6 +325,51 @@ td a.wa { color:var(--verde); text-decoration:none; }
   .fondo-cuerpo { grid-template-columns:1fr; }
   .fondo-item select, .fondo-col input[type=color] { font-size:16px; } /* 16px = iOS no hace zoom */
 }
+/* 🛒 Carrito "Tu pedido" (📝 Sitio): editor de textos, tamaños, colores y efectos + vista previa viva.
+   La vista previa se pinta SIEMPRE en claro (fondo blanco + caja dorada) porque así lo ve el cliente,
+   sin importar si el panel está en tema claro u oscuro. */
+.cared-sub { border:1px solid var(--borde); border-radius:12px; background:var(--card); padding:12px 14px; margin:11px 0; }
+.cared-sub > b { font-size:13.5px; display:block; margin-bottom:6px; }
+.cared-campo { margin:9px 0; }
+.cared-campo label { display:block; font-size:12.5px; color:var(--sub); margin-bottom:4px; }
+.cared-campo input[type=text] { width:100%; box-sizing:border-box; background:var(--campo); color:var(--campo-txt); border:1px solid var(--borde); border-radius:9px; padding:9px 11px; font-size:13.5px; }
+.cared-tam { display:flex; align-items:center; gap:10px; margin:8px 0; }
+.cared-tam > span.et { flex:0 0 148px; font-size:12.5px; color:var(--sub); }
+.cared-tam input[type=range] { flex:1; min-width:90px; accent-color:var(--dorado2); }
+.cared-tam .cared-val { flex:0 0 46px; text-align:right; font-size:12.5px; font-weight:600; }
+.cared-fx { display:flex; align-items:flex-start; gap:8px; cursor:pointer; font-size:13px; margin:9px 0; }
+.cared-fx input { margin-top:3px; }
+.cared-colrow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px; color:var(--sub); margin-top:8px; }
+.cared-colrow input[type=color] { width:40px; height:32px; padding:0; border:1px solid var(--borde); border-radius:8px; background:var(--campo); cursor:pointer; }
+.cared-colrow button.reset { background:none; border:none; color:var(--dorado2); cursor:pointer; font-size:12px; text-decoration:underline; padding:2px 4px; }
+.cared-prev { border-radius:12px; padding:16px; background:#f3f2f2; }
+.cared-prev .pv-tit { font-weight:800; color:#1a1a1a; }
+.cared-prev .pv-nota { color:#555; margin:3px 0 12px; }
+.cared-prev .pv-line { display:flex; justify-content:space-between; gap:10px; color:#222; padding:6px 0 12px; border-bottom:1px solid #e3e0da; }
+.cared-prev-box { position:relative; overflow:hidden; border:1.5px dashed rgba(212,169,65,.65); border-radius:12px; padding:10px 12px; margin:12px 0; }
+.cared-prev-tit { font-weight:800; letter-spacing:.3px; padding-bottom:4px; }
+.cared-prev-tit.escribiendo::after { content:'▌'; margin-left:1px; opacity:.75; animation:car-caret .7s step-end infinite; }
+@keyframes car-caret { 0%,100%{opacity:.75;} 50%{opacity:0;} }
+.cared-prev-item { display:flex; align-items:center; gap:10px; padding:6px 0; }
+.cared-prev-item .pp-img { width:38px; height:38px; border-radius:8px; background:linear-gradient(135deg,#d9c9a0,#b8912f); flex:0 0 auto; }
+.cared-prev-item .pp-nom { flex:1; color:#333; }
+.cared-prev-item .pp-pre { font-weight:700; white-space:nowrap; }
+.cared-prev-item .pp-add { border:none; border-radius:999px; padding:6px 12px; font-weight:800; white-space:nowrap; cursor:default; box-shadow:0 2px 7px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.5); }
+.cared-prev .pv-total { display:flex; justify-content:space-between; font-weight:800; color:#1a1a1a; padding:12px 0 4px; }
+.cared-prev .pv-enviar { display:block; width:100%; margin-top:12px; background:#25a35a; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:800; text-align:center; }
+.cared-prev-box.brillo::after { content:''; position:absolute; top:0; bottom:0; left:0; width:40%; pointer-events:none;
+  background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.15) 40%, rgba(255,255,255,.55) 50%, rgba(255,255,255,.15) 60%, rgba(255,255,255,0) 100%);
+  transform:translateX(-160%) skewX(-20deg); animation:car-comple-brillo 5.5s cubic-bezier(.4,0,.2,1) infinite; }
+@keyframes car-comple-brillo { 0%{transform:translateX(-160%) skewX(-20deg);} 55%{transform:translateX(360%) skewX(-20deg);} 100%{transform:translateX(360%) skewX(-20deg);} }
+.cared-2col { display:grid; grid-template-columns:1fr 300px; gap:16px; align-items:start; }
+.cared-prev-wrap { position:sticky; top:8px; }
+.cared-prev-wrap > .et { font-size:11px; letter-spacing:.5px; text-transform:uppercase; opacity:.7; display:block; margin-bottom:6px; }
+@media (max-width:860px) {
+  .cared-2col { grid-template-columns:1fr; }
+  .cared-prev-wrap { position:static; }
+  .cared-campo input[type=text], .cared-colrow input[type=color] { font-size:16px; } /* 16px = iOS no hace zoom */
+}
+
 /* 📤 Subir video desde el equipo (se comprime en el navegador y viaja a Redis en trozos) */
 .vid-subir { border:1.5px dashed var(--borde); border-radius:12px; padding:13px 15px; margin-bottom:16px; }
 .vid-subir > b { font-size:13.5px; }
@@ -1230,6 +1275,66 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="comple" onclick="pedirGuardar('comple')">💾 Guardar combos</button>
       </div>
     </div>
+
+    <div class="caja-bot" data-grupo="carrito">
+      <h3>🛒 Carrito “Tu pedido”: apariencia</h3>
+      <div class="campo-bloque">
+        <div class="hint">Personaliza el panel que ve el cliente al abrir su pedido: los <b>textos</b>, el <b>tamaño</b> de cada letra (se adapta solo a celular y computadora), los <b>colores</b> del botón “Sumar” y del recuadro dorado “El toque final”, y dos <b>efectos premium</b>. Mira todo en vivo en la vista previa. Guardas y se ve en la web en ~1 minuto, sin tocar código. Deja un texto vacío o toca “el de siempre” para volver a lo original.</div>
+      </div>
+      <div class="cared-2col">
+        <div>
+          <div class="cared-sub">
+            <b>✍️ Textos</b>
+            <div class="cared-campo"><label>Título del carrito</label><input type="text" id="car-t-titulo" maxlength="40" placeholder="🛒 Tu pedido" oninput="carSetTxt('titulo',this.value)"></div>
+            <div class="cared-campo"><label>Nota de entrega (bajo el título)</label><input type="text" id="car-t-nota" maxlength="160" placeholder="Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin" oninput="carSetTxt('nota',this.value)"></div>
+            <div class="cared-campo"><label>Título del recuadro “El toque final”</label><input type="text" id="car-t-toqueTit" maxlength="60" placeholder="✨ El toque final para tu pedido" oninput="carSetTxt('toqueTit',this.value)"></div>
+            <div class="cared-campo"><label>Texto del botón “Sumar”</label><input type="text" id="car-t-sumar" maxlength="24" placeholder="➕ Sumar" oninput="carSetTxt('sumar',this.value)"></div>
+            <div class="cared-campo"><label>Texto del botón de enviar por WhatsApp</label><input type="text" id="car-t-enviar" maxlength="50" placeholder="Enviar pedido por WhatsApp 📲" oninput="carSetTxt('enviar',this.value)"></div>
+            <div class="cared-campo"><label>Texto del botón flotante “Ver mi pedido”</label><input type="text" id="car-t-ver" maxlength="40" placeholder="🛒 Ver mi pedido" oninput="carSetTxt('ver',this.value)"></div>
+          </div>
+
+          <div class="cared-sub">
+            <b>🔠 Tamaño de las letras</b>
+            <div class="hint" style="margin-bottom:4px">100% = el tamaño de siempre. Se mantiene proporcional en celular y computadora.</div>
+            <div class="cared-tam"><span class="et">Título del carrito</span><input type="range" id="car-z-titulo" min="80" max="150" step="5" oninput="carSetTam('titulo',this.value)"><span class="cared-val" id="car-zv-titulo">100%</span></div>
+            <div class="cared-tam"><span class="et">Nota de entrega</span><input type="range" id="car-z-nota" min="80" max="150" step="5" oninput="carSetTam('nota',this.value)"><span class="cared-val" id="car-zv-nota">100%</span></div>
+            <div class="cared-tam"><span class="et">Título “El toque final”</span><input type="range" id="car-z-toqueTit" min="80" max="150" step="5" oninput="carSetTam('toqueTit',this.value)"><span class="cared-val" id="car-zv-toqueTit">100%</span></div>
+            <div class="cared-tam"><span class="et">Productos sugeridos</span><input type="range" id="car-z-item" min="80" max="150" step="5" oninput="carSetTam('item',this.value)"><span class="cared-val" id="car-zv-item">100%</span></div>
+            <div class="cared-tam"><span class="et">Botón “Sumar”</span><input type="range" id="car-z-sumar" min="80" max="150" step="5" oninput="carSetTam('sumar',this.value)"><span class="cared-val" id="car-zv-sumar">100%</span></div>
+            <div class="cared-tam"><span class="et">Total</span><input type="range" id="car-z-total" min="80" max="150" step="5" oninput="carSetTam('total',this.value)"><span class="cared-val" id="car-zv-total">100%</span></div>
+            <div class="cared-tam"><span class="et">Botón de WhatsApp</span><input type="range" id="car-z-enviar" min="80" max="150" step="5" oninput="carSetTam('enviar',this.value)"><span class="cared-val" id="car-zv-enviar">100%</span></div>
+          </div>
+
+          <div class="cared-sub">
+            <b>✨ Recuadro “El toque final”</b>
+            <label style="display:block;font-size:12.5px;color:var(--sub);margin-bottom:6px">Fondo del recuadro (color sólido o degradado)</label>
+            <div id="car-bg-toque"></div>
+            <div class="cared-colrow">Color del título <input type="color" id="car-col-toque" oninput="carSetCol('toqueTitCol',this.value)"> <button type="button" class="reset" onclick="carColReset('toqueTitCol')">el de siempre</button></div>
+          </div>
+
+          <div class="cared-sub">
+            <b>➕ Botón “Sumar”</b>
+            <label style="display:block;font-size:12.5px;color:var(--sub);margin-bottom:6px">Fondo del botón (color sólido o degradado)</label>
+            <div id="car-bg-sumar"></div>
+            <div class="cared-colrow">Color del texto <input type="color" id="car-col-sumar" oninput="carSetCol('btnSumarTxt',this.value)"> <button type="button" class="reset" onclick="carColReset('btnSumarTxt')">el de siempre</button></div>
+          </div>
+
+          <div class="cared-sub">
+            <b>🎬 Efectos premium</b>
+            <label class="cared-fx"><input type="checkbox" id="car-fx-typing" onchange="carSetFx('typing',this.checked)"> <span><b>⌨️ Máquina de escribir</b> en el título “El toque final”: se escribe solo, letra por letra, cada vez que aparece.</span></label>
+            <label class="cared-fx"><input type="checkbox" id="car-fx-brillo" onchange="carSetFx('brillo',this.checked)"> <span><b>✨ Brillo premium</b>: una luz recorre el recuadro dorado de izquierda a derecha, como la barra de arriba de la web.</span></label>
+          </div>
+        </div>
+        <div class="cared-prev-wrap">
+          <span class="et">Vista previa (así lo ve el cliente)</span>
+          <div class="cared-prev" id="car-prev"></div>
+        </div>
+      </div>
+      <div class="aviso" id="carrito-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="carrito" onclick="pedirGuardar('carrito')">💾 Guardar apariencia del carrito</button>
+      </div>
+    </div>
   </div>
 
   </main>
@@ -1320,6 +1425,7 @@ var GRUPOS = {
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
   comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
+  carrito: { nombre: 'de la apariencia del carrito', vista: 'sitio', aviso: 'carrito-aviso', fn: 'guardarCarEd',  nota: 'Se ve en la web en ~1 minuto.' },
   webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
   prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
   tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
@@ -1516,7 +1622,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarFondos(); cargarVideos(); cargarComple(); }
+  if (v === 'sitio') { cargarSitio(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -3208,6 +3314,159 @@ function guardarComple() {
       : 'Combos guardados. Se ven en la web en ~1 minuto.');
     cargarComple();
   }).catch(function (e) { errGuardado('comple', e); });
+}
+
+// --- 🛒 Apariencia del carrito "Tu pedido": config:carrito (lo sirve /api/sitio como k, lo aplica site.js) ---
+// Reutiliza fondoCSS()/FONDO_TIPOS/FONDO_ANGS (mismo armado que normFondo del backend) para los dos
+// fondos con degradado (recuadro dorado + botón Sumar). La vista previa se pinta en vivo con el mismo
+// aspecto que verá el cliente (fondo blanco + caja dorada), incluidos la máquina de escribir y el brillo.
+var CARED = null;
+var CARGRAD_BASE = {
+  toque: { c1: '#fdf8ec', c2: '#f6ecd0', c3: '', a: 180 },
+  sumar: { c1: '#f7dc8f', c2: '#d4a941', c3: '#b8912f', a: 180 },
+};
+var CAR_TXT_CAMPOS = ['titulo', 'nota', 'toqueTit', 'sumar', 'enviar', 'ver'];
+var CAR_TAM_CAMPOS = ['titulo', 'nota', 'toqueTit', 'item', 'sumar', 'total', 'enviar'];
+function carEdVacio() {
+  var tam = {}; CAR_TAM_CAMPOS.forEach(function (c) { tam[c] = 1; });
+  return { txt: {}, tam: tam, toqueBg: { t: '' }, btnSumar: { t: '' }, toqueTitCol: '', btnSumarTxt: '', fx: { typing: false, brillo: false } };
+}
+function carGradModel(id) { return id === 'toque' ? 'toqueBg' : 'btnSumar'; }
+function carGradHTML(id) {
+  var opt = function (lista) { return lista.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join(''); };
+  return '<div class="fondo-campos">' +
+    '<select id="cg-t-' + id + '" onchange="carGradTipo(\'' + id + '\',this.value)">' + opt(FONDO_TIPOS) + '</select>' +
+    '<label class="fondo-col" id="cg-l1-' + id + '">Color 1 <input type="color" id="cg-c1-' + id + '" oninput="carGradSet(\'' + id + "','c1',this.value)\"></label>" +
+    '<label class="fondo-col" id="cg-l2-' + id + '">Color 2 <input type="color" id="cg-c2-' + id + '" oninput="carGradSet(\'' + id + "','c2',this.value)\"></label>" +
+    '<label class="fondo-c3" id="cg-l3-' + id + '"><input type="checkbox" id="cg-u3-' + id + '" onchange="carGradTercero(\'' + id + '\',this.checked)"> 3er color</label>' +
+    '<label class="fondo-col" id="cg-l3c-' + id + '"><input type="color" id="cg-c3-' + id + '" oninput="carGradSet(\'' + id + "','c3',this.value)\"></label>" +
+    '<select id="cg-a-' + id + '" onchange="carGradSet(\'' + id + "','a',+this.value)\">" + opt(FONDO_ANGS) + '</select>' +
+  '</div>';
+}
+function carGradFila(id) {
+  var base = CARGRAD_BASE[id], f = CARED[carGradModel(id)] || { t: '' };
+  var g = function (p) { return document.getElementById('cg-' + p + '-' + id); };
+  g('t').value = f.t || '';
+  g('c1').value = f.c1 || base.c1;
+  g('c2').value = f.c2 || base.c2;
+  g('c3').value = f.c3 || base.c3 || '#000000';
+  g('u3').checked = !!f.c3;
+  g('a').value = String(f.a == null ? 180 : f.a);
+  var deg = f.t === 'lineal' || f.t === 'radial';
+  g('l1').style.display = f.t ? '' : 'none';
+  g('l2').style.display = deg ? '' : 'none';
+  g('l3').style.display = deg ? '' : 'none';
+  g('l3c').style.display = deg && f.c3 ? '' : 'none';
+  g('a').style.display = f.t === 'lineal' ? '' : 'none';
+  pintarCarPrev();
+}
+function carGradSet(id, campo, v) { (CARED[carGradModel(id)] = CARED[carGradModel(id)] || {})[campo] = v; carGradFila(id); marcarSucio('carrito'); }
+function carGradTipo(id, t) {
+  var base = CARGRAD_BASE[id], f = CARED[carGradModel(id)] || {};
+  CARED[carGradModel(id)] = t ? { t: t, c1: f.c1 || base.c1, c2: f.c2 || base.c2, c3: f.c3 || '', a: f.a == null ? base.a : f.a } : { t: '' };
+  carGradFila(id); marcarSucio('carrito');
+}
+function carGradTercero(id, on) {
+  var base = CARGRAD_BASE[id];
+  CARED[carGradModel(id)].c3 = on ? (document.getElementById('cg-c3-' + id).value || base.c3 || '#000000') : '';
+  carGradFila(id); marcarSucio('carrito');
+}
+function carSetTxt(campo, val) { (CARED.txt = CARED.txt || {})[campo] = val; pintarCarPrev(); }
+function carSetTam(campo, val) {
+  var pct = Math.max(80, Math.min(150, parseInt(val, 10) || 100));
+  (CARED.tam = CARED.tam || {})[campo] = pct / 100;
+  var v = document.getElementById('car-zv-' + campo); if (v) v.textContent = pct + '%';
+  pintarCarPrev();
+}
+function carSetCol(campo, val) { CARED[campo] = val; pintarCarPrev(); }
+function carColReset(campo) {
+  CARED[campo] = '';
+  document.getElementById(campo === 'toqueTitCol' ? 'car-col-toque' : 'car-col-sumar').value = (campo === 'toqueTitCol' ? '#7a5c14' : '#4a0c10');
+  marcarSucio('carrito'); pintarCarPrev();
+}
+function carSetFx(campo, on) { (CARED.fx = CARED.fx || {})[campo] = !!on; pintarCarPrev(campo === 'typing' && on); }
+// Vista previa viva (así lo ve el cliente: modal blanco + caja dorada, sin importar el tema del panel)
+var carPrevTimer = null, carPrevLastTit = null;
+function carPrevType(el, texto, forzar) {
+  if (!el) return;
+  if (!CARED.fx.typing) { el.classList.remove('escribiendo'); el.textContent = texto; carPrevLastTit = texto; return; }
+  el.classList.add('escribiendo');
+  if (!forzar && carPrevLastTit === texto) { el.textContent = texto; return; }
+  carPrevLastTit = texto;
+  el.textContent = ''; var i = 0;
+  if (carPrevTimer) clearInterval(carPrevTimer);
+  carPrevTimer = setInterval(function () { i++; el.textContent = texto.slice(0, i); if (i >= texto.length) { clearInterval(carPrevTimer); carPrevTimer = null; } }, 42);
+}
+function pintarCarPrev(forzarType) {
+  var prev = document.getElementById('car-prev'); if (!prev || !CARED) return;
+  var t = CARED.txt || {}, tam = CARED.tam || {};
+  var s = function (base, c) { return (base * (tam[c] || 1)).toFixed(1) + 'px'; };
+  var toqueBg = fondoCSS(CARED.toqueBg) || '#fdf8ec';
+  var sumarBg = fondoCSS(CARED.btnSumar) || 'linear-gradient(180deg,#f7dc8f 0%,#d4a941 60%,#b8912f 100%)';
+  var titCol = CARED.toqueTitCol || '#7a5c14';
+  var sumarTxt = CARED.btnSumarTxt || '#4a0c10';
+  prev.innerHTML =
+    '<div class="pv-tit" style="font-size:' + s(19, 'titulo') + '">' + esc(t.titulo || '🛒 Tu pedido') + '</div>' +
+    '<div class="pv-nota" style="font-size:' + s(13, 'nota') + '">' + esc(t.nota || 'Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin') + '</div>' +
+    '<div class="pv-line"><span>Marqués de Riscal Sauvignon Blanc x 750 ml</span><span>S/ 79</span></div>' +
+    '<div class="cared-prev-box' + (CARED.fx.brillo ? ' brillo' : '') + '" style="background:' + toqueBg + '">' +
+      '<div class="cared-prev-tit" style="color:' + titCol + ';font-size:' + s(12.5, 'toqueTit') + '"></div>' +
+      '<div class="cared-prev-item">' +
+        '<div class="pp-img"></div>' +
+        '<div class="pp-nom" style="font-size:' + s(12.5, 'item') + '">The Belgian Chocolate Seashells x 65 gr</div>' +
+        '<div class="pp-pre" style="color:' + titCol + ';font-size:' + s(12.5, 'item') + '">S/ 11</div>' +
+        '<button class="pp-add" style="background:' + sumarBg + ';color:' + sumarTxt + ';font-size:' + s(12, 'sumar') + '">' + esc(t.sumar || '➕ Sumar') + '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="pv-total" style="font-size:' + s(17, 'total') + '"><span>Total</span><span>S/ 79</span></div>' +
+    '<div class="pv-enviar" style="font-size:' + s(16, 'enviar') + '">' + esc(t.enviar || 'Enviar pedido por WhatsApp 📲') + '</div>';
+  carPrevType(prev.querySelector('.cared-prev-tit'), t.toqueTit || '✨ El toque final para tu pedido', forzarType);
+}
+function pintarCarEd() {
+  var t = CARED.txt || {};
+  CAR_TXT_CAMPOS.forEach(function (c) { var el = document.getElementById('car-t-' + c); if (el) el.value = t[c] || ''; });
+  CAR_TAM_CAMPOS.forEach(function (c) {
+    var pct = Math.round((CARED.tam[c] || 1) * 100);
+    var r = document.getElementById('car-z-' + c); if (r) r.value = pct;
+    var v = document.getElementById('car-zv-' + c); if (v) v.textContent = pct + '%';
+  });
+  document.getElementById('car-col-toque').value = CARED.toqueTitCol || '#7a5c14';
+  document.getElementById('car-col-sumar').value = CARED.btnSumarTxt || '#4a0c10';
+  document.getElementById('car-fx-typing').checked = !!CARED.fx.typing;
+  document.getElementById('car-fx-brillo').checked = !!CARED.fx.brillo;
+  document.getElementById('car-bg-toque').innerHTML = carGradHTML('toque');
+  document.getElementById('car-bg-sumar').innerHTML = carGradHTML('sumar');
+  carGradFila('toque'); carGradFila('sumar'); // refresca campos visibles + vista previa
+}
+function cargarCarEd() {
+  var model = function (v) { return v && v.t ? { t: v.t, c1: v.c1, c2: v.c2, c3: v.c3 || '', a: v.a } : { t: '' }; };
+  api('getcarrito').then(function (j) {
+    var k = j.k || {};
+    CARED = carEdVacio();
+    CARED.txt = k.txt || {};
+    var tam = k.tam || {};
+    CAR_TAM_CAMPOS.forEach(function (c) { var n = Number(tam[c]); CARED.tam[c] = (n >= 0.8 && n <= 1.5) ? n : 1; });
+    CARED.toqueBg = model(k.toqueBg);
+    CARED.btnSumar = model(k.btnSumar);
+    CARED.toqueTitCol = k.toqueTitCol || '';
+    CARED.btnSumarTxt = k.btnSumarTxt || '';
+    CARED.fx = { typing: !!(k.fx && k.fx.typing), brillo: !!(k.fx && k.fx.brillo) };
+    pintarCarEd();
+  }).catch(function () { CARED = carEdVacio(); pintarCarEd(); });
+}
+function guardarCarEd() {
+  var grad = function (f) { return f && f.t ? { t: f.t, c1: f.c1, c2: f.c2, c3: f.c3, a: f.a } : null; };
+  var txt = {}; CAR_TXT_CAMPOS.forEach(function (c) { var el = document.getElementById('car-t-' + c); var v = (el && el.value || '').trim(); if (v) txt[c] = v; });
+  var tam = {}; CAR_TAM_CAMPOS.forEach(function (c) { var n = CARED.tam[c] || 1; if (n !== 1) tam[c] = n; });
+  api('setcarrito', {
+    txt: txt, tam: tam,
+    toqueBg: grad(CARED.toqueBg), btnSumar: grad(CARED.btnSumar),
+    toqueTitCol: CARED.toqueTitCol || '', btnSumarTxt: CARED.btnSumarTxt || '',
+    fx: { typing: !!CARED.fx.typing, brillo: !!CARED.fx.brillo },
+  }).then(function () {
+    okGuardado('carrito', 'Apariencia del carrito guardada. Se ve en la web en ~1 minuto.');
+    cargarCarEd();
+  }).catch(function (e) { errGuardado('carrito', e); });
 }
 function avisoBot(t, mal) {
   var a = document.getElementById('bot-aviso');

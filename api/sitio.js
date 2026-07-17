@@ -2,7 +2,8 @@
 // Se editan desde /panel → 📝 Sitio. assets/site.js los aplica sobre sus valores por defecto.
 //   GET -> { s: { lema, visitanosTit, direccion, referencia, mapLabel, horarioTit,
 //                 horario, contactoTit, telefonos, redesTit, facebook, instagram, youtube, copy },
-//            f: { pagina, vino, roja, premium, card } }  // CSS del fondo → variable --bg-<clave>
+//            f: { pagina, vino, roja, premium, card },   // CSS del fondo → variable --bg-<clave>
+//            k: { txt, tam, fx, toqueBg, toqueTitCol, btnSumar, btnSumarTxt } } // apariencia del carrito
 // Sin env vars de Redis (o sin config guardada) devuelve {}: el sitio usa sus defaults.
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -23,16 +24,27 @@ module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   let s = {};
   const f = {};
+  let k = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const [raw, rawF] = (await redis(['MGET', 'config:sitio', 'config:fondos'])) || [];
+      const [raw, rawF, rawK] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito'])) || [];
       if (raw) s = JSON.parse(raw);
       // config:fondos guarda el modelo del panel ({t,c1,c2,…}); al sitio solo le sirve el css armado
       if (rawF) {
         const mod = JSON.parse(rawF) || {};
-        Object.keys(mod).forEach((k) => { if (mod[k] && mod[k].css) f[k] = mod[k].css; });
+        Object.keys(mod).forEach((z) => { if (mod[z] && mod[z].css) f[z] = mod[z].css; });
+      }
+      // config:carrito: los colores guardan modelo+css; al sitio le mandamos solo el css (como los fondos)
+      if (rawK) {
+        const c = JSON.parse(rawK) || {};
+        k = {
+          txt: c.txt || {}, tam: c.tam || {}, fx: c.fx || {},
+          toqueTitCol: c.toqueTitCol || '', btnSumarTxt: c.btnSumarTxt || '',
+          toqueBg: c.toqueBg && c.toqueBg.css ? c.toqueBg.css : '',
+          btnSumar: c.btnSumar && c.btnSumar.css ? c.btnSumar.css : '',
+        };
       }
     }
   } catch (e) { console.error('sitio error', e); }
-  return res.status(200).json({ s, f });
+  return res.status(200).json({ s, f, k });
 };
