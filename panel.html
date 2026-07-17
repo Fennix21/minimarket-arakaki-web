@@ -1217,9 +1217,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <div class="hint">Debajo de los productos de cada página sale una sección con hasta 3 productos de <b>otras</b> categorías que combinan (whisky → ginger ale, vino → chocolates…): es la forma más fácil de subir el ticket de cada pedido. <b>🤖 Automática</b> = la web los elige sola y los <b>rota cada día</b> · <b>✍️ Yo elijo</b> = tú armas el combo, con su título y subtítulo (si no eliges productos, salen los automáticos con tus textos) · <b>🚫 Sin sección</b> = no sale en esa página. Nunca se ofrecen productos agotados u ocultos.</div>
       </div>
       <div class="campo-bloque">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="comple-on" style="margin-top:3px" onchange="compleOnPinta()"> <span><b>🧩 Combos prendidos en toda la web.</b> Apágalo y desaparecen de un solo golpe la sección de todas las páginas y las sugerencias del carrito. Tus combos guardados NO se pierden: al volver a prender, todo sigue igual.</span></label>
+      </div>
+      <div id="comple-cuerpo">
+      <div class="campo-bloque">
         <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="comple-car" style="margin-top:3px"> <span><b>✨ El toque final:</b> sugerir también DENTRO del carrito, justo antes de enviar el pedido (el mejor momento para un extra; usa los mismos combos según lo que el cliente ya eligió)</span></label>
       </div>
       <div id="comple-lista"></div>
+      </div>
       <div class="aviso" id="comple-aviso"></div>
       <div class="fila-conf">
         <button class="btn" data-guardar="comple" onclick="pedirGuardar('comple')">💾 Guardar combos</button>
@@ -3106,6 +3111,13 @@ function compleModo(slug) {
   document.getElementById('comple-ed-' + slug).style.display = modo === 'custom' ? '' : 'none';
   if (modo === 'custom') compleChips(slug);
 }
+// Interruptor general: con los combos apagados el resto del editor se atenúa (se guarda igual)
+function compleOnPinta() {
+  var on = document.getElementById('comple-on').checked;
+  var cuerpo = document.getElementById('comple-cuerpo');
+  cuerpo.style.opacity = on ? '' : '.45';
+  cuerpo.style.pointerEvents = on ? '' : 'none';
+}
 function compleChips(slug) {
   var cont = document.getElementById('comple-chips-' + slug);
   var sel = COMPLE_SEL[slug] || [];
@@ -3158,6 +3170,8 @@ function cargarComple() {
     (j.extras || []).forEach(function (e) {
       if (e && e.nombre && !ya[e.nombre]) { ya[e.nombre] = 1; lista.push({ n: e.nombre, p: e.precio || '', tit: '➕ Subido del panel' }); }
     });
+    document.getElementById('comple-on').checked = String(c.on) !== '0';
+    compleOnPinta();
     document.getElementById('comple-car').checked = String(c.car) !== '0';
     COMPLE_SEL = {};
     vidCats().forEach(function (it) {
@@ -3183,8 +3197,15 @@ function guardarComple() {
       prods: COMPLE_SEL[it.slug] || [],
     };
   });
-  api('setcomple', { car: document.getElementById('comple-car').checked, cats: cats }).then(function () {
-    okGuardado('comple', 'Combos guardados. Se ven en la web en ~1 minuto.');
+  api('setcomple', {
+    on: document.getElementById('comple-on').checked,
+    car: document.getElementById('comple-car').checked,
+    cats: cats,
+  }).then(function (j) {
+    var apagado = j.c && String(j.c.on) === '0';
+    okGuardado('comple', apagado
+      ? 'Guardado: los combos quedan APAGADOS en toda la web (tu configuración no se pierde).'
+      : 'Combos guardados. Se ven en la web en ~1 minuto.');
     cargarComple();
   }).catch(function (e) { errGuardado('comple', e); });
 }

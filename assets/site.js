@@ -1907,6 +1907,7 @@
   // Devuelve { t, s, prods } o null si el dueño apagó la sección / no hay nada que ofrecer.
   function elegirComple(slug, n, excluir) {
     var cfgAll = (vivoData && vivoData.c) || {};
+    if (String(cfgAll.on) === '0') return null; // interruptor general apagado (panel → 🧩 Combos)
     var cfg = (cfgAll.cats || {})[slug] || {};
     if (cfg.off) return null;
     var idx = indiceVivo();

@@ -4,7 +4,7 @@
 //            s: { "<slug>|<nombre>": "agotado"|"oculto" },  stock en vivo (config:stock)
 //            x: [ {id,cat,sec,nombre,precio,img,ts} ],      productos nuevos del panel (config:prodextra)
 //            v: { "<slug>": {v,t,s} },                      video/título/subtítulo del hero por categoría (config:videos)
-//            c: { car?, cats? } }                            combos de venta cruzada (config:comple; panel → 📝 Sitio → 🧩)
+//            c: { on?, car?, cats? } }                       combos de venta cruzada (config:comple; panel → 📝 Sitio → 🧩)
 //   GET ?img=<id> -> foto de un producto subida desde el panel (Redis prodimg:<id>, caché inmutable)
 //   GET ?vid=<id> -> video subido desde el panel (trozos base64 en vidext:<id>:<i>, índice en
 //                    config:vidsubidos), con caché inmutable y soporte de Range (iPhone lo exige)
