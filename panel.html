@@ -197,15 +197,20 @@ td a.wa { color:var(--verde); text-decoration:none; }
 /* ---------- Bot / formularios ---------- */
 #v-bot textarea { width:100%; background:var(--campo); color:var(--campo-txt); border:1.5px solid var(--borde); border-radius:12px; padding:14px 15px; font-size:13.5px; line-height:1.65; resize:vertical; box-sizing:border-box; }
 
-/* Sub-pestañas dentro de ⚙️ Bot: se ve una cosa a la vez (menos saturación) */
+/* Sub-pestañas dentro de ⚙️ Bot y 📝 Sitio: se ve una cosa a la vez (menos saturación) */
 .subtabs { display:flex; gap:6px; background:var(--panel); border:1px solid var(--borde); border-radius:14px; padding:5px; margin-bottom:20px; overflow-x:auto; }
 .subtab { flex:1; min-width:max-content; display:flex; align-items:center; justify-content:center; gap:7px; background:none; border:none; color:var(--sub); font-size:13.5px; font-weight:700; padding:10px 16px; border-radius:10px; white-space:nowrap; transition:background .15s; }
 .subtab:hover { color:var(--texto); }
 .subtab.activa { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 60%,#a87f22); color:#221a05; }
+.subtab.sucio::after { content:'●'; color:var(--naranja); font-size:10px; }  /* cambios sin guardar en esa sub-pestaña */
 .subpanel { display:none; }
 .subpanel.activa { display:block; animation:aparecer .18s ease; }
 @media (max-width:520px){
-  .subtab { min-width:0; padding:9px 6px; font-size:12px; gap:4px; }
+  .subtab { min-width:0; padding:9px 3px; font-size:11.5px; gap:3px; overflow:hidden; }
+  /* 📝 Sitio: 5 pestañas en fila → emoji arriba y nombre abajo, como la barra inferior del panel */
+  #sitio-subtabs .subtab { flex-direction:column; gap:2px; padding:7px 2px; position:relative; }
+  #sitio-subtabs .subtab .ico { font-size:16px; }
+  #sitio-subtabs .subtab.sucio::after { position:absolute; top:3px; right:5px; }
 }
 
 /* Tarjetas de configuración */
@@ -1112,9 +1117,20 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
   <!-- SITIO: textos editables del header y del footer -->
   <div class="vista" id="v-sitio">
-    <h2 class="tit-vista">📝 Textos del sitio</h2>
-    <p class="sub-vista">Edita el lema del encabezado, los textos del carrito, los copys de compartir productos y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
-    <div class="aviso" id="sitio-aviso"></div>
+    <h2 class="tit-vista">📝 Sitio</h2>
+    <p class="sub-vista">Todo lo que ven tus clientes en la web, sin tocar código. Toca una pestaña para editar esa parte: cada una tiene su propio botón 💾 Guardar y los cambios se ven en la web en ~1 minuto.</p>
+
+    <div class="subtabs" id="sitio-subtabs">
+      <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
+      <button class="subtab" data-ssub="fondos" data-gr="fondos"><span class="ico">🎨</span><span class="eti">Fondos</span></button>
+      <button class="subtab" data-ssub="videos" data-gr="videos"><span class="ico">🎬</span><span class="eti">Videos</span></button>
+      <button class="subtab" data-ssub="comple" data-gr="comple"><span class="ico">🧩</span><span class="eti">Combos</span></button>
+      <button class="subtab" data-ssub="carrito" data-gr="carrito"><span class="ico">🛒</span><span class="eti">Carrito</span></button>
+    </div>
+
+    <!-- ✍️ TEXTOS (grupo "sitio"): lema + avisos del carrito + pie de página + compartir, un solo 💾 -->
+    <div class="subpanel activa" id="ss-textos">
+    <p class="sub-vista">Las palabras de la web: el lema de arriba, los avisos de entrega del carrito, el pie de página completo y los textos de compartir productos. Deja un campo vacío para volver a su texto de siempre.</p>
 
     <div class="caja-bot" data-grupo="sitio">
       <h3>🔝 Encabezado</h3>
@@ -1140,79 +1156,83 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     </div>
 
     <div class="caja-bot" data-grupo="sitio">
-      <h3>📍 Pie: Visítanos</h3>
-      <div class="campo-bloque">
-        <label>Título</label>
-        <input type="text" id="sitio-vtit" maxlength="40" placeholder="Visítanos" style="width:100%">
+      <h3>🦶 Pie de página</h3>
+      <div class="desc">Lo que sale al final de todas las páginas: dónde estás, a qué hora atiendes, tus teléfonos y tus redes.</div>
+      <div class="cared-sub">
+        <b>📍 Visítanos</b>
+        <div class="campo-bloque">
+          <label>Título</label>
+          <input type="text" id="sitio-vtit" maxlength="40" placeholder="Visítanos" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Dirección</label>
+          <input type="text" id="sitio-dir" maxlength="160" placeholder="Av. Belén 265, San Isidro" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Referencia</label>
+          <input type="text" id="sitio-ref" maxlength="120" placeholder="A solo 2 cuadras del Golf" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Texto del enlace al mapa</label>
+          <div class="hint">El enlace abre tu ubicación en Google Maps. Aquí solo cambias el texto.</div>
+          <input type="text" id="sitio-maplabel" maxlength="60" placeholder="Ver ubicación en el mapa" style="width:100%">
+        </div>
       </div>
-      <div class="campo-bloque">
-        <label>Dirección</label>
-        <input type="text" id="sitio-dir" maxlength="160" placeholder="Av. Belén 265, San Isidro" style="width:100%">
-      </div>
-      <div class="campo-bloque">
-        <label>Referencia</label>
-        <input type="text" id="sitio-ref" maxlength="120" placeholder="A solo 2 cuadras del Golf" style="width:100%">
-      </div>
-      <div class="campo-bloque">
-        <label>Texto del enlace al mapa</label>
-        <div class="hint">El enlace abre tu ubicación en Google Maps. Aquí solo cambias el texto.</div>
-        <input type="text" id="sitio-maplabel" maxlength="60" placeholder="Ver ubicación en el mapa" style="width:100%">
-      </div>
-    </div>
 
-    <div class="caja-bot" data-grupo="sitio">
-      <h3>🕗 Pie: Horario</h3>
-      <div class="campo-bloque">
-        <label>Título</label>
-        <input type="text" id="sitio-htit" maxlength="40" placeholder="Horario de atención" style="width:100%">
+      <div class="cared-sub">
+        <b>🕗 Horario</b>
+        <div class="campo-bloque">
+          <label>Título</label>
+          <input type="text" id="sitio-htit" maxlength="40" placeholder="Horario de atención" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Líneas del horario</label>
+          <div class="hint">Una línea por renglón.</div>
+          <textarea id="sitio-horario" style="min-height:92px" placeholder="Lun – Sáb · 7:00 am – 9:00 pm&#10;Domingos · 8:00 am – 8:00 pm&#10;Abierto todos los días, incluso feriados"></textarea>
+        </div>
       </div>
-      <div class="campo-bloque">
-        <label>Líneas del horario</label>
-        <div class="hint">Una línea por renglón.</div>
-        <textarea id="sitio-horario" style="min-height:92px" placeholder="Lun – Sáb · 7:00 am – 9:00 pm&#10;Domingos · 8:00 am – 8:00 pm&#10;Abierto todos los días, incluso feriados"></textarea>
-      </div>
-    </div>
 
-    <div class="caja-bot" data-grupo="sitio">
-      <h3>📞 Pie: Contáctanos</h3>
-      <div class="campo-bloque">
-        <label>Título</label>
-        <input type="text" id="sitio-ctit" maxlength="40" placeholder="Contáctanos" style="width:100%">
+      <div class="cared-sub">
+        <b>📞 Contáctanos</b>
+        <div class="campo-bloque">
+          <label>Título</label>
+          <input type="text" id="sitio-ctit" maxlength="40" placeholder="Contáctanos" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Teléfonos</label>
+          <div class="hint">Un número por renglón. Cada uno queda tocable para llamar.</div>
+          <textarea id="sitio-tels" style="min-height:110px" placeholder="012218582&#10;977737199&#10;960725996"></textarea>
+        </div>
       </div>
-      <div class="campo-bloque">
-        <label>Teléfonos</label>
-        <div class="hint">Un número por renglón. Cada uno queda tocable para llamar.</div>
-        <textarea id="sitio-tels" style="min-height:110px" placeholder="012218582&#10;977737199&#10;960725996"></textarea>
-      </div>
-    </div>
 
-    <div class="caja-bot" data-grupo="sitio">
-      <h3>📲 Pie: Redes</h3>
-      <div class="campo-bloque">
-        <label>Título</label>
-        <input type="text" id="sitio-rtit" maxlength="60" placeholder="Síguenos" style="width:100%">
+      <div class="cared-sub">
+        <b>📲 Redes</b>
+        <div class="campo-bloque">
+          <label>Título</label>
+          <input type="text" id="sitio-rtit" maxlength="60" placeholder="Síguenos" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Facebook (URL)</label>
+          <div class="hint">Deja vacío para ocultar ese ícono.</div>
+          <input type="text" id="sitio-fb" maxlength="300" placeholder="https://www.facebook.com/minimarketarakaki1" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>Instagram (URL)</label>
+          <input type="text" id="sitio-ig" maxlength="300" placeholder="https://www.instagram.com/arakakiminimarket" style="width:100%">
+        </div>
+        <div class="campo-bloque">
+          <label>YouTube (URL)</label>
+          <input type="text" id="sitio-yt" maxlength="300" placeholder="https://www.youtube.com/@arakakiminimarket" style="width:100%">
+        </div>
       </div>
-      <div class="campo-bloque">
-        <label>Facebook (URL)</label>
-        <div class="hint">Deja vacío para ocultar ese ícono.</div>
-        <input type="text" id="sitio-fb" maxlength="300" placeholder="https://www.facebook.com/minimarketarakaki1" style="width:100%">
-      </div>
-      <div class="campo-bloque">
-        <label>Instagram (URL)</label>
-        <input type="text" id="sitio-ig" maxlength="300" placeholder="https://www.instagram.com/arakakiminimarket" style="width:100%">
-      </div>
-      <div class="campo-bloque">
-        <label>YouTube (URL)</label>
-        <input type="text" id="sitio-yt" maxlength="300" placeholder="https://www.youtube.com/@arakakiminimarket" style="width:100%">
-      </div>
-    </div>
 
-    <div class="caja-bot" data-grupo="sitio">
-      <h3>©️ Pie: Copyright</h3>
-      <div class="campo-bloque">
-        <label>Línea final</label>
-        <div class="hint">Escribe <b>{año}</b> donde quieras el año actual (se pone solo).</div>
-        <input type="text" id="sitio-copy" maxlength="200" placeholder="Minimarket Arakaki {año} — Todos los derechos reservados" style="width:100%">
+      <div class="cared-sub">
+        <b>©️ Línea final (copyright)</b>
+        <div class="campo-bloque">
+          <label>Texto</label>
+          <div class="hint">Escribe <b>{año}</b> donde quieras el año actual (se pone solo).</div>
+          <input type="text" id="sitio-copy" maxlength="200" placeholder="Minimarket Arakaki {año} — Todos los derechos reservados" style="width:100%">
+        </div>
       </div>
     </div>
 
@@ -1256,10 +1276,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
+    <div class="aviso" id="sitio-aviso"></div>
     <div class="fila-conf">
       <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar textos del sitio</button>
     </div>
+    </div>
 
+    <!-- 🎨 FONDOS (grupo "fondos") -->
+    <div class="subpanel" id="ss-fondos">
     <div class="caja-bot" data-grupo="fondos">
       <h3>🎨 Fondos de la web</h3>
       <div class="campo-bloque">
@@ -1271,7 +1295,10 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="fondos" onclick="pedirGuardar('fondos')">💾 Guardar fondos</button>
       </div>
     </div>
+    </div>
 
+    <!-- 🎬 VIDEOS (grupo "videos") -->
+    <div class="subpanel" id="ss-videos">
     <div class="caja-bot" data-grupo="videos">
       <h3>🎬 Videos de las categorías</h3>
       <div class="campo-bloque">
@@ -1295,7 +1322,10 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="videos" onclick="pedirGuardar('videos')">💾 Guardar videos</button>
       </div>
     </div>
+    </div>
 
+    <!-- 🧩 COMBOS (grupo "comple") -->
+    <div class="subpanel" id="ss-comple">
     <div class="caja-bot" data-grupo="comple">
       <h3>🧩 Combos: productos que combinan (venta cruzada)</h3>
       <div class="campo-bloque">
@@ -1315,7 +1345,10 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="comple" onclick="pedirGuardar('comple')">💾 Guardar combos</button>
       </div>
     </div>
+    </div>
 
+    <!-- 🛒 CARRITO (grupo "carrito") -->
+    <div class="subpanel" id="ss-carrito">
     <div class="caja-bot" data-grupo="carrito">
       <h3>🛒 Carrito “Tu pedido”: apariencia</h3>
       <div class="campo-bloque">
@@ -1377,6 +1410,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="fila-conf">
         <button class="btn" data-guardar="carrito" onclick="pedirGuardar('carrito')">💾 Guardar apariencia del carrito</button>
       </div>
+    </div>
     </div>
   </div>
 
@@ -1501,6 +1535,9 @@ function pintarSucio(clave) {
   var pend = vistaSucia(g.vista);
   var tabs = document.querySelectorAll('[data-v="' + g.vista + '"]');
   for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('sucio', pend);
+  // ● en la sub-pestaña de 📝 Sitio dueña del grupo (data-gr = clave del grupo)
+  var sst = document.querySelector('#sitio-subtabs [data-gr="' + clave + '"]');
+  if (sst) sst.classList.toggle('sucio', on);
   var mas = document.getElementById('tab-mas');   // acceso "Más" del móvil
   if (mas) {
     var pendMas = false;
@@ -1678,6 +1715,19 @@ function verSubpanel(sub) {
   for (var i = 0; i < subtabs.length; i++) subtabs[i].classList.toggle('activa', subtabs[i].getAttribute('data-sub') === sub);
   var paneles = document.querySelectorAll('#v-bot .subpanel');
   for (var j = 0; j < paneles.length; j++) paneles[j].classList.toggle('activa', paneles[j].id === 'sp-' + sub);
+}
+
+// Sub-pestañas dentro de 📝 Sitio (mismo patrón que ⚙️ Bot: se ve una cosa a la vez).
+// Cambiar de sub-pestaña NO pierde nada: los campos siguen en la página, solo se ocultan,
+// y la que tenga cambios sin guardar marca ● (lo pinta pintarSucio con data-gr).
+var sitioSubtabs = document.querySelectorAll('.subtab[data-ssub]');
+for (var st = 0; st < sitioSubtabs.length; st++) {
+  sitioSubtabs[st].onclick = (function (t) { return function () { verSitioSub(t.getAttribute('data-ssub')); }; })(sitioSubtabs[st]);
+}
+function verSitioSub(sub) {
+  for (var i = 0; i < sitioSubtabs.length; i++) sitioSubtabs[i].classList.toggle('activa', sitioSubtabs[i].getAttribute('data-ssub') === sub);
+  var paneles = document.querySelectorAll('#v-sitio .subpanel');
+  for (var j = 0; j < paneles.length; j++) paneles[j].classList.toggle('activa', paneles[j].id === 'ss-' + sub);
 }
 
 function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarConsultas(); cargarTpls(); }
