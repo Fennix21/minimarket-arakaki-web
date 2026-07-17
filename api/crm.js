@@ -736,6 +736,9 @@ module.exports = async (req, res) => {
         compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,
       };
       Object.keys(campos).forEach((k) => { const v = txt(b[k], campos[k]); if (v) s[k] = v; });
+      // ⏱ Parpadeo del producto compartido: segundos enteros 0–30 (0 = sin parpadeo); vacío = default
+      const bseg = txt(b.compBrilloSeg, 6);
+      if (bseg !== '' && Number.isFinite(Number(bseg))) s.compBrilloSeg = String(Math.max(0, Math.min(30, Math.round(Number(bseg)))));
       ['facebook', 'instagram', 'youtube'].forEach((k) => { const v = url(b[k]); if (v) s[k] = v; });
       // Campo vacío = vuelve al texto por defecto de site.js (no se guarda nada de más)
       if (Object.keys(s).length) await redis(['SET', 'config:sitio', JSON.stringify(s)]);

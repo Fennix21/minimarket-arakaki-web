@@ -1249,6 +1249,11 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <label>📸 Imagen del estado: si el producto no tiene precio</label>
         <input type="text" id="sitio-compsinprecio" maxlength="80" placeholder="Pregunta el precio por WhatsApp" style="width:100%">
       </div>
+      <div class="campo-bloque">
+        <label>⏱ Parpadeo al abrir el enlace (segundos)</label>
+        <div class="hint">Cuando alguien abre un producto compartido, la web lo lleva hasta la tarjeta y el borde parpadea en dorado ese tiempo. Pon <b>0</b> para que no parpadee. Vacío = 5 segundos.</div>
+        <input type="number" id="sitio-compbrillo" min="0" max="30" step="1" placeholder="5" style="width:130px">
+      </div>
     </div>
 
     <div class="fila-conf">
@@ -2822,6 +2827,7 @@ var SITIO_CAMPOS = {
   carGeoNota: 'sitio-cargeo', carDirFalta: 'sitio-cardir',
   compChat: 'sitio-compchat', compOg: 'sitio-compog', compLema: 'sitio-complema',
   compCintillo: 'sitio-compcintillo', compCta: 'sitio-compcta', compSinPrecio: 'sitio-compsinprecio',
+  compBrilloSeg: 'sitio-compbrillo',
 };
 function cargarSitio() {
   api('getsitio').then(function (j) {

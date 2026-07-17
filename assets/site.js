@@ -105,6 +105,7 @@
     compCintillo: '✨ Disponible hoy · delivery a tu puerta ✨',
     compCta: '📲 Pídelo al 977 737 199',
     compSinPrecio: 'Pregunta el precio por WhatsApp',
+    compBrilloSeg: '5', // segundos de parpadeo al llegar por un enlace compartido (0 = sin parpadeo)
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -1340,9 +1341,19 @@
       if (cards[i].getAttribute('data-nombre') === nombre) {
         compartidoHecho = true;
         var card = cards[i];
-        card.classList.add('prod-brillo');
-        setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 600);
-        setTimeout(function () { card.classList.remove('prod-brillo'); }, 6500);
+        // El brillo arranca junto con el scroll (600ms): para entonces /api/sitio ya suele
+        // haber traído la duración que el dueño puso en el panel (compBrilloSeg; 0 = apagado)
+        setTimeout(function () {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          var seg = Number(compTxt('compBrilloSeg'));
+          if (isNaN(seg) || seg < 0 || seg > 30) seg = Number(SITIO_DEF.compBrilloSeg);
+          if (seg > 0) {
+            var veces = Math.max(1, Math.round(seg)); // 1 pulso = 1s (CSS --brillo-veces)
+            card.style.setProperty('--brillo-veces', veces);
+            card.classList.add('prod-brillo');
+            setTimeout(function () { card.classList.remove('prod-brillo'); }, veces * 1000 + 400);
+          }
+        }, 600);
         return;
       }
     }
