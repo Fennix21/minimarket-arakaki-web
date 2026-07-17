@@ -1112,7 +1112,15 @@ module.exports = async (req, res) => {
     }
 
     // --- Analítica del sitio ---
+    // b.dias = 7 | 14 | 30 (default 7). Devuelve, además de los totales históricos
+    // (events/pages/refs), las SERIES DIARIAS del período para los eventos clave
+    // (stat:<ev>:<day>, los escribe /api/track) y el total del período ANTERIOR
+    // de cada uno (prev) para que el panel muestre la variación ▲/▼.
     if (b.action === 'stats') {
+      const dias = [7, 14, 30].indexOf(Number(b.dias)) >= 0 ? Number(b.dias) : 7;
+      const SERIE_EVS = ['pageview', 'pedido_enviado', 'whatsapp_click', 'llamada_click',
+        'chatweb_abierto', 'compartir_chat', 'compartir_estado', 'compartir_link',
+        'comple_elegir', 'comple_carrito', 'club_login', 'club_cuenta_creada', 'push_click'];
       const events = (await redis(['SMEMBERS', 'stat:events'])) || [];
       const evTotals = {};
       if (events.length) {
@@ -1131,11 +1139,26 @@ module.exports = async (req, res) => {
         const vals = await redis(['MGET', ...refs.map((r) => 'stat:ref:' + r)]);
         refs.forEach((r, i) => { refCounts[r] = Number((vals && vals[i]) || 0); });
       }
+      // 2×dias días: la primera mitad es el período anterior (para comparar), la segunda el actual
       const days = [];
-      for (let i = 6; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
-      const pvVals = await redis(['MGET', ...days.map((d) => 'stat:pageview:' + d)]);
-      const daily = days.map((d, i) => ({ day: d, n: Number((pvVals && pvVals[i]) || 0) }));
-      return res.status(200).json({ events: evTotals, pages: pageCounts, refs: refCounts, daily });
+      for (let i = dias * 2 - 1; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+      const claves = [];
+      SERIE_EVS.forEach((ev) => days.forEach((d) => claves.push('stat:' + ev + ':' + d)));
+      const vals = (await redis(['MGET', ...claves])) || [];
+      const series = {}, prev = {};
+      SERIE_EVS.forEach((ev, i) => {
+        const base = i * days.length;
+        let ant = 0;
+        const cur = [];
+        days.forEach((d, j) => {
+          const n = Number(vals[base + j] || 0);
+          if (j < dias) ant += n; else cur.push({ day: d, n });
+        });
+        series[ev] = cur;
+        prev[ev] = ant;
+      });
+      // daily = serie de pageviews del período (compatibilidad: la usa la tarjeta de Inicio)
+      return res.status(200).json({ events: evTotals, pages: pageCounts, refs: refCounts, daily: series.pageview, dias, series, prev });
     }
 
     return res.status(400).json({ error: 'Acción desconocida.' });

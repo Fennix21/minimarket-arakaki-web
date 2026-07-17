@@ -182,17 +182,48 @@ td select, td input { background:var(--campo); color:var(--campo-txt); border:1p
 td a.wa { color:var(--verde); text-decoration:none; }
 .vacio { text-align:center; color:var(--sub); padding:44px 20px; line-height:1.8; }
 
-/* ---------- Analíticas ---------- */
+/* ---------- Analíticas (dashboard) ---------- */
 .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
 .stat-caja { background:var(--panel); border:1px solid var(--borde); border-radius:var(--radius); padding:18px; }
+.stat-caja.ancha { grid-column:1 / -1; }
 .stat-caja h3 { font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--sub); margin-bottom:12px; }
+.stat-caja .pie-nota { font-size:11.5px; color:var(--sub); margin-top:10px; line-height:1.5; }
 .stat-fila { display:flex; justify-content:space-between; padding:6px 0; font-size:13.5px; border-bottom:1px solid var(--borde); }
 .stat-fila:last-child { border-bottom:none; }
 .stat-fila b { color:var(--dorado2); }
 .barras { display:flex; align-items:flex-end; gap:6px; height:120px; }
-.barras .col { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; height:100%; }
+.barras .col { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; height:100%; }
 .barras .col .b { width:100%; background:linear-gradient(180deg,var(--dorado),#8a6516); border-radius:4px 4px 0 0; min-height:2px; }
 .barras .col span { font-size:9.5px; color:var(--sub); }
+.barras.verde .col .b { background:linear-gradient(180deg,#25d366,#0e6b38); }
+/* Selector de rango (7/14/30 días) */
+.stats-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.rango-chips { display:flex; gap:4px; background:var(--panel); border:1px solid var(--borde); border-radius:999px; padding:4px; }
+.rango-chips button { border:none; background:none; color:var(--sub); font-weight:700; font-size:12.5px; padding:6px 14px; border-radius:999px; white-space:nowrap; }
+.rango-chips button.activa { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 60%,#a87f22); color:#221a05; }
+/* Tarjetas KPI con variación vs período anterior */
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:12px; }
+.kpi { background:linear-gradient(165deg,var(--card),var(--panel)); border:1px solid var(--borde); border-radius:var(--radius); padding:14px 16px 12px; }
+.kpi .k-eti { font-size:11.5px; color:var(--sub); font-weight:700; }
+.kpi .k-num { font-size:27px; font-weight:800; color:var(--dorado2); line-height:1.25; margin-top:2px; }
+.kpi .k-delta { font-size:11px; color:var(--sub); margin-top:3px; }
+.kpi .k-delta.sube { color:#7fe3a9; } .kpi .k-delta.baja { color:#ff9c8b; }
+/* Gráfico SVG de visitas */
+.grafico svg { width:100%; height:auto; display:block; }
+/* Barras horizontales (páginas, orígenes, embudo, eventos) */
+.hbar-fila { display:flex; align-items:center; gap:10px; padding:5px 0; font-size:13px; }
+.hbar-fila .h-eti { flex:0 0 44%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hbar-fila .h-track { flex:1; height:12px; background:var(--hover); border-radius:999px; overflow:hidden; }
+.hbar-fila .h-track i { display:block; height:100%; background:linear-gradient(90deg,#8a6516,var(--dorado2)); border-radius:999px; min-width:2px; }
+.hbar-fila.verde .h-track i { background:linear-gradient(90deg,#0e6b38,#25d366); }
+.hbar-fila .h-num { flex:0 0 auto; font-weight:800; color:var(--dorado2); font-size:12.5px; white-space:nowrap; }
+/* Embudo: visitas → conversan → piden */
+.funnel .hbar-fila { padding:8px 0; }
+.funnel .h-eti { flex-basis:34%; }
+/* Eventos agrupados con nombres humanos */
+.ev-grupo { margin-bottom:14px; }
+.ev-grupo:last-child { margin-bottom:0; }
+.ev-grupo .ev-tit { font-size:12px; font-weight:800; color:var(--label); margin-bottom:2px; }
 
 /* ---------- Bot / formularios ---------- */
 #v-bot textarea { width:100%; background:var(--campo); color:var(--campo-txt); border:1.5px solid var(--borde); border-radius:12px; padding:14px 15px; font-size:13.5px; line-height:1.65; resize:vertical; box-sizing:border-box; }
@@ -203,15 +234,23 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .subtab:hover { color:var(--texto); }
 .subtab.activa { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 60%,#a87f22); color:#221a05; }
 .subtab.sucio::after { content:'●'; color:var(--naranja); font-size:10px; }  /* cambios sin guardar en esa sub-pestaña */
+.subtab .badge-sub { background:var(--naranja); color:#fff; border-radius:999px; font-size:10.5px; font-weight:800; padding:1px 7px; }  /* pendientes en esa sub-pestaña */
 .subpanel { display:none; }
 .subpanel.activa { display:block; animation:aparecer .18s ease; }
 @media (max-width:520px){
   .subtab { min-width:0; padding:9px 3px; font-size:11.5px; gap:3px; overflow:hidden; }
-  /* 📝 Sitio: 5 pestañas en fila → emoji arriba y nombre abajo, como la barra inferior del panel */
-  #sitio-subtabs .subtab { flex-direction:column; gap:2px; padding:7px 2px; position:relative; }
-  #sitio-subtabs .subtab .ico { font-size:16px; }
-  #sitio-subtabs .subtab.sucio::after { position:absolute; top:3px; right:5px; }
+  /* 📝 Sitio y 👥 Club: 5 pestañas en fila → emoji arriba y nombre abajo, como la barra inferior del panel */
+  .subtabs.iconos .subtab { flex-direction:column; gap:2px; padding:7px 2px; position:relative; }
+  .subtabs.iconos .subtab .ico { font-size:16px; }
+  .subtabs.iconos .subtab.sucio::after { position:absolute; top:3px; right:5px; }
 }
+/* Chips de filtro (🛒 Pedidos por estado) */
+.filtro-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.filtro-chips button { background:var(--panel); border:1px solid var(--borde); color:var(--sub); font-size:12.5px; font-weight:700; padding:7px 13px; border-radius:999px; white-space:nowrap; transition:border-color .15s; }
+.filtro-chips button:hover { border-color:var(--dorado); color:var(--texto); }
+.filtro-chips button.activa { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 60%,#a87f22); border-color:transparent; color:#221a05; }
+.resumen-filtro { font-size:12.5px; color:var(--sub); margin-bottom:10px; }
+.resumen-filtro b { color:var(--dorado2); }
 
 /* Tarjetas de configuración */
 .caja-bot { background:var(--panel); border:1px solid var(--borde); border-radius:var(--radius); padding:20px 22px; margin-bottom:16px; }
@@ -604,6 +643,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="tarjeta" onclick="verVista('chats')"><span class="ico">💬</span><div class="num" id="ini-chats">–</div><div class="eti">Chats por responder</div></div>
       <div class="tarjeta" onclick="verVista('stats')"><span class="ico">👀</span><div class="num" id="ini-visitas">–</div><div class="eti">Visitas a la web hoy</div></div>
       <div class="tarjeta" onclick="verVista('club')"><span class="ico">👥</span><div class="num" id="ini-club">–</div><div class="eti">Miembros del Club</div></div>
+      <div class="tarjeta" onclick="verVista('consultas')"><span class="ico">❓</span><div class="num" id="ini-consultas">–</div><div class="eti">Consultas por responder</div></div>
     </div>
     <div class="dos-col">
       <div class="caja"><h3>🛒 Últimos pedidos</h3><div id="ini-ult-pedidos"><p class="vacio-mini">Cargando…</p></div></div>
@@ -655,7 +695,9 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <!-- PEDIDOS -->
   <div class="vista" id="v-pedidos">
     <h2 class="tit-vista">🛒 Pedidos desde la web</h2>
-    <p class="sub-vista">Todo lo que tus clientes arman en el carrito de la web llega aquí. Cambia el estado para llevar el control de cada entrega.</p>
+    <p class="sub-vista">Todo lo que tus clientes arman en el carrito de la web llega aquí. Toca un filtro para ver solo esos pedidos, y cambia el estado para llevar el control de cada entrega.</p>
+    <div class="filtro-chips" id="ped-filtros"></div>
+    <p class="resumen-filtro" id="ped-resumen" style="display:none"></p>
     <div class="tabla-scroll t-cards"><table>
       <thead><tr><th>Fecha</th><th>Cliente</th><th>Pedido</th><th>Total</th><th>Entrega</th><th>Estado</th></tr></thead>
       <tbody id="tabla-pedidos"></tbody>
@@ -663,31 +705,47 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <p class="vacio" id="pedidos-vacio" style="display:none">Aún no hay pedidos desde la web.<br>Cuando alguien use el carrito 🛒 del sitio, aparecerá aquí.</p>
   </div>
 
-  <!-- CONSULTAS del chat web -->
+  <!-- CONSULTAS: del chat web + preguntas del Club, en 2 sub-pestañas -->
   <div class="vista" id="v-consultas">
-    <h2 class="tit-vista">❓ Consultas del chat de la web</h2>
-    <p class="sub-vista">Preguntas que el asistente de la web no pudo responder (un producto que no encontró o un dato que no tenía). Úsalas para completar el catálogo o el prompt del bot, y toca ✓ cuando ya la revisaste.</p>
-    <div class="tabla-scroll t-cards"><table>
-      <thead><tr><th>Fecha</th><th>Producto</th><th>Pregunta del cliente</th><th></th></tr></thead>
-      <tbody id="tabla-consultas"></tbody>
-    </table></div>
-    <p class="vacio" id="consultas-vacio" style="display:none">No hay consultas pendientes 🎉<br>Cuando el chat de la web no sepa responder algo, aparecerá aquí (y te llega aviso por WhatsApp).</p>
+    <h2 class="tit-vista">❓ Consultas y preguntas</h2>
+    <p class="sub-vista">Todo lo que tus clientes preguntan y espera respuesta, en un solo lugar. Elige una pestaña.</p>
 
-    <h2 class="tit-vista" style="margin-top:30px">💬 Preguntas del Club</h2>
-    <p class="sub-vista">Preguntas que los miembros del Club dejan desde su cuenta (/mi-cuenta). Escribe la respuesta y guárdala con 💾: el cliente la verá reflejada en su panel. 🗑 la borra de la lista (y el cliente deja de verla).</p>
-    <div class="tabla-scroll t-cards"><table>
-      <thead><tr><th>Fecha</th><th>Cliente</th><th>Pregunta</th><th style="min-width:220px">Respuesta (la ve en su cuenta)</th><th></th></tr></thead>
-      <tbody id="tabla-preguntas"></tbody>
-    </table></div>
-    <p class="vacio" id="preguntas-vacio" style="display:none">No hay preguntas del Club por ahora 🎉<br>Cuando un cliente pregunte algo desde su cuenta, aparecerá aquí (y te llega aviso).</p>
+    <div class="subtabs" data-pref="qs">
+      <button class="subtab activa" data-t="chat">💭 Del chat web <span class="badge-sub" id="nqs-chat" style="display:none">0</span></button>
+      <button class="subtab" data-t="club">👥 Del Club <span class="badge-sub" id="nqs-club" style="display:none">0</span></button>
+    </div>
+
+    <div class="subpanel activa" id="qs-chat">
+      <p class="sub-vista">Preguntas que el asistente de la web no pudo responder (un producto que no encontró o un dato que no tenía). Úsalas para completar el catálogo o el cerebro del bot, y toca ✓ cuando ya la revisaste.</p>
+      <div class="tabla-scroll t-cards"><table>
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Pregunta del cliente</th><th></th></tr></thead>
+        <tbody id="tabla-consultas"></tbody>
+      </table></div>
+      <p class="vacio" id="consultas-vacio" style="display:none">No hay consultas pendientes 🎉<br>Cuando el chat de la web no sepa responder algo, aparecerá aquí (y te llega aviso por WhatsApp).</p>
+    </div>
+
+    <div class="subpanel" id="qs-club">
+      <p class="sub-vista">Preguntas que los miembros del Club dejan desde su cuenta (/mi-cuenta). Escribe la respuesta y guárdala con 💾: el cliente la verá reflejada en su panel. 🗑 la borra de la lista (y el cliente deja de verla).</p>
+      <div class="tabla-scroll t-cards"><table>
+        <thead><tr><th>Fecha</th><th>Cliente</th><th>Pregunta</th><th style="min-width:220px">Respuesta (la ve en su cuenta)</th><th></th></tr></thead>
+        <tbody id="tabla-preguntas"></tbody>
+      </table></div>
+      <p class="vacio" id="preguntas-vacio" style="display:none">No hay preguntas del Club por ahora 🎉<br>Cuando un cliente pregunte algo desde su cuenta, aparecerá aquí (y te llega aviso).</p>
+    </div>
   </div>
 
-  <!-- PRECIOS, STOCK Y PRODUCTOS -->
+  <!-- PRECIOS, STOCK Y PRODUCTOS: 2 sub-pestañas (tabla de precios · producto nuevo) -->
   <div class="vista" id="v-precios">
     <h2 class="tit-vista">💰 Precios y productos de la web</h2>
-    <p style="font-size:13px;color:#aaa;margin-bottom:10px">Todo lo de esta pestaña sale en la web al instante (~1 minuto), sin tocar código: precios, disponibilidad (agotado/oculto) y productos nuevos con foto.</p>
+    <p class="sub-vista">Todo lo de esta sección sale en la web al instante (~1 minuto), sin tocar código. Elige una pestaña.</p>
     <div class="aviso" id="pr-aviso"></div>
 
+    <div class="subtabs" data-pref="pr">
+      <button class="subtab activa" data-t="lista">💰 Precios y disponibilidad</button>
+      <button class="subtab" data-t="nuevo">➕ Producto nuevo <span class="badge-sub" id="npr-extras" style="display:none">0</span></button>
+    </div>
+
+    <div class="subpanel" id="pr-nuevo">
     <div class="caja-bot">
       <h3>➕ Subir producto nuevo</h3>
       <p class="desc">Se publica en su página de categoría con el <b>mismo diseño</b> que los demás (tarjeta negra-oro, carrito y ⭐ favoritos incluidos). La foto se comprime sola en tu navegador. Consejo: foto vertical o cuadrada del producto sobre fondo claro, como las del catálogo.</p>
@@ -713,7 +771,9 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
       <div id="pr-extras" style="margin-top:16px"></div>
     </div>
+    </div>
 
+    <div class="subpanel activa" id="pr-lista">
     <div class="caja-bot">
       <h3>💰 Precios y disponibilidad</h3>
       <p class="desc">La fila dorada ⭐ tiene precio especial guardado; deja el campo vacío y guarda (o usa ↩) para volver al precio base del catálogo. También se pueden cambiar precios por WhatsApp desde los números autorizados (⚙️ Bot). El botón de la columna <b>En la web</b> rota entre <b>✅ Se vende</b> → <b>😕 Agotado</b> (la tarjeta se ve apagada con sello AGOTADO, sin poder pedirla: ideal para mostrar que un producto vuela) → <b>🙈 Oculto</b> (desaparece de la página).</p>
@@ -726,14 +786,24 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <tbody id="tabla-precios"></tbody>
       </table></div>
     </div>
+    </div>
   </div>
 
-  <!-- CLUB -->
+  <!-- CLUB: 5 sub-pestañas (funciones · promos · cupones · sorteos · clientes) -->
   <div class="vista" id="v-club">
     <h2 class="tit-vista">👥 Club Arakaki</h2>
-    <p class="sub-vista">Tus clientes y su consumo, y el Club con cuenta en la web (login con PIN, favoritos ⭐, puntos 🪙, promos 🎁 y sorteos 🎟️). Prende y apaga cada función según tu estrategia.</p>
+    <p class="sub-vista">Tus clientes y su consumo, y el Club con cuenta en la web (login con PIN, favoritos ⭐, puntos 🪙, promos 🎁 y sorteos 🎟️). Elige una pestaña.</p>
     <div class="aviso" id="club-aviso"></div>
 
+    <div class="subtabs iconos" id="club-subtabs" data-pref="kc">
+      <button class="subtab activa" data-t="funciones" data-gr="club"><span class="ico">⚙️</span><span class="eti">Funciones</span></button>
+      <button class="subtab" data-t="promos" data-gr="clubpromos"><span class="ico">🎁</span><span class="eti">Promos</span></button>
+      <button class="subtab" data-t="cupones" data-gr="clubcupones"><span class="ico">🎫</span><span class="eti">Cupones</span></button>
+      <button class="subtab" data-t="sorteos" data-gr="clubsorteos"><span class="ico">🎟️</span><span class="eti">Sorteos</span></button>
+      <button class="subtab" data-t="clientes"><span class="ico">📇</span><span class="eti">Clientes</span></button>
+    </div>
+
+    <div class="subpanel activa" id="kc-funciones">
     <div class="caja-bot" data-grupo="club">
       <h3>⚙️ Funciones del Club en la web</h3>
       <p class="desc">Los cambios se ven en la web en ~1 minuto. Si apagas la <b>cuenta de clientes</b>, se apaga TODO el Club y la web queda como antes.</p>
@@ -748,39 +818,47 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar funciones</button>
       </div>
     </div>
+    </div>
 
-    <div class="caja-bot" data-grupo="club">
+    <div class="subpanel" id="kc-promos">
+    <div class="caja-bot" data-grupo="clubpromos">
       <h3>🎁 Promos exclusivas del Club</h3>
       <p class="desc">Solo las ven los clientes logueados en su cuenta (/mi-cuenta). La fecha límite es opcional: vencida, la promo deja de mostrarse sola.</p>
       <div id="club-promos"></div>
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarPromoClub()">+ Añadir promo</button>
-        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar promos</button>
+        <button class="btn" data-guardar="clubpromos" onclick="pedirGuardar('clubpromos')">💾 Guardar promos</button>
       </div>
     </div>
+    </div>
 
-    <div class="caja-bot" data-grupo="club">
+    <div class="subpanel" id="kc-cupones">
+    <div class="caja-bot" data-grupo="clubcupones">
       <h3>🎫 Cupones exclusivos</h3>
       <p class="desc">Solo los ven los clientes logueados (/mi-cuenta). Sube la imagen del cupón desde tu dispositivo (obligatoria), ponle un título y un código que muestren en caja. La fecha límite es opcional: vencido, el cupón deja de mostrarse solo.</p>
       <div id="club-cupones"></div>
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarCuponClub()">+ Añadir cupón</button>
-        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar cupones</button>
+        <button class="btn" data-guardar="clubcupones" onclick="pedirGuardar('clubcupones')">💾 Guardar cupones</button>
       </div>
     </div>
+    </div>
 
-    <div class="caja-bot" data-grupo="club">
+    <div class="subpanel" id="kc-sorteos">
+    <div class="caja-bot" data-grupo="clubsorteos">
       <h3>🎟️ Sorteos</h3>
       <p class="desc">Crea el sorteo y tus clientes participan desde su cuenta. Con 🎲 eliges un ganador al azar (puedes repetir si no contesta). Al borrar un sorteo se borra también su lista de participantes.</p>
       <div id="club-sorteos"></div>
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarSorteoClub()">+ Añadir sorteo</button>
-        <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar sorteos</button>
+        <button class="btn" data-guardar="clubsorteos" onclick="pedirGuardar('clubsorteos')">💾 Guardar sorteos</button>
       </div>
       <div id="club-sorteo-info" data-sin-seguro></div>
     </div>
+    </div>
 
-    <h3 style="margin:22px 0 8px">📇 Tus clientes</h3>
+    <div class="subpanel" id="kc-clientes">
+    <h3 style="margin:4px 0 8px">📇 Tus clientes</h3>
     <div class="club-orden">
       Ordenar por:
       <button class="btn gris" id="club-ord-rec" onclick="ordenarClub('reciente')">🕑 Más reciente</button>
@@ -801,16 +879,32 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <tbody id="tabla-zonas"><tr><td colspan="4" style="color:#888">Toca "📍 Calcular zonas" para ver el resumen.</td></tr></tbody>
       </table></div>
     </div>
+    </div>
   </div>
 
-  <!-- ANALÍTICAS -->
+  <!-- ANALÍTICAS: dashboard con rango, KPIs, gráfico, embudo y detalle -->
   <div class="vista" id="v-stats">
-    <h2 class="tit-vista">📊 Analíticas del sitio</h2>
+    <div class="stats-head">
+      <div>
+        <h2 class="tit-vista">📊 Analíticas del sitio</h2>
+        <p class="sub-vista" style="margin-bottom:0">Cómo va tu web de un vistazo. Compara contra el período anterior.</p>
+      </div>
+      <div class="rango-chips" id="st-rango">
+        <button class="activa" onclick="cargarStats(7)">7 días</button>
+        <button onclick="cargarStats(14)">14 días</button>
+        <button onclick="cargarStats(30)">30 días</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="st-kpis"></div>
+
     <div class="stats-grid">
-      <div class="stat-caja"><h3>Visitas últimos 7 días</h3><div class="barras" id="st-daily"></div></div>
-      <div class="stat-caja"><h3>Eventos</h3><div id="st-eventos"></div></div>
-      <div class="stat-caja"><h3>Páginas más vistas</h3><div id="st-paginas"></div></div>
-      <div class="stat-caja"><h3>De dónde llegan</h3><div id="st-refs"></div></div>
+      <div class="stat-caja ancha"><h3 id="st-daily-tit">📈 Visitas por día</h3><div class="grafico" id="st-daily"></div></div>
+      <div class="stat-caja"><h3 id="st-pedidos-tit">🛒 Pedidos por día</h3><div class="barras verde" id="st-pedidos-dia"></div></div>
+      <div class="stat-caja"><h3>🧲 Embudo: de visita a pedido</h3><div class="funnel" id="st-funnel"></div><p class="pie-nota" id="st-funnel-nota"></p></div>
+      <div class="stat-caja"><h3>🏆 Páginas más visitadas</h3><div id="st-paginas"></div><p class="pie-nota">Total histórico de visitas por página.</p></div>
+      <div class="stat-caja"><h3>🌍 De dónde llegan</h3><div id="st-refs"></div><p class="pie-nota">Por dónde encontraron tu web (histórico). «Directo» = escribieron la dirección o la tenían guardada.</p></div>
+      <div class="stat-caja ancha"><h3>👣 Qué hacen tus visitantes</h3><div id="st-eventos"></div><p class="pie-nota">Totales desde que la web está en línea. Sirven para ver qué funciones se usan más.</p></div>
     </div>
   </div>
 
@@ -1120,7 +1214,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <h2 class="tit-vista">📝 Sitio</h2>
     <p class="sub-vista">Todo lo que ven tus clientes en la web, sin tocar código. Toca una pestaña para editar esa parte: cada una tiene su propio botón 💾 Guardar y los cambios se ven en la web en ~1 minuto.</p>
 
-    <div class="subtabs" id="sitio-subtabs">
+    <div class="subtabs iconos" id="sitio-subtabs">
       <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
       <button class="subtab" data-ssub="fondos" data-gr="fondos"><span class="ico">🎨</span><span class="eti">Fondos</span></button>
       <button class="subtab" data-ssub="videos" data-gr="videos"><span class="ico">🎬</span><span class="eti">Videos</span></button>
@@ -1497,7 +1591,11 @@ document.addEventListener('keydown', function (e) {
 // marca los campos que le pertenecen y data-guardar="<clave>" su botón 💾. Al tocar un campo el
 // grupo queda "sucio": el 💾 late, la pestaña marca ● y avisamos si te vas sin guardar.
 var GRUPOS = {
-  club:    { nombre: 'del Club',                    vista: 'club',  aviso: 'club-aviso',   fn: 'guardarClub',    nota: 'Se ve en la web en ~1 minuto.' },
+  // Las 4 pestañas del Club se guardan JUNTAS (setclub manda todo), pero cada una marca su propio ●
+  club:        { nombre: 'de las funciones del Club', vista: 'club', aviso: 'club-aviso', fn: 'guardarClubFunciones', nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
+  clubpromos:  { nombre: 'de las promos del Club',    vista: 'club', aviso: 'club-aviso', fn: 'guardarClubPromos',    nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
+  clubcupones: { nombre: 'de los cupones del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubCupones',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
+  clubsorteos: { nombre: 'de los sorteos del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubSorteos',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
@@ -1535,9 +1633,9 @@ function pintarSucio(clave) {
   var pend = vistaSucia(g.vista);
   var tabs = document.querySelectorAll('[data-v="' + g.vista + '"]');
   for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('sucio', pend);
-  // ● en la sub-pestaña de 📝 Sitio dueña del grupo (data-gr = clave del grupo)
-  var sst = document.querySelector('#sitio-subtabs [data-gr="' + clave + '"]');
-  if (sst) sst.classList.toggle('sucio', on);
+  // ● en la sub-pestaña dueña del grupo (data-gr = clave del grupo; 📝 Sitio y 👥 Club)
+  var ssts = document.querySelectorAll('.subtabs [data-gr="' + clave + '"]');
+  for (var s2 = 0; s2 < ssts.length; s2++) ssts[s2].classList.toggle('sucio', on);
   var mas = document.getElementById('tab-mas');   // acceso "Más" del móvil
   if (mas) {
     var pendMas = false;
@@ -1730,6 +1828,23 @@ function verSitioSub(sub) {
   for (var j = 0; j < paneles.length; j++) paneles[j].classList.toggle('activa', paneles[j].id === 'ss-' + sub);
 }
 
+// Sub-pestañas GENÉRICAS (❓ Consultas, 💰 Precios, 👥 Club): el contenedor .subtabs lleva
+// data-pref y cada botón data-t; se muestra el .subpanel con id <pref>-<t> de esa sección.
+// Cambiar de sub-pestaña no pierde nada: los campos solo se ocultan.
+var genSubtabs = document.querySelectorAll('.subtabs[data-pref] .subtab');
+for (var gs = 0; gs < genSubtabs.length; gs++) {
+  genSubtabs[gs].onclick = (function (b) {
+    return function () {
+      var cont = b.closest('.subtabs'), pref = cont.getAttribute('data-pref');
+      var vista = cont.closest('.vista');
+      var botones = cont.querySelectorAll('.subtab');
+      for (var i = 0; i < botones.length; i++) botones[i].classList.toggle('activa', botones[i] === b);
+      var paneles = vista.querySelectorAll('.subpanel');
+      for (var j = 0; j < paneles.length; j++) paneles[j].classList.toggle('activa', paneles[j].id === pref + '-' + b.getAttribute('data-t'));
+    };
+  })(genSubtabs[gs]);
+}
+
 function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarConsultas(); cargarTpls(); }
 
 // Al recargar, vuelve a la última sección que estabas viendo (guardada en verVista).
@@ -1778,6 +1893,7 @@ function cargarInicio() {
     var d = j.daily || [];
     document.getElementById('ini-visitas').textContent = d.length ? d[d.length - 1].n : 0;
   }).catch(function () {});
+  cargarConsultas();   // refresca la tarjeta "Consultas por responder" (badgeConsultas)
 }
 
 // ---------- Chats ----------
@@ -1900,24 +2016,55 @@ function usarTpl(i) {
 }
 
 // ---------- Pedidos ----------
+var PEDIDOS = [];        // últimos pedidos cargados (para filtrar sin volver a pedir)
+var PED_FILTRO = '';     // '' = todos | nuevo | preparando | enviado | entregado | cancelado
+var PED_ESTADOS = [
+  { v: 'nuevo', eti: '🆕 Nuevos' }, { v: 'preparando', eti: '🍳 Preparando' },
+  { v: 'enviado', eti: '🚚 Enviados' }, { v: 'entregado', eti: '✅ Entregados' },
+  { v: 'cancelado', eti: '✖ Cancelados' },
+];
 function cargarPedidos() {
   api('pedidos').then(function (j) {
-    var ps = j.pedidos || [];
-    var nuevos = ps.filter(function (p) { return p.estado === 'nuevo'; }).length;
+    PEDIDOS = j.pedidos || [];
+    var nuevos = PEDIDOS.filter(function (p) { return p.estado === 'nuevo'; }).length;
     var badge = document.getElementById('badge-pedidos');
     badge.style.display = nuevos ? 'inline' : 'none';
     badge.textContent = nuevos;
-    document.getElementById('pedidos-vacio').style.display = ps.length ? 'none' : 'block';
-    document.getElementById('tabla-pedidos').innerHTML = ps.map(function (p) {
-      var items = (p.items || []).map(function (i) { return i.qty + ' × ' + esc(i.name); }).join('<br>');
-      return '<tr><td class="td-meta">' + hora(p.ts) + '</td><td class="td-nombre"><b>' + esc(p.nombre) + '</b></td><td>' + items + '</td>' +
-        '<td data-e="Total">S/ ' + (p.total || 0) + '</td><td data-e="Entrega">' + esc(p.direccion || '—') + '</td>' +
-        '<td data-e="Estado"><select onchange="estadoPedido(\'' + p.id + '\', this.value)">' +
-        ['nuevo', 'preparando', 'enviado', 'entregado', 'cancelado'].map(function (e) {
-          return '<option' + (p.estado === e ? ' selected' : '') + '>' + e + '</option>';
-        }).join('') + '</select></td></tr>';
-    }).join('');
+    pintarPedidos();
   }).catch(function () {});
+}
+function filtrarPedidos(v) { PED_FILTRO = v; pintarPedidos(); }
+function pintarPedidos() {
+  // Chips de filtro con el conteo de cada estado (solo se pintan los estados que existen)
+  var conteo = {};
+  PEDIDOS.forEach(function (p) { var e = p.estado || 'nuevo'; conteo[e] = (conteo[e] || 0) + 1; });
+  document.getElementById('ped-filtros').innerHTML =
+    '<button class="' + (PED_FILTRO === '' ? 'activa' : '') + '" onclick="filtrarPedidos(\'\')">📋 Todos (' + PEDIDOS.length + ')</button>' +
+    PED_ESTADOS.map(function (e) {
+      if (!conteo[e.v]) return '';
+      return '<button class="' + (PED_FILTRO === e.v ? 'activa' : '') + '" onclick="filtrarPedidos(\'' + e.v + '\')">' + e.eti + ' (' + conteo[e.v] + ')</button>';
+    }).join('');
+  var ps = PEDIDOS.filter(function (p) { return !PED_FILTRO || (p.estado || 'nuevo') === PED_FILTRO; });
+  // Resumen de lo que se está viendo: cuántos pedidos y cuánta plata suman
+  var total = 0;
+  ps.forEach(function (p) { total += Number(p.total) || 0; });
+  var res = document.getElementById('ped-resumen');
+  res.style.display = ps.length ? '' : 'none';
+  res.innerHTML = 'Mostrando <b>' + ps.length + '</b> pedido' + (ps.length === 1 ? '' : 's') + ' · en total <b>S/ ' + Math.round(total * 100) / 100 + '</b>';
+  var vacio = document.getElementById('pedidos-vacio');
+  vacio.style.display = ps.length ? 'none' : 'block';
+  vacio.innerHTML = PEDIDOS.length
+    ? 'No hay pedidos en ese estado ahora mismo.'
+    : 'Aún no hay pedidos desde la web.<br>Cuando alguien use el carrito 🛒 del sitio, aparecerá aquí.';
+  document.getElementById('tabla-pedidos').innerHTML = ps.map(function (p) {
+    var items = (p.items || []).map(function (i) { return i.qty + ' × ' + esc(i.name); }).join('<br>');
+    return '<tr><td class="td-meta">' + hora(p.ts) + '</td><td class="td-nombre"><b>' + esc(p.nombre) + '</b></td><td>' + items + '</td>' +
+      '<td data-e="Total">S/ ' + (p.total || 0) + '</td><td data-e="Entrega">' + esc(p.direccion || '—') + '</td>' +
+      '<td data-e="Estado"><select onchange="estadoPedido(\'' + p.id + '\', this.value)">' +
+      ['nuevo', 'preparando', 'enviado', 'entregado', 'cancelado'].map(function (e) {
+        return '<option' + (p.estado === e ? ' selected' : '') + '>' + e + '</option>';
+      }).join('') + '</select></td></tr>';
+  }).join('');
 }
 function estadoPedido(id, estado) { api('pedidoestado', { id: id, estado: estado }).then(cargarPedidos); }
 
@@ -1930,6 +2077,12 @@ function badgeConsultas() {
     var b = document.getElementById(id);
     if (b) { b.style.display = n ? 'inline' : 'none'; b.textContent = n; }
   });
+  // Cada sub-pestaña muestra SU pendiente, y la tarjeta de Inicio el total
+  var bc = document.getElementById('nqs-chat'), bq = document.getElementById('nqs-club');
+  if (bc) { bc.style.display = N_CONSULTAS ? '' : 'none'; bc.textContent = N_CONSULTAS; }
+  if (bq) { bq.style.display = N_PREGUNTAS ? '' : 'none'; bq.textContent = N_PREGUNTAS; }
+  var ini = document.getElementById('ini-consultas');
+  if (ini) ini.textContent = n;
 }
 function cargarConsultas() {
   api('consultas').then(function (j) {
@@ -2185,6 +2338,9 @@ function limpiarProdForm() {
 function pintarExtras() {
   var cont = document.getElementById('pr-extras');
   if (!cont) return;
+  // La sub-pestaña ➕ muestra cuántos productos subidos hay
+  var bx = document.getElementById('npr-extras');
+  if (bx) { bx.style.display = EXTRAS.length ? '' : 'none'; bx.textContent = EXTRAS.length; }
   if (!EXTRAS.length) { cont.innerHTML = ''; return; }
   var C = window.ARAKAKI_CATALOG || { categories: {} };
   cont.innerHTML = '<div style="font-size:12.5px;font-weight:700;color:var(--label);margin-bottom:8px">🆕 Productos subidos desde el panel (' + EXTRAS.length + ')</div>' +
@@ -2304,7 +2460,7 @@ function agregarPromoClub() {
   CLUB_CFG.promos = leerPromosClubDOM();
   CLUB_CFG.promos.push({ id: '', titulo: '', texto: '', hasta: null });
   pintarPromosClub();
-  marcarSucio('club');
+  marcarSucio('clubpromos');
 }
 function quitarPromoClub(i) {
   var p = leerPromosClubDOM()[i];
@@ -2315,7 +2471,7 @@ function quitarPromoClub(i) {
     CLUB_CFG.promos = leerPromosClubDOM();
     CLUB_CFG.promos.splice(i, 1);
     pintarPromosClub();
-    marcarSucio('club');
+    marcarSucio('clubpromos');
   });
 }
 function pintarCuponesClub() {
@@ -2354,7 +2510,7 @@ function agregarCuponClub() {
   CLUB_CFG.cupones = leerCuponesClubDOM();
   CLUB_CFG.cupones.push({ id: '', titulo: '', codigo: '', imagen: '', hasta: null });
   pintarCuponesClub();
-  marcarSucio('club');
+  marcarSucio('clubcupones');
 }
 function quitarCuponClub(i) {
   var c = leerCuponesClubDOM()[i];
@@ -2365,7 +2521,7 @@ function quitarCuponClub(i) {
     CLUB_CFG.cupones = leerCuponesClubDOM();
     CLUB_CFG.cupones.splice(i, 1);
     pintarCuponesClub();
-    marcarSucio('club');
+    marcarSucio('clubcupones');
   });
 }
 // Subir la imagen del cupón desde el dispositivo: se reescala/comprime EN el navegador (máx 1200px,
@@ -2434,7 +2590,7 @@ function agregarSorteoClub() {
   CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
   CLUB_CFG.sorteos.push({ id: '', titulo: '', premio: '', hasta: null, activo: true });
   pintarSorteosClub();
-  marcarSucio('club');
+  marcarSucio('clubsorteos');
 }
 function quitarSorteoClub(i) {
   var s = leerSorteosClubDOM()[i];
@@ -2447,7 +2603,7 @@ function quitarSorteoClub(i) {
     CLUB_CFG.sorteos = sorteosConConteo(leerSorteosClubDOM());
     CLUB_CFG.sorteos.splice(i, 1);
     pintarSorteosClub();
-    marcarSucio('club');
+    marcarSucio('clubsorteos');
   });
 }
 // Conserva el nº de participantes que ya conocíamos (getclub) al releer del DOM
@@ -2457,8 +2613,15 @@ function sorteosConConteo(lista) {
   lista.forEach(function (s) { if (s.id) s.participantes = previos[s.id] || 0; });
   return lista;
 }
-function guardarClub() {
+// El Club se guarda ENTERO en un solo setclub (funciones + promos + cupones + sorteos),
+// así que cualquier 💾 del Club manda todo y limpia el ● de las 4 sub-pestañas.
+function guardarClubFunciones() { guardarClub('club'); }
+function guardarClubPromos() { guardarClub('clubpromos'); }
+function guardarClubCupones() { guardarClub('clubcupones'); }
+function guardarClubSorteos() { guardarClub('clubsorteos'); }
+function guardarClub(clave) {
   if (!CLUB_CFG) return;
+  clave = clave || 'club';
   var club = {
     login: document.getElementById('club-login').checked,
     favoritos: document.getElementById('club-favoritos').checked,
@@ -2479,8 +2642,9 @@ function guardarClub() {
     previos.forEach(function (s) { if (s.id) mapa[s.id] = s.participantes || 0; });
     (CLUB_CFG.sorteos || []).forEach(function (s) { s.participantes = mapa[s.id] || 0; });
     pintarClubCfg();
-    okGuardado('club', 'Club guardado. Se ve en la web en ~1 minuto.');
-  }).catch(function (e) { errGuardado('club', e); });
+    ['club', 'clubpromos', 'clubcupones', 'clubsorteos'].forEach(function (k) { if (k !== clave) limpiarSucio(k); });
+    okGuardado(clave, 'Club guardado. Se ve en la web en ~1 minuto.');
+  }).catch(function (e) { errGuardado(clave, e); });
 }
 function verParticipantes(id) {
   api('sorteoinfo', { id: id }).then(function (j) {
@@ -2580,25 +2744,167 @@ function borrarCliente(t) {
   });
 }
 
-// ---------- Analíticas ----------
-function cargarStats() {
-  api('stats').then(function (j) {
-    var daily = j.daily || [];
-    var max = 1;
-    daily.forEach(function (d) { if (d.n > max) max = d.n; });
-    document.getElementById('st-daily').innerHTML = daily.map(function (d) {
-      return '<div class="col"><div class="b" style="height:' + Math.round(d.n / max * 100) + '%"></div>' +
-        '<span>' + d.day.slice(8) + '/' + d.day.slice(5, 7) + '</span><span><b>' + d.n + '</b></span></div>';
-    }).join('');
-    function filas(obj) {
-      var arr = Object.keys(obj || {}).map(function (k) { return [k, obj[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 12);
-      if (!arr.length) return '<p style="color:#888;font-size:13px">Sin datos aún.</p>';
-      return arr.map(function (x) { return '<div class="stat-fila"><span>' + esc(x[0]) + '</span><b>' + x[1] + '</b></div>'; }).join('');
-    }
-    document.getElementById('st-eventos').innerHTML = filas(j.events);
-    document.getElementById('st-paginas').innerHTML = filas(j.pages);
-    document.getElementById('st-refs').innerHTML = filas(j.refs);
-  }).catch(function (e) { alert(e.message); });
+// ---------- Analíticas (dashboard) ----------
+var STATS_DIAS = 7;   // rango elegido con los chips de arriba (7/14/30 días)
+function fmtN(n) { return (Number(n) || 0).toLocaleString('es-PE'); }
+function diaCorto(d) { return d.slice(8) + '/' + d.slice(5, 7); }   // 'YYYY-MM-DD' → 'dd/mm'
+function sumaSerie(s) { var t = 0; (s || []).forEach(function (x) { t += Number(x.n) || 0; }); return t; }
+// Variación vs el período anterior de la misma duración (▲ verde sube, ▼ rojo baja)
+function deltaHTML(cur, prev) {
+  if (!prev) return '<div class="k-delta">' + (cur ? '▲ nuevo (antes no había)' : 'sin datos previos') + '</div>';
+  var pct = Math.round((cur - prev) / prev * 100);
+  if (!pct) return '<div class="k-delta">= igual que el período anterior</div>';
+  return pct > 0
+    ? '<div class="k-delta sube">▲ ' + pct + '% vs período anterior</div>'
+    : '<div class="k-delta baja">▼ ' + Math.abs(pct) + '% vs período anterior</div>';
+}
+// Gráfico de línea con área (SVG puro, sin librerías) para las visitas por día
+function graficoLineaSVG(serie, unidad) {
+  if (!serie || !serie.length) return '<p style="color:var(--sub);font-size:13px">Sin datos aún.</p>';
+  var W = 640, H = 210, L = 42, R = 12, T = 14, B = 26;
+  var max = 1;
+  serie.forEach(function (p) { if (p.n > max) max = p.n; });
+  var pot = Math.pow(10, String(Math.floor(max)).length - 1);
+  var paso = Math.max(1, pot / 2);
+  var techo = Math.ceil(max / paso) * paso;   // techo "redondo" del eje Y
+  var n = serie.length;
+  var dx = (W - L - R) / Math.max(1, n - 1);
+  function px(i) { return n === 1 ? L + (W - L - R) / 2 : L + i * dx; }
+  function py(v) { return T + (1 - v / techo) * (H - T - B); }
+  var grid = [0, 0.5, 1].map(function (f) {
+    var y = T + f * (H - T - B);
+    return '<line x1="' + L + '" y1="' + y + '" x2="' + (W - R) + '" y2="' + y + '" stroke="var(--borde)" stroke-width="1"/>' +
+      '<text x="' + (L - 6) + '" y="' + (y + 3.5) + '" text-anchor="end" font-size="10" fill="var(--sub)">' + fmtN(Math.round(techo * (1 - f))) + '</text>';
+  }).join('');
+  var puntos = serie.map(function (p, i) { return px(i).toFixed(1) + ',' + py(p.n).toFixed(1); }).join(' ');
+  var area = 'M' + px(0).toFixed(1) + ',' + py(0).toFixed(1) + ' L' + puntos.split(' ').join(' L') + ' L' + px(n - 1).toFixed(1) + ',' + py(0).toFixed(1) + ' Z';
+  var cadaEt = Math.ceil(n / 8);   // con 30 días no entran todas las fechas: se salta de a varias
+  var etiquetas = serie.map(function (p, i) {
+    if (i % cadaEt !== 0 && i !== n - 1) return '';
+    return '<text x="' + px(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9.5" fill="var(--sub)">' + diaCorto(p.day) + '</text>';
+  }).join('');
+  var circulos = serie.map(function (p, i) {
+    return '<circle cx="' + px(i).toFixed(1) + '" cy="' + py(p.n).toFixed(1) + '" r="' + (n > 14 ? 2.5 : 3.5) + '" fill="var(--dorado2)"><title>' + diaCorto(p.day) + ': ' + fmtN(p.n) + ' ' + unidad + '</title></circle>';
+  }).join('');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img">' + grid +
+    '<path d="' + area + '" fill="var(--dorado)" fill-opacity="0.16"/>' +
+    '<polyline points="' + puntos + '" fill="none" stroke="var(--dorado2)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+    circulos + etiquetas + '</svg>';
+}
+// Barras verticales por día (pedidos): mismas .barras de siempre, con etiquetas salteadas si son muchas
+function barrasDiaHTML(serie) {
+  if (!serie || !serie.length) return '<p style="color:var(--sub);font-size:13px">Sin datos aún.</p>';
+  var max = 1;
+  serie.forEach(function (d) { if (d.n > max) max = d.n; });
+  var cadaEt = Math.ceil(serie.length / 8);
+  return serie.map(function (d, i) {
+    // Con muchas columnas la etiqueta es solo el día ('17'): la fecha completa va en el title
+    var eti = (i % cadaEt === 0 || i === serie.length - 1) ? (serie.length > 14 ? d.day.slice(8) : diaCorto(d.day)) : '';
+    return '<div class="col" title="' + diaCorto(d.day) + ': ' + fmtN(d.n) + '"><div class="b" style="height:' + Math.round(d.n / max * 100) + '%"></div>' +
+      '<span>' + eti + '</span>' + (serie.length <= 14 && d.n ? '<span><b>' + d.n + '</b></span>' : '') + '</div>';
+  }).join('');
+}
+// Barras horizontales (páginas, orígenes, eventos): etiqueta + barra proporcional + número
+function hbarsHTML(pares, max) {
+  if (!pares.length) return '<p style="color:var(--sub);font-size:13px">Sin datos aún.</p>';
+  if (!max) { max = 1; pares.forEach(function (p) { if (p[1] > max) max = p[1]; }); }
+  return pares.map(function (p) {
+    return '<div class="hbar-fila' + (p[2] ? ' ' + p[2] : '') + '"><span class="h-eti" title="' + esc(p[0]) + '">' + esc(p[0]) + '</span>' +
+      '<span class="h-track"><i style="width:' + Math.max(1, Math.round(p[1] / max * 100)) + '%"></i></span>' +
+      '<span class="h-num">' + fmtN(p[1]) + '</span></div>';
+  }).join('');
+}
+// Nombres humanos para páginas y orígenes (nada de rutas crudas para el dueño)
+function nombrePagina(p) {
+  if (p === '/' || p === '/index') return '🏠 Portada';
+  if (p === '/mi-cuenta') return '👤 Mi cuenta (Club)';
+  if (p === '/panel') return '🔒 Panel (tú)';
+  var C = window.ARAKAKI_CATALOG;
+  var c = C && C.categories && C.categories[p.replace(/^\//, '')];
+  return c ? c.emoji + ' ' + c.title : p;
+}
+function nombreRef(r) {
+  if (r === 'directo') return '🔗 Directo';
+  if (/instagram/.test(r)) return '📸 Instagram';
+  if (/facebook|^fb\.|^m\.facebook/.test(r)) return '📘 Facebook';
+  if (/whatsapp|^wa\./.test(r)) return '💬 WhatsApp';
+  if (/google/.test(r)) return '🔍 Google';
+  if (/tiktok/.test(r)) return '🎵 TikTok';
+  if (/youtube|youtu\.be/.test(r)) return '▶️ YouTube';
+  return '🌐 ' + r;
+}
+// Qué es cada evento, agrupado y en cristiano (los nombres técnicos vienen de track.js / las APIs)
+var EV_GRUPOS = [
+  { tit: '🛒 Ventas y contacto', evs: [['pedido_enviado', 'Pedidos enviados desde el carrito'], ['whatsapp_click', 'Toques al botón de WhatsApp'], ['llamada_click', 'Toques para llamar'], ['chatweb_pedido', 'Pedidos cerrados por el chat']] },
+  { tit: '💬 Chat de la web', evs: [['chatweb_abierto', 'Veces que abrieron el chat'], ['chatweb_msg', 'Mensajes conversados'], ['chatweb_suscriptor', 'Suscriptores captados'], ['chatweb_consulta', 'Preguntas que el bot no supo']] },
+  { tit: '📤 Compartir productos', evs: [['compartir_chat', 'Compartidos por chat de WhatsApp'], ['compartir_estado', 'Imágenes para estados creadas'], ['compartir_link', 'Enlaces copiados']] },
+  { tit: '👥 Club', evs: [['club_cuenta', 'Cuentas creadas'], ['club_login', 'Inicios de sesión'], ['club_sorteo', 'Participaciones en sorteos'], ['club_pregunta', 'Preguntas al negocio'], ['club_recupero', 'PIN recuperados']] },
+  { tit: '🧩 Combos (venta cruzada)', evs: [['comple_elegir', 'Complemento elegido en la página'], ['comple_carrito', 'Toque final añadido en el carrito']] },
+  { tit: '🔔 Avisos', evs: [['push_enviados', 'Notificaciones push enviadas'], ['push_click', 'Notificaciones abiertas'], ['correo_enviados', 'Correos de promo enviados']] },
+];
+var EV_OCULTOS = ['pageview', 'club_cuenta_creada'];   // pageview ya es "Visitas"; club_cuenta_creada duplica club_cuenta
+function eventosHTML(events) {
+  events = events || {};
+  var usados = {}, html = '';
+  EV_GRUPOS.forEach(function (g) {
+    var pares = [];
+    g.evs.forEach(function (e) {
+      usados[e[0]] = true;
+      if (events[e[0]]) pares.push([e[1], events[e[0]]]);
+    });
+    if (pares.length) html += '<div class="ev-grupo"><div class="ev-tit">' + g.tit + '</div>' + hbarsHTML(pares) + '</div>';
+  });
+  var otros = [];
+  Object.keys(events).forEach(function (k) {
+    if (!usados[k] && EV_OCULTOS.indexOf(k) < 0 && events[k]) otros.push([k, events[k]]);
+  });
+  otros.sort(function (a, b) { return b[1] - a[1]; });
+  if (otros.length) html += '<div class="ev-grupo"><div class="ev-tit">🧾 Otros</div>' + hbarsHTML(otros.slice(0, 8)) + '</div>';
+  return html || '<p style="color:var(--sub);font-size:13px">Sin datos aún: llegan solos conforme la gente use la web.</p>';
+}
+function cargarStats(dias) {
+  if (dias) STATS_DIAS = dias;
+  var botones = document.querySelectorAll('#st-rango button');
+  for (var i = 0; i < botones.length; i++) botones[i].classList.toggle('activa', parseInt(botones[i].textContent, 10) === STATS_DIAS);
+  api('stats', { dias: STATS_DIAS }).then(pintarStats)
+    .catch(function (e) { document.getElementById('st-kpis').innerHTML = '<p style="color:var(--sub);font-size:13px">' + esc(e.message) + '</p>'; });
+}
+function pintarStats(j) {
+  var s = j.series || {}, prev = j.prev || {};
+  var sPage = s.pageview || j.daily || [];
+  var visitas = sumaSerie(sPage);
+  var pedidos = sumaSerie(s.pedido_enviado);
+  var contacto = sumaSerie(s.whatsapp_click) + sumaSerie(s.llamada_click) + sumaSerie(s.chatweb_abierto);
+  var contactoPrev = (prev.whatsapp_click || 0) + (prev.llamada_click || 0) + (prev.chatweb_abierto || 0);
+  var conv = visitas ? Math.round(pedidos / visitas * 1000) / 10 : 0;
+  var rango = 'últimos ' + STATS_DIAS + ' días';
+  document.getElementById('st-kpis').innerHTML =
+    '<div class="kpi"><div class="k-eti">👀 Visitas · ' + rango + '</div><div class="k-num">' + fmtN(visitas) + '</div>' + deltaHTML(visitas, prev.pageview) + '</div>' +
+    '<div class="kpi"><div class="k-eti">🛒 Pedidos web · ' + rango + '</div><div class="k-num">' + fmtN(pedidos) + '</div>' + deltaHTML(pedidos, prev.pedido_enviado) + '</div>' +
+    '<div class="kpi"><div class="k-eti">💬 Conversaciones iniciadas</div><div class="k-num">' + fmtN(contacto) + '</div>' + deltaHTML(contacto, contactoPrev) + '</div>' +
+    '<div class="kpi"><div class="k-eti">🎯 Conversión a pedido</div><div class="k-num">' + conv + '%</div><div class="k-delta">' +
+      (pedidos ? 'de cada 100 visitas, ' + (Math.round(conv) >= 1 ? Math.round(conv) + (Math.round(conv) === 1 ? ' termina' : ' terminan') : 'menos de 1 termina') + ' pidiendo' : 'aún sin pedidos en este período') + '</div></div>';
+  document.getElementById('st-daily-tit').textContent = '📈 Visitas por día · ' + rango;
+  document.getElementById('st-daily').innerHTML = graficoLineaSVG(sPage, 'visitas');
+  document.getElementById('st-pedidos-tit').textContent = '🛒 Pedidos por día · ' + rango;
+  document.getElementById('st-pedidos-dia').innerHTML = barrasDiaHTML(s.pedido_enviado || []);
+  // Embudo del período: entran → conversan → piden
+  var pct = function (n) { return visitas ? Math.round(n / visitas * 1000) / 10 : 0; };
+  document.getElementById('st-funnel').innerHTML = hbarsHTML([
+    ['👀 Entran a la web', visitas],
+    ['💬 Conversan o tocan WhatsApp', contacto],
+    ['🛒 Envían un pedido', pedidos, 'verde'],
+  ], visitas || 1);
+  document.getElementById('st-funnel-nota').textContent = visitas
+    ? 'En los ' + rango + ': de cada 100 visitas, ' + Math.round(pct(contacto)) + ' conversan contigo y ' + pct(pedidos) + ' envían pedido.'
+    : 'Todavía no hay visitas en este período.';
+  var topPag = Object.keys(j.pages || {}).map(function (k) { return [nombrePagina(k), j.pages[k]]; })
+    .sort(function (a, b) { return b[1] - a[1]; }).slice(0, 10);
+  document.getElementById('st-paginas').innerHTML = hbarsHTML(topPag);
+  var topRef = Object.keys(j.refs || {}).map(function (k) { return [nombreRef(k), j.refs[k]]; })
+    .sort(function (a, b) { return b[1] - a[1]; }).slice(0, 10);
+  document.getElementById('st-refs').innerHTML = hbarsHTML(topRef);
+  document.getElementById('st-eventos').innerHTML = eventosHTML(j.events);
 }
 
 // ---------- Bot ----------

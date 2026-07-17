@@ -111,6 +111,58 @@ http.createServer((req, res) => {
       const conToken = (req.url || '').indexOf('token=') >= 0;
       return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true }));
     }
+    // Stub del CRM del panel: datos de MUESTRA para ver /panel en local con cualquier contraseña
+    // (el CRM real corre en Vercel con Redis). Cubre las vistas con datos: pedidos, consultas,
+    // clientes, club, precios y las analíticas con series diarias.
+    if (url === '/api/crm' && req.method === 'POST') {
+      let cuerpo = '';
+      req.on('data', (c) => { cuerpo += c; });
+      req.on('end', () => {
+        let b = {};
+        try { b = JSON.parse(cuerpo) || {}; } catch (e) {}
+        const dia = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+        const serie = (arr) => arr.map((n, i) => ({ day: dia(arr.length - 1 - i), n }));
+        const dias = [7, 14, 30].includes(Number(b.dias)) ? Number(b.dias) : 7;
+        const pv = Array.from({ length: dias }, (_, i) => 18 + ((i * 7) % 23) + (i === dias - 1 ? 14 : 0));
+        const pd = Array.from({ length: dias }, (_, i) => (i * 3) % 4 === 0 ? 2 : (i % 3 === 0 ? 1 : 0));
+        const wa = pv.map((n) => Math.round(n / 4));
+        const R = {
+          stats: {
+            dias,
+            daily: serie(pv),
+            series: { pageview: serie(pv), pedido_enviado: serie(pd), whatsapp_click: serie(wa), llamada_click: serie(pd), chatweb_abierto: serie(pd.map((n) => n + 1)) },
+            prev: { pageview: Math.round(pv.reduce((a, c) => a + c, 0) * 0.8), pedido_enviado: 3, whatsapp_click: 30, llamada_click: 2, chatweb_abierto: 9 },
+            events: { pageview: 999, pedido_enviado: 21, whatsapp_click: 140, llamada_click: 6, chatweb_abierto: 33, chatweb_msg: 88, chatweb_suscriptor: 7, chatweb_consulta: 4, compartir_chat: 12, compartir_estado: 5, compartir_link: 3, club_cuenta: 9, club_login: 25, club_sorteo: 11, comple_elegir: 8, comple_carrito: 5, push_enviados: 60, push_click: 14, evento_raro: 2 },
+            pages: { '/': 320, '/pisco': 120, '/vinos': 95, '/cervezas': 70, '/mi-cuenta': 22 },
+            refs: { directo: 220, 'instagram.com': 90, 'facebook.com': 45, 'google.com': 30, 'otroblog.pe': 4 },
+          },
+          pedidos: { pedidos: [
+            { id: 'p1', nombre: 'Rosa Quispe', direccion: 'Av. Aviación 123', items: [{ qty: 2, name: 'Cerveza Cusqueña Dorada x 620 ml' }], total: 24, ts: Date.now() - 3600000, estado: 'nuevo' },
+            { id: 'p2', nombre: 'Juan Pérez', direccion: 'Calle Los Pinos 456', items: [{ qty: 1, name: 'Pisco Porton Mosto Verde Acholado x 750 ml' }], total: 105, ts: Date.now() - 86400000, estado: 'preparando' },
+            { id: 'p3', nombre: 'María Torres', direccion: 'Jr. Unión 789', items: [{ qty: 3, name: 'Ginger Ale Canada Dry x 355 ml' }], total: 15, ts: Date.now() - 2 * 86400000, estado: 'entregado' },
+          ] },
+          consultas: { consultas: [{ id: 'c1', producto: 'Whisky 18 años', pregunta: '¿Tienen whisky de 18 años?', ts: Date.now() - 7200000 }] },
+          preguntas: { preguntas: [
+            { id: 'q1', tel: '51999999999', nombre: 'Rosa Quispe', pregunta: '¿Hacen delivery los domingos?', ts: Date.now() - 3600000 },
+            { id: 'q2', tel: '51988888888', nombre: 'Juan Pérez', pregunta: '¿Aceptan Yape?', ts: Date.now() - 86400000, respuesta: '¡Sí! Yape y Plin 🙌', respTs: Date.now() - 4000000 },
+          ] },
+          clientes: { clientes: [
+            { id: '51999999999', telefono: '51999999999', nombre: 'Rosa Quispe', creado: Date.now() - 30 * 86400000, pedidos: 5, puntos: 120, gastoTotal: 260, ultimaVisita: Date.now() - 3600000, ultimoPedido: Date.now() - 3600000, tienePin: true, email: 'rosa@correo.com', top: [{ nombre: 'Cerveza Cusqueña Dorada x 620 ml', veces: 4 }] },
+            { id: '51988888888', telefono: '51988888888', nombre: 'Juan Pérez', creado: Date.now() - 10 * 86400000, pedidos: 1, puntos: 0, gastoTotal: 105, ultimoPedido: Date.now() - 86400000, tienePin: false },
+          ] },
+          getclub: {
+            club: { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 },
+            promos: [{ id: 'pr1', titulo: '🍦 2x1 en helados para el Club', texto: 'Muestra tu cuenta en caja', hasta: null }],
+            cupones: [],
+            sorteos: [{ id: 'so1', titulo: '🎆 Sorteo Fiestas Patrias', premio: 'Canasta Arakaki', hasta: null, activo: true, participantes: 11 }],
+          },
+          getprecios: { p: { 'pisco|Pisco Ocucaje Acholado x 700 ml': '48' }, s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' }, x: [] },
+          list: { leads: [{ phone: '51999999999', name: 'Rosa Quispe', status: 'interesado', lastText: '¿Tienen pisco quebranta?', lastRole: 'user', updatedAt: Date.now() - 1800000, lastUserTs: Date.now() - 1800000, tags: [] }] },
+        };
+        res.end(JSON.stringify(R[b.action] || { ok: true, stub: true }));
+      });
+      return;
+    }
     return res.end('{"ok":true,"stub":true}');
   }
   let archivo = url === '/' ? '/index.html' : url;
