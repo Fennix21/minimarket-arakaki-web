@@ -359,7 +359,7 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .cared-prev .pv-enviar { display:block; width:100%; margin-top:12px; background:#25a35a; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:800; text-align:center; }
 .cared-prev-box.brillo::after { content:''; position:absolute; top:0; bottom:0; left:0; width:40%; pointer-events:none;
   background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.15) 40%, rgba(255,255,255,.55) 50%, rgba(255,255,255,.15) 60%, rgba(255,255,255,0) 100%);
-  transform:translateX(-160%) skewX(-20deg); animation:car-comple-brillo 5.5s cubic-bezier(.4,0,.2,1) infinite; }
+  transform:translateX(-160%) skewX(-20deg); animation:car-comple-brillo var(--cared-brillo-dur, 5s) cubic-bezier(.4,0,.2,1) infinite; }
 @keyframes car-comple-brillo { 0%{transform:translateX(-160%) skewX(-20deg);} 55%{transform:translateX(360%) skewX(-20deg);} 100%{transform:translateX(360%) skewX(-20deg);} }
 .cared-2col { display:grid; grid-template-columns:1fr 300px; gap:16px; align-items:start; }
 .cared-prev-wrap { position:sticky; top:8px; }
@@ -1323,6 +1323,8 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
             <b>🎬 Efectos premium</b>
             <label class="cared-fx"><input type="checkbox" id="car-fx-typing" onchange="carSetFx('typing',this.checked)"> <span><b>⌨️ Máquina de escribir</b> en el título “El toque final”: se escribe solo, letra por letra, cada vez que aparece.</span></label>
             <label class="cared-fx"><input type="checkbox" id="car-fx-brillo" onchange="carSetFx('brillo',this.checked)"> <span><b>✨ Brillo premium</b>: una luz recorre el recuadro dorado de izquierda a derecha, como la barra de arriba de la web.</span></label>
+            <div class="cared-tam" id="car-brillo-seg-row" style="margin-top:2px"><span class="et">↔ Velocidad del brillo</span><input type="range" id="car-brillo-seg" min="2" max="15" step="1" oninput="carSetBrilloSeg(this.value)"><span class="cared-val" id="car-brillo-seg-v">5 s</span></div>
+            <div class="hint" style="margin-top:2px">Segundos que tarda la luz en dar una vuelta. Menos = más rápido. Recomendado: 5 s.</div>
           </div>
         </div>
         <div class="cared-prev-wrap">
@@ -3329,7 +3331,7 @@ var CAR_TXT_CAMPOS = ['titulo', 'nota', 'toqueTit', 'sumar', 'enviar', 'ver'];
 var CAR_TAM_CAMPOS = ['titulo', 'nota', 'toqueTit', 'item', 'sumar', 'total', 'enviar'];
 function carEdVacio() {
   var tam = {}; CAR_TAM_CAMPOS.forEach(function (c) { tam[c] = 1; });
-  return { txt: {}, tam: tam, toqueBg: { t: '' }, btnSumar: { t: '' }, toqueTitCol: '', btnSumarTxt: '', fx: { typing: false, brillo: false } };
+  return { txt: {}, tam: tam, toqueBg: { t: '' }, btnSumar: { t: '' }, toqueTitCol: '', btnSumarTxt: '', fx: { typing: false, brillo: false, brilloSeg: 5 } };
 }
 function carGradModel(id) { return id === 'toque' ? 'toqueBg' : 'btnSumar'; }
 function carGradHTML(id) {
@@ -3385,6 +3387,12 @@ function carColReset(campo) {
   marcarSucio('carrito'); pintarCarPrev();
 }
 function carSetFx(campo, on) { (CARED.fx = CARED.fx || {})[campo] = !!on; pintarCarPrev(campo === 'typing' && on); }
+function carSetBrilloSeg(val) {
+  var s = Math.max(2, Math.min(15, parseInt(val, 10) || 5));
+  (CARED.fx = CARED.fx || {}).brilloSeg = s;
+  var v = document.getElementById('car-brillo-seg-v'); if (v) v.textContent = s + ' s';
+  pintarCarPrev();
+}
 // Vista previa viva (así lo ve el cliente: modal blanco + caja dorada, sin importar el tema del panel)
 var carPrevTimer = null, carPrevLastTit = null;
 function carPrevType(el, texto, forzar) {
@@ -3409,7 +3417,7 @@ function pintarCarPrev(forzarType) {
     '<div class="pv-tit" style="font-size:' + s(19, 'titulo') + '">' + esc(t.titulo || '🛒 Tu pedido') + '</div>' +
     '<div class="pv-nota" style="font-size:' + s(13, 'nota') + '">' + esc(t.nota || 'Delivery gratis llegando a un monto mínimo · Pago contra entrega o Yape/Plin') + '</div>' +
     '<div class="pv-line"><span>Marqués de Riscal Sauvignon Blanc x 750 ml</span><span>S/ 79</span></div>' +
-    '<div class="cared-prev-box' + (CARED.fx.brillo ? ' brillo' : '') + '" style="background:' + toqueBg + '">' +
+    '<div class="cared-prev-box' + (CARED.fx.brillo ? ' brillo' : '') + '" style="background:' + toqueBg + ';--cared-brillo-dur:' + (CARED.fx.brilloSeg || 5) + 's">' +
       '<div class="cared-prev-tit" style="color:' + titCol + ';font-size:' + s(12.5, 'toqueTit') + '"></div>' +
       '<div class="cared-prev-item">' +
         '<div class="pp-img"></div>' +
@@ -3434,6 +3442,9 @@ function pintarCarEd() {
   document.getElementById('car-col-sumar').value = CARED.btnSumarTxt || '#4a0c10';
   document.getElementById('car-fx-typing').checked = !!CARED.fx.typing;
   document.getElementById('car-fx-brillo').checked = !!CARED.fx.brillo;
+  var bseg = CARED.fx.brilloSeg || 5;
+  document.getElementById('car-brillo-seg').value = bseg;
+  document.getElementById('car-brillo-seg-v').textContent = bseg + ' s';
   document.getElementById('car-bg-toque').innerHTML = carGradHTML('toque');
   document.getElementById('car-bg-sumar').innerHTML = carGradHTML('sumar');
   carGradFila('toque'); carGradFila('sumar'); // refresca campos visibles + vista previa
@@ -3450,7 +3461,8 @@ function cargarCarEd() {
     CARED.btnSumar = model(k.btnSumar);
     CARED.toqueTitCol = k.toqueTitCol || '';
     CARED.btnSumarTxt = k.btnSumarTxt || '';
-    CARED.fx = { typing: !!(k.fx && k.fx.typing), brillo: !!(k.fx && k.fx.brillo) };
+    var bs = Number(k.fx && k.fx.brilloSeg);
+    CARED.fx = { typing: !!(k.fx && k.fx.typing), brillo: !!(k.fx && k.fx.brillo), brilloSeg: (bs >= 2 && bs <= 15) ? Math.round(bs) : 5 };
     pintarCarEd();
   }).catch(function () { CARED = carEdVacio(); pintarCarEd(); });
 }
@@ -3462,7 +3474,7 @@ function guardarCarEd() {
     txt: txt, tam: tam,
     toqueBg: grad(CARED.toqueBg), btnSumar: grad(CARED.btnSumar),
     toqueTitCol: CARED.toqueTitCol || '', btnSumarTxt: CARED.btnSumarTxt || '',
-    fx: { typing: !!CARED.fx.typing, brillo: !!CARED.fx.brillo },
+    fx: { typing: !!CARED.fx.typing, brillo: !!CARED.fx.brillo, brilloSeg: CARED.fx.brilloSeg || 5 },
   }).then(function () {
     okGuardado('carrito', 'Apariencia del carrito guardada. Se ve en la web en ~1 minuto.');
     cargarCarEd();

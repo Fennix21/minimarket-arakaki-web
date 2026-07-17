@@ -878,6 +878,9 @@ module.exports = async (req, res) => {
       if (b.fx && typeof b.fx === 'object') {
         if (b.fx.typing) fx.typing = 1;
         if (b.fx.brillo) fx.brillo = 1;
+        // Velocidad del brillo: segundos por vuelta (2–15; 5 = default, no se guarda)
+        const bseg = Math.round(Number(b.fx.brilloSeg));
+        if (Number.isFinite(bseg) && bseg >= 2 && bseg <= 15 && bseg !== 5) fx.brilloSeg = bseg;
       }
       if (Object.keys(fx).length) out.fx = fx;
       if (Object.keys(out).length) await redis(['SET', 'config:carrito', JSON.stringify(out)]);

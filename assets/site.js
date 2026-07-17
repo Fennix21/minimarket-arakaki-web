@@ -213,6 +213,8 @@
       if (colorOk(k.toqueTitCol)) modal.style.setProperty('--car-toque-titcol', k.toqueTitCol); else modal.style.removeProperty('--car-toque-titcol');
       if (fondoOk(k.btnSumar)) modal.style.setProperty('--car-btn-sumar', k.btnSumar); else modal.style.removeProperty('--car-btn-sumar');
       if (colorOk(k.btnSumarTxt)) modal.style.setProperty('--car-btn-sumar-txt', k.btnSumarTxt); else modal.style.removeProperty('--car-btn-sumar-txt');
+      var bseg = Number(k.fx && k.fx.brilloSeg); // segundos por vuelta del brillo (default 5)
+      if (bseg >= 2 && bseg <= 15) modal.style.setProperty('--car-brillo-dur', bseg + 's'); else modal.style.removeProperty('--car-brillo-dur');
     }
     // Textos (vacío = default)
     var t = k.txt || {};

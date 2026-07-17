@@ -484,6 +484,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   --car-toque-bg: #fdf8ec; --car-toque-titcol: #7a5c14;
   --car-btn-sumar: linear-gradient(180deg, #f7dc8f 0%, #d4a941 60%, #b8912f 100%);
   --car-btn-sumar-txt: #4a0c10;
+  --car-brillo-dur: 5s; /* duración de una vuelta del brillo premium (editable en el panel) */
 }
 @media (min-width: 600px) { #carrito-modal-fondo { align-items: center; } #carrito-modal { border-radius: 18px; } }
 #carrito-modal h3 { font-size: calc(19px * var(--car-esc-tit)); margin-bottom: 4px; }
@@ -589,7 +590,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
     rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 40%,
     rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.15) 60%, rgba(255,255,255,0) 100%);
   transform: translateX(-160%) skewX(-20deg);
-  animation: car-comple-brillo 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: car-comple-brillo var(--car-brillo-dur, 5s) cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 @keyframes car-comple-brillo {
   0% { transform: translateX(-160%) skewX(-20deg); }
