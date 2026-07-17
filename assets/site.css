@@ -586,9 +586,10 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 #car-comple.brillo::after {
   content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
   pointer-events: none; z-index: 2;
-  background: linear-gradient(100deg,
-    rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 40%,
-    rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.15) 60%, rgba(255,255,255,0) 100%);
+  /* Barrido dorado por defecto (visible sobre el fondo crema; el dueño puede cambiar el color) */
+  background: var(--car-brillo-grad, linear-gradient(100deg,
+    rgba(212,169,65,0) 0%, rgba(212,169,65,0.25) 40%,
+    rgba(212,169,65,0.7) 50%, rgba(212,169,65,0.25) 60%, rgba(212,169,65,0) 100%));
   transform: translateX(-160%) skewX(-20deg);
   animation: car-comple-brillo var(--car-brillo-dur, 5s) cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }

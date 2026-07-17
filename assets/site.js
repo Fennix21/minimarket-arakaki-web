@@ -196,6 +196,15 @@
   var CAR_TXT = {}; for (var _ck in CAR_DEF) CAR_TXT[_ck] = CAR_DEF[_ck]; // textos vivos (arrancan en los defaults)
   var CAR_FX = { typing: false, brillo: false };
   function colorOk(v) { return typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v); }
+  // Barrido del brillo armado desde UN color (banda que sube su opacidad al centro): así el dueño
+  // elige un color y sale un brillo visible sobre el fondo dorado. '' si el color no es válido.
+  function brilloGrad(hex) {
+    var m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '');
+    if (!m) return '';
+    var r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
+    var c = function (a) { return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'; };
+    return 'linear-gradient(100deg,' + c(0) + ' 0%,' + c(0.25) + ' 40%,' + c(0.7) + ' 50%,' + c(0.25) + ' 60%,' + c(0) + ' 100%)';
+  }
   function carritoCfgCache() { try { return JSON.parse(localStorage.getItem('arakaki_carrito_cfg') || 'null'); } catch (e) { return null; } }
   function aplicarCarrito(k) {
     if (!k || typeof k !== 'object') k = {};
@@ -215,6 +224,8 @@
       if (colorOk(k.btnSumarTxt)) modal.style.setProperty('--car-btn-sumar-txt', k.btnSumarTxt); else modal.style.removeProperty('--car-btn-sumar-txt');
       var bseg = Number(k.fx && k.fx.brilloSeg); // segundos por vuelta del brillo (default 5)
       if (bseg >= 2 && bseg <= 15) modal.style.setProperty('--car-brillo-dur', bseg + 's'); else modal.style.removeProperty('--car-brillo-dur');
+      var bgrad = brilloGrad(k.fx && k.fx.brilloCol); // color del brillo (vacío = dorado por defecto)
+      if (bgrad) modal.style.setProperty('--car-brillo-grad', bgrad); else modal.style.removeProperty('--car-brillo-grad');
     }
     // Textos (vacío = default)
     var t = k.txt || {};

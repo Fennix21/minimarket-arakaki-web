@@ -881,6 +881,9 @@ module.exports = async (req, res) => {
         // Velocidad del brillo: segundos por vuelta (2–15; 5 = default, no se guarda)
         const bseg = Math.round(Number(b.fx.brilloSeg));
         if (Number.isFinite(bseg) && bseg >= 2 && bseg <= 15 && bseg !== 5) fx.brilloSeg = bseg;
+        // Color del brillo (#rrggbb; el default dorado #d4a941 no se guarda)
+        const bcol = hex(b.fx.brilloCol);
+        if (bcol && bcol !== '#d4a941') fx.brilloCol = bcol;
       }
       if (Object.keys(fx).length) out.fx = fx;
       if (Object.keys(out).length) await redis(['SET', 'config:carrito', JSON.stringify(out)]);
