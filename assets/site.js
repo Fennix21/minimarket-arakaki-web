@@ -98,6 +98,13 @@
     // Carrito / entrega (editables desde panel → 📝 Sitio)
     carGeoNota: '📍 Compartir tu ubicación es opcional: solo hace la entrega más precisa. Escribir tu dirección arriba es lo obligatorio.',
     carDirFalta: 'Falta tu dirección de entrega ✍️ Escríbela arriba (calle, número y referencia) para llevarte tu pedido.',
+    // Compartir producto (editables desde panel → 📝 Sitio → 📤 Compartir). La descripción
+    // del preview del enlace (compOg) es del lado servidor: su default vive en api/compartir.js.
+    compChat: '🏪 Minimarket Arakaki · pídelo por WhatsApp y te lo llevamos',
+    compLema: 'Tu bodega premium',
+    compCintillo: '✨ Disponible hoy · delivery a tu puerta ✨',
+    compCta: '📲 Pídelo al 977 737 199',
+    compSinPrecio: 'Pregunta el precio por WhatsApp',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -1016,10 +1023,12 @@
   function linkCompartir(nombre) {
     return location.origin + '/api/compartir?p=' + encodeURIComponent(nombre);
   }
+  // Copys de compartir: el dueño los edita en panel → 📝 Sitio → 📤 Compartir (config:sitio)
+  function compTxt(k) { return sitioActual[k] || SITIO_DEF[k] || ''; }
   function msgCompartir(d) {
     return '🛒 *' + d.name + '*' +
       (d.price ? '\n💰 S/ ' + d.price : '') +
-      '\n🏪 Minimarket Arakaki · pídelo por WhatsApp y te lo llevamos' +
+      '\n' + compTxt('compChat') +
       '\n\n👉 ' + linkCompartir(d.name);
   }
 
@@ -1226,15 +1235,22 @@
           x.font = 'bold 64px Georgia, serif';
           x.fillText('MINIMARKET ARAKAKI', W / 2, 170);
         }
+        // Un texto editado muy largo no debe salirse: baja el tamaño hasta que entre
+        function encajar(prefijo, px, txt, maxW) {
+          do { x.font = prefijo + ' ' + px + 'px Georgia, serif'; px -= 2; }
+          while (px > 16 && x.measureText(txt).width > maxW);
+        }
         x.textAlign = 'center';
         x.fillStyle = '#e9c877';
-        x.font = '600 30px Georgia, serif';
-        x.fillText('T U   B O D E G A   P R E M I U M', W / 2, 320);
+        var lema = compTxt('compLema').toUpperCase().split('').join(' ');
+        encajar('600', 30, lema, 940);
+        x.fillText(lema, W / 2, 320);
 
         // Cintillo de urgencia
-        x.font = 'bold 34px Georgia, serif';
         x.fillStyle = '#f6d98a';
-        x.fillText('✨ Disponible hoy · delivery a tu puerta ✨', W / 2, 392);
+        var cintillo = compTxt('compCintillo');
+        encajar('bold', 34, cintillo, 940);
+        x.fillText(cintillo, W / 2, 392);
 
         // Foto del producto completa (contain, nunca recortada) con marco dorado
         var bx = 120, by = 440, bw = 840, bh = 900;
@@ -1280,7 +1296,12 @@
         var ls = lineas(x, d.name, 880, 3);
         var yN = 1452;
         for (var i = 0; i < ls.length; i++) { x.fillText(ls[i], W / 2, yN); yN += 68; }
-        if (!d.price) { x.fillStyle = '#e9c877'; x.font = '600 36px Georgia, serif'; x.fillText('Pregunta el precio por WhatsApp', W / 2, yN + 6); yN += 60; }
+        if (!d.price) {
+          x.fillStyle = '#e9c877';
+          var sinPrecio = compTxt('compSinPrecio');
+          encajar('600', 36, sinPrecio, 900);
+          x.fillText(sinPrecio, W / 2, yN + 6); yN += 60;
+        }
 
         // Separador y CTA verde WhatsApp (verde = solo WhatsApp)
         x.fillStyle = '#d4a941'; x.font = '32px Georgia, serif';
@@ -1293,8 +1314,9 @@
         rrect(x, pxx, pyy, pw, ph, ph / 2); x.fillStyle = cta; x.fill();
         x.restore();
         x.fillStyle = '#ffffff';
-        x.font = 'bold 44px Georgia, serif';
-        x.fillText('📲 Pídelo al 977 737 199', W / 2, pyy + 68);
+        var cta = compTxt('compCta');
+        encajar('bold', 44, cta, pw - 60);
+        x.fillText(cta, W / 2, pyy + 68);
         x.fillStyle = '#e9c877';
         x.font = '600 28px Georgia, serif';
         x.fillText(location.host, W / 2, 1876);

@@ -732,6 +732,8 @@ module.exports = async (req, res) => {
         lema: 80, visitanosTit: 40, direccion: 160, referencia: 120, mapLabel: 60,
         horarioTit: 40, horario: 300, contactoTit: 40, telefonos: 300, redesTit: 60, copy: 200,
         carGeoNota: 220, carDirFalta: 200,
+        // Copys de compartir producto (mensaje de chat, preview OG e imagen del estado)
+        compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,
       };
       Object.keys(campos).forEach((k) => { const v = txt(b[k], campos[k]); if (v) s[k] = v; });
       ['facebook', 'instagram', 'youtube'].forEach((k) => { const v = url(b[k]); if (v) s[k] = v; });

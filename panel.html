@@ -1113,7 +1113,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <!-- SITIO: textos editables del header y del footer -->
   <div class="vista" id="v-sitio">
     <h2 class="tit-vista">📝 Textos del sitio</h2>
-    <p class="sub-vista">Edita el lema del encabezado, los textos del carrito y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
+    <p class="sub-vista">Edita el lema del encabezado, los textos del carrito, los copys de compartir productos y todo el pie de página. Guardas y se ve en la web en ~1 minuto. Deja un campo vacío para volver a su texto por defecto.</p>
     <div class="aviso" id="sitio-aviso"></div>
 
     <div class="caja-bot" data-grupo="sitio">
@@ -1213,6 +1213,41 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <label>Línea final</label>
         <div class="hint">Escribe <b>{año}</b> donde quieras el año actual (se pone solo).</div>
         <input type="text" id="sitio-copy" maxlength="200" placeholder="Minimarket Arakaki {año} — Todos los derechos reservados" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>📤 Compartir productos</h3>
+      <div class="campo-bloque">
+        <div class="hint">Los textos que salen cuando un cliente comparte un producto con el botón de la flecha. El nombre y el precio del producto se ponen solos; aquí editas el resto. Campo vacío = el texto de siempre.</div>
+      </div>
+      <div class="campo-bloque">
+        <label>💬 Mensaje al chat: la línea del negocio</label>
+        <div class="hint">Sale debajo del nombre y el precio en el mensaje de WhatsApp.</div>
+        <input type="text" id="sitio-compchat" maxlength="160" placeholder="🏪 Minimarket Arakaki · pídelo por WhatsApp y te lo llevamos" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>🔗 Tarjetita del enlace: descripción</label>
+        <div class="hint">La frase bajo el título cuando WhatsApp pinta la tarjeta con la foto del producto.</div>
+        <input type="text" id="sitio-compog" maxlength="200" placeholder="🛵 Pídelo por WhatsApp y te lo llevamos. Minimarket Arakaki, tu bodega premium." style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>📸 Imagen del estado: lema bajo el gato</label>
+        <div class="hint">Se dibuja en mayúsculas espaciadas, ej. T U   B O D E G A   P R E M I U M.</div>
+        <input type="text" id="sitio-complema" maxlength="60" placeholder="Tu bodega premium" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>📸 Imagen del estado: cintillo de urgencia</label>
+        <div class="hint">La línea dorada arriba de la foto del producto.</div>
+        <input type="text" id="sitio-compcintillo" maxlength="90" placeholder="✨ Disponible hoy · delivery a tu puerta ✨" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>📸 Imagen del estado: botón verde (CTA)</label>
+        <input type="text" id="sitio-compcta" maxlength="60" placeholder="📲 Pídelo al 977 737 199" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>📸 Imagen del estado: si el producto no tiene precio</label>
+        <input type="text" id="sitio-compsinprecio" maxlength="80" placeholder="Pregunta el precio por WhatsApp" style="width:100%">
       </div>
     </div>
 
@@ -2785,6 +2820,8 @@ var SITIO_CAMPOS = {
   contactoTit: 'sitio-ctit', telefonos: 'sitio-tels', redesTit: 'sitio-rtit',
   facebook: 'sitio-fb', instagram: 'sitio-ig', youtube: 'sitio-yt', copy: 'sitio-copy',
   carGeoNota: 'sitio-cargeo', carDirFalta: 'sitio-cardir',
+  compChat: 'sitio-compchat', compOg: 'sitio-compog', compLema: 'sitio-complema',
+  compCintillo: 'sitio-compcintillo', compCta: 'sitio-compcta', compSinPrecio: 'sitio-compsinprecio',
 };
 function cargarSitio() {
   api('getsitio').then(function (j) {

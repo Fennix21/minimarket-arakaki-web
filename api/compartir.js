@@ -34,12 +34,16 @@ module.exports = async (req, res) => {
   let precio = prod && prod.p;
   let img = prod && prod.i;
 
-  // Con Redis: precio en vivo del panel y productos nuevos subidos sin deploy
+  // Con Redis: precio en vivo del panel, productos nuevos subidos sin deploy y
+  // la descripción del preview editada por el dueño (config:sitio.compOg)
+  let descProd = '';
   if (nombre && REDIS_URL) {
     try {
-      const r = await redis(['MGET', 'config:precios', 'config:prodextra']);
+      const r = await redis(['MGET', 'config:precios', 'config:prodextra', 'config:sitio']);
       const precios = JSON.parse((r && r[0]) || '{}');
       const extras = JSON.parse((r && r[1]) || '[]');
+      const sitio = JSON.parse((r && r[2]) || '{}');
+      if (sitio && sitio.compOg) descProd = sitio.compOg;
       if (!cat) {
         const e = extras.find((x) => x && x.nombre === nombre);
         if (e) { cat = e.cat; precio = e.precio || null; img = e.img || null; }
@@ -52,7 +56,7 @@ module.exports = async (req, res) => {
   const imgAbs = img ? (img.indexOf('http') === 0 ? img : base + img) : base + '/img/icon-512.png';
   const titulo = cat ? nombre + (precio ? ' — S/ ' + precio : '') : 'Minimarket Arakaki';
   const desc = cat
-    ? '🛵 Pídelo por WhatsApp y te lo llevamos. Minimarket Arakaki, tu bodega premium.'
+    ? (descProd || '🛵 Pídelo por WhatsApp y te lo llevamos. Minimarket Arakaki, tu bodega premium.')
     : 'Tu bodega premium: licores, chocolates y más. Pide por WhatsApp y te lo llevamos.';
 
   res.setHeader('content-type', 'text/html; charset=utf-8');
