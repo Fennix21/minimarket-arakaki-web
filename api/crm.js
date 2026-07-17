@@ -791,10 +791,11 @@ module.exports = async (req, res) => {
     }
 
     // --- 🧩 Combos de venta cruzada: config:comple (lo sirve /api/precios como c, lo pinta site.js) ---
-    // { car: true|false, cats: { "<slug>": {off:1} | {t?,s?,prods?:[nombres]} } }
+    // { on: true|false, car: true|false, cats: { "<slug>": {off:1} | {t?,s?,prods?:[nombres]} } }
     // Slug ausente = sección automática (pareo COMPLE_AUTO de site.js) · off = sin sección en esa página ·
     // prods = el combo que armó el dueño (nombres exactos del catálogo o de config:prodextra).
-    // car:'0' apaga las sugerencias del carrito ("el toque final"); sin overrides se borra la clave.
+    // on:'0' = interruptor GENERAL apagado (ni secciones ni carrito, sin perder la configuración) ·
+    // car:'0' apaga solo las sugerencias del carrito ("el toque final"); sin overrides se borra la clave.
     if (b.action === 'getcomple') {
       const raw = await redis(['GET', 'config:comple']);
       let c = {};
@@ -823,6 +824,7 @@ module.exports = async (req, res) => {
         if (Object.keys(o).length) cats[slug] = o; // personalizado sin nada = vuelve a automático
       });
       const out = {};
+      if (b.on === false || b.on === 0 || b.on === '0') out.on = '0';
       if (b.car === false || b.car === 0 || b.car === '0') out.car = '0';
       if (Object.keys(cats).length) out.cats = cats;
       if (Object.keys(out).length) await redis(['SET', 'config:comple', JSON.stringify(out)]);
