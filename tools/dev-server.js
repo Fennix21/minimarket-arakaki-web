@@ -21,6 +21,14 @@ http.createServer((req, res) => {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       return res.end('<body style="background:#262626;color:#f4ebd6;font-family:Georgia;text-align:center;padding:60px">Listo 💛 (stub de baja de correos)</body>');
     }
+    // Stub de compartir producto: redirige a la categoría con ?p= (el OG real corre en Vercel)
+    if (url === '/api/compartir') {
+      const q = new URLSearchParams((req.url || '').split('?')[1] || '');
+      const nom = q.get('p') || '';
+      const pr = require('../api/_catalogo').PRODUCTOS.find((x) => x.n === nom);
+      res.writeHead(302, { location: pr ? '/' + pr.c + '?p=' + encodeURIComponent(nom) : '/' });
+      return res.end();
+    }
     res.writeHead(200, { 'content-type': 'application/json' });
     // Stub del chat web: permite ver el widget en local (el bot real corre en Vercel)
     if (url === '/api/chat') {

@@ -89,13 +89,13 @@ const out = '// GENERADO por tools/build-catalog.js — no editar a mano (edita 
 fs.writeFileSync(path.join(__dirname, '../data/catalog.js'), out);
 console.log('\nOK -> data/catalog.js');
 
-// Índice liviano del catálogo para las funciones serverless (api/whatsapp.js y api/crm.js):
-// c = slug de la categoría, n = nombre exacto, p = precio base (o null).
+// Índice liviano del catálogo para las funciones serverless (api/whatsapp.js, api/crm.js y api/compartir.js):
+// c = slug de la categoría, n = nombre exacto, p = precio base (o null), i = ruta de la foto (o null).
 const productos = [];
 for (const slug of catalog.order) {
   const cat = catalog.categories[slug];
   if (!cat) continue;
-  cat.sections.forEach((s) => s.products.forEach((p) => productos.push({ c: slug, n: p.name, p: p.price || null })));
+  cat.sections.forEach((s) => s.products.forEach((p) => productos.push({ c: slug, n: p.name, p: p.price || null, i: p.img || null })));
 }
 const outApi = '// GENERADO por tools/build-catalog.js — no editar a mano (edita catalog-fuente.json y regenera)\n'
   + 'module.exports.PRODUCTOS = ' + JSON.stringify(productos) + ';\n';

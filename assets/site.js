@@ -1000,7 +1000,329 @@
           }).catch(function () { b.classList.toggle('activo', !on); b.textContent = on ? '☆' : '★'; });
         };
         img.appendChild(b);
+        img.classList.add('tiene-fav'); // el botón compartir se corre a la derecha (CSS)
       })(cards[i]);
+    }
+  }
+
+  // ---------- Compartir producto: WhatsApp (chat) + estado (imagen 9:16) ----------
+  // Botón en cada card para TODOS los visitantes (con o sin cuenta). Sin estrella ocupa
+  // su lugar (arriba a la izquierda); si el cliente entra al Club y aparece la estrella,
+  // se corre solo a su derecha (.tiene-fav). El enlace compartido pasa por /api/compartir
+  // (preview con foto+precio en WhatsApp) y aterriza en la categoría con ?p= = brillo.
+  var SHARE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+    '<path d="M13 5.2V8.9C6.9 9.8 3.8 13.6 3 19c2.6-3.3 5.9-4.9 10-4.9v3.7l8-6.3-8-6.3z"/></svg>';
+
+  function linkCompartir(nombre) {
+    return location.origin + '/api/compartir?p=' + encodeURIComponent(nombre);
+  }
+  function msgCompartir(d) {
+    return '🛒 *' + d.name + '*' +
+      (d.price ? '\n💰 S/ ' + d.price : '') +
+      '\n🏪 Minimarket Arakaki · pídelo por WhatsApp y te lo llevamos' +
+      '\n\n👉 ' + linkCompartir(d.name);
+  }
+
+  // Los datos salen de la card ya pintada: sirve igual para catálogo, productos del panel y combos
+  function datosCard(card) {
+    var im = card.querySelector('.prod-img img');
+    var pe = card.querySelector('.prod-precio');
+    var precio = '';
+    if (pe && pe.textContent.indexOf('S/') === 0) precio = pe.textContent.replace('S/', '').trim();
+    return { name: card.getAttribute('data-nombre') || '', price: precio, img: im ? im.getAttribute('src') : '' };
+  }
+
+  function pintarShareBtns() {
+    var cards = document.querySelectorAll('.prod');
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        if (card.querySelector('.prod-share')) return;
+        var img = card.querySelector('.prod-img');
+        if (!img || !card.getAttribute('data-nombre')) return;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'prod-share';
+        b.setAttribute('aria-label', 'Compartir este producto');
+        b.innerHTML = SHARE_SVG;
+        b.onclick = function (e) {
+          e.stopPropagation(); // la imagen también agrega/quita del carrito: no mezclar
+          abrirShareMenu(b, datosCard(card));
+        };
+        img.appendChild(b);
+        if (img.querySelector('.prod-fav')) img.classList.add('tiene-fav');
+      })(cards[i]);
+    }
+  }
+
+  // Menú popover (uno global que se reposiciona junto al botón tocado)
+  var shareBtnAbierto = null;
+  function shareMenuEl() {
+    var m = document.getElementById('share-menu');
+    if (m) return m;
+    m = document.createElement('div');
+    m.id = 'share-menu';
+    m.innerHTML =
+      '<button type="button" data-acc="chat">💬 Enviar por WhatsApp</button>' +
+      '<button type="button" data-acc="estado">📸 Imagen para tu estado</button>' +
+      '<button type="button" data-acc="copiar">🔗 Copiar enlace</button>' +
+      '<div class="sm-nota"></div>';
+    document.body.appendChild(m);
+    m.onclick = function (e) {
+      e.stopPropagation();
+      var b = e.target.closest ? e.target.closest('button[data-acc]') : null;
+      if (b) accionCompartir(b.getAttribute('data-acc'));
+    };
+    document.addEventListener('click', cerrarShareMenu);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrarShareMenu(); });
+    window.addEventListener('scroll', cerrarShareMenu, { passive: true });
+    window.addEventListener('resize', cerrarShareMenu);
+    return m;
+  }
+  function cerrarShareMenu() {
+    var m = document.getElementById('share-menu');
+    if (m) m.classList.remove('abierto');
+    shareBtnAbierto = null;
+  }
+  function shareNota(txt) {
+    var n = shareMenuEl().querySelector('.sm-nota');
+    n.textContent = txt;
+    n.style.display = txt ? 'block' : 'none';
+  }
+  var shareDatos = null;
+  function abrirShareMenu(btn, datos) {
+    if (shareBtnAbierto === btn) { cerrarShareMenu(); return; } // segundo toque = cerrar
+    var m = shareMenuEl();
+    shareDatos = datos;
+    shareNota('');
+    m.classList.add('abierto');
+    shareBtnAbierto = btn;
+    var r = btn.getBoundingClientRect();
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - m.offsetWidth - 8));
+    var top = r.bottom + 10;
+    if (top + m.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - m.offsetHeight - 10);
+    m.style.left = left + 'px';
+    m.style.top = top + 'px';
+  }
+
+  function accionCompartir(acc) {
+    var d = shareDatos;
+    if (!d) return;
+    if (acc === 'chat') {
+      if (window.arkTrack) window.arkTrack('compartir_chat');
+      window.open('https://wa.me/?text=' + encodeURIComponent(msgCompartir(d)), '_blank');
+      cerrarShareMenu();
+    } else if (acc === 'copiar') {
+      if (window.arkTrack) window.arkTrack('compartir_link');
+      copiarTexto(linkCompartir(d.name), function (ok) {
+        shareNota(ok ? '✅ Enlace copiado: pégalo donde quieras' : '😕 No se pudo copiar');
+      });
+    } else if (acc === 'estado') {
+      if (window.arkTrack) window.arkTrack('compartir_estado');
+      shareNota('🎨 Preparando la imagen…');
+      crearImagenEstado(d, function (blob) {
+        if (!blob) { shareNota('😕 No se pudo armar la imagen'); return; }
+        var nombreArchivo = 'arakaki-' + d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) + '.jpg';
+        var file = null;
+        try { file = new File([blob], nombreArchivo, { type: 'image/jpeg' }); } catch (e) {}
+        if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], text: msgCompartir(d) })
+            .then(cerrarShareMenu)
+            .catch(function () { descargarBlob(blob, nombreArchivo); });
+        } else {
+          descargarBlob(blob, nombreArchivo);
+        }
+      });
+    }
+  }
+  function descargarBlob(blob, nombre) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.parentNode.removeChild(a); }, 4000);
+    shareNota('✅ Imagen descargada: ábrela en WhatsApp → Estados 📲');
+  }
+  function copiarTexto(txt, cb) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () { cb(true); }, function () { cb(false); });
+      return;
+    }
+    try {
+      var t = document.createElement('textarea');
+      t.value = txt; document.body.appendChild(t); t.select();
+      var ok = document.execCommand('copy');
+      t.parentNode.removeChild(t); cb(!!ok);
+    } catch (e) { cb(false); }
+  }
+
+  // Imagen 9:16 (1080×1920) para el estado de WhatsApp: fondo dark-gold, foto del
+  // producto COMPLETA a su ratio original (sin recorte), precio en medallón dorado y CTA.
+  function crearImagenEstado(d, cb) {
+    var listos = 0, foto = new Image(), logo = new Image(), logoOk = false;
+    function paso() { listos++; if (listos >= 2) dibujar(); }
+    foto.onload = paso;
+    foto.onerror = function () { cb(null); };
+    logo.onload = function () { logoOk = true; paso(); };
+    logo.onerror = paso; // sin logo se dibuja el nombre en texto
+    foto.src = d.img;
+    logo.src = '/img/logo-gato.png';
+
+    function rrect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+    function lineas(ctx, txt, maxW, maxLineas) {
+      var palabras = txt.split(' '), out = [], linea = '';
+      for (var i = 0; i < palabras.length; i++) {
+        var prueba = linea ? linea + ' ' + palabras[i] : palabras[i];
+        if (ctx.measureText(prueba).width > maxW && linea) {
+          out.push(linea); linea = palabras[i];
+          if (out.length === maxLineas - 1) {
+            for (; i < palabras.length; i++) {
+              if (ctx.measureText(linea + ' ' + palabras[i]).width > maxW) { linea += '…'; break; }
+              linea += ' ' + palabras[i];
+            }
+            break;
+          }
+        } else linea = prueba;
+      }
+      out.push(linea);
+      return out;
+    }
+
+    function dibujar() {
+      try {
+        var W = 1080, H = 1920;
+        var c = document.createElement('canvas');
+        c.width = W; c.height = H;
+        var x = c.getContext('2d');
+
+        // Fondo premium: degradado profundo + resplandor dorado tras el producto
+        var bg = x.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, '#1c1510'); bg.addColorStop(0.5, '#120d09'); bg.addColorStop(1, '#0b0908');
+        x.fillStyle = bg; x.fillRect(0, 0, W, H);
+        var glow = x.createRadialGradient(540, 820, 80, 540, 820, 720);
+        glow.addColorStop(0, 'rgba(212,169,65,0.30)'); glow.addColorStop(1, 'rgba(212,169,65,0)');
+        x.fillStyle = glow; x.fillRect(0, 0, W, H);
+
+        // Marco dorado fino (doble línea, como las cards premium)
+        x.strokeStyle = 'rgba(212,169,65,0.65)'; x.lineWidth = 3;
+        rrect(x, 34, 34, W - 68, H - 68, 34); x.stroke();
+        x.strokeStyle = 'rgba(212,169,65,0.25)'; x.lineWidth = 1.5;
+        rrect(x, 48, 48, W - 96, H - 96, 26); x.stroke();
+
+        // Cabecera: gato de la suerte + lema
+        if (logoOk) {
+          var lw = 520, lh = lw * (logo.naturalHeight / logo.naturalWidth);
+          x.drawImage(logo, (W - lw) / 2, 92, lw, lh);
+        } else {
+          x.fillStyle = '#f4ebd6'; x.textAlign = 'center';
+          x.font = 'bold 64px Georgia, serif';
+          x.fillText('MINIMARKET ARAKAKI', W / 2, 170);
+        }
+        x.textAlign = 'center';
+        x.fillStyle = '#e9c877';
+        x.font = '600 30px Georgia, serif';
+        x.fillText('T U   B O D E G A   P R E M I U M', W / 2, 320);
+
+        // Cintillo de urgencia
+        x.font = 'bold 34px Georgia, serif';
+        x.fillStyle = '#f6d98a';
+        x.fillText('✨ Disponible hoy · delivery a tu puerta ✨', W / 2, 392);
+
+        // Foto del producto completa (contain, nunca recortada) con marco dorado
+        var bx = 120, by = 440, bw = 840, bh = 900;
+        var esc2 = Math.min(bw / foto.naturalWidth, bh / foto.naturalHeight);
+        var fw = foto.naturalWidth * esc2, fh = foto.naturalHeight * esc2;
+        var fx2 = bx + (bw - fw) / 2, fy2 = by + (bh - fh) / 2;
+        x.save();
+        x.shadowColor = 'rgba(212,169,65,0.55)'; x.shadowBlur = 60;
+        rrect(x, fx2, fy2, fw, fh, 26);
+        x.fillStyle = '#0a0908'; x.fill();
+        x.restore();
+        x.save();
+        rrect(x, fx2, fy2, fw, fh, 26); x.clip();
+        x.drawImage(foto, fx2, fy2, fw, fh);
+        x.restore();
+        x.strokeStyle = '#d4a941'; x.lineWidth = 5;
+        rrect(x, fx2, fy2, fw, fh, 26); x.stroke();
+
+        // Medallón dorado con el precio (el freno de pulgar)
+        var cyMed = fy2 + fh - 10, cxMed = Math.min(fx2 + fw + 20, W - 160);
+        if (d.price) {
+          var rad = 118;
+          var med = x.createLinearGradient(cxMed, cyMed - rad, cxMed, cyMed + rad);
+          med.addColorStop(0, '#f6d98a'); med.addColorStop(1, '#c9992f');
+          x.save();
+          x.shadowColor = 'rgba(0,0,0,0.6)'; x.shadowBlur = 30;
+          x.beginPath(); x.arc(cxMed, cyMed, rad, 0, Math.PI * 2);
+          x.fillStyle = med; x.fill();
+          x.restore();
+          x.strokeStyle = '#7a5c17'; x.lineWidth = 4;
+          x.beginPath(); x.arc(cxMed, cyMed, rad - 7, 0, Math.PI * 2); x.stroke();
+          x.fillStyle = '#3a2708';
+          x.font = 'bold 40px Georgia, serif';
+          x.fillText('S/', cxMed, cyMed - 22);
+          var precioTam = d.price.length > 5 ? 58 : 74;
+          x.font = 'bold ' + precioTam + 'px Georgia, serif';
+          x.fillText(d.price, cxMed, cyMed + 46);
+        }
+
+        // Nombre del producto (hasta 3 líneas)
+        x.fillStyle = '#f4ebd6';
+        x.font = 'bold 56px Georgia, serif';
+        var ls = lineas(x, d.name, 880, 3);
+        var yN = 1452;
+        for (var i = 0; i < ls.length; i++) { x.fillText(ls[i], W / 2, yN); yN += 68; }
+        if (!d.price) { x.fillStyle = '#e9c877'; x.font = '600 36px Georgia, serif'; x.fillText('Pregunta el precio por WhatsApp', W / 2, yN + 6); yN += 60; }
+
+        // Separador y CTA verde WhatsApp (verde = solo WhatsApp)
+        x.fillStyle = '#d4a941'; x.font = '32px Georgia, serif';
+        x.fillText('✦ ──────── ✦ ──────── ✦', W / 2, yN + 26);
+        var pw = 760, ph = 108, pxx = (W - pw) / 2, pyy = 1706;
+        var cta = x.createLinearGradient(0, pyy, 0, pyy + ph);
+        cta.addColorStop(0, '#2ee06f'); cta.addColorStop(1, '#1da851');
+        x.save();
+        x.shadowColor = 'rgba(37,211,102,0.45)'; x.shadowBlur = 34;
+        rrect(x, pxx, pyy, pw, ph, ph / 2); x.fillStyle = cta; x.fill();
+        x.restore();
+        x.fillStyle = '#ffffff';
+        x.font = 'bold 44px Georgia, serif';
+        x.fillText('📲 Pídelo al 977 737 199', W / 2, pyy + 68);
+        x.fillStyle = '#e9c877';
+        x.font = '600 28px Georgia, serif';
+        x.fillText(location.host, W / 2, 1876);
+
+        if (c.toBlob) c.toBlob(function (blob) { cb(blob); }, 'image/jpeg', 0.9);
+        else cb(null);
+      } catch (e) { cb(null); }
+    }
+  }
+
+  // Llegada desde un enlace compartido: ?p=<nombre> → llevar al producto y hacerlo brillar
+  var compartidoHecho = false;
+  function destacarCompartido(cont) {
+    if (compartidoHecho) return;
+    var m = /[?&]p=([^&]+)/.exec(location.search);
+    if (!m) { compartidoHecho = true; return; }
+    var nombre;
+    try { nombre = decodeURIComponent(m[1].replace(/\+/g, ' ')); } catch (e) { compartidoHecho = true; return; }
+    var cards = cont.querySelectorAll('.prod');
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute('data-nombre') === nombre) {
+        compartidoHecho = true;
+        var card = cards[i];
+        card.classList.add('prod-brillo');
+        setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 600);
+        setTimeout(function () { card.classList.remove('prod-brillo'); }, 6500);
+        return;
+      }
     }
   }
 
@@ -2149,6 +2471,8 @@
     }
     marcarProds();
     pintarFavStars(); // estrellas ⭐ del Club si el cliente ya está logueado
+    pintarShareBtns(); // compartir: para todos, con o sin cuenta
+    destacarCompartido(cont); // si llegó desde un enlace compartido (?p=), brillo al producto
 
     // Catálogo "en vivo" (panel 💰 / WhatsApp del dueño) sobre el catálogo base:
     //   x = productos nuevos subidos desde el panel · p = precios · s = stock (agotado/oculto).
@@ -2236,6 +2560,8 @@
 
       marcarProds();
       pintarFavStars(); // estrellas también en las tarjetas recién añadidas
+      pintarShareBtns(); // compartir también en las nuevas (productos del panel + combos)
+      destacarCompartido(cont); // por si el compartido era un producto subido desde el panel
     });
   };
 
