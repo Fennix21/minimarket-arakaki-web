@@ -1143,7 +1143,7 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
   opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0.6s ease;
   border: 2px solid rgba(212, 175, 55, 0.75); border-radius: 20px; overflow: hidden;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
-  background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%));
+  background: var(--club-crema-bg, var(--bg-card));
 }
 .ccl-slide.activo { opacity: 1; visibility: visible; z-index: 1; }
 /* Brillo premium: una banda de luz recorre la card de publicidad de izquierda a derecha, igual
@@ -1179,8 +1179,8 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 /* Tamaño (escala) y grosor del título y la frase del banner: editables desde el panel
    (👥 Club → 🎨 Apariencia → 🔠 Textos del banner → config:clubui, los aplica site.js).
    Sirven para logueado y sin loguear (es el MISMO carrusel). Sin override = default de marca. */
-.ccl-tit { display: block; font-family: var(--tipo-titulos); font-size: calc(20px * var(--club-btit-esc, 1)); font-weight: var(--club-btit-peso, 700); color: var(--club-crema-txt, var(--rojo)); line-height: 1.25; }
-.ccl-txt { display: block; color: var(--club-crema-txt, #6b4f17); opacity: 0.9; font-size: calc(13.5px * var(--club-btxt-esc, 1)); font-weight: var(--club-btxt-peso, 400); margin-top: 4px; }
+.ccl-tit { display: block; font-family: var(--tipo-titulos); font-size: calc(20px * var(--club-btit-esc, 1)); font-weight: var(--club-btit-peso, 700); color: var(--club-crema-txt, #f2d894); line-height: 1.25; }
+.ccl-txt { display: block; color: var(--club-crema-txt, #d8cdb0); opacity: 0.9; font-size: calc(13.5px * var(--club-btxt-esc, 1)); font-weight: var(--club-btxt-peso, 400); margin-top: 4px; }
 .ccl-dots { display: flex; justify-content: center; gap: 7px; margin-top: 10px; }
 .ccl-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0; cursor: pointer; background: rgba(255, 255, 255, 0.55); transition: background 0.2s, transform 0.2s; }
 .ccl-dot.on { background: var(--dorado); transform: scale(1.2); }
@@ -1202,61 +1202,66 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .club-acc .ca-txt { font-size: 12.5px; font-weight: 600; color: #f4ebd6; line-height: 1.3; text-align: center; }
 .cpn-tiles { row-gap: 16px; }
 
-/* ---- Tarjeta crema (teclado de la clave + hoja del panel), como el "toque final" del carrito ---- */
+/* ---- Tarjeta premium dark-gold (teclado de la clave + hoja del panel) ----
+   Mismo tema que las tarjetas de producto (.prod): fondo negro con borde/acentos
+   dorados, NO crema (pedido del dueño). La hoja del panel (.club-sheet) se mantiene
+   crema aparte (ver más abajo), así que aquí protege su color de texto. */
 .club-tarjeta {
-  background: linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%); color: #4a0c10;
-  border: 2px solid rgba(212, 175, 55, 0.8); border-radius: 24px;
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45); padding: 22px 18px 20px;
+  background: var(--bg-card); color: #f4ebd6;
+  border: 2px solid rgba(212, 175, 55, 0.75); border-radius: 24px;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55); padding: 22px 18px 20px;
 }
 .clt-tit {
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  font-family: var(--tipo-titulos); font-size: 23px; font-weight: 700; color: var(--rojo);
+  font-family: var(--tipo-titulos); font-size: 23px; font-weight: 700; color: #f2d894;
   margin: 0 0 16px; text-align: center;
 }
 .clt-rombo { color: var(--dorado); font-size: 13px; }
-.clt-desc { font-size: 13.5px; color: #6b4f17; margin: -8px 0 14px; text-align: center; line-height: 1.5; }
-.club-tarjeta .ct-error { color: #b3261e; }
-.club-tarjeta a { color: var(--rojo); font-weight: 700; }
-.clt-ayuda { font-size: 12.5px; text-align: center; margin: 12px 0 0; color: #6b4f17; }
-.clt-check { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; color: #4a0c10; margin: 12px 0 0; cursor: pointer; }
-.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--rojo); cursor: pointer; flex: none; }
-.clt-lab { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #7a5c14; margin: 10px 0 5px; }
+.clt-desc { font-size: 13.5px; color: #cfc4a8; margin: -8px 0 14px; text-align: center; line-height: 1.5; }
+.club-tarjeta .ct-error { color: #ff9d8f; }
+.club-tarjeta a { color: #f2d894; font-weight: 700; }
+.clt-ayuda { font-size: 12.5px; text-align: center; margin: 12px 0 0; color: #cfc4a8; }
+.clt-check { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; color: #e4dcc6; margin: 12px 0 0; cursor: pointer; }
+.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--dorado); cursor: pointer; flex: none; }
+.clt-lab { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #cbb26a; margin: 10px 0 5px; }
 .clt-lab small { text-transform: none; letter-spacing: 0; font-weight: 600; }
 .clt-input {
   width: 100%; box-sizing: border-box; padding: 11px 13px; border-radius: 12px;
-  background: rgba(255, 255, 255, 0.75); color: #4a0c10;
-  border: 1.5px solid rgba(212, 175, 55, 0.55); font-size: 16px; outline: none; font-family: inherit; margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.06); color: #f4ebd6;
+  border: 1.5px solid rgba(212, 175, 55, 0.4); font-size: 16px; outline: none; font-family: inherit; margin-bottom: 4px;
 }
-.clt-input:focus { border-color: var(--rojo); background: #fff; box-shadow: 0 0 0 3px rgba(142, 27, 34, 0.1); }
+.clt-input:focus { border-color: var(--dorado); background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16); }
 
 /* ---- Teclado numérico táctil (campos sin teclado del sistema + puntitos secretos) ---- */
 .kp-campo {
   display: block; width: 100%; box-sizing: border-box; cursor: pointer; text-align: center;
-  background: rgba(255, 255, 255, 0.6); border: 1.5px solid rgba(212, 175, 55, 0.55);
+  background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(212, 175, 55, 0.5);
   border-radius: 14px; padding: 9px 12px 10px; margin-bottom: 10px; font-family: inherit;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.kp-campo.activo { border-color: var(--rojo); background: #fff; box-shadow: 0 0 0 3px rgba(142, 27, 34, 0.12); }
-.kp-eti { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #7a5c14; margin-bottom: 4px; }
+.kp-campo.activo { border-color: var(--dorado); background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18); }
+.kp-eti { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #cbb26a; margin-bottom: 4px; }
 .kp-visor {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 26px;
-  font-family: var(--tipo-titulos); font-size: 22px; font-weight: 700; color: var(--club-kp-col, var(--rojo)); letter-spacing: 2px;
+  font-family: var(--tipo-titulos); font-size: 22px; font-weight: 700; color: var(--club-kp-col, #f2d894); letter-spacing: 2px;
 }
-.kp-visor.vacio { color: rgba(142, 27, 34, 0.25); }
-.kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(142, 27, 34, 0.4); box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
-.kp-dot.on { background: var(--rojo); border-color: var(--rojo); transform: scale(1.05); }
+.kp-visor.vacio { color: rgba(212, 175, 55, 0.3); }
+.kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(212, 175, 55, 0.55); box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
+.kp-dot.on { background: var(--dorado); border-color: var(--dorado); transform: scale(1.05); }
 .kp-teclas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
+/* Teclas = mismo efecto "3D" (sombra dorada abajo, se hunde al tocar) pero con el borde
+   dorado premium y fondo negro de las cards de producto (pedido del dueño). */
 .kp-tecla {
   cursor: pointer; padding: 13px 0; border-radius: 14px; line-height: 1;
-  font-family: var(--tipo-titulos); font-size: 26px; font-weight: 700; color: var(--club-kp-col, var(--rojo));
-  background: rgba(255, 255, 255, 0.65); border: 1.5px solid rgba(212, 175, 55, 0.6);
-  box-shadow: 0 3px 0 rgba(184, 145, 47, 0.35);
+  font-family: var(--tipo-titulos); font-size: 26px; font-weight: 700; color: var(--club-kp-col, #f2d894);
+  background: linear-gradient(180deg, #2a2521 0%, #16130f 100%); border: 1.5px solid var(--dorado);
+  box-shadow: 0 3px 0 rgba(184, 145, 47, 0.5);
   transition: transform 0.08s, box-shadow 0.08s, background 0.12s;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
-.kp-tecla:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(184, 145, 47, 0.35); background: #fff; }
-.kp-borrar { font-size: 20px; background: linear-gradient(160deg, #8d1218, var(--rojo)); color: #f6d98a; border-color: var(--rojo); box-shadow: 0 3px 0 rgba(74, 9, 12, 0.6); }
+.kp-tecla:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(184, 145, 47, 0.5); background: #201c18; }
+.kp-borrar { font-size: 20px; background: linear-gradient(160deg, #8d1218, var(--rojo)); color: #f6d98a; border-color: var(--dorado); box-shadow: 0 3px 0 rgba(74, 9, 12, 0.6); }
 .kp-borrar:active { background: var(--rojo); }
 
 /* ---- Panel del cliente (dashboard del boceto) ---- */
@@ -1279,7 +1284,7 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 
 /* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda.
    Fondo crema editable (--club-crema-bg, compartido con la card del banner). */
-.club-sheet { margin-top: 18px; padding: 16px 14px; background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)); }
+.club-sheet { margin-top: 18px; padding: 16px 14px; color: #4a0c10; background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)); }
 /* Filas de la hoja crema (Mis Puntos + Mis Últimos Pedidos): compactadas ~20% (padding,
    margen y letras/número) a pedido, para que toda la página entre de un vistazo. */
 .cs-fila {
