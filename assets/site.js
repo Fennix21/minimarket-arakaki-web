@@ -889,11 +889,11 @@
     }
   }
 
-  // Saludo según la hora local del cliente: mañana / tarde / noche.
+  // Saludo según la hora local del cliente: mañana / tarde / noche (solo su primer nombre).
   function saludoHora(nombre) {
     var h = new Date().getHours();
     var franja = (h >= 5 && h < 12) ? '¡Bonito día' : (h < 19) ? '¡Bonita tarde' : '¡Bonita noche';
-    return franja + ', ' + nombre + '!';
+    return franja + ', ' + String(nombre).trim().split(' ')[0] + '!';
   }
 
   // Efecto máquina de escribir: revela el saludo letra por letra con cursor parpadeante.
@@ -1120,6 +1120,32 @@
     datos.uid = miUid();
     return fetch('/api/cuenta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(datos) })
       .then(function (r) { return r.json(); });
+  }
+
+  // Cerrar la sesión del Club. Además este dispositivo deja de reconocer al cliente:
+  // se borra el caché del saludo/prefill y el backend desenlaza el uid (uid:<token>).
+  function salirClub() {
+    cuentaPost({ action: 'salir' }).catch(function () {});
+    borrarSesion();
+    cuentaPerfil = null;
+    perfilActual = null;
+    try { localStorage.removeItem('arakaki_perfil'); } catch (e) {}
+    window.renderCuenta();
+  }
+
+  // Siembra el caché de /api/perfil con el perfil del Club: así la portada saluda por su
+  // nombre apenas el cliente crea su cuenta o entra, sin esperar el fetch de reconocerCliente.
+  function sembrarPerfilCache(p) {
+    if (!p || !p.nombre) return;
+    guardarPerfilCache({
+      conocido: true,
+      nombre: p.nombre,
+      direccion: p.direccion || '',
+      telefono: p.telefono || '',
+      pedidos: Number(p.pedidos) || 0,
+      favoritos: [],
+      habitual: Array.isArray(p.habitual) ? p.habitual : [],
+    });
   }
 
   // Al cargar cualquier página: si el Club está activo → ítem "Mi cuenta" en el menú;
@@ -2142,8 +2168,9 @@
       : '<span class="ch-foto ch-foto-vacia"' + (id ? ' id="' + id + '"' : '') + '>👤</span>';
   }
 
-  // Saludo según la hora del cliente
-  function saludoHora() {
+  // Saludo según la hora del cliente (SOLO del panel del Club). OJO: la portada tiene su
+  // saludoHora(nombre) en este MISMO scope — el nombre debe seguir siendo distinto.
+  function saludoHoraClub() {
     var h = new Date().getHours();
     return h < 12 ? 'Buen día' : (h < 19 ? 'Buenas tardes' : 'Buenas noches');
   }
@@ -2162,6 +2189,7 @@
   // en grilla (cada uno abre su sección), publicidad, y la hoja crema con Mis Puntos y
   // Mis Últimos Pedidos por fecha (con detalle y recompra del día elegido).
   function pintarPanelCliente(int, p, secAbierta) {
+    sembrarPerfilCache(p); // la portada saluda por nombre apenas hay sesión del Club
     var conCupones = fnClub('promos') || fnClub('cupones');
     var tiles = [
       { id: 'datos', ico: '🪪', txt: 'Mis Datos' },
@@ -2170,16 +2198,17 @@
       { id: 'preguntas', ico: '❓', txt: 'Mis Preguntas' },
       fnClub('sorteos') ? { id: 'sorteos', ico: '🎁', txt: 'Sorteos' } : null,
       { id: 'dirs', ico: '📍', txt: 'Mis Direcciones de Entrega' },
+      { id: 'salir', ico: '🚪', txt: 'Cerrar Sesión' },
     ].filter(function (t) { return t; });
 
     var html = '<div class="club-panel">' +
       '<div class="cpn-cab">' +
         '<button type="button" class="cpn-foto" data-sec="datos" aria-label="Mi foto de perfil">' + fotoHtml(p) + '<span>Foto</span></button>' +
-        '<h2 class="cpn-saludo">' + saludoHora() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
+        '<h2 class="cpn-saludo">' + saludoHoraClub() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
         '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
       '</div>' +
       '<div class="club-acciones cpn-tiles">' + tiles.map(function (t) {
-        return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico">' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
+        return '<button type="button" class="club-acc' + (t.id === 'salir' ? ' club-acc-salir' : '') + '" data-sec="' + t.id + '"><span class="ca-ico">' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
       }).join('') + '</div>' +
       '<div id="cpn-secciones">';
 
@@ -2318,7 +2347,11 @@
       }
     }
     var accs = int.querySelectorAll('[data-sec]');
-    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () { verSec(this.getAttribute('data-sec')); };
+    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () {
+      var s = this.getAttribute('data-sec');
+      if (s === 'salir') { salirClub(); return; } // el tile 🚪 no abre sección: cierra la sesión
+      verSec(s);
+    };
     if (secAbierta) verSec(secAbierta);
 
     montarCarrusel(int);
@@ -2351,11 +2384,7 @@
       }));
     };
 
-    document.getElementById('ct-salir').onclick = function () {
-      cuentaPost({ action: 'salir' }).catch(function () {});
-      borrarSesion();
-      window.renderCuenta();
-    };
+    document.getElementById('ct-salir').onclick = salirClub;
     var cfTodos = document.getElementById('cf-todos');
     if (cfTodos) cfTodos.onclick = function () { agregarListaAlCarrito(p.favs || []); };
 

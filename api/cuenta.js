@@ -413,12 +413,15 @@ module.exports = async (req, res) => {
         await redis(['DEL', 'sess:' + token]);
         if (tel) {
           const cli = await cargarCliente(tel);
-          if (cli && Array.isArray(cli.sess)) {
-            cli.sess = cli.sess.filter((t) => t !== token);
+          if (cli) {
+            if (Array.isArray(cli.sess)) cli.sess = cli.sess.filter((t) => t !== token);
+            if (uid && Array.isArray(cli.uids)) cli.uids = cli.uids.filter((u) => u !== uid);
             await guardarCliente(tel, cli);
           }
         }
       }
+      // Este dispositivo deja de reconocer al cliente (saludo de la portada + prefill del carrito)
+      if (uid) await redis(['DEL', 'uid:' + uid]);
       return res.status(200).json({ ok: true });
     }
 
