@@ -566,6 +566,11 @@
   }
 
   function armarBase() {
+    // /mi-cuenta es vista "app": sin header (lo esconde body.pagina-club en el CSS),
+    // sin cinta marquee y sin chat web, para ver los accesos de un solo vistazo.
+    var esCuenta = /^\/mi-cuenta(\.html)?$/.test(location.pathname);
+    if (esCuenta) document.body.classList.add('pagina-club');
+
     var cab = document.createElement('header');
     cab.className = 'cab';
     cab.innerHTML =
@@ -684,13 +689,15 @@
       pie.className = 'pie';
       document.body.appendChild(pie);
     } else {
-      // Las páginas de categoría (y mi-cuenta) no llevan el footer completo: reciben un
-      // pie compacto = cinta (marquee) + logo centrado. El rodillo se duplica para que
-      // el desplazamiento sea continuo (igual que en la portada).
-      var cinta = document.createElement('div');
-      cinta.className = 'cinta';
-      cinta.innerHTML = '<div class="cinta-rodillo">' + CINTA_ITEMS + CINTA_ITEMS + '</div>';
-      document.body.appendChild(cinta);
+      // Las páginas de categoría no llevan el footer completo: reciben un pie compacto =
+      // cinta (marquee) + logo centrado. El rodillo se duplica para que el desplazamiento
+      // sea continuo (igual que en la portada). En /mi-cuenta la cinta no va (vista app).
+      if (!esCuenta) {
+        var cinta = document.createElement('div');
+        cinta.className = 'cinta';
+        cinta.innerHTML = '<div class="cinta-rodillo">' + CINTA_ITEMS + CINTA_ITEMS + '</div>';
+        document.body.appendChild(cinta);
+      }
 
       var pieMini = document.createElement('footer');
       pieMini.className = 'pie-mini';
@@ -745,7 +752,7 @@
     pintarBadge();
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
-    iniciarChat();
+    if (!esCuenta) iniciarChat(); // el chat web no va en /mi-cuenta (vista app)
   }
 
   // ---------- Carrito (localStorage) ----------
@@ -1697,12 +1704,19 @@
   function carruselHtml() {
     var bs = bannersDelClub();
     var slides = bs.map(function (b, i) {
-      return '<div class="ccl-slide' + (i === 0 ? ' activo' : '') + (b.imagen ? ' con-foto' : '') + '"' +
-        (b.imagen ? ' style="background-image:url(\'' + esc(b.imagen) + '\')"' : '') +
-        ' data-url="' + esc(b.url || '') + '"><span class="ccl-velo"></span><span class="ccl-info">' +
-        (b.titulo ? '<span class="ccl-tit">' + esc(b.titulo) + '</span>' : '') +
-        (b.texto ? '<span class="ccl-txt">' + esc(b.texto) + '</span>' : '') +
-        '</span></div>';
+      // La imagen (ideal 1000×500) va COMPLETA en un marco 2:1 negro premium (object-fit
+      // contain: nunca se corta ni deforma) y el título + frase van DEBAJO en su card.
+      var media = b.imagen
+        ? '<img class="ccl-img" src="' + esc(b.imagen) + '" alt="' + esc(b.titulo || 'Publicidad del Club') + '">'
+        : '<img class="ccl-logo" src="' + LOGO_BLANCO + '" alt="">';
+      var card = (b.titulo || b.texto)
+        ? '<span class="ccl-card">' +
+            (b.titulo ? '<span class="ccl-tit">' + esc(b.titulo) + '</span>' : '') +
+            (b.texto ? '<span class="ccl-txt">' + esc(b.texto) + '</span>' : '') +
+          '</span>'
+        : '';
+      return '<div class="ccl-slide' + (i === 0 ? ' activo' : '') + '" data-url="' + esc(b.url || '') + '">' +
+        '<span class="ccl-media' + (b.imagen ? ' con-foto' : '') + '">' + media + '</span>' + card + '</div>';
     }).join('');
     var dots = bs.length > 1 ? '<div class="ccl-dots">' + bs.map(function (b, i) {
       return '<button type="button" class="ccl-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Aviso ' + (i + 1) + '"></button>';
@@ -1865,6 +1879,7 @@
             encodeURIComponent('Hola 👋 No puedo entrar a mi cuenta del Club Arakaki, ¿me ayudan?') +
             '" target="_blank" rel="noopener">Escríbenos por WhatsApp 📲</a></p>' +
         '</div>' +
+        '<a class="club-volver" href="/">🏪 Volver a la tienda</a>' +
       '</div>';
     montarCarrusel(int);
     var btn = document.getElementById('ct-enviar');
@@ -2198,17 +2213,21 @@
       { id: 'preguntas', ico: '❓', txt: 'Mis Preguntas' },
       fnClub('sorteos') ? { id: 'sorteos', ico: '🎁', txt: 'Sorteos' } : null,
       { id: 'dirs', ico: '📍', txt: 'Mis Direcciones de Entrega' },
-      { id: 'salir', ico: '🚪', txt: 'Cerrar Sesión' },
     ].filter(function (t) { return t; });
 
+    // Barra superior tipo app: la foto (se sube desde Mis datos) a la izquierda, el saludo
+    // al centro y el botón Salir a la derecha — así no compite con la grilla de accesos.
     var html = '<div class="club-panel">' +
       '<div class="cpn-cab">' +
-        '<button type="button" class="cpn-foto" data-sec="datos" aria-label="Mi foto de perfil">' + fotoHtml(p) + '<span>Foto</span></button>' +
-        '<h2 class="cpn-saludo">' + saludoHoraClub() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
-        '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
+        '<span class="cpn-avatar">' + fotoHtml(p) + '</span>' +
+        '<div class="cpn-tit">' +
+          '<h2 class="cpn-saludo">' + saludoHoraClub() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
+          '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
+        '</div>' +
+        '<button type="button" class="ct-salir" id="ct-salir" aria-label="Cerrar sesión">🚪 Salir</button>' +
       '</div>' +
       '<div class="club-acciones cpn-tiles">' + tiles.map(function (t) {
-        return '<button type="button" class="club-acc' + (t.id === 'salir' ? ' club-acc-salir' : '') + '" data-sec="' + t.id + '"><span class="ca-ico">' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
+        return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico">' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
       }).join('') + '</div>' +
       '<div id="cpn-secciones">';
 
@@ -2326,12 +2345,11 @@
         '<a class="cs-vino" href="/"><span>🛍️</span> Ir a tienda</a>' +
       '</div>' +
     '</div>' +
-    '<button type="button" class="ct-salir cpn-salir" id="ct-salir">🚪 Cerrar sesión</button>' +
     '</div>';
 
     int.innerHTML = html;
 
-    // Accesos de la grilla (y la foto del saludo): abren/cierran su sección
+    // Accesos de la grilla: abren/cierran su sección
     function verSec(id) {
       var secs = int.querySelectorAll('.cpn-sec');
       var tilesEls = int.querySelectorAll('.cpn-tiles .club-acc');
@@ -2347,11 +2365,7 @@
       }
     }
     var accs = int.querySelectorAll('[data-sec]');
-    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () {
-      var s = this.getAttribute('data-sec');
-      if (s === 'salir') { salirClub(); return; } // el tile 🚪 no abre sección: cierra la sesión
-      verSec(s);
-    };
+    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () { verSec(this.getAttribute('data-sec')); };
     if (secAbierta) verSec(secAbierta);
 
     montarCarrusel(int);

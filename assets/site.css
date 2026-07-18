@@ -1089,7 +1089,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 
 /* Página /mi-cuenta: rojo vino de la marca + dorado premium (los colores del home) */
-.cuenta-int { max-width: 580px; margin: 0 auto; }
+.cuenta-int { max-width: 580px; margin: 0 auto; padding: 0 14px; }
 .cuenta-card {
   background: var(--bg-card); color: #f4ebd6;
   border: 2px solid rgba(212, 175, 55, 0.42); border-radius: 20px;
@@ -1104,35 +1104,53 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .cuenta-hola { grid-column: 1 / -1; position: relative; }
 .ct-vacio { opacity: 0.75; font-size: 14px; }
 
-/* Fondo rojo vino de toda la página de la cuenta (scoped: NO toca .seccion.premium de las
-   categorías; con las 3 clases gana al fondo premium y al override editable de --bg-premium) */
+/* Fondo negro premium de toda la página de la cuenta — el mismo de los paneles/tarjetas
+   (scoped: NO toca .seccion.premium de las categorías; con las 3 clases gana al fondo
+   premium y al override editable de --bg-premium) */
 .seccion.premium.cuenta-zona {
   background:
-    radial-gradient(900px 420px at 50% -60px, rgba(212, 175, 55, 0.16), transparent 65%),
-    linear-gradient(180deg, var(--rojo-osc) 0%, var(--rojo) 46%, #45080b 100%);
-  min-height: 70vh; padding: 26px 0 60px;
+    radial-gradient(900px 420px at 50% -60px, rgba(212, 175, 55, 0.12), transparent 65%),
+    linear-gradient(180deg, #211d19 0%, #100e0c 100%);
+  min-height: 100vh; padding: 22px 0 60px;
 }
+/* /mi-cuenta es vista "app": sin header, así los accesos suben y se ven de un vistazo
+   (la navegación vive en Ver catálogo / Ir a tienda y en el enlace de volver del acceso) */
+body.pagina-club .cab { display: none; }
+.club-volver {
+  display: block; text-align: center; margin: 18px auto 0;
+  color: #e4dcc6; font-size: 13.5px; font-weight: 600; opacity: 0.85;
+}
+.club-volver:hover { color: #f2d894; opacity: 1; }
 
-/* ---- Carrusel de publicidad (banners del panel → 👥 Club → 📣 Publicidad) ---- */
-.club-carru {
-  position: relative; height: 168px; border-radius: 22px; overflow: hidden; cursor: pointer;
-  border: 2px solid rgba(212, 175, 55, 0.75);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
-  margin-bottom: 18px; background: linear-gradient(160deg, #3d0709, #6b0d12);
-}
+/* ---- Carrusel de publicidad (banners del panel → 👥 Club → 📣 Publicidad) ----
+   La imagen (ideal 1000×500) entra COMPLETA en un marco 2:1 (object-fit contain: sin
+   cortes ni deformación) y el título + frase van DEBAJO en su propia card premium.
+   Los slides se apilan con grid (misma celda) para que el alto lo dé el más alto. */
+.club-carru { position: relative; display: grid; grid-template-columns: 100%; margin-bottom: 18px; }
 .ccl-slide {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.6s ease;
-  background: linear-gradient(160deg, #4a090c, var(--rojo) 60%, var(--rojo-osc));
-  background-size: cover; background-position: center;
+  grid-area: 1 / 1; display: flex; flex-direction: column; cursor: pointer;
+  opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0.6s ease;
 }
-.ccl-slide.activo { opacity: 1; z-index: 1; }
-.ccl-velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 4, 5, 0.12) 0%, rgba(20, 4, 5, 0.55) 100%); }
-.ccl-slide.con-foto .ccl-velo { background: linear-gradient(180deg, rgba(20, 4, 5, 0.05) 30%, rgba(20, 4, 5, 0.72) 100%); }
-.ccl-info { position: relative; z-index: 2; text-align: center; padding: 12px 22px; display: flex; flex-direction: column; gap: 4px; }
-.ccl-tit { font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 700; color: #f2d894; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55); line-height: 1.2; }
-.ccl-txt { color: #fff; font-size: 14px; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
-.ccl-dots { position: absolute; left: 0; right: 0; bottom: 9px; display: flex; justify-content: center; gap: 7px; z-index: 3; }
+.ccl-slide.activo { opacity: 1; visibility: visible; z-index: 1; }
+.ccl-media {
+  display: flex; align-items: center; justify-content: center; width: 100%;
+  aspect-ratio: 2 / 1; border-radius: 22px; overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.75);
+  background: linear-gradient(160deg, #4a090c, var(--rojo) 60%, var(--rojo-osc));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.ccl-media.con-foto { background: linear-gradient(180deg, #211d19 0%, #100e0c 100%); }
+.ccl-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ccl-logo { width: 42%; max-width: 190px; opacity: 0.92; }
+.ccl-card {
+  display: block; text-align: center; margin: 10px 2px 0; padding: 13px 16px 14px;
+  background: linear-gradient(180deg, #211d19 0%, #100e0c 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.55); border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.ccl-tit { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: #f2d894; line-height: 1.25; }
+.ccl-txt { display: block; color: #e4dcc6; font-size: 13.5px; margin-top: 4px; }
+.ccl-dots { display: flex; justify-content: center; gap: 7px; margin-top: 10px; }
 .ccl-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0; cursor: pointer; background: rgba(255, 255, 255, 0.55); transition: background 0.2s, transform 0.2s; }
 .ccl-dot.on { background: var(--dorado); transform: scale(1.2); }
 
@@ -1142,7 +1160,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .club-acc .ca-ico {
   width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
   font-size: 27px; border-radius: 18px;
-  background: linear-gradient(160deg, rgba(212, 175, 55, 0.22), rgba(20, 4, 5, 0.3)), linear-gradient(160deg, #6b0d12, #4a090c);
+  background: linear-gradient(160deg, rgba(212, 175, 55, 0.16), rgba(0, 0, 0, 0.25)), linear-gradient(180deg, #211d19 0%, #100e0c 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.8); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
@@ -1150,9 +1168,6 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .club-acc.activo .ca-ico { background: linear-gradient(160deg, #f6d98a, #d4af37); }
 .club-acc .ca-txt { font-size: 12.5px; font-weight: 600; color: #f4ebd6; line-height: 1.3; text-align: center; }
 .cpn-tiles { row-gap: 16px; }
-/* Tile 🚪 Cerrar Sesión: mismo formato pero en rojo suave (acción de salida, no una sección) */
-.club-acc-salir .ca-ico { background: linear-gradient(160deg, rgba(220, 53, 69, 0.3), rgba(20, 4, 5, 0.35)), linear-gradient(160deg, #6b0d12, #4a090c); border-color: rgba(233, 116, 128, 0.75); }
-.club-acc-salir:hover .ca-ico { border-color: #e97480; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45), 0 0 16px rgba(220, 53, 69, 0.4); }
 
 /* ---- Tarjeta crema (teclado de la clave + hoja del panel), como el "toque final" del carrito ---- */
 .club-tarjeta {
@@ -1213,24 +1228,21 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 
 /* ---- Panel del cliente (dashboard del boceto) ---- */
 .club-panel { max-width: 580px; margin: 0 auto; }
-.cpn-cab { position: relative; text-align: center; padding: 4px 0 0; margin-bottom: 16px; }
-.cpn-foto {
-  position: absolute; top: -6px; right: 0; display: flex; align-items: center; gap: 8px; cursor: pointer;
-  background: rgba(20, 4, 5, 0.3); border: 1.5px solid rgba(212, 175, 55, 0.7); border-radius: 999px;
-  padding: 4px 14px 4px 4px; color: #f2d894; font-size: 13px; font-weight: 700; font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-.cpn-foto .ch-foto { width: 40px; height: 40px; box-shadow: none; }
-.cpn-foto span.ch-foto-vacia { font-size: 19px; }
-.cpn-saludo { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; color: #fff; margin: 46px 0 6px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4); }
-.cpn-sub { color: #f2d894; font-size: 14.5px; margin: 0; }
+/* Barra superior tipo app: foto (la de Mis datos) a la izquierda, saludo al centro,
+   Salir a la derecha. Compacta para que la grilla de accesos se vea de un vistazo. */
+.cpn-cab { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.cpn-avatar { flex: none; display: block; }
+.cpn-avatar .ch-foto { width: 52px; height: 52px; }
+.cpn-avatar span.ch-foto-vacia { font-size: 23px; }
+.cpn-tit { flex: 1; min-width: 0; }
+.cpn-saludo { font-family: Georgia, 'Times New Roman', serif; font-size: 21px; font-weight: 700; color: #fff; margin: 0; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4); }
+.cpn-sub { color: #f2d894; font-size: 12.5px; margin: 2px 0 0; }
 .cpn-sec { margin-bottom: 18px; }
 .cpn-sec-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .cpn-sec-cab h3 { margin: 0; }
 .cpn-x { flex: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; background: rgba(212, 175, 55, 0.14); color: #f2d894; border: 1.5px solid rgba(212, 175, 55, 0.5); font-size: 14px; }
 .cpn-x:hover { background: rgba(212, 175, 55, 0.3); }
 .cpn-sub-tit { margin-top: 22px !important; padding-top: 16px; border-top: 1px dashed rgba(212, 175, 55, 0.3); }
-.cpn-salir { position: static; display: block; margin: 20px auto 0; }
 
 /* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda */
 .club-sheet { margin-top: 18px; padding: 16px 14px; }
@@ -1269,7 +1281,7 @@ button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .cs-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
 .cs-vino {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: linear-gradient(180deg, #8d1218, var(--rojo) 55%, #4a090c); color: #f6d98a !important;
+  background: linear-gradient(160deg, rgba(212, 175, 55, 0.14), rgba(0, 0, 0, 0.3)), linear-gradient(180deg, #211d19 0%, #100e0c 100%); color: #f6d98a !important;
   border: 1.5px solid var(--dorado); border-radius: 14px; padding: 13px 10px;
   font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 15px; text-decoration: none;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35); transition: transform 0.15s, filter 0.15s;
@@ -1281,11 +1293,12 @@ button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .cuenta-int { max-width: 1000px; }
   .club-login { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 30px; align-items: start; }
   .club-login.solo-tarjeta { display: block; max-width: 500px; margin: 0 auto; }
-  .club-carru { height: 250px; }
+  .club-login .club-volver { grid-column: 1 / -1; }
   .cl-lado .club-acciones { margin-top: 24px; margin-bottom: 0; }
   .club-acc .ca-ico { width: 76px; height: 76px; font-size: 32px; border-radius: 20px; }
   .club-panel { max-width: 720px; }
-  .cpn-saludo { font-size: 36px; }
+  .cpn-saludo { font-size: 26px; }
+  .cpn-avatar .ch-foto { width: 58px; height: 58px; }
 }
 
 /* Formularios de la cuenta (acceso + Mis datos, direcciones, PIN, preguntas) */
@@ -1320,12 +1333,13 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
 .cuenta-beneficios li { font-size: 14.5px; line-height: 1.5; padding: 7px 0; border-bottom: 1px dashed rgba(212, 175, 55, 0.2); }
 .cuenta-beneficios li:last-child { border-bottom: none; }
 
-/* Panel del cliente logueado */
+/* Panel del cliente logueado: botón Salir de la barra superior */
 .ct-salir {
-  position: absolute; top: 20px; right: 20px; cursor: pointer;
+  flex: none; cursor: pointer;
   background: rgba(212, 175, 55, 0.16); color: #f2d894;
   border: 1.5px solid rgba(212, 175, 55, 0.6);
-  border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 700;
+  border-radius: 999px; padding: 9px 14px; font-size: 13px; font-weight: 700; font-family: inherit;
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .ct-salir:hover { background: rgba(212, 175, 55, 0.3); color: #fff9ec; border-color: var(--dorado); }
@@ -1425,6 +1439,8 @@ span.ch-foto-vacia {
 
 @media (max-width: 700px) {
   .cuenta-card { padding: 20px 16px; }
-  .cpn-saludo { font-size: 26px; }
-  .cuenta-zona { padding-top: 18px; }
+  .cpn-saludo { font-size: 18.5px; }
+  .cpn-avatar .ch-foto { width: 46px; height: 46px; }
+  .ct-salir { padding: 8px 12px; font-size: 12.5px; }
+  .cuenta-zona { padding-top: 14px; }
 }
