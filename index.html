@@ -402,33 +402,8 @@
   </div>
 </div>
 
-<!-- Popup Fiestas Patrias (aparece 1 vez al día, solo en julio) -->
-<div class="modal-fondo" id="fp-popup">
-  <div class="modal-caja">
-    <button class="modal-cerrar" aria-label="Cerrar">✕</button>
-    <video src="/img/videos/machu-picchu.mp4" muted loop playsinline></video>
-    <h2>¡Felices Fiestas Patrias!</h2>
-    <p class="fp-sub">Celebremos juntos el orgullo de ser peruanos.</p>
-    <div id="fp-antes">
-      <p class="fp-falta">Faltan para el 28 de Julio</p>
-      <div class="fp-reloj">
-        <div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>
-        <div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>
-        <div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>
-        <div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>
-      </div>
-    </div>
-    <div id="fp-despues" style="display:none">
-      <p class="fp-falta">¡Feliz 28 de Julio, Perú! 🇵🇪</p>
-    </div>
-    <p class="fp-barra">Celebra las Fiestas Patrias con lo mejor de la barra: <b>Pisco</b>, <b>Vino</b> o <b>Whisky</b>.</p>
-    <div class="fp-botones">
-      <a class="fp-rojo" href="/pisco">🍸 Ver opciones de Pisco</a>
-      <a class="fp-blanco" href="/vinos">🍷 Ver Vinos</a>
-      <a class="fp-rojo" href="/whisky">🥃 Ver opciones de Whisky</a>
-    </div>
-  </div>
-</div>
+<!-- El popup principal (campañas, countdown) lo pinta assets/site.js (pintarPopup):
+     editable desde /panel → 📝 Sitio → 🎉 Popup; sin backend usa la campaña por defecto -->
 
 <script src="/data/catalog.js"></script>
 <script src="/assets/site.js"></script>
@@ -450,37 +425,6 @@
       f.querySelector('.modal-cerrar').onclick = function () { f.classList.remove('abierto'); };
     })(fondos[i]);
   }
-
-  // ----- Popup Fiestas Patrias: 1 vez al día, solo en julio (hora Perú UTC-5) -----
-  function tickFP() {
-    var ahora = new Date();
-    var anio = ahora.getUTCFullYear();
-    var objetivo = Date.UTC(anio, 6, 28, 5, 0, 0); // 28 jul 00:00 Perú = 05:00 UTC
-    var t = objetivo - ahora.getTime();
-    var antes = document.getElementById('fp-antes');
-    var despues = document.getElementById('fp-despues');
-    if (t <= 0) { antes.style.display = 'none'; despues.style.display = 'block'; return; }
-    var s = Math.floor(t / 1000);
-    document.getElementById('fp-d').textContent = Math.floor(s / 86400);
-    document.getElementById('fp-h').textContent = String(Math.floor(s % 86400 / 3600)).padStart(2, '0');
-    document.getElementById('fp-m').textContent = String(Math.floor(s % 3600 / 60)).padStart(2, '0');
-    document.getElementById('fp-s').textContent = String(s % 60).padStart(2, '0');
-  }
-  (function () {
-    var peru = new Date(Date.now() - 5 * 3600000);
-    if (peru.getUTCMonth() !== 6) return; // solo julio (cambiar aquí para otra campaña)
-    var hoy = peru.toISOString().slice(0, 10);
-    if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
-    localStorage.setItem('arakaki_fp_dia', hoy);
-    tickFP();
-    setInterval(tickFP, 1000);
-    setTimeout(function () {
-      var fp = document.getElementById('fp-popup');
-      fp.classList.add('abierto');
-      var v = fp.querySelector('video');
-      v.play().catch(function () {});
-    }, 1200);
-  })();
 
   // Duplicar la cinta para que el marquee sea continuo
   var rod = document.getElementById('cinta-rodillo');

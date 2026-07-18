@@ -791,6 +791,51 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, s });
     }
 
+    // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---
+    // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, botones[≤3] }.
+    // Campo ausente = default de site.js (POPUP_DEF = campaña de Fiestas Patrias).
+    if (b.action === 'getpopup') {
+      const raw = await redis(['GET', 'config:popup']);
+      let p = {};
+      if (raw) { try { p = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ p });
+    }
+    if (b.action === 'setpopup') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const ddmm = (v) => {
+        const m = /^(\d{1,2})\/(\d{1,2})$/.exec(txt(v, 5));
+        if (!m) return '';
+        const d = +m[1], mes = +m[2];
+        if (d < 1 || d > 31 || mes < 1 || mes > 12) return '';
+        return (d < 10 ? '0' + d : '' + d) + '/' + (mes < 10 ? '0' + mes : '' + mes);
+      };
+      const ruta = (v) => { const u = txt(v, 300); return u === 'no' || u.startsWith('/') || /^https?:\/\//i.test(u) ? u : ''; };
+      const p = {};
+      if (b.on === '0') p.on = '0';
+      const campos = { titulo: 80, sub: 160, falta: 80, despues: 80, barra: 200 };
+      Object.keys(campos).forEach((k) => { const v = txt(b[k], campos[k]); if (v) p[k] = v; });
+      const video = ruta(b.video); if (video) p.video = video;
+      // 'no' = quitar (sin countdown / sin límite de fechas); vacío = el default de site.js
+      ['fecha', 'desde', 'hasta'].forEach((k) => {
+        if (txt(b[k], 5).toLowerCase() === 'no') { p[k] = 'no'; return; }
+        const v = ddmm(b[k]); if (v) p[k] = v;
+      });
+      if (b.frec === 'siempre') p.frec = 'siempre';
+      const botones = (Array.isArray(b.botones) ? b.botones : []).slice(0, 3)
+        .map((bt) => {
+          if (!bt || typeof bt !== 'object') return null;
+          const t = txt(bt.txt, 60);
+          const u = txt(bt.url, 200);
+          if (!t || !u || (!u.startsWith('/') && !/^https?:\/\//i.test(u))) return null;
+          return { txt: t, url: u, estilo: bt.estilo === 'blanco' ? 'blanco' : 'rojo' };
+        }).filter(Boolean);
+      if (botones.length) p.botones = botones;
+      // Todo vacío = vuelve a la campaña por defecto de site.js
+      if (Object.keys(p).length) await redis(['SET', 'config:popup', JSON.stringify(p)]);
+      else await redis(['DEL', 'config:popup']);
+      return res.status(200).json({ ok: true, p });
+    }
+
     // --- 🔤 Tipografía global del sitio: config:tipo (la sirve /api/sitio como t) ---
     // { titulos, cuerpo, escala, pesoTit, interlineado, espaciado }. Campo ausente = default
     // de site.css. Fuentes solo de la lista blanca (site.js tiene la misma).

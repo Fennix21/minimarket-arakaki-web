@@ -26,11 +26,14 @@ module.exports = async (req, res) => {
   const f = {};
   let k = {};
   let t = {};
+  let p = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const [raw, rawF, rawK, rawT] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo'])) || [];
+      const [raw, rawF, rawK, rawT, rawP] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo', 'config:popup'])) || [];
       // config:tipo (tipografía global): validada al guardar (crm.js settipo); site.js re-valida al aplicar
       if (rawT) { try { t = JSON.parse(rawT) || {}; } catch (e) {} }
+      // config:popup (popup principal del inicio): validado al guardar (crm.js setpopup)
+      if (rawP) { try { p = JSON.parse(rawP) || {}; } catch (e) {} }
       if (raw) s = JSON.parse(raw);
       // config:fondos guarda el modelo del panel ({t,c1,c2,…}); al sitio solo le sirve el css armado
       if (rawF) {
@@ -49,5 +52,5 @@ module.exports = async (req, res) => {
       }
     }
   } catch (e) { console.error('sitio error', e); }
-  return res.status(200).json({ s, f, k, t });
+  return res.status(200).json({ s, f, k, t, p });
 };

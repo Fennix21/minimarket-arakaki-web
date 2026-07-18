@@ -228,7 +228,10 @@
   }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
-      if (!j) return;
+      if (!j) { pintarPopup(popupCache()); return; }
+      // Popup del inicio: se pinta con la config del dueño (o los defaults si no hay)
+      pintarPopup(j.p);
+      try { localStorage.setItem('arakaki_popup', JSON.stringify(j.p || {})); } catch (e) {}
       if (j.f && typeof j.f === 'object') {
         aplicarFondos(j.f);
         try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
@@ -244,7 +247,7 @@
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
       aplicarSitio(m);
-    }).catch(function () {});
+    }).catch(function () { pintarPopup(popupCache()); }); // sin backend: popup con lo último conocido/los defaults
   }
 
   // ---------- Apariencia editable del carrito "Tu pedido" ----------
@@ -433,6 +436,118 @@
   }
 
   // ---------- Header, menú, footer, carrito (se inyectan en cada página) ----------
+  // ---------- Popup principal del inicio (editable: panel → 📝 Sitio → 🎉 Popup) ----------
+  // config:popup llega por /api/sitio como `p`. Sin backend (o sin cambios del dueño) se usa
+  // POPUP_DEF = la campaña de Fiestas Patrias de siempre. Solo sale en la portada, respeta el
+  // rango de fechas (hora Lima, con vuelta de fin de año) y la frecuencia 1 vez/día por cliente
+  // (localStorage arakaki_fp_dia, la clave histórica).
+  var POPUP_DEF = {
+    on: '1',
+    titulo: '¡Felices Fiestas Patrias!',
+    sub: 'Celebremos juntos el orgullo de ser peruanos.',
+    video: '/img/videos/machu-picchu.mp4',
+    fecha: '28/07',
+    falta: 'Faltan para el 28 de Julio',
+    despues: '¡Feliz 28 de Julio, Perú! 🇵🇪',
+    barra: 'Celebra las Fiestas Patrias con lo mejor de la barra: Pisco, Vino o Whisky.',
+    desde: '01/07', hasta: '31/07', frec: 'dia',
+    botones: [
+      { txt: '🍸 Ver opciones de Pisco', url: '/pisco', estilo: 'rojo' },
+      { txt: '🍷 Ver Vinos', url: '/vinos', estilo: 'blanco' },
+      { txt: '🥃 Ver opciones de Whisky', url: '/whisky', estilo: 'rojo' },
+    ],
+  };
+  var popupHecho = false;
+  function popupCache() { try { return JSON.parse(localStorage.getItem('arakaki_popup') || 'null'); } catch (e) { return null; } }
+  function fechaLima() { return new Date(Date.now() - 5 * 3600000); } // hora Perú (UTC-5)
+  function ddmmAMd(v) { // 'dd/mm' → 'MM-DD' comparable ('' si no es válida)
+    var m = /^(\d{1,2})\/(\d{1,2})$/.exec(String(v || '').trim());
+    if (!m) return '';
+    var d = +m[1], mes = +m[2];
+    if (d < 1 || d > 31 || mes < 1 || mes > 12) return '';
+    return (mes < 10 ? '0' : '') + mes + '-' + (d < 10 ? '0' : '') + d;
+  }
+  function popupEnFechas(cfg) {
+    var desde = ddmmAMd(cfg.desde), hasta = ddmmAMd(cfg.hasta);
+    if (!desde && !hasta) return true;
+    var hoy = fechaLima().toISOString().slice(5, 10);
+    if (desde && hasta) return desde <= hasta ? (hoy >= desde && hoy <= hasta) : (hoy >= desde || hoy <= hasta);
+    return desde ? hoy >= desde : hoy <= hasta;
+  }
+  function pintarPopup(p) {
+    if (popupHecho) return;
+    if (!/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
+    popupHecho = true;
+    var cfg = {}, k;
+    for (k in POPUP_DEF) cfg[k] = POPUP_DEF[k];
+    if (p && typeof p === 'object') for (k in p) if (p[k] != null && p[k] !== '') cfg[k] = p[k];
+    if (cfg.on === '0') return;
+    if (!popupEnFechas(cfg)) return;
+    if (cfg.frec !== 'siempre') {
+      var hoy = fechaLima().toISOString().slice(0, 10);
+      try {
+        if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
+        localStorage.setItem('arakaki_fp_dia', hoy);
+      } catch (e) {}
+    }
+    var botones = [];
+    (cfg.botones || []).slice(0, 3).forEach(function (bt) {
+      if (!bt || !bt.txt || !bt.url) return;
+      var url = String(bt.url);
+      if (!/^\//.test(url) && !/^https?:\/\//i.test(url)) return;
+      botones.push('<a class="' + (bt.estilo === 'blanco' ? 'fp-blanco' : 'fp-rojo') + '" href="' + esc(url) + '">' + esc(bt.txt) + '</a>');
+    });
+    var video = String(cfg.video || '');
+    var conVideo = video && video !== 'no' && (/^\//.test(video) || /^https?:\/\//i.test(video));
+    var md = ddmmAMd(cfg.fecha); // 'MM-DD' del countdown ('' = sin reloj)
+    var f = document.createElement('div');
+    f.className = 'modal-fondo'; f.id = 'fp-popup';
+    f.innerHTML = '<div class="modal-caja" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
+      '<button class="modal-cerrar" aria-label="Cerrar">✕</button>' +
+      (conVideo ? '<video src="' + esc(video) + '" muted loop playsinline></video>' : '') +
+      '<h2>' + esc(cfg.titulo) + '</h2>' +
+      (cfg.sub ? '<p class="fp-sub">' + esc(cfg.sub) + '</p>' : '') +
+      (md ?
+        '<div id="fp-antes"><p class="fp-falta">' + esc(cfg.falta) + '</p>' +
+        '<div class="fp-reloj">' +
+          '<div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>' +
+          '<div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>' +
+          '<div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>' +
+          '<div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>' +
+        '</div></div>' +
+        '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
+      : '') +
+      (cfg.barra ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
+      (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '') +
+    '</div>';
+    document.body.appendChild(f);
+    function cerrarFP() { f.classList.remove('abierto'); }
+    f.onclick = function (e) { if (e.target === f) cerrarFP(); };
+    f.querySelector('.modal-cerrar').onclick = cerrarFP;
+    if (md) {
+      var tickFP = function () {
+        var ahora = new Date();
+        var objetivo = Date.UTC(ahora.getUTCFullYear(), +md.slice(0, 2) - 1, +md.slice(3), 5, 0, 0); // 00:00 Perú = 05:00 UTC
+        var t = objetivo - ahora.getTime();
+        var antes = document.getElementById('fp-antes'), despues = document.getElementById('fp-despues');
+        if (!antes) return;
+        if (t <= 0) { antes.style.display = 'none'; despues.style.display = 'block'; return; }
+        var s = Math.floor(t / 1000);
+        document.getElementById('fp-d').textContent = Math.floor(s / 86400);
+        document.getElementById('fp-h').textContent = ('0' + Math.floor(s % 86400 / 3600)).slice(-2);
+        document.getElementById('fp-m').textContent = ('0' + Math.floor(s % 3600 / 60)).slice(-2);
+        document.getElementById('fp-s').textContent = ('0' + (s % 60)).slice(-2);
+      };
+      tickFP();
+      setInterval(tickFP, 1000);
+    }
+    setTimeout(function () {
+      f.classList.add('abierto');
+      var v = f.querySelector('video');
+      if (v) v.play().catch(function () {});
+    }, 1200);
+  }
+
   function armarBase() {
     var cab = document.createElement('header');
     cab.className = 'cab';

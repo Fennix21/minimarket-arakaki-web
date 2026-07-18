@@ -243,6 +243,10 @@ td a.wa { color:var(--verde); text-decoration:none; }
 #tipo-prev .tp-tit { font-size:26px; font-weight:800; font-family:'Poppins','Montserrat',sans-serif; }
 #tipo-prev .tp-sub { font-size:15px; opacity:.8; margin-top:4px; }
 #tipo-prev .tp-txt { font-size:14px; margin-top:12px; color:var(--txt-soft); line-height:1.55; }
+/* 🎉 Popup: filas de botones (texto + enlace + estilo) */
+.popup-btn-fila { display:grid; grid-template-columns:1.6fr 1fr 92px; gap:8px; margin-bottom:8px; }
+.popup-btn-fila input, .popup-btn-fila select { width:100%; min-width:0; }
+@media (max-width:700px){ .popup-btn-fila { grid-template-columns:1fr; } }
 .subpanel { display:none; }
 .subpanel.activa { display:block; animation:aparecer .18s ease; }
 @media (max-width:520px){
@@ -1263,6 +1267,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="subtab" data-ssub="videos" data-gr="videos"><span class="ico">🎬</span><span class="eti">Videos</span></button>
       <button class="subtab" data-ssub="comple" data-gr="comple"><span class="ico">🧩</span><span class="eti">Combos</span></button>
       <button class="subtab" data-ssub="carrito" data-gr="carrito"><span class="ico">🛒</span><span class="eti">Carrito</span></button>
+      <button class="subtab" data-ssub="popup" data-gr="popup"><span class="ico">🎉</span><span class="eti">Popup</span></button>
     </div>
 
     <!-- ✍️ TEXTOS (grupo "sitio"): lema + avisos del carrito + pie de página + compartir, un solo 💾 -->
@@ -1632,6 +1637,93 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
     </div>
+
+    <!-- 🎉 POPUP (grupo "popup"): el popup principal de la portada -->
+    <div class="subpanel" id="ss-popup">
+    <div class="caja-bot" data-grupo="popup">
+      <h3>🎉 Popup del inicio</h3>
+      <div class="campo-bloque">
+        <div class="hint">La ventana de campaña que recibe al cliente en la portada (hoy: Fiestas Patrias con cuenta regresiva). Aquí la prendes/apagas y cambias todo: video, textos, fecha de la cuenta regresiva, botones y en qué fechas sale. Campo vacío = lo de siempre (la campaña de Fiestas Patrias). Sale máximo <b>1 vez al día</b> por cliente, salvo que elijas “en cada visita”.</div>
+      </div>
+      <div class="tipo-grid">
+        <div class="campo-bloque">
+          <label>¿Mostrar el popup?</label>
+          <select id="popup-on">
+            <option value="1">✅ Prendido</option>
+            <option value="0">🚫 Apagado</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Frecuencia</label>
+          <select id="popup-frec">
+            <option value="">1 vez al día por cliente (recomendado)</option>
+            <option value="siempre">En cada visita</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Sale desde (dd/mm)</label>
+          <div class="hint">Vacío = desde el 01/07. Escribe <b>no</b> para que salga todo el año.</div>
+          <input type="text" id="popup-desde" maxlength="5" placeholder="01/07">
+        </div>
+        <div class="campo-bloque">
+          <label>Sale hasta (dd/mm)</label>
+          <div class="hint">Vacío = hasta el 31/07. Escribe <b>no</b> para que no tenga fin.</div>
+          <input type="text" id="popup-hasta" maxlength="5" placeholder="31/07">
+        </div>
+      </div>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="popup-titulo" maxlength="80" placeholder="¡Felices Fiestas Patrias!" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Frase bajo el título</label>
+        <input type="text" id="popup-sub" maxlength="160" placeholder="Celebremos juntos el orgullo de ser peruanos." style="width:100%">
+      </div>
+      <div class="tipo-grid">
+        <div class="campo-bloque">
+          <label>Video de arriba</label>
+          <select id="popup-video"></select>
+        </div>
+        <div class="campo-bloque">
+          <label>…o URL propia del video (opcional)</label>
+          <div class="hint">Si escribes una URL https, manda sobre el selector.</div>
+          <input type="text" id="popup-video-url" maxlength="300" placeholder="https://…">
+        </div>
+      </div>
+      <div class="cared-sub">
+        <b>⏳ Cuenta regresiva</b>
+        <div class="tipo-grid">
+          <div class="campo-bloque">
+            <label>Fecha objetivo (dd/mm)</label>
+            <div class="hint">Vacío = 28/07. Escribe <b>no</b> para quitar la cuenta regresiva.</div>
+            <input type="text" id="popup-fecha" maxlength="5" placeholder="28/07">
+          </div>
+          <div class="campo-bloque">
+            <label>Texto mientras falta</label>
+            <input type="text" id="popup-falta" maxlength="80" placeholder="Faltan para el 28 de Julio">
+          </div>
+          <div class="campo-bloque">
+            <label>Texto cuando llega el día</label>
+            <input type="text" id="popup-despues" maxlength="80" placeholder="¡Feliz 28 de Julio, Perú! 🇵🇪">
+          </div>
+        </div>
+      </div>
+      <div class="campo-bloque">
+        <label>Frase de cierre (antes de los botones)</label>
+        <textarea id="popup-barra" maxlength="200" style="min-height:60px" placeholder="Celebra las Fiestas Patrias con lo mejor de la barra: Pisco, Vino o Whisky."></textarea>
+      </div>
+      <div class="cared-sub">
+        <b>🔘 Botones (hasta 3; con texto Y enlace, si no no sale)</b>
+        <div class="popup-btn-fila"><input type="text" id="popup-b1t" maxlength="60" placeholder="🍸 Ver opciones de Pisco"><input type="text" id="popup-b1u" maxlength="200" placeholder="/pisco"><select id="popup-b1e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
+        <div class="popup-btn-fila"><input type="text" id="popup-b2t" maxlength="60" placeholder="🍷 Ver Vinos"><input type="text" id="popup-b2u" maxlength="200" placeholder="/vinos"><select id="popup-b2e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
+        <div class="popup-btn-fila"><input type="text" id="popup-b3t" maxlength="60" placeholder="🥃 Ver opciones de Whisky"><input type="text" id="popup-b3u" maxlength="200" placeholder="/whisky"><select id="popup-b3e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
+      </div>
+      <div class="aviso" id="popup-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="popup" onclick="pedirGuardar('popup')">💾 Guardar popup</button>
+      </div>
+    </div>
+    </div>
   </div>
 
   </main>
@@ -1729,6 +1821,7 @@ var GRUPOS = {
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
   comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
   carrito: { nombre: 'de la apariencia del carrito', vista: 'sitio', aviso: 'carrito-aviso', fn: 'guardarCarEd',  nota: 'Se ve en la web en ~1 minuto.' },
+  popup:   { nombre: 'del popup del inicio',        vista: 'sitio', aviso: 'popup-aviso',  fn: 'guardarPopup',   nota: 'Se ve en la web en ~1 minuto.' },
   webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
   prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
   tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
@@ -1928,7 +2021,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); }
+  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -3461,6 +3554,61 @@ function guardarSitio() {
     cargarSitio();
   }).catch(function (e) { errGuardado('sitio', e); });
 }
+// --- 🎉 Popup del inicio: config:popup (lo sirve /api/sitio como p, lo pinta site.js) ---
+// Campo vacío = default de site.js (campaña de Fiestas Patrias); 'no' en fecha/desde/hasta = quitar.
+function armarPopupVideoSel() {
+  var sel = document.getElementById('popup-video');
+  if (!sel || sel.options.length) return;
+  var ops = '<option value="">El de siempre (machu-picchu.mp4)</option>';
+  VIDEOS_REPO.forEach(function (n) { ops += '<option value="/img/videos/' + n + '.mp4">' + n + '.mp4</option>'; });
+  ops += '<option value="no">🚫 Sin video</option>';
+  sel.innerHTML = ops;
+}
+function cargarPopup() {
+  armarPopupVideoSel();
+  api('getpopup').then(function (j) {
+    var p = j.p || {};
+    document.getElementById('popup-on').value = p.on === '0' ? '0' : '1';
+    document.getElementById('popup-frec').value = p.frec === 'siempre' ? 'siempre' : '';
+    ['titulo', 'sub', 'fecha', 'falta', 'despues', 'barra', 'desde', 'hasta'].forEach(function (k) {
+      var el = document.getElementById('popup-' + k);
+      if (el) el.value = p[k] || '';
+    });
+    var vid = p.video || '';
+    var sel = document.getElementById('popup-video'), urlIn = document.getElementById('popup-video-url');
+    var enSel = false;
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === vid) enSel = true;
+    sel.value = enSel ? vid : '';
+    urlIn.value = enSel ? '' : vid;
+    var bts = p.botones || [];
+    for (var n = 1; n <= 3; n++) {
+      var bt = bts[n - 1] || {};
+      document.getElementById('popup-b' + n + 't').value = bt.txt || '';
+      document.getElementById('popup-b' + n + 'u').value = bt.url || '';
+      document.getElementById('popup-b' + n + 'e').value = bt.estilo === 'blanco' ? 'blanco' : 'rojo';
+    }
+  }).catch(function () {});
+}
+function guardarPopup() {
+  var val = function (id) { return document.getElementById(id).value.trim(); };
+  var botones = [];
+  for (var n = 1; n <= 3; n++) {
+    var t = val('popup-b' + n + 't'), u = val('popup-b' + n + 'u');
+    if (t && u) botones.push({ txt: t, url: u, estilo: val('popup-b' + n + 'e') });
+  }
+  api('setpopup', {
+    on: val('popup-on'), frec: val('popup-frec'),
+    titulo: val('popup-titulo'), sub: val('popup-sub'),
+    video: val('popup-video-url') || val('popup-video'),
+    fecha: val('popup-fecha'), falta: val('popup-falta'), despues: val('popup-despues'),
+    barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'),
+    botones: botones
+  }).then(function () {
+    okGuardado('popup', 'Popup guardado. Se ve en la web en ~1 minuto.');
+    cargarPopup();
+  }).catch(function (e) { errGuardado('popup', e); });
+}
+
 // --- 🔤 Letras (tipografía global): config:tipo (la sirve /api/sitio como t, la aplica site.js) ---
 var TIPO_FUENTES_P = {
   'Montserrat': "'Montserrat', sans-serif",
