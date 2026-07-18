@@ -791,6 +791,30 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, s });
     }
 
+    // --- 🖼️ Logos del sistema: config:logos (los sirve /api/sitio como l) ---
+    // Slots: favicon (pestaña) · push (notificaciones) · preloader (pantalla de carga) ·
+    // panel (login y menú del panel). El logo del header es FIJO (pedido del dueño) y los
+    // correos usan el logo oficial del repo. Valores: /ruta del repo, /api/push?img=<id> o https.
+    if (b.action === 'getlogos') {
+      const raw = await redis(['GET', 'config:logos']);
+      let l = {};
+      if (raw) { try { l = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ l });
+    }
+    if (b.action === 'setlogos') {
+      const SLOTS = ['favicon', 'push', 'preloader', 'panel'];
+      const src = b.logos && typeof b.logos === 'object' ? b.logos : {};
+      const out = {};
+      SLOTS.forEach((k) => {
+        const v = (src[k] == null ? '' : String(src[k])).trim().slice(0, 300);
+        if (v && (v.startsWith('/') || /^https:\/\//i.test(v))) out[k] = v;
+      });
+      // Slot vacío = el logo de siempre (no se guarda nada de más)
+      if (Object.keys(out).length) await redis(['SET', 'config:logos', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:logos']);
+      return res.status(200).json({ ok: true, l: out });
+    }
+
     // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---
     // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, botones[≤3] }.
     // Campo ausente = default de site.js (POPUP_DEF = campaña de Fiestas Patrias).

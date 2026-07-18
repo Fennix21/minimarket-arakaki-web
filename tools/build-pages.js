@@ -263,6 +263,16 @@ const PRELOADER = `<style>
 
 <script>
 (function () {
+  // Logo de la pantalla de carga elegido en el panel (📝 Sitio → 🖼️ Logos): site.js lo cachea
+  // en localStorage arakaki_logos y aquí se aplica sin depender de site.js (preloader autocontenido)
+  try {
+    var lg = JSON.parse(localStorage.getItem('arakaki_logos') || '{}');
+    if (lg.preloader && typeof lg.preloader === 'string' && (lg.preloader.charAt(0) === '/' || /^https:\\/\\//.test(lg.preloader))) {
+      var gi = document.querySelector('#ap-preloader .ap-cat-img');
+      if (gi) gi.src = lg.preloader;
+    }
+  } catch (e) {}
+
   var container = document.getElementById('ap-particles-container');
   var colors = ['#ffe066','#ff9f0a','#ffcc44','#fff0a0','#ffd700'];
   for (var i = 0; i < 28; i++) {

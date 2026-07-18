@@ -13,8 +13,9 @@ self.addEventListener('push', function (e) {
   var title = data.title || 'Minimarket Arakaki';
   var opts = {
     body: data.body || '',
-    icon: data.icon || '/img/icon-192.png',
-    badge: '/img/icon-192.png',
+    // Logo oficial (gato sobre círculo rojo): ninguna notificación sale sin identidad visual
+    icon: data.icon || '/img/logo-oficial-192.png',
+    badge: '/img/logo-oficial-192.png',
     tag: data.tag || 'arakaki',
     renotify: true,
     data: { url: data.url || '/', cid: data.cid || '' },

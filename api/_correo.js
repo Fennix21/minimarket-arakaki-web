@@ -54,7 +54,7 @@ function marco(cuerpo, pie) {
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#262626;padding:26px 12px"><tr><td align="center">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#1a1715;border:1px solid #6b5518;border-radius:16px">' +
     '<tr><td align="center" style="padding:30px 26px 14px">' +
-    '<img src="' + SITE + '/img/logo-gato.png" width="66" alt="Minimarket Arakaki" style="display:block;margin:0 auto">' +
+    '<img src="' + SITE + '/img/logo-oficial-192.png" width="66" alt="Minimarket Arakaki" style="display:block;margin:0 auto;border-radius:50%">' +
     '<div style="color:#d4a941;font-family:Georgia,\'Times New Roman\',serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;padding-top:10px">Minimarket Arakaki</div>' +
     '</td></tr>' +
     '<tr><td style="padding:6px 26px 0;color:#f4ebd6;font-family:Georgia,\'Times New Roman\',serif;font-size:15px;line-height:1.65">' + cuerpo + '</td></tr>' +

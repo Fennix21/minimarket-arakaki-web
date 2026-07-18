@@ -211,6 +211,20 @@
     }
   }
 
+  // ---------- Logos del sistema (panel → 📝 Sitio → 🖼️ Logos) ----------
+  // config:logos llega por /api/sitio como `l`. Aquí solo se aplica el favicon; el del
+  // preloader lo lee su propio script del caché (localStorage arakaki_logos) y el de las
+  // notificaciones lo pone el servidor (api/_push.js). El logo del HEADER es fijo.
+  function logosCache() { try { return JSON.parse(localStorage.getItem('arakaki_logos') || '{}'); } catch (e) { return {}; } }
+  function logoOk(v) { return typeof v === 'string' && v.length < 300 && (v.charAt(0) === '/' || /^https:\/\//i.test(v)); }
+  function aplicarLogos(l) {
+    if (!l || typeof l !== 'object') return;
+    if (logoOk(l.favicon)) {
+      var fav = document.querySelector('link[rel="icon"]');
+      if (fav) fav.href = l.favicon;
+    }
+  }
+
   var FONDO_CLAVES = ['pagina', 'vino', 'roja', 'premium', 'card'];
   // El valor lo arma nuestra propia API con colores validados; el filtro es por si el caché
   // del navegador quedó tocado a mano.
@@ -243,6 +257,9 @@
       // Tipografía editable (t puede venir vacío = defaults; se cachea igual para no parpadear)
       aplicarTipografia(j.t);
       try { localStorage.setItem('arakaki_tipo', JSON.stringify(j.t || {})); } catch (e) {}
+      // Logos del sistema (favicon ahora; el preloader los toma del caché en la próxima visita)
+      aplicarLogos(j.l);
+      try { localStorage.setItem('arakaki_logos', JSON.stringify(j.l || {})); } catch (e) {}
       if (!j.s || typeof j.s !== 'object') return;
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
@@ -683,6 +700,7 @@
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
     aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
+    aplicarLogos(logosCache());   // favicon del dueño desde la visita anterior
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
 
     // Carrito flotante + modal

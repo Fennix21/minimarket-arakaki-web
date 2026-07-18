@@ -247,6 +247,15 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .popup-btn-fila { display:grid; grid-template-columns:1.6fr 1fr 92px; gap:8px; margin-bottom:8px; }
 .popup-btn-fila input, .popup-btn-fila select { width:100%; min-width:0; }
 @media (max-width:700px){ .popup-btn-fila { grid-template-columns:1fr; } }
+/* 🖼️ Logos: una fila por logo (preview + dónde se usa + subir/URL) */
+.logo-fila { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--borde); border-radius:14px; padding:14px; margin-bottom:12px; flex-wrap:wrap; }
+.logo-fila img.lg-prev { width:56px; height:56px; object-fit:contain; border-radius:12px; background:var(--campo); border:1px solid var(--borde); flex:none; padding:4px; }
+.logo-fila .lg-info { flex:1; min-width:210px; }
+.logo-fila .lg-info b { display:block; font-size:13.5px; }
+.logo-fila .lg-info span { display:block; font-size:12px; color:var(--sub); margin-top:3px; line-height:1.5; }
+.logo-fila .lg-acciones { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.logo-fila .lg-acciones input[type=text] { width:230px; max-width:60vw; }
+.logo-fila.fijo { opacity:.7; }
 .subpanel { display:none; }
 .subpanel.activa { display:block; animation:aparecer .18s ease; }
 @media (max-width:520px){
@@ -586,7 +595,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 </script>
 
 <div id="login">
-  <img src="/img/logo-arakaki.webp" alt="Arakaki">
+  <img data-logo-panel src="/img/logo-arakaki.webp" alt="Arakaki">
   <h1>Panel Minimarket Arakaki</h1>
   <p class="lema">Sonríe y date el gusto ✨</p>
   <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')entrar()">
@@ -597,7 +606,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 <div id="app">
   <!-- Barra superior (solo móvil) -->
   <div id="topbar">
-    <img src="/img/logo-arakaki.webp" alt=""><b>Panel Arakaki</b>
+    <img data-logo-panel src="/img/logo-arakaki.webp" alt=""><b>Panel Arakaki</b>
     <span class="esp"></span>
     <button id="tema-mini" onclick="toggleTema()" title="Cambiar tema">🌙</button>
     <button onclick="cargarTodo()" title="Actualizar">↻</button>
@@ -607,7 +616,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   <!-- Menú lateral (escritorio) / barra inferior (móvil) -->
   <aside id="menu">
     <div class="marca">
-      <img src="/img/logo-arakaki.webp" alt="">
+      <img data-logo-panel src="/img/logo-arakaki.webp" alt="">
       <div><b>Arakaki</b><span>Panel del negocio</span></div>
     </div>
     <nav>
@@ -1268,6 +1277,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="subtab" data-ssub="comple" data-gr="comple"><span class="ico">🧩</span><span class="eti">Combos</span></button>
       <button class="subtab" data-ssub="carrito" data-gr="carrito"><span class="ico">🛒</span><span class="eti">Carrito</span></button>
       <button class="subtab" data-ssub="popup" data-gr="popup"><span class="ico">🎉</span><span class="eti">Popup</span></button>
+      <button class="subtab" data-ssub="logos" data-gr="logos"><span class="ico">🖼️</span><span class="eti">Logos</span></button>
     </div>
 
     <!-- ✍️ TEXTOS (grupo "sitio"): lema + avisos del carrito + pie de página + compartir, un solo 💾 -->
@@ -1724,6 +1734,21 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
     </div>
+
+    <!-- 🖼️ LOGOS (grupo "logos"): identidad visual centralizada -->
+    <div class="subpanel" id="ss-logos">
+    <div class="caja-bot" data-grupo="logos">
+      <h3>🖼️ Logos del sistema</h3>
+      <div class="campo-bloque">
+        <div class="hint">Todos los logos de la plataforma en un solo lugar, cada uno con su uso indicado. Sube una imagen (se comprime sola) o pega una URL; <b>vacío = el logo de siempre</b>. El logo del encabezado de la web es fijo (así lo pediste) y los correos usan el logo oficial.</div>
+      </div>
+      <div id="logos-lista"></div>
+      <div class="aviso" id="logos-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="logos" onclick="pedirGuardar('logos')">💾 Guardar logos</button>
+      </div>
+    </div>
+    </div>
   </div>
 
   </main>
@@ -1822,6 +1847,7 @@ var GRUPOS = {
   comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
   carrito: { nombre: 'de la apariencia del carrito', vista: 'sitio', aviso: 'carrito-aviso', fn: 'guardarCarEd',  nota: 'Se ve en la web en ~1 minuto.' },
   popup:   { nombre: 'del popup del inicio',        vista: 'sitio', aviso: 'popup-aviso',  fn: 'guardarPopup',   nota: 'Se ve en la web en ~1 minuto.' },
+  logos:   { nombre: 'de los logos',                vista: 'sitio', aviso: 'logos-aviso',  fn: 'guardarLogos',   nota: 'Se ve en la web en ~1 minuto.' },
   webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
   prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
   tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
@@ -2021,7 +2047,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); }
+  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -2066,7 +2092,9 @@ for (var gs = 0; gs < genSubtabs.length; gs++) {
   })(genSubtabs[gs]);
 }
 
-function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarConsultas(); cargarTpls(); }
+function cargarTodo() { cargarInicio(); cargarLeads(); cargarPedidos(); cargarConsultas(); cargarTpls(); cargarLogos(); }
+// Logo del panel de la visita anterior (caché compartido con la web): sin parpadeo al abrir
+try { aplicarLogoPanel((JSON.parse(localStorage.getItem('arakaki_logos') || '{}') || {}).panel); } catch (e) {}
 
 // Al recargar, vuelve a la última sección que estabas viendo (guardada en verVista).
 function restaurarVista() {
@@ -3554,6 +3582,111 @@ function guardarSitio() {
     cargarSitio();
   }).catch(function (e) { errGuardado('sitio', e); });
 }
+// --- 🖼️ Logos del sistema: config:logos (favicon/push/preloader/panel; /api/sitio lo sirve como l) ---
+var LOGO_SLOTS = [
+  { k: 'favicon', n: '🌐 Favicon', d: 'El iconito de la pestaña del navegador y de los marcadores.', def: '/img/favicon.png' },
+  { k: 'push', n: '🔔 Notificaciones push', d: 'El logo que acompaña cada notificación en celulares y computadoras. Sin elegir nada sale el logo oficial (gato en círculo rojo).', def: '/img/logo-oficial-192.png' },
+  { k: 'preloader', n: '⏳ Pantalla de carga', d: 'El logo animado del centro mientras la web carga.', def: '/img/logo-gato.png' },
+  { k: 'panel', n: '🖥️ Logo del panel', d: 'El logo de la pantalla de entrada y del menú de este panel.', def: '/img/logo-arakaki.webp' }
+];
+var LOGOS_CFG = {};
+function aplicarLogoPanel(url) {
+  if (!url || typeof url !== 'string') url = '/img/logo-arakaki.webp';
+  var imgs = document.querySelectorAll('img[data-logo-panel]');
+  for (var i = 0; i < imgs.length; i++) imgs[i].src = url;
+}
+function cargarLogos() {
+  api('getlogos').then(function (j) {
+    LOGOS_CFG = j.l || {};
+    pintarLogos();
+    aplicarLogoPanel(LOGOS_CFG.panel);
+    try { localStorage.setItem('arakaki_logos', JSON.stringify(LOGOS_CFG)); } catch (e) {}
+  }).catch(function () { pintarLogos(); });
+}
+function pintarLogos() {
+  var cont = document.getElementById('logos-lista');
+  if (!cont) return;
+  var html = LOGO_SLOTS.map(function (s) {
+    var v = LOGOS_CFG[s.k] || '';
+    return '<div class="logo-fila">' +
+      '<img class="lg-prev" id="lg-prev-' + s.k + '" src="' + esc(v || s.def) + '" alt="">' +
+      '<div class="lg-info"><b>' + s.n + '</b><span>' + s.d + '</span></div>' +
+      '<div class="lg-acciones">' +
+        '<label class="btn gris" style="cursor:pointer">📤 Subir<input type="file" accept="image/*" style="display:none" onchange="subirImgLogo(this,\'' + s.k + '\')" data-sin-seguro></label>' +
+        '<input type="text" id="lg-u-' + s.k + '" maxlength="300" placeholder="o pega una URL (/img/… o https://…)" value="' + esc(v) + '" oninput="logoInput(\'' + s.k + '\', this.value)">' +
+        '<button type="button" class="btn gris" onclick="logoReset(\'' + s.k + '\')">el de siempre</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  html += '<div class="logo-fila fijo">' +
+    '<img class="lg-prev" src="/img/logo-gato.png" alt="">' +
+    '<div class="lg-info"><b>🔝 Logo del encabezado de la web</b><span>Fijo a tu pedido: se queda exactamente como está.</span></div>' +
+  '</div>';
+  html += '<div class="logo-fila fijo">' +
+    '<img class="lg-prev" src="/img/logo-oficial-192.png" alt="">' +
+    '<div class="lg-info"><b>📧 Correos (Resend)</b><span>Las plantillas de correo usan el logo oficial del repositorio.</span></div>' +
+  '</div>';
+  cont.innerHTML = html;
+}
+function logoInput(k, v) {
+  v = String(v || '').trim();
+  if (v) LOGOS_CFG[k] = v; else delete LOGOS_CFG[k];
+  var def = '';
+  LOGO_SLOTS.forEach(function (s) { if (s.k === k) def = s.def; });
+  var prev = document.getElementById('lg-prev-' + k);
+  if (prev) prev.src = v || def;
+}
+function logoReset(k) {
+  var inp = document.getElementById('lg-u-' + k);
+  if (inp) inp.value = '';
+  logoInput(k, '');
+  marcarSucio('logos');
+}
+function subirImgLogo(inp, k) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoSitio('Ese archivo no es una imagen.', true, 'logos-aviso');
+  avisoSitio('⏳ Procesando el logo…', false, 'logos-aviso');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var esc2 = Math.min(1, 512 / img.naturalWidth, 512 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * esc2)), h = Math.max(1, Math.round(img.naturalHeight * esc2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/png'); // PNG: conserva la transparencia del logo
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.85);
+    if (data.length > 470000) return avisoSitio('El logo pesa demasiado incluso comprimido: prueba con otro más liviano.', true, 'logos-aviso');
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      var inpU = document.getElementById('lg-u-' + k);
+      if (inpU) inpU.value = j.url;
+      logoInput(k, j.url);
+      marcarSucio('logos');
+      avisoSitio('🖼️ Logo subido. No olvides "💾 Guardar logos".', false, 'logos-aviso');
+    }).catch(function (e) { avisoSitio(e.message, true, 'logos-aviso'); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoSitio('No se pudo leer esa imagen.', true, 'logos-aviso'); };
+  img.src = urlTmp;
+}
+function guardarLogos() {
+  var logos = {};
+  LOGO_SLOTS.forEach(function (s) {
+    var inp = document.getElementById('lg-u-' + s.k);
+    if (inp && inp.value.trim()) logos[s.k] = inp.value.trim();
+  });
+  api('setlogos', { logos: logos }).then(function (j) {
+    LOGOS_CFG = j.l || {};
+    okGuardado('logos', 'Logos guardados. Se ven en la web en ~1 minuto.');
+    pintarLogos();
+    aplicarLogoPanel(LOGOS_CFG.panel);
+    try { localStorage.setItem('arakaki_logos', JSON.stringify(LOGOS_CFG)); } catch (e) {}
+  }).catch(function (e) { errGuardado('logos', e); });
+}
+
 // --- 🎉 Popup del inicio: config:popup (lo sirve /api/sitio como p, lo pinta site.js) ---
 // Campo vacío = default de site.js (campaña de Fiestas Patrias); 'no' en fecha/desde/hasta = quitar.
 function armarPopupVideoSel() {

@@ -32,10 +32,21 @@ function configurarVapid() {
   return true;
 }
 
+// Icono de las notificaciones: el logo oficial, o el que el dueño eligió en
+// panel → 📝 Sitio → 🖼️ Logos (config:logos.push). Nunca lanza.
+async function iconoPush() {
+  try {
+    const raw = await redis(['GET', 'config:logos']);
+    if (raw) { const l = JSON.parse(raw); if (l && l.push) return l.push; }
+  } catch (e) {}
+  return '/img/logo-oficial-192.png';
+}
+
 // Envía payload {title,body,url,icon,tag} a TODAS las suscripciones de un rol
 // ('clientes' | 'duenos'). Poda las muertas (404/410 = navegador la revocó).
 async function pushTo(rol, payload) {
   if (!configurarVapid() || !REDIS_URL || !REDIS_TOKEN) return { enviados: 0, podados: 0 };
+  if (payload && !payload.icon) payload.icon = await iconoPush(); // identidad visual SIEMPRE
   const plano = (await redis(['HGETALL', 'push:' + rol])) || []; // Upstash: [campo, valor, campo, valor...]
   const subs = [];
   for (let i = 0; i + 1 < plano.length; i += 2) subs.push({ endpoint: plano[i], json: plano[i + 1] });
