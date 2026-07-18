@@ -11,8 +11,14 @@
 <meta name="theme-color" content="#e64831">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<!-- CSS NO bloqueante: el preloader (inline, fuentes del sistema) pinta al instante,
+     así la splash nativa de la PWA se descarta enseguida en lugar de esperar estos archivos -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="/assets/site.css" media="print" onload="this.media='all'">
+<noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap">
 <link rel="stylesheet" href="/assets/site.css">
+</noscript>
 </head>
 <body>
 <style>
