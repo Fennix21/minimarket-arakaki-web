@@ -25,9 +25,12 @@ module.exports = async (req, res) => {
   let s = {};
   const f = {};
   let k = {};
+  let t = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const [raw, rawF, rawK] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito'])) || [];
+      const [raw, rawF, rawK, rawT] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo'])) || [];
+      // config:tipo (tipografía global): validada al guardar (crm.js settipo); site.js re-valida al aplicar
+      if (rawT) { try { t = JSON.parse(rawT) || {}; } catch (e) {} }
       if (raw) s = JSON.parse(raw);
       // config:fondos guarda el modelo del panel ({t,c1,c2,…}); al sitio solo le sirve el css armado
       if (rawF) {
@@ -46,5 +49,5 @@ module.exports = async (req, res) => {
       }
     }
   } catch (e) { console.error('sitio error', e); }
-  return res.status(200).json({ s, f, k });
+  return res.status(200).json({ s, f, k, t });
 };

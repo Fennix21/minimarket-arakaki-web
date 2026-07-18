@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#e64831">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&family=Lato:wght@400;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   /* Tema oscuro con tinte cálido: mismo lenguaje premium dark-gold del sitio público */
@@ -236,6 +236,13 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .subtab.activa { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 60%,#a87f22); color:#221a05; }
 .subtab.sucio::after { content:'●'; color:var(--naranja); font-size:10px; }  /* cambios sin guardar en esa sub-pestaña */
 .subtab .badge-sub { background:var(--naranja); color:#fff; border-radius:999px; font-size:10.5px; font-weight:800; padding:1px 7px; }  /* pendientes en esa sub-pestaña */
+/* 🔤 Letras: selectores en grilla + vista previa en vivo de la tipografía */
+.tipo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:4px 16px; }
+.tipo-grid select { width:100%; }
+#tipo-prev { background:var(--campo); border:1px solid var(--borde); border-radius:12px; padding:18px 16px; }
+#tipo-prev .tp-tit { font-size:26px; font-weight:800; font-family:'Poppins','Montserrat',sans-serif; }
+#tipo-prev .tp-sub { font-size:15px; opacity:.8; margin-top:4px; }
+#tipo-prev .tp-txt { font-size:14px; margin-top:12px; color:var(--txt-soft); line-height:1.55; }
 .subpanel { display:none; }
 .subpanel.activa { display:block; animation:aparecer .18s ease; }
 @media (max-width:520px){
@@ -1251,6 +1258,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
     <div class="subtabs iconos" id="sitio-subtabs">
       <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
+      <button class="subtab" data-ssub="letras" data-gr="tipo"><span class="ico">🔤</span><span class="eti">Letras</span></button>
       <button class="subtab" data-ssub="fondos" data-gr="fondos"><span class="ico">🎨</span><span class="eti">Fondos</span></button>
       <button class="subtab" data-ssub="videos" data-gr="videos"><span class="ico">🎬</span><span class="eti">Videos</span></button>
       <button class="subtab" data-ssub="comple" data-gr="comple"><span class="ico">🧩</span><span class="eti">Combos</span></button>
@@ -1412,6 +1420,89 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     </div>
 
     <!-- 🎨 FONDOS (grupo "fondos") -->
+    <!-- 🔤 LETRAS (grupo "tipo"): tipografía global del sitio -->
+    <div class="subpanel" id="ss-letras">
+    <div class="caja-bot" data-grupo="tipo">
+      <h3>🔤 Letras de la web</h3>
+      <div class="campo-bloque">
+        <div class="hint">La letra de toda la web pública: la fuente de los títulos y la del texto, el tamaño, el grosor y el aire entre líneas. La vista previa de abajo cambia al toque. <b>La de siempre</b> = el estilo original de la marca. Las letras doradas elegantes de las tarjetas de productos son parte de la marca y no cambian.</div>
+      </div>
+      <div class="tipo-grid">
+        <div class="campo-bloque">
+          <label>Fuente de los títulos</label>
+          <select id="tipo-titulos" onchange="pintarTipoPrev()">
+            <option value="">La de siempre (Poppins)</option>
+            <option value="Playfair Display">Playfair Display — elegante premium</option>
+            <option value="Montserrat">Montserrat — moderna</option>
+            <option value="Poppins">Poppins — redonda</option>
+            <option value="Lato">Lato — limpia</option>
+            <option value="Georgia">Georgia — clásica</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Fuente del texto</label>
+          <select id="tipo-cuerpo" onchange="pintarTipoPrev()">
+            <option value="">La de siempre (Montserrat)</option>
+            <option value="Lato">Lato — limpia</option>
+            <option value="Montserrat">Montserrat — moderna</option>
+            <option value="Poppins">Poppins — redonda</option>
+            <option value="Georgia">Georgia — clásica</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Tamaño del texto</label>
+          <select id="tipo-escala" onchange="pintarTipoPrev()">
+            <option value="">El de siempre</option>
+            <option value="0.95">Un poco más chico</option>
+            <option value="1.05">Un poco más grande</option>
+            <option value="1.1">Más grande</option>
+            <option value="1.2">Bien grande (ideal adultos mayores)</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Grosor de los títulos</label>
+          <select id="tipo-peso" onchange="pintarTipoPrev()">
+            <option value="">El de siempre (bien grueso)</option>
+            <option value="600">Medio</option>
+            <option value="700">Grueso</option>
+            <option value="800">Bien grueso</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Aire entre líneas</label>
+          <select id="tipo-lh" onchange="pintarTipoPrev()">
+            <option value="">El de siempre</option>
+            <option value="1.4">Compacto</option>
+            <option value="1.55">Cómodo</option>
+            <option value="1.7">Aireado</option>
+            <option value="1.85">Muy aireado</option>
+          </select>
+        </div>
+        <div class="campo-bloque">
+          <label>Espacio entre letras (títulos)</label>
+          <select id="tipo-ls" onchange="pintarTipoPrev()">
+            <option value="">El de siempre (junto)</option>
+            <option value="0.5">Sutil</option>
+            <option value="1">Notorio</option>
+            <option value="2">Amplio</option>
+          </select>
+        </div>
+      </div>
+      <div class="campo-bloque">
+        <label>Vista previa</label>
+        <div id="tipo-prev">
+          <div class="tp-tit">Nuestras Categorías</div>
+          <div class="tp-sub">Tenemos lo que necesitas cuando lo necesitas</div>
+          <p class="tp-txt">Pide por WhatsApp y te lo llevamos a tu puerta. Atendemos todos los días de la semana, incluso feriados, con la atención de siempre.</p>
+        </div>
+      </div>
+      <div class="aviso" id="tipo-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="tipo" onclick="pedirGuardar('tipo')">💾 Guardar letras</button>
+      </div>
+    </div>
+    </div>
+
     <div class="subpanel" id="ss-fondos">
     <div class="caja-bot" data-grupo="fondos">
       <h3>🎨 Fondos de la web</h3>
@@ -1633,6 +1724,7 @@ var GRUPOS = {
   clubsorteos: { nombre: 'de los sorteos del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubSorteos',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   clubbanners: { nombre: 'de la publicidad del Club', vista: 'club', aviso: 'club-aviso', fn: 'guardarClubBanners',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
+  tipo:    { nombre: 'de las letras del sitio',     vista: 'sitio', aviso: 'tipo-aviso',   fn: 'guardarTipo',    nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
   comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
@@ -1836,7 +1928,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); }
+  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); }
   if (v === 'bot') cargarBot();
 }
 
@@ -3369,6 +3461,52 @@ function guardarSitio() {
     cargarSitio();
   }).catch(function (e) { errGuardado('sitio', e); });
 }
+// --- 🔤 Letras (tipografía global): config:tipo (la sirve /api/sitio como t, la aplica site.js) ---
+var TIPO_FUENTES_P = {
+  'Montserrat': "'Montserrat', sans-serif",
+  'Poppins': "'Poppins', 'Montserrat', sans-serif",
+  'Lato': "'Lato', sans-serif",
+  'Playfair Display': "'Playfair Display', Georgia, serif",
+  'Georgia': "Georgia, 'Times New Roman', serif"
+};
+function tipoVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+function cargarTipo() {
+  api('gettipo').then(function (j) {
+    var t = j.t || {};
+    document.getElementById('tipo-titulos').value = t.titulos || '';
+    document.getElementById('tipo-cuerpo').value = t.cuerpo || '';
+    document.getElementById('tipo-escala').value = t.escala != null ? String(t.escala) : '';
+    document.getElementById('tipo-peso').value = t.pesoTit != null ? String(t.pesoTit) : '';
+    document.getElementById('tipo-lh').value = t.interlineado != null ? String(t.interlineado) : '';
+    document.getElementById('tipo-ls').value = t.espaciado != null ? String(t.espaciado) : '';
+    pintarTipoPrev();
+  }).catch(function () {});
+}
+function pintarTipoPrev() {
+  var prev = document.getElementById('tipo-prev'); if (!prev) return;
+  var tit = prev.querySelector('.tp-tit'), sub = prev.querySelector('.tp-sub'), txt = prev.querySelector('.tp-txt');
+  var esc = Number(tipoVal('tipo-escala')) || 1;
+  var fTit = TIPO_FUENTES_P[tipoVal('tipo-titulos')] || "'Poppins','Montserrat',sans-serif";
+  var fTxt = TIPO_FUENTES_P[tipoVal('tipo-cuerpo')] || "'Montserrat',sans-serif";
+  tit.style.fontFamily = fTit;
+  tit.style.fontWeight = tipoVal('tipo-peso') || '800';
+  tit.style.letterSpacing = (Number(tipoVal('tipo-ls')) || 0) + 'px';
+  tit.style.fontSize = (26 * esc) + 'px';
+  sub.style.fontFamily = fTxt; sub.style.fontSize = (15 * esc) + 'px';
+  txt.style.fontFamily = fTxt; txt.style.fontSize = (14 * esc) + 'px';
+  txt.style.lineHeight = tipoVal('tipo-lh') || '1.55';
+}
+function guardarTipo() {
+  api('settipo', {
+    titulos: tipoVal('tipo-titulos'), cuerpo: tipoVal('tipo-cuerpo'),
+    escala: tipoVal('tipo-escala'), pesoTit: tipoVal('tipo-peso'),
+    interlineado: tipoVal('tipo-lh'), espaciado: tipoVal('tipo-ls')
+  }).then(function () {
+    okGuardado('tipo', 'Letras del sitio guardadas. Se ven en la web en ~1 minuto.');
+    cargarTipo();
+  }).catch(function (e) { errGuardado('tipo', e); });
+}
+
 // --- 🎨 Fondos de las secciones y las tarjetas: config:fondos (los sirve /api/sitio, los pinta site.js) ---
 // Cada zona = una variable --bg-<clave> del :root de assets/site.css. Si se añade una zona nueva hay que
 // declararla en los tres lados: FONDO_CLAVES de api/crm.js, FONDO_CLAVES de assets/site.js y aquí.
@@ -3384,7 +3522,7 @@ var FONDO_ZONAS = [
   { k: 'roja', n: '🎁 Franja del Club Arakaki', d: 'La franja del inicio con el formulario para inscribirse al Club.',
     def: '#8e1b22', base: { t: 'solido', c1: '#8e1b22', c2: '#5d0b0f', c3: '', a: 180 } },
   { k: 'pagina', n: '📄 Fondo general', d: 'El fondo de la página, detrás de todo: se ve en los bordes y entre una sección y otra.', claro: 1,
-    def: '#edecec', base: { t: 'solido', c1: '#edecec', c2: '#ffffff', c3: '', a: 180 } },
+    def: '#f0ece2', base: { t: 'solido', c1: '#f0ece2', c2: '#ffffff', c3: '', a: 180 } },
 ];
 var FONDO_TIPOS = [['', 'El de siempre'], ['solido', 'Color sólido'], ['lineal', 'Degradado lineal'], ['radial', 'Degradado radial']];
 var FONDO_ANGS = [[180, '⬇ De arriba hacia abajo'], [0, '⬆ De abajo hacia arriba'], [90, '➡ De izquierda a derecha'], [270, '⬅ De derecha a izquierda'], [135, '↘ En diagonal'], [45, '↗ En diagonal']];

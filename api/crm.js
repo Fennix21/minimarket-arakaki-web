@@ -791,6 +791,31 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, s });
     }
 
+    // --- 🔤 Tipografía global del sitio: config:tipo (la sirve /api/sitio como t) ---
+    // { titulos, cuerpo, escala, pesoTit, interlineado, espaciado }. Campo ausente = default
+    // de site.css. Fuentes solo de la lista blanca (site.js tiene la misma).
+    if (b.action === 'gettipo') {
+      const raw = await redis(['GET', 'config:tipo']);
+      let t = {};
+      if (raw) { try { t = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ t });
+    }
+    if (b.action === 'settipo') {
+      const FUENTES = ['Montserrat', 'Poppins', 'Lato', 'Playfair Display', 'Georgia'];
+      const num = (v, min, max) => { const n = Number(v); return Number.isFinite(n) && n >= min && n <= max ? n : null; };
+      const t = {};
+      if (FUENTES.includes(b.titulos)) t.titulos = b.titulos;
+      if (FUENTES.includes(b.cuerpo)) t.cuerpo = b.cuerpo;
+      const esc = num(b.escala, 0.9, 1.2); if (esc !== null) t.escala = esc;
+      const lh = num(b.interlineado, 1.3, 2); if (lh !== null) t.interlineado = lh;
+      const ls = num(b.espaciado, 0.1, 3); if (ls !== null) t.espaciado = ls;
+      const peso = num(b.pesoTit, 600, 800);
+      if (peso === 600 || peso === 700 || peso === 800) t.pesoTit = peso;
+      if (Object.keys(t).length) await redis(['SET', 'config:tipo', JSON.stringify(t)]);
+      else await redis(['DEL', 'config:tipo']);
+      return res.status(200).json({ ok: true, t });
+    }
+
     // --- Fondos editables de las secciones y las tarjetas: config:fondos ---
     // { fondos: { "<clave>": { t:'solido'|'lineal'|'radial', c1, c2, c3?, a? } } }
     // Se guarda el modelo (lo repinta el panel) + el `css` ya armado (lo aplica site.js como

@@ -171,6 +171,46 @@
   // CSS ya armado y aquí se pisa la variable --bg-<clave> de site.css (sin override manda el default).
   // Se cachean en localStorage y se aplican al arrancar: si no, cada visita mostraría el fondo viejo
   // hasta que llegue el fetch.
+  // ---------- Tipografía global editable (panel → 📝 Sitio → 🔤 Letras) ----------
+  // config:tipo llega por /api/sitio como `t`; aquí se pisan las variables --tipo-* de site.css.
+  // Solo fuentes de esta lista blanca (Montserrat/Poppins ya vienen cargadas; Lato y
+  // Playfair Display se cargan de Google Fonts recién si el dueño las elige).
+  var TIPO_FUENTES = {
+    'Montserrat': "'Montserrat', sans-serif",
+    'Poppins': "'Poppins', 'Montserrat', sans-serif",
+    'Lato': "'Lato', 'Montserrat', sans-serif",
+    'Playfair Display': "'Playfair Display', Georgia, serif",
+    'Georgia': "Georgia, 'Times New Roman', serif",
+  };
+  var TIPO_GOOGLE = { 'Lato': 'Lato:wght@400;600;700;800', 'Playfair Display': 'Playfair+Display:wght@600;700;800' };
+  function tipoCache() { try { return JSON.parse(localStorage.getItem('arakaki_tipo') || 'null'); } catch (e) { return null; } }
+  function aplicarTipografia(t) {
+    if (!t || typeof t !== 'object') t = {};
+    var raiz = document.documentElement, cargar = [];
+    function fuente(nombre, varCss) {
+      if (TIPO_FUENTES[nombre]) {
+        raiz.style.setProperty(varCss, TIPO_FUENTES[nombre]);
+        if (TIPO_GOOGLE[nombre] && cargar.indexOf(TIPO_GOOGLE[nombre]) === -1) cargar.push(TIPO_GOOGLE[nombre]);
+      } else raiz.style.removeProperty(varCss);
+    }
+    fuente(t.titulos, '--tipo-titulos');
+    fuente(t.cuerpo, '--tipo-cuerpo');
+    var esc = Number(t.escala);
+    if (esc >= 0.9 && esc <= 1.2) raiz.style.setProperty('--tipo-esc', esc); else raiz.style.removeProperty('--tipo-esc');
+    var lh = Number(t.interlineado);
+    if (lh >= 1.3 && lh <= 2) raiz.style.setProperty('--tipo-lh', lh); else raiz.style.removeProperty('--tipo-lh');
+    var ls = Number(t.espaciado);
+    if (ls > 0 && ls <= 3) raiz.style.setProperty('--tipo-ls', ls + 'px'); else raiz.style.removeProperty('--tipo-ls');
+    var peso = Number(t.pesoTit);
+    if (peso === 600 || peso === 700 || peso === 800) raiz.style.setProperty('--tipo-peso-tit', peso); else raiz.style.removeProperty('--tipo-peso-tit');
+    if (cargar.length && !document.getElementById('tipo-fuentes')) {
+      var link = document.createElement('link');
+      link.id = 'tipo-fuentes'; link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=' + cargar.join('&family=') + '&display=swap';
+      document.head.appendChild(link);
+    }
+  }
+
   var FONDO_CLAVES = ['pagina', 'vino', 'roja', 'premium', 'card'];
   // El valor lo arma nuestra propia API con colores validados; el filtro es por si el caché
   // del navegador quedó tocado a mano.
@@ -197,6 +237,9 @@
         aplicarCarrito(j.k);
         try { localStorage.setItem('arakaki_carrito_cfg', JSON.stringify(j.k)); } catch (e) {}
       }
+      // Tipografía editable (t puede venir vacío = defaults; se cachea igual para no parpadear)
+      aplicarTipografia(j.t);
+      try { localStorage.setItem('arakaki_tipo', JSON.stringify(j.t || {})); } catch (e) {}
       if (!j.s || typeof j.s !== 'object') return;
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
@@ -524,6 +567,7 @@
     }
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
+    aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
 
     // Carrito flotante + modal

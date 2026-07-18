@@ -52,7 +52,7 @@ http.createServer((req, res) => {
     // `k` = apariencia del carrito con muestra para ver en local el toque final editado (máquina de
     // escribir + brillo + degradado dorado del botón Sumar + fondo crema); en producción viene de config:carrito.
     if (url === '/api/sitio') return res.end(JSON.stringify({
-      s: {}, f: {},
+      s: {}, f: {}, t: {},
       k: {
         txt: {}, tam: { toqueTit: 1.1 }, fx: { typing: 1, brillo: 1 },
         toqueTitCol: '#7a5c14', btnSumarTxt: '#4a0c10',

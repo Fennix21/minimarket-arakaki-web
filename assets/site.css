@@ -29,6 +29,15 @@
   --crema-suave: #fdf8ec;  /* cajitas doradas suaves (nota GPS, chips de dirección) */
   --texto-oro: #6a5a2e;    /* texto sobre las cajitas doradas */
   --campo-bg: #ffffff;     /* fondo de inputs del carrito */
+  /* Tipografía global editable desde /panel → 📝 Sitio → 🔤 Letras (Redis config:tipo →
+     /api/sitio → aplicarTipografia() de site.js pisa estas variables). Las letras serif
+     Georgia de las tarjetas premium son parte de la marca y no entran aquí. */
+  --tipo-cuerpo: 'Montserrat', sans-serif;
+  --tipo-titulos: 'Poppins', 'Montserrat', sans-serif;
+  --tipo-esc: 1;           /* escala del tamaño del texto de lectura (0.9–1.2) */
+  --tipo-lh: 1.55;         /* interlineado del texto corrido */
+  --tipo-ls: 0px;          /* espaciado entre letras de los títulos */
+  --tipo-peso-tit: 800;    /* peso de los títulos */
   /* Fondos editables desde /panel → 📝 Sitio → 🎨 Fondos (Redis config:fondos → /api/sitio → site.js
      los pisa con style.setProperty en <html>). Estos son los valores por defecto: sin backend el sitio
      se ve exactamente igual. Aceptan color sólido o degradado indistintamente. */
@@ -55,15 +64,16 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--tipo-cuerpo);
   background: var(--bg-pagina);
   color: var(--texto);
+  line-height: var(--tipo-lh);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
-h1, h2, h3 { font-family: 'Poppins', 'Montserrat', sans-serif; }
+h1, h2, h3 { font-family: var(--tipo-titulos); letter-spacing: var(--tipo-ls); }
 
 /* ---------- Header ---------- */
 .cab {
@@ -99,7 +109,7 @@ h1, h2, h3 { font-family: 'Poppins', 'Montserrat', sans-serif; }
 }
 .cab img.logo { height: 74px; width: auto; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22)); }
 .cab .lema-cab {
-  font-family: 'Poppins', 'Montserrat', sans-serif;
+  font-family: var(--tipo-titulos);
   font-size: clamp(16px, 2.4vw, 26px); font-weight: 500; letter-spacing: 0.2px;
   white-space: nowrap; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
 }
@@ -273,8 +283,8 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* ---------- Hero ---------- */
 /* Mismo fondo premium que las secciones de productos (.seccion.premium): sin corte de color entre el video y las tarjetas */
 .hero { background: var(--bg-premium); color: var(--blanco); text-align: center; padding: 42px 18px 34px; }
-.hero h1 { font-size: clamp(26px, 5vw, 44px); font-weight: 800; }
-.hero .sub { font-size: clamp(16px, 3vw, 22px); margin-top: 8px; opacity: 0.9; }
+.hero h1 { font-size: calc(clamp(26px, 5vw, 44px) * var(--tipo-esc)); font-weight: var(--tipo-peso-tit); }
+.hero .sub { font-size: calc(clamp(16px, 3vw, 22px) * var(--tipo-esc)); margin-top: 8px; opacity: 0.9; }
 .hero video {
   width: 100%; max-width: 720px; margin: 26px auto 0; border-radius: 14px; box-shadow: var(--sombra); display: block;
 }
@@ -319,7 +329,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .portada-circulo video { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.02); }
 .portada-texto { margin-left: 4%; }
-.portada h1 { font-size: clamp(22px, 2.8vw, 33px); font-weight: 800; line-height: 1.2; }
+.portada h1 { font-size: calc(clamp(22px, 2.8vw, 33px) * var(--tipo-esc)); font-weight: var(--tipo-peso-tit); line-height: 1.2; }
 .portada .golf { color: var(--naranja); }
 .btn-mapa {
   display: inline-block; margin: 20px 0 0; background: var(--blanco); color: var(--naranja);
@@ -390,8 +400,8 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .seccion.premium .titulo-seccion { color: #f4ebd6; }
 .seccion.premium .titulo-seccion::after { content: ""; display: block; width: 64px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, #f6d98a, #d4af37); }
 .seccion .interior { max-width: 1100px; margin: 0 auto; }
-.titulo-seccion { text-align: center; font-size: clamp(24px, 4vw, 40px); font-weight: 800; }
-.sub-seccion { text-align: center; font-size: 16px; margin-top: 8px; opacity: 0.85; }
+.titulo-seccion { text-align: center; font-size: calc(clamp(24px, 4vw, 40px) * var(--tipo-esc)); font-weight: var(--tipo-peso-tit); }
+.sub-seccion { text-align: center; font-size: calc(16px * var(--tipo-esc)); margin-top: 8px; opacity: 0.85; }
 
 /* ---------- Grilla de productos (tarjetas premium dark-gold) ---------- */
 /* Escritorio: 3 por fila · tablet: 2 · móvil: 1 (ver responsive) */
@@ -753,7 +763,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   padding-bottom: 8px; position: relative;
 }
 .pie h4::after { content: ""; position: absolute; left: 0; bottom: 0; width: 30px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--dorado), transparent); }
-.pie p { font-size: 14px; line-height: 1.55; opacity: 0.82; }
+.pie p { font-size: calc(14px * var(--tipo-esc)); line-height: var(--tipo-lh); opacity: 0.82; }
 .pie .pie-dir { font-weight: 600; opacity: 0.95; }
 .pie .pie-ref { font-size: 13px; opacity: 0.58; margin-top: 2px; }
 .pie .pie-horario p { padding: 2px 0; }
