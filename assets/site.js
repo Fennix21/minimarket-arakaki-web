@@ -225,6 +225,26 @@
     }
   }
 
+  // ---------- Apariencia de la cuenta (/mi-cuenta, vista "app") ----------
+  // config:clubui viaja junto a los flags del Club (/api/cuenta GET). Aquí se pisan las
+  // variables --club-* de site.css: fondo crema del banner + Mis Puntos, color del texto
+  // del banner y de los números del teclado, y el pie con el logo (on/off + fondo + logo).
+  // Se cachea en localStorage para aplicarlo al arrancar sin parpadeo (igual que los fondos).
+  function colClubOk(v) { return typeof v === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v); }
+  function clubUiCache() { try { return JSON.parse(localStorage.getItem('arakaki_clubui') || '{}'); } catch (e) { return {}; } }
+  function aplicarClubUi(u) {
+    if (!u || typeof u !== 'object') u = {};
+    var raiz = document.documentElement;
+    function setCol(varCss, val) { if (colClubOk(val)) raiz.style.setProperty(varCss, val); else raiz.style.removeProperty(varCss); }
+    setCol('--club-crema-bg', u.cremaBg);
+    setCol('--club-crema-txt', u.bannerTxt);
+    setCol('--club-kp-col', u.kpCol);
+    setCol('--club-footer-bg', u.footerBg);
+    document.body.classList.toggle('club-footer-on', !!u.footerOn); // el CSS solo lo muestra en /mi-cuenta
+    var logo = document.getElementById('pie-club-logo');
+    if (logo) logo.src = logoOk(u.footerLogo) ? u.footerLogo : LOGO_BLANCO;
+  }
+
   var FONDO_CLAVES = ['pagina', 'vino', 'roja', 'premium', 'card'];
   // El valor lo arma nuestra propia API con colores validados; el filtro es por si el caché
   // del navegador quedó tocado a mano.
@@ -701,8 +721,11 @@
 
       var pieMini = document.createElement('footer');
       pieMini.className = 'pie-mini';
-      pieMini.innerHTML = '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
+      // En /mi-cuenta el logo del pie es editable (id): el dueño puede cambiarlo y prender/apagar
+      // el pie desde el panel → 👥 Club → 🎨 Apariencia. En categorías es fijo.
+      pieMini.innerHTML = '<div class="pie-marca"><a href="/"><img' + (esCuenta ? ' id="pie-club-logo"' : '') + ' src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
       document.body.appendChild(pieMini);
+      if (esCuenta) aplicarClubUi(clubUiCache()); // colores + pie del dueño desde la visita anterior (sin parpadeo)
     }
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
@@ -1109,12 +1132,13 @@
     if (cuentaFlags) { cb(cuentaFlags); return; }
     try {
       var c = JSON.parse(sessionStorage.getItem('arakaki_club_flags') || 'null');
-      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; cb(c.d); return; }
+      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; if (c.d.ui) aplicarClubUi(c.d.ui); cb(c.d); return; }
     } catch (e) {}
     fetch('/api/cuenta').then(function (r) { return r.json(); }).then(function (j) {
       if (!j || j.on !== true) j = { on: false };
       cuentaFlags = j;
       try { sessionStorage.setItem('arakaki_club_flags', JSON.stringify({ ts: Date.now(), d: j })); } catch (e) {}
+      if (j.ui) { aplicarClubUi(j.ui); try { localStorage.setItem('arakaki_clubui', JSON.stringify(j.ui)); } catch (e) {} }
       cb(j);
     }).catch(function () { cb({ on: false }); });
   }

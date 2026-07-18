@@ -822,6 +822,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="subtab" data-t="cupones" data-gr="clubcupones"><span class="ico">🎫</span><span class="eti">Cupones</span></button>
       <button class="subtab" data-t="sorteos" data-gr="clubsorteos"><span class="ico">🎟️</span><span class="eti">Sorteos</span></button>
       <button class="subtab" data-t="publi" data-gr="clubbanners"><span class="ico">📣</span><span class="eti">Publicidad</span></button>
+      <button class="subtab" data-t="apariencia" data-gr="clubui"><span class="ico">🎨</span><span class="eti">Apariencia</span></button>
       <button class="subtab" data-t="clientes"><span class="ico">📇</span><span class="eti">Clientes</span></button>
     </div>
 
@@ -887,6 +888,43 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="fila-conf">
         <button class="btn gris" onclick="agregarBannerClub()">+ Añadir banner</button>
         <button class="btn" data-guardar="clubbanners" onclick="pedirGuardar('clubbanners')">💾 Guardar publicidad</button>
+      </div>
+    </div>
+    </div>
+
+    <div class="subpanel" id="kc-apariencia">
+    <div class="caja-bot" data-grupo="clubui">
+      <h3>🎨 Apariencia de la cuenta (/mi-cuenta)</h3>
+      <p class="desc">Colores de la página de la cuenta del cliente — la que se ve al entrar y ya logueado. "El de siempre" deja el color original de la marca.</p>
+
+      <div class="cared-sub">
+        <b>🖼️ Fondo crema (banner + "Mis Puntos")</b>
+        <p class="desc" style="margin:2px 0 8px">El recuadro de texto del banner y la tarjeta de Mis Puntos comparten este fondo crema.</p>
+        <div class="cared-colrow">Fondo crema <input type="color" id="apc-crema" oninput="apcSet('cremaBg',this.value)"> <button type="button" class="reset" onclick="apcReset('cremaBg')">el de siempre</button></div>
+        <div class="cared-colrow">Color del texto del banner <input type="color" id="apc-bantxt" oninput="apcSet('bannerTxt',this.value)"> <button type="button" class="reset" onclick="apcReset('bannerTxt')">el de siempre</button></div>
+      </div>
+
+      <div class="cared-sub">
+        <b>🔢 Color de los números del teclado</b>
+        <p class="desc" style="margin:2px 0 8px">Los números y el celular de la pantalla "Ingresa tu clave".</p>
+        <div class="fila-conf" style="flex-wrap:wrap;gap:8px">
+          <button type="button" class="btn gris" onclick="apcPreset('kpCol','#8e1b22')">🍷 Vino (el de siempre)</button>
+          <button type="button" class="btn gris" onclick="apcPreset('kpCol','#1a1715')">⬛ Negro</button>
+          <label style="font-size:13px;display:inline-flex;align-items:center;gap:6px">A mi gusto <input type="color" id="apc-kp" oninput="apcSet('kpCol',this.value)"></label>
+          <button type="button" class="reset" onclick="apcReset('kpCol')">el de siempre</button>
+        </div>
+      </div>
+
+      <div class="cared-sub">
+        <b>🐱 Pie con el logo Arakaki</b>
+        <p class="desc" style="margin:2px 0 8px">La franja del pie con el logo, sin iniciar sesión y ya logueado. Apagada por defecto.</p>
+        <div class="toggle-fila"><div class="tf-txt"><b>Mostrar el pie con el logo</b></div><label class="switch"><input type="checkbox" id="apc-footer-on" onchange="apcSet('footerOn',this.checked)"><span class="pista"></span></label></div>
+        <div class="cared-colrow">Fondo del pie <input type="color" id="apc-footbg" oninput="apcSet('footerBg',this.value)"> <button type="button" class="reset" onclick="apcReset('footerBg')">el de siempre</button></div>
+        <div id="apc-logo-foto" style="margin-top:8px"></div>
+      </div>
+
+      <div class="fila-conf">
+        <button class="btn" data-guardar="clubui" onclick="pedirGuardar('clubui')">💾 Guardar apariencia</button>
       </div>
     </div>
     </div>
@@ -1840,6 +1878,7 @@ var GRUPOS = {
   clubcupones: { nombre: 'de los cupones del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubCupones',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   clubsorteos: { nombre: 'de los sorteos del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubSorteos',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   clubbanners: { nombre: 'de la publicidad del Club', vista: 'club', aviso: 'club-aviso', fn: 'guardarClubBanners',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
+  clubui:      { nombre: 'de la apariencia del Club', vista: 'club', aviso: 'club-aviso', fn: 'guardarClubApariencia', nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
   tipo:    { nombre: 'de las letras del sitio',     vista: 'sitio', aviso: 'tipo-aviso',   fn: 'guardarTipo',    nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
@@ -2681,6 +2720,65 @@ function pintarClubCfg() {
   pintarCuponesClub();
   pintarSorteosClub();
   pintarBannersClub();
+  pintarApClub();
+}
+// --- 🎨 Apariencia de /mi-cuenta (config:clubui): colores + pie con logo ---
+function apUi() { if (!CLUB_CFG.ui || typeof CLUB_CFG.ui !== 'object') CLUB_CFG.ui = {}; return CLUB_CFG.ui; }
+function apcColInput(id, val, def) { var el = document.getElementById(id); if (el) el.value = /^#[0-9a-f]{6}$/i.test(val || '') ? val : def; }
+function pintarApClub() {
+  if (!CLUB_CFG) return;
+  var u = apUi();
+  apcColInput('apc-crema', u.cremaBg, '#fdf8ec');
+  apcColInput('apc-bantxt', u.bannerTxt, '#8e1b22');
+  apcColInput('apc-kp', u.kpCol, '#8e1b22');
+  apcColInput('apc-footbg', u.footerBg, '#1a1715');
+  var sw = document.getElementById('apc-footer-on'); if (sw) sw.checked = !!u.footerOn;
+  pintarApLogo();
+}
+function apcSet(k, v) { apUi()[k] = v; marcarSucio('clubui'); }
+function apcReset(k) { apUi()[k] = ''; pintarApClub(); marcarSucio('clubui'); }
+function apcPreset(k, hex) { apUi()[k] = hex; if (k === 'kpCol') document.getElementById('apc-kp').value = hex; marcarSucio('clubui'); }
+function pintarApLogo() {
+  var logo = (apUi().footerLogo) || '';
+  var foto = logo
+    ? '<img src="' + esc(logo) + '" alt="Logo del pie" style="height:56px;background:#1a1715;padding:6px 10px;border-radius:8px">'
+    : '<div class="cci-nofoto" style="width:120px;height:56px">Logo<br>oficial</div>';
+  document.getElementById('apc-logo-foto').innerHTML =
+    '<div class="cci-foto">' + foto +
+      '<label class="btn gris" style="cursor:pointer">📷 ' + (logo ? 'Cambiar logo' : 'Subir logo') +
+        '<input type="file" accept="image/*" style="display:none" onchange="subirImgApLogo(this)"></label>' +
+      (logo ? ' <button class="btn gris" onclick="apcReset(\'footerLogo\')">🗑️ Quitar</button>' : '') +
+    '</div>';
+}
+// Igual que el logo/banner: se comprime EN el navegador y se guarda vía imgup (/api/push?img=<id>)
+function subirImgApLogo(inp) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoClub('Ese archivo no es una imagen.', true);
+  avisoClub('⏳ Procesando el logo del pie…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var e2 = Math.min(1, 512 / img.naturalWidth, 512 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * e2)), h = Math.max(1, Math.round(img.naturalHeight * e2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/png');
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.85);
+    if (data.length > 470000) return avisoClub('El logo pesa demasiado: prueba con uno más liviano.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      apUi().footerLogo = j.url;
+      pintarApLogo();
+      marcarSucio('clubui');
+      avisoClub('🖼️ Logo subido. No olvides "💾 Guardar apariencia".');
+    }).catch(function (e) { avisoClub(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoClub('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
 }
 function pintarPromosClub() {
   var ps = (CLUB_CFG && CLUB_CFG.promos) || [];
@@ -2955,6 +3053,7 @@ function guardarClubPromos() { guardarClub('clubpromos'); }
 function guardarClubCupones() { guardarClub('clubcupones'); }
 function guardarClubSorteos() { guardarClub('clubsorteos'); }
 function guardarClubBanners() { guardarClub('clubbanners'); }
+function guardarClubApariencia() { guardarClub('clubui'); }
 function guardarClub(clave) {
   if (!CLUB_CFG) return;
   clave = clave || 'club';
@@ -2971,7 +3070,8 @@ function guardarClub(clave) {
   var sorteos = leerSorteosClubDOM().filter(function (s) { return s.titulo; });
   var cupones = leerCuponesClubDOM().filter(function (c) { return c.titulo && c.imagen; });
   var banners = leerBannersClubDOM().filter(function (b) { return b.titulo || b.imagen; });
-  api('setclub', { club: club, promos: promos, sorteos: sorteos, cupones: cupones, banners: banners }).then(function (j) {
+  var ui = (CLUB_CFG.ui && typeof CLUB_CFG.ui === 'object') ? CLUB_CFG.ui : {};
+  api('setclub', { club: club, promos: promos, sorteos: sorteos, cupones: cupones, banners: banners, ui: ui }).then(function (j) {
     var previos = CLUB_CFG.sorteos || [];
     CLUB_CFG = j;
     // el guardado no devuelve el conteo de participantes: se conserva el conocido
@@ -2979,7 +3079,7 @@ function guardarClub(clave) {
     previos.forEach(function (s) { if (s.id) mapa[s.id] = s.participantes || 0; });
     (CLUB_CFG.sorteos || []).forEach(function (s) { s.participantes = mapa[s.id] || 0; });
     pintarClubCfg();
-    ['club', 'clubpromos', 'clubcupones', 'clubsorteos', 'clubbanners'].forEach(function (k) { if (k !== clave) limpiarSucio(k); });
+    ['club', 'clubpromos', 'clubcupones', 'clubsorteos', 'clubbanners', 'clubui'].forEach(function (k) { if (k !== clave) limpiarSucio(k); });
     okGuardado(clave, 'Club guardado. Se ve en la web en ~1 minuto.');
   }).catch(function (e) { errGuardado(clave, e); });
 }

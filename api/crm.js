@@ -488,8 +488,11 @@ module.exports = async (req, res) => {
       if (rc) { try { cupones = JSON.parse(rc) || []; } catch (e) {} }
       const rb = await redis(['GET', 'config:clubbanners']);
       if (rb) { try { banners = JSON.parse(rb) || []; } catch (e) {} }
+      let ui = {};
+      const ru = await redis(['GET', 'config:clubui']);
+      if (ru) { try { ui = JSON.parse(ru) || {}; } catch (e) {} }
       for (const s of sorteos) s.participantes = Number(await redis(['ZCARD', 'sorteo:' + s.id])) || 0;
-      return res.status(200).json({ club, promos, sorteos, cupones, banners });
+      return res.status(200).json({ club, promos, sorteos, cupones, banners, ui });
     }
     if (b.action === 'setclub') {
       const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
@@ -539,7 +542,16 @@ module.exports = async (req, res) => {
         url: urlDestino(bn.url), hasta: Number(bn.hasta) || null,
       })).filter((bn) => bn.titulo || bn.imagen).slice(0, 8);
       await redis(['SET', 'config:clubbanners', JSON.stringify(banners)]);
-      return res.status(200).json({ ok: true, club, promos, sorteos, cupones, banners });
+      // Apariencia de /mi-cuenta (colores + pie con logo): colores validados como #rrggbb,
+      // logo con la misma lista blanca de imágenes. Vacío = default del CSS.
+      const colHex = (v) => { const s = txt(v, 7); return /^#[0-9a-f]{6}$/i.test(s) ? s : ''; };
+      const uiIn = b.ui || {};
+      const ui = {
+        cremaBg: colHex(uiIn.cremaBg), bannerTxt: colHex(uiIn.bannerTxt), kpCol: colHex(uiIn.kpCol),
+        footerOn: !!uiIn.footerOn, footerBg: colHex(uiIn.footerBg), footerLogo: urlImg(uiIn.footerLogo),
+      };
+      await redis(['SET', 'config:clubui', JSON.stringify(ui)]);
+      return res.status(200).json({ ok: true, club, promos, sorteos, cupones, banners, ui });
     }
     if (b.action === 'resetpin') { // borra el PIN del cliente y cierra TODAS sus sesiones
       const tel = String(b.telefono || '').replace(/\D/g, '');

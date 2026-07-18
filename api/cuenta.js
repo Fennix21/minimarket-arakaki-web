@@ -174,6 +174,14 @@ async function getBanners() {
   } catch (e) { return []; }
 }
 
+// Apariencia editable de /mi-cuenta (panel → 👥 Club → 🎨 Apariencia; config:clubui).
+// Viaja con los flags del GET público y la aplica site.js (variables --club-*). Vacío = defaults del CSS.
+async function getClubUi() {
+  const raw = await redis(['GET', 'config:clubui']);
+  if (!raw) return {};
+  try { const u = JSON.parse(raw); return (u && typeof u === 'object') ? u : {}; } catch (e) { return {}; }
+}
+
 // Historial de pedidos de ESTE cliente (lista global `pedidos`, ≤500): fecha, items y total,
 // para "Mis últimos pedidos" con recompra en /mi-cuenta. Si sus pedidos ya salieron de la
 // lista, se sintetiza uno con la foto de cliente.ultimoItems para no dejarlo vacío.
@@ -329,7 +337,7 @@ module.exports = async (req, res) => {
       if (!token) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
         // correo:true = hay sistema de correos (Resend) → la recuperación usa código al correo
-        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO, banners: await getBanners() });
+        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO, banners: await getBanners(), ui: await getClubUi() });
       }
       res.setHeader('cache-control', 'no-store');
       const tel = await telDeSesion(token);

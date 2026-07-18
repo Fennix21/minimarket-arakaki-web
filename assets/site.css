@@ -1116,6 +1116,10 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* /mi-cuenta es vista "app": sin header, así los accesos suben y se ven de un vistazo
    (la navegación vive en Ver catálogo / Ir a tienda y en el enlace de volver del acceso) */
 body.pagina-club .cab { display: none; }
+/* Pie con el logo Arakaki: en /mi-cuenta va OCULTO por defecto; el dueño lo prende y elige
+   su fondo y su logo desde el panel → 👥 Club → 🎨 Apariencia (clase club-footer-on + var). */
+body.pagina-club .pie-mini { display: none; }
+body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--club-footer-bg, #1a1715); }
 .club-volver {
   display: block; text-align: center; margin: 18px auto 0;
   color: #e4dcc6; font-size: 13.5px; font-weight: 600; opacity: 0.85;
@@ -1127,29 +1131,28 @@ body.pagina-club .cab { display: none; }
    cortes ni deformación) y el título + frase van DEBAJO en su propia card premium.
    Los slides se apilan con grid (misma celda) para que el alto lo dé el más alto. */
 .club-carru { position: relative; display: grid; grid-template-columns: 100%; margin-bottom: 18px; }
+/* Imagen + texto = UNA sola card: el borde dorado envuelve todo, la imagen va arriba y el
+   panel de texto (fondo crema editable) va debajo. Los slides se apilan en la misma celda
+   (crossfade) para que el alto lo dé el más alto. Fondo crema editable: --club-crema-bg. */
 .ccl-slide {
   grid-area: 1 / 1; display: flex; flex-direction: column; cursor: pointer;
   opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0.6s ease;
+  border: 2px solid rgba(212, 175, 55, 0.75); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%));
 }
 .ccl-slide.activo { opacity: 1; visibility: visible; z-index: 1; }
 .ccl-media {
   display: flex; align-items: center; justify-content: center; width: 100%;
-  aspect-ratio: 2 / 1; border-radius: 22px; overflow: hidden;
-  border: 2px solid rgba(212, 175, 55, 0.75);
+  aspect-ratio: 2 / 1; overflow: hidden;
   background: linear-gradient(160deg, #4a090c, var(--rojo) 60%, var(--rojo-osc));
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
 }
 .ccl-media.con-foto { background: linear-gradient(180deg, #211d19 0%, #100e0c 100%); }
 .ccl-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .ccl-logo { width: 42%; max-width: 190px; opacity: 0.92; }
-.ccl-card {
-  display: block; text-align: center; margin: 10px 2px 0; padding: 13px 16px 14px;
-  background: linear-gradient(180deg, #211d19 0%, #100e0c 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.55); border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-.ccl-tit { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: #f2d894; line-height: 1.25; }
-.ccl-txt { display: block; color: #e4dcc6; font-size: 13.5px; margin-top: 4px; }
+.ccl-card { display: block; text-align: center; padding: 13px 16px 15px; background: transparent; }
+.ccl-tit { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: var(--club-crema-txt, var(--rojo)); line-height: 1.25; }
+.ccl-txt { display: block; color: var(--club-crema-txt, #6b4f17); opacity: 0.9; font-size: 13.5px; margin-top: 4px; }
 .ccl-dots { display: flex; justify-content: center; gap: 7px; margin-top: 10px; }
 .ccl-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0; cursor: pointer; background: rgba(255, 255, 255, 0.55); transition: background 0.2s, transform 0.2s; }
 .ccl-dot.on { background: var(--dorado); transform: scale(1.2); }
@@ -1208,7 +1211,7 @@ body.pagina-club .cab { display: none; }
 .kp-eti { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #7a5c14; margin-bottom: 4px; }
 .kp-visor {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 26px;
-  font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 700; color: var(--rojo); letter-spacing: 2px;
+  font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 700; color: var(--club-kp-col, var(--rojo)); letter-spacing: 2px;
 }
 .kp-visor.vacio { color: rgba(142, 27, 34, 0.25); }
 .kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(142, 27, 34, 0.4); box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
@@ -1216,7 +1219,7 @@ body.pagina-club .cab { display: none; }
 .kp-teclas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
 .kp-tecla {
   cursor: pointer; padding: 13px 0; border-radius: 14px; line-height: 1;
-  font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: var(--rojo);
+  font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: var(--club-kp-col, var(--rojo));
   background: rgba(255, 255, 255, 0.65); border: 1.5px solid rgba(212, 175, 55, 0.6);
   box-shadow: 0 3px 0 rgba(184, 145, 47, 0.35);
   transition: transform 0.08s, box-shadow 0.08s, background 0.12s;
@@ -1244,17 +1247,19 @@ body.pagina-club .cab { display: none; }
 .cpn-x:hover { background: rgba(212, 175, 55, 0.3); }
 .cpn-sub-tit { margin-top: 22px !important; padding-top: 16px; border-top: 1px dashed rgba(212, 175, 55, 0.3); }
 
-/* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda */
-.club-sheet { margin-top: 18px; padding: 16px 14px; }
+/* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda.
+   Fondo crema editable (--club-crema-bg, compartido con la card del banner). */
+.club-sheet { margin-top: 18px; padding: 16px 14px; background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)); }
 .cs-fila {
   display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;
   background: #fff; border: 1.5px solid rgba(212, 175, 55, 0.6); border-radius: 999px;
   padding: 9px 16px 9px 9px; margin-bottom: 10px; font-family: inherit; text-align: left;
 }
 button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.cs-ico { flex: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(160deg, var(--rojo), #4a090c); font-size: 18px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25); }
+/* Íconos y contador SIN círculo de fondo (a pedido: se ve todo de un vistazo) */
+.cs-ico { flex: none; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 .cs-txt { flex: 1; font-family: Georgia, 'Times New Roman', serif; font-size: 16.5px; font-weight: 600; color: #4a0c10; }
-.cs-badge { background: linear-gradient(160deg, var(--rojo), #4a090c); color: #f6d98a; font-family: Georgia, 'Times New Roman', serif; font-weight: 700; padding: 5px 16px; border-radius: 999px; font-size: 15px; }
+.cs-badge { background: none; color: var(--rojo); font-family: Georgia, 'Times New Roman', serif; font-weight: 700; padding: 0 6px; font-size: 22px; }
 .cs-chev { color: var(--rojo); font-size: 20px; font-weight: 700; line-height: 1; transition: transform 0.2s; }
 .cs-fila.abierto .cs-chev { transform: rotate(180deg); }
 #cs-lista { margin: 2px 0 10px; }

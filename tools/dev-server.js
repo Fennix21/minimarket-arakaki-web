@@ -125,7 +125,8 @@ http.createServer((req, res) => {
         return;
       }
       const conToken = (req.url || '').indexOf('token=') >= 0;
-      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true, banners }));
+      // ui = apariencia editable de /mi-cuenta (config:clubui). Vacío = look por defecto (crema/vino/pie apagado).
+      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true, banners, ui: {} }));
     }
     // Stub del CRM del panel: datos de MUESTRA para ver /panel en local con cualquier contraseña
     // (el CRM real corre en Vercel con Redis). Cubre las vistas con datos: pedidos, consultas,
@@ -172,6 +173,7 @@ http.createServer((req, res) => {
             cupones: [],
             sorteos: [{ id: 'so1', titulo: '🎆 Sorteo Fiestas Patrias', premio: 'Canasta Arakaki', hasta: null, activo: true, participantes: 11 }],
             banners: [{ id: 'b1', titulo: '🍷 Semana del vino', texto: 'Banner de muestra (dev)', imagen: '/img/fachada-principal.webp', url: '/vinos', hasta: null }],
+            ui: { cremaBg: '', bannerTxt: '', kpCol: '', footerOn: false, footerBg: '', footerLogo: '' },
           },
           getprecios: { p: { 'pisco|Pisco Ocucaje Acholado x 700 ml': '48' }, s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' }, x: [] },
           list: { leads: [{ phone: '51999999999', name: 'Rosa Quispe', status: 'interesado', lastText: '¿Tienen pisco quebranta?', lastRole: 'user', updatedAt: Date.now() - 1800000, lastUserTs: Date.now() - 1800000, tags: [] }] },
