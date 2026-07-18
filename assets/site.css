@@ -1151,8 +1151,11 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .ccl-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .ccl-logo { width: 42%; max-width: 190px; opacity: 0.92; }
 .ccl-card { display: block; text-align: center; padding: 13px 16px 15px; background: transparent; }
-.ccl-tit { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: var(--club-crema-txt, var(--rojo)); line-height: 1.25; }
-.ccl-txt { display: block; color: var(--club-crema-txt, #6b4f17); opacity: 0.9; font-size: 13.5px; margin-top: 4px; }
+/* Tamaño (escala) y grosor del título y la frase del banner: editables desde el panel
+   (👥 Club → 🎨 Apariencia → 🔠 Textos del banner → config:clubui, los aplica site.js).
+   Sirven para logueado y sin loguear (es el MISMO carrusel). Sin override = default de marca. */
+.ccl-tit { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: calc(20px * var(--club-btit-esc, 1)); font-weight: var(--club-btit-peso, 700); color: var(--club-crema-txt, var(--rojo)); line-height: 1.25; }
+.ccl-txt { display: block; color: var(--club-crema-txt, #6b4f17); opacity: 0.9; font-size: calc(13.5px * var(--club-btxt-esc, 1)); font-weight: var(--club-btxt-peso, 400); margin-top: 4px; }
 .ccl-dots { display: flex; justify-content: center; gap: 7px; margin-top: 10px; }
 .ccl-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0; cursor: pointer; background: rgba(255, 255, 255, 0.55); transition: background 0.2s, transform 0.2s; }
 .ccl-dot.on { background: var(--dorado); transform: scale(1.2); }
@@ -1250,17 +1253,19 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 /* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda.
    Fondo crema editable (--club-crema-bg, compartido con la card del banner). */
 .club-sheet { margin-top: 18px; padding: 16px 14px; background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)); }
+/* Filas de la hoja crema (Mis Puntos + Mis Últimos Pedidos): compactadas ~20% (padding,
+   margen y letras/número) a pedido, para que toda la página entre de un vistazo. */
 .cs-fila {
-  display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
   background: #fff; border: 1.5px solid rgba(212, 175, 55, 0.6); border-radius: 999px;
-  padding: 9px 16px 9px 9px; margin-bottom: 10px; font-family: inherit; text-align: left;
+  padding: 7px 13px 7px 7px; margin-bottom: 8px; font-family: inherit; text-align: left;
 }
 button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Íconos y contador SIN círculo de fondo (a pedido: se ve todo de un vistazo) */
-.cs-ico { flex: none; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.cs-txt { flex: 1; font-family: Georgia, 'Times New Roman', serif; font-size: 16.5px; font-weight: 600; color: #4a0c10; }
-.cs-badge { background: none; color: var(--rojo); font-family: Georgia, 'Times New Roman', serif; font-weight: 700; padding: 0 6px; font-size: 22px; }
-.cs-chev { color: var(--rojo); font-size: 20px; font-weight: 700; line-height: 1; transition: transform 0.2s; }
+.cs-ico { flex: none; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.cs-txt { flex: 1; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-weight: 600; color: #4a0c10; }
+.cs-badge { background: none; color: var(--rojo); font-family: Georgia, 'Times New Roman', serif; font-weight: 700; padding: 0 5px; font-size: 18px; }
+.cs-chev { color: var(--rojo); font-size: 16px; font-weight: 700; line-height: 1; transition: transform 0.2s; }
 .cs-fila.abierto .cs-chev { transform: rotate(180deg); }
 #cs-lista { margin: 2px 0 10px; }
 .cs-ped { margin-bottom: 8px; }
@@ -1283,11 +1288,11 @@ button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .cs-ped-total b { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; }
 .cs-ped-rep { margin-top: 10px; padding: 11px 14px; font-size: 14px; }
 .cs-vacio { font-size: 13.5px; color: #6b4f17; text-align: center; padding: 8px 6px; margin: 0; }
-.cs-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.cs-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 11px; }
 .cs-vino {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: linear-gradient(160deg, rgba(212, 175, 55, 0.14), rgba(0, 0, 0, 0.3)), linear-gradient(180deg, #211d19 0%, #100e0c 100%); color: #f6d98a !important;
-  border: 1.5px solid var(--dorado); border-radius: 14px; padding: 13px 10px;
+  border: 1.5px solid var(--dorado); border-radius: 14px; padding: 10px 8px;
   font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 15px; text-decoration: none;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35); transition: transform 0.15s, filter 0.15s;
 }

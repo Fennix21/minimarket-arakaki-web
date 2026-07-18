@@ -407,6 +407,12 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .cared-colrow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px; color:var(--sub); margin-top:8px; }
 .cared-colrow input[type=color] { width:40px; height:32px; padding:0; border:1px solid var(--borde); border-radius:8px; background:var(--campo); cursor:pointer; }
 .cared-colrow button.reset { background:none; border:none; color:var(--dorado2); cursor:pointer; font-size:12px; text-decoration:underline; padding:2px 4px; }
+.cared-txtrow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; color:var(--sub); margin-top:8px; }
+.cared-txtrow > b { min-width:52px; color:var(--texto); }
+.cared-txtrow label { display:inline-flex; align-items:center; gap:6px; }
+.cared-txtrow input[type=range] { accent-color:var(--dorado2); width:120px; }
+.cared-txtrow select { background:var(--campo); color:var(--texto); border:1px solid var(--borde); border-radius:8px; padding:5px 8px; font-size:12.5px; }
+.cared-txtrow output { color:var(--dorado2); font-weight:700; min-width:38px; }
 .cared-prev { border-radius:12px; padding:16px; background:#f3f2f2; }
 .cared-prev .pv-tit { font-weight:800; color:#1a1a1a; }
 .cared-prev .pv-nota { color:#555; margin:3px 0 12px; }
@@ -902,6 +908,22 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <p class="desc" style="margin:2px 0 8px">El recuadro de texto del banner y la tarjeta de Mis Puntos comparten este fondo crema.</p>
         <div class="cared-colrow">Fondo crema <input type="color" id="apc-crema" oninput="apcSet('cremaBg',this.value)"> <button type="button" class="reset" onclick="apcReset('cremaBg')">el de siempre</button></div>
         <div class="cared-colrow">Color del texto del banner <input type="color" id="apc-bantxt" oninput="apcSet('bannerTxt',this.value)"> <button type="button" class="reset" onclick="apcReset('bannerTxt')">el de siempre</button></div>
+      </div>
+
+      <div class="cared-sub">
+        <b>🔠 Textos del banner (título y frase)</b>
+        <p class="desc" style="margin:2px 0 8px">Tamaño y grosor del <b>título</b> y de la <b>frase</b> del banner de publicidad. Se ve igual sin iniciar sesión y ya logueado.</p>
+        <div class="cared-txtrow"><b>Título</b>
+          <label>Tamaño <output id="apc-btit-esc-o">100%</output></label>
+          <input type="range" id="apc-btit-esc" min="0.8" max="2" step="0.05" oninput="apcRange('bTitEsc',this.value,'apc-btit-esc-o')">
+          <label>Grosor <select id="apc-btit-peso" onchange="apcSel('bTitPeso',this.value)"><option value="400">Normal</option><option value="600">Seminegrita</option><option value="700">Negrita</option><option value="800">Extra negrita</option></select></label>
+        </div>
+        <div class="cared-txtrow"><b>Frase</b>
+          <label>Tamaño <output id="apc-btxt-esc-o">100%</output></label>
+          <input type="range" id="apc-btxt-esc" min="0.8" max="2" step="0.05" oninput="apcRange('bTxtEsc',this.value,'apc-btxt-esc-o')">
+          <label>Grosor <select id="apc-btxt-peso" onchange="apcSel('bTxtPeso',this.value)"><option value="400">Normal</option><option value="600">Seminegrita</option><option value="700">Negrita</option><option value="800">Extra negrita</option></select></label>
+        </div>
+        <button type="button" class="reset" onclick="apcResetTextos()">Dejar los de siempre</button>
       </div>
 
       <div class="cared-sub">
@@ -2732,12 +2754,29 @@ function pintarApClub() {
   apcColInput('apc-bantxt', u.bannerTxt, '#8e1b22');
   apcColInput('apc-kp', u.kpCol, '#8e1b22');
   apcColInput('apc-footbg', u.footerBg, '#1a1715');
+  apcRangeInit('apc-btit-esc', 'apc-btit-esc-o', u.bTitEsc);
+  apcRangeInit('apc-btxt-esc', 'apc-btxt-esc-o', u.bTxtEsc);
+  apcSelInit('apc-btit-peso', u.bTitPeso, 700);
+  apcSelInit('apc-btxt-peso', u.bTxtPeso, 400);
   var sw = document.getElementById('apc-footer-on'); if (sw) sw.checked = !!u.footerOn;
   pintarApLogo();
 }
 function apcSet(k, v) { apUi()[k] = v; marcarSucio('clubui'); }
 function apcReset(k) { apUi()[k] = ''; pintarApClub(); marcarSucio('clubui'); }
 function apcPreset(k, hex) { apUi()[k] = hex; if (k === 'kpCol') document.getElementById('apc-kp').value = hex; marcarSucio('clubui'); }
+// Tamaño (escala) y grosor del título y la frase del banner
+function apcRange(k, v, outId) { apUi()[k] = v; var o = document.getElementById(outId); if (o) o.textContent = Math.round(parseFloat(v) * 100) + '%'; marcarSucio('clubui'); }
+function apcSel(k, v) { apUi()[k] = v; marcarSucio('clubui'); }
+function apcRangeInit(id, outId, val) {
+  var el = document.getElementById(id); if (!el) return;
+  var n = parseFloat(val); if (!(n >= 0.8 && n <= 2)) n = 1;
+  el.value = n; var o = document.getElementById(outId); if (o) o.textContent = Math.round(n * 100) + '%';
+}
+function apcSelInit(id, val, def) {
+  var el = document.getElementById(id); if (!el) return;
+  var n = parseInt(val, 10); el.value = [400, 500, 600, 700, 800].indexOf(n) >= 0 ? String(n) : String(def);
+}
+function apcResetTextos() { var u = apUi(); u.bTitEsc = ''; u.bTitPeso = ''; u.bTxtEsc = ''; u.bTxtPeso = ''; pintarApClub(); marcarSucio('clubui'); }
 function pintarApLogo() {
   var logo = (apUi().footerLogo) || '';
   var foto = logo

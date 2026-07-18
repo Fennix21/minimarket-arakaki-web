@@ -236,10 +236,16 @@
     if (!u || typeof u !== 'object') u = {};
     var raiz = document.documentElement;
     function setCol(varCss, val) { if (colClubOk(val)) raiz.style.setProperty(varCss, val); else raiz.style.removeProperty(varCss); }
+    function setNum(varCss, val, min, max) { var n = parseFloat(val); if (isFinite(n) && n >= min && n <= max) raiz.style.setProperty(varCss, String(n)); else raiz.style.removeProperty(varCss); }
     setCol('--club-crema-bg', u.cremaBg);
     setCol('--club-crema-txt', u.bannerTxt);
     setCol('--club-kp-col', u.kpCol);
     setCol('--club-footer-bg', u.footerBg);
+    // Tamaño (escala 0.8–2) y grosor (400–800) del título y la frase del banner
+    setNum('--club-btit-esc', u.bTitEsc, 0.8, 2);
+    setNum('--club-btit-peso', u.bTitPeso, 400, 800);
+    setNum('--club-btxt-esc', u.bTxtEsc, 0.8, 2);
+    setNum('--club-btxt-peso', u.bTxtPeso, 400, 800);
     document.body.classList.toggle('club-footer-on', !!u.footerOn); // el CSS solo lo muestra en /mi-cuenta
     var logo = document.getElementById('pie-club-logo');
     if (logo) logo.src = logoOk(u.footerLogo) ? u.footerLogo : LOGO_BLANCO;

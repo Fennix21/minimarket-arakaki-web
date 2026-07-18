@@ -545,10 +545,14 @@ module.exports = async (req, res) => {
       // Apariencia de /mi-cuenta (colores + pie con logo): colores validados como #rrggbb,
       // logo con la misma lista blanca de imágenes. Vacío = default del CSS.
       const colHex = (v) => { const s = txt(v, 7); return /^#[0-9a-f]{6}$/i.test(s) ? s : ''; };
+      const numRango = (v, min, max) => { const n = parseFloat(v); return (isFinite(n) && n >= min && n <= max) ? n : ''; };
       const uiIn = b.ui || {};
       const ui = {
         cremaBg: colHex(uiIn.cremaBg), bannerTxt: colHex(uiIn.bannerTxt), kpCol: colHex(uiIn.kpCol),
         footerOn: !!uiIn.footerOn, footerBg: colHex(uiIn.footerBg), footerLogo: urlImg(uiIn.footerLogo),
+        // Tamaño (escala 0.8–2) y grosor (400–800) del título y la frase del banner. Vacío = default del CSS.
+        bTitEsc: numRango(uiIn.bTitEsc, 0.8, 2), bTitPeso: numRango(uiIn.bTitPeso, 400, 800),
+        bTxtEsc: numRango(uiIn.bTxtEsc, 0.8, 2), bTxtPeso: numRango(uiIn.bTxtPeso, 400, 800),
       };
       await redis(['SET', 'config:clubui', JSON.stringify(ui)]);
       return res.status(200).json({ ok: true, club, promos, sorteos, cupones, banners, ui });
