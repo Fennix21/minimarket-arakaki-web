@@ -1020,8 +1020,8 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   50% { box-shadow: 0 0 0 6px rgba(212, 169, 65, 0.35), 0 0 44px rgba(212, 169, 65, 0.8); }
 }
 
-/* Página /mi-cuenta: tarjetas premium dark-gold (mismo lenguaje que .prod) */
-.cuenta-int { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+/* Página /mi-cuenta: rojo vino de la marca + dorado premium (los colores del home) */
+.cuenta-int { max-width: 580px; margin: 0 auto; }
 .cuenta-card {
   background: var(--bg-card); color: #f4ebd6;
   border: 2px solid rgba(212, 169, 65, 0.42); border-radius: 20px;
@@ -1036,23 +1036,186 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .cuenta-hola { grid-column: 1 / -1; position: relative; }
 .ct-vacio { opacity: 0.75; font-size: 14px; }
 
-/* Fondo uniforme en /mi-cuenta: un solo tono (el de la zona de login), sin la franja más clara del encabezado. Scoped a esta página; NO toca .hero ni .seccion.premium de las categorías */
-.cuenta-hero,
-.cuenta-hero + .seccion.premium { background: #1a1715; }
-/* Acerca el contenedor de acceso/panel al subtítulo (menos aire entre el hero y la primera tarjeta) */
-.cuenta-hero { padding-bottom: 14px; }
-.cuenta-hero + .seccion.premium { padding-top: 18px; }
-
-/* Pestañas Entrar / Crear cuenta */
-.cuenta-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
-.ct-tab {
-  flex: 1; padding: 10px 8px; border-radius: 12px; cursor: pointer;
-  background: rgba(255, 255, 255, 0.05); color: #cfc4a8;
-  border: 1.5px solid rgba(212, 169, 65, 0.3);
-  font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13.5px;
-  transition: background 0.15s, color 0.15s;
+/* Fondo rojo vino de toda la página de la cuenta (scoped: NO toca .seccion.premium de las
+   categorías; con las 3 clases gana al fondo premium y al override editable de --bg-premium) */
+.seccion.premium.cuenta-zona {
+  background:
+    radial-gradient(900px 420px at 50% -60px, rgba(212, 169, 65, 0.16), transparent 65%),
+    linear-gradient(180deg, var(--rojo-osc) 0%, var(--rojo) 46%, #45080b 100%);
+  min-height: 70vh; padding: 26px 0 60px;
 }
-.ct-tab.activo { background: linear-gradient(180deg, #f6d98a, #d4a941); color: #3a2708; border-color: var(--dorado); }
+
+/* ---- Carrusel de publicidad (banners del panel → 👥 Club → 📣 Publicidad) ---- */
+.club-carru {
+  position: relative; height: 168px; border-radius: 22px; overflow: hidden; cursor: pointer;
+  border: 2px solid rgba(212, 169, 65, 0.75);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  margin-bottom: 18px; background: linear-gradient(160deg, #3d0709, #6b0d12);
+}
+.ccl-slide {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.6s ease;
+  background: linear-gradient(160deg, #4a090c, var(--rojo) 60%, var(--rojo-osc));
+  background-size: cover; background-position: center;
+}
+.ccl-slide.activo { opacity: 1; z-index: 1; }
+.ccl-velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 4, 5, 0.12) 0%, rgba(20, 4, 5, 0.55) 100%); }
+.ccl-slide.con-foto .ccl-velo { background: linear-gradient(180deg, rgba(20, 4, 5, 0.05) 30%, rgba(20, 4, 5, 0.72) 100%); }
+.ccl-info { position: relative; z-index: 2; text-align: center; padding: 12px 22px; display: flex; flex-direction: column; gap: 4px; }
+.ccl-tit { font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 700; color: #f2d894; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55); line-height: 1.2; }
+.ccl-txt { color: #fff; font-size: 14px; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
+.ccl-dots { position: absolute; left: 0; right: 0; bottom: 9px; display: flex; justify-content: center; gap: 7px; z-index: 3; }
+.ccl-dot { width: 9px; height: 9px; border-radius: 50%; border: none; padding: 0; cursor: pointer; background: rgba(255, 255, 255, 0.55); transition: background 0.2s, transform 0.2s; }
+.ccl-dot.on { background: var(--dorado); transform: scale(1.2); }
+
+/* ---- Accesos en grilla (Crear cuenta VIP / Olvidé mi clave / … y los del panel del cliente) ---- */
+.club-acciones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.club-acc { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; background: transparent; border: none; padding: 0; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+.club-acc .ca-ico {
+  width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+  font-size: 27px; border-radius: 18px;
+  background: linear-gradient(160deg, rgba(212, 169, 65, 0.22), rgba(20, 4, 5, 0.3)), linear-gradient(160deg, #6b0d12, #4a090c);
+  border: 1.5px solid rgba(212, 169, 65, 0.8); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.club-acc:hover .ca-ico, .club-acc.activo .ca-ico { transform: translateY(-3px); border-color: #f2d894; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45), 0 0 16px rgba(212, 169, 65, 0.35); }
+.club-acc.activo .ca-ico { background: linear-gradient(160deg, #f6d98a, #d4a941); }
+.club-acc .ca-txt { font-size: 12.5px; font-weight: 600; color: #f4ebd6; line-height: 1.3; text-align: center; }
+.cpn-tiles { row-gap: 16px; }
+
+/* ---- Tarjeta crema (teclado de la clave + hoja del panel), como el "toque final" del carrito ---- */
+.club-tarjeta {
+  background: linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%); color: #4a0c10;
+  border: 2px solid rgba(212, 169, 65, 0.8); border-radius: 24px;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45); padding: 22px 18px 20px;
+}
+.clt-tit {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: Georgia, 'Times New Roman', serif; font-size: 23px; font-weight: 700; color: var(--rojo);
+  margin: 0 0 16px; text-align: center;
+}
+.clt-rombo { color: var(--dorado); font-size: 13px; }
+.clt-desc { font-size: 13.5px; color: #6b4f17; margin: -8px 0 14px; text-align: center; line-height: 1.5; }
+.club-tarjeta .ct-error { color: #b3261e; }
+.club-tarjeta a { color: var(--rojo); font-weight: 700; }
+.clt-ayuda { font-size: 12.5px; text-align: center; margin: 12px 0 0; color: #6b4f17; }
+.clt-check { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; color: #4a0c10; margin: 12px 0 0; cursor: pointer; }
+.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--rojo); cursor: pointer; flex: none; }
+.clt-lab { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #7a5c14; margin: 10px 0 5px; }
+.clt-lab small { text-transform: none; letter-spacing: 0; font-weight: 600; }
+.clt-input {
+  width: 100%; box-sizing: border-box; padding: 11px 13px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75); color: #4a0c10;
+  border: 1.5px solid rgba(212, 169, 65, 0.55); font-size: 16px; outline: none; font-family: inherit; margin-bottom: 4px;
+}
+.clt-input:focus { border-color: var(--rojo); background: #fff; box-shadow: 0 0 0 3px rgba(124, 15, 20, 0.1); }
+
+/* ---- Teclado numérico táctil (campos sin teclado del sistema + puntitos secretos) ---- */
+.kp-campo {
+  display: block; width: 100%; box-sizing: border-box; cursor: pointer; text-align: center;
+  background: rgba(255, 255, 255, 0.6); border: 1.5px solid rgba(212, 169, 65, 0.55);
+  border-radius: 14px; padding: 9px 12px 10px; margin-bottom: 10px; font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.kp-campo.activo { border-color: var(--rojo); background: #fff; box-shadow: 0 0 0 3px rgba(124, 15, 20, 0.12); }
+.kp-eti { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #7a5c14; margin-bottom: 4px; }
+.kp-visor {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 26px;
+  font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 700; color: var(--rojo); letter-spacing: 2px;
+}
+.kp-visor.vacio { color: rgba(124, 15, 20, 0.25); }
+.kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(124, 15, 20, 0.4); box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
+.kp-dot.on { background: var(--rojo); border-color: var(--rojo); transform: scale(1.05); }
+.kp-teclas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
+.kp-tecla {
+  cursor: pointer; padding: 13px 0; border-radius: 14px; line-height: 1;
+  font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: var(--rojo);
+  background: rgba(255, 255, 255, 0.65); border: 1.5px solid rgba(212, 169, 65, 0.6);
+  box-shadow: 0 3px 0 rgba(184, 145, 47, 0.35);
+  transition: transform 0.08s, box-shadow 0.08s, background 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.kp-tecla:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(184, 145, 47, 0.35); background: #fff; }
+.kp-borrar { font-size: 20px; background: linear-gradient(160deg, #8d1218, var(--rojo)); color: #f6d98a; border-color: var(--rojo); box-shadow: 0 3px 0 rgba(74, 9, 12, 0.6); }
+.kp-borrar:active { background: var(--rojo); }
+
+/* ---- Panel del cliente (dashboard del boceto) ---- */
+.club-panel { max-width: 580px; margin: 0 auto; }
+.cpn-cab { position: relative; text-align: center; padding: 4px 0 0; margin-bottom: 16px; }
+.cpn-foto {
+  position: absolute; top: -6px; right: 0; display: flex; align-items: center; gap: 8px; cursor: pointer;
+  background: rgba(20, 4, 5, 0.3); border: 1.5px solid rgba(212, 169, 65, 0.7); border-radius: 999px;
+  padding: 4px 14px 4px 4px; color: #f2d894; font-size: 13px; font-weight: 700; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.cpn-foto .ch-foto { width: 40px; height: 40px; box-shadow: none; }
+.cpn-foto span.ch-foto-vacia { font-size: 19px; }
+.cpn-saludo { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; color: #fff; margin: 46px 0 6px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4); }
+.cpn-sub { color: #f2d894; font-size: 14.5px; margin: 0; }
+.cpn-sec { margin-bottom: 18px; }
+.cpn-sec-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.cpn-sec-cab h3 { margin: 0; }
+.cpn-x { flex: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; background: rgba(212, 169, 65, 0.14); color: #f2d894; border: 1.5px solid rgba(212, 169, 65, 0.5); font-size: 14px; }
+.cpn-x:hover { background: rgba(212, 169, 65, 0.3); }
+.cpn-sub-tit { margin-top: 22px !important; padding-top: 16px; border-top: 1px dashed rgba(212, 169, 65, 0.3); }
+.cpn-salir { position: static; display: block; margin: 20px auto 0; }
+
+/* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda */
+.club-sheet { margin-top: 18px; padding: 16px 14px; }
+.cs-fila {
+  display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;
+  background: #fff; border: 1.5px solid rgba(212, 169, 65, 0.6); border-radius: 999px;
+  padding: 9px 16px 9px 9px; margin-bottom: 10px; font-family: inherit; text-align: left;
+}
+button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cs-ico { flex: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(160deg, var(--rojo), #4a090c); font-size: 18px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25); }
+.cs-txt { flex: 1; font-family: Georgia, 'Times New Roman', serif; font-size: 16.5px; font-weight: 600; color: #4a0c10; }
+.cs-badge { background: linear-gradient(160deg, var(--rojo), #4a090c); color: #f6d98a; font-family: Georgia, 'Times New Roman', serif; font-weight: 700; padding: 5px 16px; border-radius: 999px; font-size: 15px; }
+.cs-chev { color: var(--rojo); font-size: 20px; font-weight: 700; line-height: 1; transition: transform 0.2s; }
+.cs-fila.abierto .cs-chev { transform: rotate(180deg); }
+#cs-lista { margin: 2px 0 10px; }
+.cs-ped { margin-bottom: 8px; }
+.cs-ped-fila {
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; cursor: pointer;
+  background: #faf1d8; border: 1.5px solid rgba(212, 169, 65, 0.55); border-radius: 14px;
+  padding: 10px 14px 10px 10px; font-family: inherit; text-align: left;
+  transition: background 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.cs-ped-fila:hover, .cs-ped-fila.abierto { border-color: var(--rojo); background: #fff; }
+.cs-ped-ico { flex: none; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(160deg, var(--rojo), #4a090c); font-size: 15px; }
+.cs-ped-tit { font-weight: 700; color: #4a0c10; font-size: 14.5px; }
+.cs-ped-fecha { flex: 1; text-align: right; font-family: Georgia, 'Times New Roman', serif; color: #6b4f17; font-size: 14px; }
+.cs-punto { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--dorado); box-shadow: 0 0 6px rgba(212, 169, 65, 0.6); }
+.cs-punto.ok { background: #3f9b52; box-shadow: 0 0 6px rgba(63, 155, 82, 0.5); }
+.cs-ped-det { padding: 10px 12px 12px; border: 1.5px dashed rgba(212, 169, 65, 0.6); border-top: none; border-radius: 0 0 14px 14px; margin: -4px 6px 0; background: rgba(255, 255, 255, 0.7); }
+.cs-ped-item { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; color: #4a0c10; padding: 5px 0; border-bottom: 1px dashed rgba(212, 169, 65, 0.35); }
+.cs-ped-item b { color: var(--rojo); font-family: Georgia, 'Times New Roman', serif; white-space: nowrap; }
+.cs-ped-total { display: flex; justify-content: space-between; font-size: 14.5px; font-weight: 700; color: var(--rojo); padding-top: 8px; }
+.cs-ped-total b { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; }
+.cs-ped-rep { margin-top: 10px; padding: 11px 14px; font-size: 14px; }
+.cs-vacio { font-size: 13.5px; color: #6b4f17; text-align: center; padding: 8px 6px; margin: 0; }
+.cs-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.cs-vino {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(180deg, #8d1218, var(--rojo) 55%, #4a090c); color: #f6d98a !important;
+  border: 1.5px solid var(--dorado); border-radius: 14px; padding: 13px 10px;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 15px; text-decoration: none;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35); transition: transform 0.15s, filter 0.15s;
+}
+.cs-vino:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+/* Escritorio: acceso a 2 columnas (publicidad+accesos | teclado) y panel más aireado */
+@media (min-width: 861px) {
+  .cuenta-int { max-width: 1000px; }
+  .club-login { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 30px; align-items: start; }
+  .club-login.solo-tarjeta { display: block; max-width: 500px; margin: 0 auto; }
+  .club-carru { height: 250px; }
+  .cl-lado .club-acciones { margin-top: 24px; margin-bottom: 0; }
+  .club-acc .ca-ico { width: 76px; height: 76px; font-size: 32px; border-radius: 20px; }
+  .club-panel { max-width: 720px; }
+  .cpn-saludo { font-size: 36px; }
+}
 
 /* Formularios de la cuenta (acceso + Mis datos, direcciones, PIN, preguntas) */
 .cuenta-acceso label, .cuenta-form label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: #cfc4a8; margin: 12px 0 6px; }
@@ -1190,8 +1353,7 @@ span.ch-foto-vacia {
 .chat-opt.cuenta { border-style: dashed; }
 
 @media (max-width: 700px) {
-  .cuenta-int { grid-template-columns: 1fr; gap: 18px; }
   .cuenta-card { padding: 20px 16px; }
-  /* En móvil el botón de cerrar sesión fluye debajo del saludo (no se superpone al nombre) */
-  .ct-salir { position: static; top: auto; right: auto; display: inline-block; margin-top: 14px; }
+  .cpn-saludo { font-size: 26px; }
+  .cuenta-zona { padding-top: 18px; }
 }

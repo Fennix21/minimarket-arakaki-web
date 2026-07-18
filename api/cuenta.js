@@ -1,10 +1,11 @@
 // Cuenta del cliente (Club Arakaki): login por celular + PIN, favoritos, puntos, promos y sorteos.
 // Cada función se prende/apaga desde el panel (👥 Club → config:club). El PIN se guarda SOLO
 // como hash (scrypt + salt por cliente); la sesión es un token aleatorio en Redis (sess:<token>).
-//   GET  sin token      -> { on, funciones }                (caché CDN 60s; site.js decide si muestra "Mi cuenta")
-//   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, promos, sorteos,
-//                                                            email, foto, direcciones y preguntas con respuesta)
-//   POST { action: 'crear'|'entrar'|'salir'|'recuperar'|'reccode'                (sin sesión)
+//   GET  sin token      -> { on, funciones, banners }       (caché CDN 60s; site.js decide si muestra "Mi cuenta";
+//                                                            banners = publicidad del panel → 👥 Club → 📣 Publicidad)
+//   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, historial, promos,
+//                                                            sorteos, email, foto, direcciones y preguntas con respuesta)
+//   POST { action: 'crear'|'entrar'|'salir'|'recuperar'|'reccode'|'cambiotel'    (sin sesión)
 //                 |'fav'|'sorteo'|'visita'                                       (beneficios)
 //                 |'perfil'|'foto'|'dirs'|'pin'|'pregunta', ... }                (editar mi cuenta)
 //   Recuperación: con Resend (RESEND_API_KEY) 'recuperar' manda un código al correo y 'reccode'
@@ -160,6 +161,46 @@ async function guardarCliente(tel, cli) {
 
 function vigente(x) { return !x.hasta || Date.now() <= Number(x.hasta); }
 
+// Banners de publicidad del carrusel de /mi-cuenta (panel → 👥 Club → 📣 Publicidad).
+// Se sirven en el GET público (login) y viajan con los flags; la imagen es una URL ya
+// servible (/api/push?img=<id> subida desde el panel, /img/... del repo o https).
+async function getBanners() {
+  const raw = await redis(['GET', 'config:clubbanners']);
+  if (!raw) return [];
+  try {
+    return (JSON.parse(raw) || []).filter(vigente).slice(0, 8).map((bn) => ({
+      id: bn.id || '', titulo: bn.titulo || '', texto: bn.texto || '', imagen: bn.imagen || '', url: bn.url || '',
+    }));
+  } catch (e) { return []; }
+}
+
+// Historial de pedidos de ESTE cliente (lista global `pedidos`, ≤500): fecha, items y total,
+// para "Mis últimos pedidos" con recompra en /mi-cuenta. Si sus pedidos ya salieron de la
+// lista, se sintetiza uno con la foto de cliente.ultimoItems para no dejarlo vacío.
+async function historialDe(tel, cli) {
+  const raws = (await redis(['LRANGE', 'pedidos', '0', '499'])) || [];
+  const out = [];
+  for (const r of raws) {
+    let p; try { p = JSON.parse(r); } catch (e) { continue; }
+    if (p.telefono !== tel) continue;
+    out.push({
+      id: p.id, ts: Number(p.ts) || 0, total: Number(p.total) || 0, estado: p.estado || 'nuevo',
+      items: (Array.isArray(p.items) ? p.items : []).slice(0, 30).map((it) => ({
+        name: it.name, qty: Number(it.qty) || 1, price: it.price != null ? it.price : null, img: it.img || '',
+      })),
+    });
+    if (out.length >= 10) break;
+  }
+  if (!out.length && Array.isArray(cli.ultimoItems) && cli.ultimoItems.length) {
+    out.push({
+      id: 'ultimo', ts: Number(cli.ultimoPedido) || 0, estado: '',
+      total: cli.ultimoItems.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 1), 0),
+      items: cli.ultimoItems.map((it) => ({ name: it.name, qty: Number(it.qty) || 1, price: it.price != null ? it.price : null, img: it.img || '' })),
+    });
+  }
+  return out;
+}
+
 // Preguntas de ESTE cliente (lista global `preguntas`; el dueño responde en el panel → ❓ Consultas)
 async function preguntasDe(tel) {
   const raws = (await redis(['LRANGE', 'preguntas', '0', '199'])) || [];
@@ -247,6 +288,7 @@ async function perfilCompleto(tel, cli, club) {
     promos,
     sorteos,
     cupones,
+    historial: await historialDe(tel, cli),
     preguntas: await preguntasDe(tel),
   };
 }
@@ -287,7 +329,7 @@ module.exports = async (req, res) => {
       if (!token) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
         // correo:true = hay sistema de correos (Resend) → la recuperación usa código al correo
-        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO });
+        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO, banners: await getBanners() });
       }
       res.setHeader('cache-control', 'no-store');
       const tel = await telDeSesion(token);
@@ -318,9 +360,11 @@ module.exports = async (req, res) => {
       const nombre = limpio(b.nombre, 60);
       const tel = normTel(b.telefono);
       const pin = limpio(b.pin, 6);
+      const emailC = limpio(b.email, 80).toLowerCase(); // opcional: habilita recuperar la clave
       if (!nombre || nombre.length < 2) return res.status(400).json({ error: 'Cuéntanos tu nombre 🙂' });
       if (!tel) return res.status(400).json({ error: 'Revisa tu número de celular (9 dígitos).' });
       if (!/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'El PIN debe tener de 4 a 6 números.' });
+      if (emailC && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailC)) return res.status(400).json({ error: 'Revisa tu correo: parece incompleto.' });
       if (await frenoPin(req, tel)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
       let cli = await cargarCliente(tel);
       const eraCliente = !!cli;
@@ -328,6 +372,7 @@ module.exports = async (req, res) => {
       if (!cli) cli = { telefono: tel, creado: Date.now() };
       cli.telefono = tel;
       cli.nombre = nombre;
+      if (emailC) cli.email = emailC;
       cli.club = true;
       cli.pinSalt = crypto.randomBytes(8).toString('hex');
       cli.pinHash = hashPin(pin, cli.pinSalt);
@@ -450,6 +495,70 @@ module.exports = async (req, res) => {
       await notifyOwner('🔓 *Cuenta recuperada con código al correo (web)*\n👤 ' + (cliR.nombre || 'Cliente') + ' (+' + telR + ')' +
         '\nSi no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
       const perfil = await perfilCompleto(telR, cliR, club);
+      perfil.on = true;
+      perfil.funciones = funcionesDe(club);
+      return res.status(200).json({ ok: true, token: nuevoToken, perfil });
+    }
+
+    // ----- Cambio de número: pasa la cuenta (y todo su historial) al celular nuevo -----
+    // Se autentica igual que 'entrar' (celular actual + PIN), así sirve desde la pantalla
+    // de acceso aunque el cliente ya no tenga sesión abierta.
+    if (b.action === 'cambiotel') {
+      const telV = normTel(b.telefono);
+      const telN = normTel(b.nuevo);
+      const pin = limpio(b.pin, 6);
+      if (!telV || !telN || !/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'Número o PIN incorrecto.' });
+      if (telV === telN) return res.status(400).json({ error: 'El número nuevo es igual al actual 🙂' });
+      if (await frenoPin(req, telV)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
+      const cliV = await cargarCliente(telV);
+      // Mensaje genérico a propósito: no revela si el número tiene cuenta o no
+      if (!cliV || !pinCorrecto(pin, cliV)) return res.status(400).json({ error: 'Número o PIN incorrecto.' });
+      const cliN = await cargarCliente(telN);
+      if (cliN && cliN.pinHash) return res.status(400).json({ error: 'El número nuevo ya tiene una cuenta del Club. Escríbenos por WhatsApp y lo resolvemos 🙏' });
+      // La cuenta manda; si el número nuevo ya era un cliente histórico (sin cuenta), se fusiona su consumo
+      const cli2 = cliV;
+      if (cliN) {
+        cli2.pedidos = (Number(cliV.pedidos) || 0) + (Number(cliN.pedidos) || 0);
+        cli2.gastoTotal = Math.round(((Number(cliV.gastoTotal) || 0) + (Number(cliN.gastoTotal) || 0)) * 100) / 100;
+        cli2.visitas = (Number(cliV.visitas) || 0) + (Number(cliN.visitas) || 0);
+        cli2.puntos = (Number(cliV.puntos) || 0) + (Number(cliN.puntos) || 0);
+        if (Number(cliN.creado) && (!cli2.creado || Number(cliN.creado) < Number(cli2.creado))) cli2.creado = cliN.creado;
+        if (Number(cliN.ultimoPedido) > (Number(cli2.ultimoPedido) || 0)) {
+          cli2.ultimoPedido = cliN.ultimoPedido;
+          if (Array.isArray(cliN.ultimoItems)) cli2.ultimoItems = cliN.ultimoItems;
+        }
+        const cons = (cliV.consumo && typeof cliV.consumo === 'object') ? cliV.consumo : {};
+        const consN = (cliN.consumo && typeof cliN.consumo === 'object') ? cliN.consumo : {};
+        Object.keys(consN).forEach((k) => {
+          const a = cons[k] || { veces: 0, cant: 0 };
+          const n = consN[k];
+          cons[k] = {
+            veces: (Number(a.veces) || 0) + (Number(n.veces) || 0),
+            cant: (Number(a.cant) || 0) + (Number(n.cant) || 0),
+            ultima: Math.max(Number(a.ultima) || 0, Number(n.ultima) || 0),
+            img: a.img || n.img || '', price: (a.price != null) ? a.price : n.price,
+          };
+        });
+        cli2.consumo = cons;
+        const uidsV = Array.isArray(cliV.uids) ? cliV.uids : [];
+        const uidsN = Array.isArray(cliN.uids) ? cliN.uids : [];
+        cli2.uids = uidsV.concat(uidsN.filter((u) => uidsV.indexOf(u) < 0)).slice(0, 8);
+      }
+      cli2.telefono = telN;
+      // Reapunta las sesiones vivas y los dispositivos reconocidos al número nuevo
+      for (const t of (Array.isArray(cli2.sess) ? cli2.sess : [])) await redis(['SET', 'sess:' + t, telN, 'EX', String(180 * 86400)]);
+      for (const u of (Array.isArray(cli2.uids) ? cli2.uids : [])) await redis(['SET', 'uid:' + u, telN, 'EX', String(400 * 86400)]);
+      const nuevoToken = await crearSesion(cli2, telN, uid);
+      await guardarCliente(telN, cli2);
+      await redis(['DEL', 'cliente:' + telV]);
+      await redis(['ZREM', 'clientes', telV]);
+      await stat('club_cambiotel');
+      // Aviso de seguridad al correo registrado (si hay sistema de correos)
+      try { if (HAS_CORREO && cli2.email) await enviarCorreo(cli2.email, '📲 Cambio de número en tu cuenta', htmlAvisoPin(cli2.nombre || '')); } catch (e) {}
+      await notifyOwner('📲 *Cambio de número en el Club (web)*\n👤 ' + (cli2.nombre || 'Cliente') +
+        '\nAntes: +' + telV + '\nAhora: +' + telN +
+        '\n\nSi no lo reconoces, resetea su PIN en el panel 👉 /panel (👥 Club)');
+      const perfil = await perfilCompleto(telN, cli2, club);
       perfil.on = true;
       perfil.funciones = funcionesDe(club);
       return res.status(200).json({ ok: true, token: nuevoToken, perfil });

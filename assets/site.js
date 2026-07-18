@@ -1440,8 +1440,7 @@
   window.renderCuenta = function () {
     var cont = document.getElementById('contenido-cuenta');
     if (!cont) return;
-    cont.innerHTML = '<section class="hero cuenta-hero"><h1>Mi cuenta</h1><p class="sub">Club Arakaki · Beneficios exclusivos online 💛</p></section>' +
-      '<section class="seccion premium"><div class="interior cuenta-int" id="cuenta-int"><p class="ct-vacio">Cargando…</p></div></section>';
+    cont.innerHTML = '<section class="seccion premium cuenta-zona"><div class="interior cuenta-int" id="cuenta-int"><p class="ct-vacio">Cargando…</p></div></section>';
     cuentaFlagsCargar(function (f) {
       var int = document.getElementById('cuenta-int');
       if (!int) return;
@@ -1463,80 +1462,328 @@
     });
   };
 
-  // Formulario de acceso: pestañas "Ya tengo cuenta" / "Crear mi cuenta"
-  function pintarAcceso(int) {
-    int.innerHTML =
-      '<div class="cuenta-card cuenta-acceso">' +
-        '<div class="cuenta-tabs">' +
-          '<button type="button" class="ct-tab activo" data-t="entrar">Ya tengo cuenta</button>' +
-          '<button type="button" class="ct-tab" data-t="crear">Crear mi cuenta</button>' +
-        '</div>' +
-        '<form id="ct-form" autocomplete="off">' +
-          '<div id="ct-solo-crear" style="display:none"><label for="ct-nombre">Tu nombre</label>' +
-          '<input id="ct-nombre" maxlength="60" placeholder="¿Cómo te llamas?"></div>' +
-          '<label for="ct-tel">Tu celular (WhatsApp)</label>' +
-          '<input id="ct-tel" inputmode="tel" maxlength="15" placeholder="Ej. 999 999 999">' +
-          '<label for="ct-pin">Tu PIN (4 a 6 números)</label>' +
-          '<input id="ct-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
-          '<label class="ct-check"><input type="checkbox" id="ct-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
-          '<p class="ct-error" id="ct-error"></p>' +
-          '<button type="submit" class="ct-enviar" id="ct-enviar">Entrar</button>' +
-        '</form>' +
-        '<p class="ct-ayuda">¿Olvidaste tu PIN? <a href="#" id="ct-rec">Recupéralo con tu correo</a> o <a href="https://wa.me/' + WA + '?text=' +
-          encodeURIComponent('Hola 👋 Olvidé el PIN de mi cuenta del Club Arakaki, ¿me ayudan a recuperarla?') +
-          '" target="_blank" rel="noopener">escríbenos por WhatsApp</a></p>' +
-      '</div>' +
-      '<div class="cuenta-card cuenta-beneficios"><h3>¿Qué gano con mi cuenta?</h3><ul>' +
-        (fnClub('favoritos') ? '<li>⭐ Guarda tus favoritos y pide en 2 toques</li>' : '') +
-        (fnClub('puntos') ? '<li>🪙 Acumula puntos con cada compra entregada</li>' : '') +
-        (fnClub('promos') ? '<li>🎁 Promos exclusivas solo para miembros</li>' : '') +
-        (fnClub('sorteos') ? '<li>🎟️ Participa en sorteos con un toque</li>' : '') +
-        '<li>🔁 Tu último pedido listo para repetir</li>' +
-      '</ul></div>';
+  // ---------- Carrusel de publicidad del Club (banners del panel → 👥 Club → 📣 Publicidad) ----------
+  function bannersDelClub() {
+    var bs = ((cuentaFlags && cuentaFlags.banners) || []).filter(function (b) { return b && (b.titulo || b.imagen); });
+    if (!bs.length) bs = [{ titulo: '🎁 Club Arakaki', texto: 'Promos, puntos y sorteos exclusivos para ti 💛', imagen: '', url: '' }];
+    return bs;
+  }
+  function carruselHtml() {
+    var bs = bannersDelClub();
+    var slides = bs.map(function (b, i) {
+      return '<div class="ccl-slide' + (i === 0 ? ' activo' : '') + (b.imagen ? ' con-foto' : '') + '"' +
+        (b.imagen ? ' style="background-image:url(\'' + esc(b.imagen) + '\')"' : '') +
+        ' data-url="' + esc(b.url || '') + '"><span class="ccl-velo"></span><span class="ccl-info">' +
+        (b.titulo ? '<span class="ccl-tit">' + esc(b.titulo) + '</span>' : '') +
+        (b.texto ? '<span class="ccl-txt">' + esc(b.texto) + '</span>' : '') +
+        '</span></div>';
+    }).join('');
+    var dots = bs.length > 1 ? '<div class="ccl-dots">' + bs.map(function (b, i) {
+      return '<button type="button" class="ccl-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Aviso ' + (i + 1) + '"></button>';
+    }).join('') + '</div>' : '';
+    return '<div class="club-carru">' + slides + dots + '</div>';
+  }
+  // Rotación automática cada 5s + deslizar con el dedo + toque = ir al enlace del banner
+  function montarCarrusel(cont) {
+    var carrus = cont.querySelectorAll('.club-carru');
+    for (var c = 0; c < carrus.length; c++) (function (carru) {
+      var slides = carru.querySelectorAll('.ccl-slide');
+      var dots = carru.querySelectorAll('.ccl-dot');
+      var idx = 0, timer = null;
+      function ver(n) {
+        idx = (n + slides.length) % slides.length;
+        for (var i = 0; i < slides.length; i++) slides[i].classList.toggle('activo', i === idx);
+        for (var j = 0; j < dots.length; j++) dots[j].classList.toggle('on', j === idx);
+      }
+      function auto() {
+        if (timer) clearInterval(timer);
+        if (slides.length > 1) timer = setInterval(function () {
+          if (!document.body.contains(carru)) { clearInterval(timer); return; }
+          ver(idx + 1);
+        }, 5000);
+      }
+      for (var d = 0; d < dots.length; d++) dots[d].onclick = function () { ver(Number(this.getAttribute('data-i'))); auto(); };
+      var x0 = null;
+      carru.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      carru.addEventListener('touchend', function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        x0 = null;
+        if (Math.abs(dx) > 40) { ver(idx + (dx < 0 ? 1 : -1)); auto(); }
+      }, { passive: true });
+      for (var s = 0; s < slides.length; s++) slides[s].onclick = function () {
+        var u = this.getAttribute('data-url');
+        if (u && (u.charAt(0) === '/' || u.indexOf('http://') === 0 || u.indexOf('https://') === 0)) location.href = u;
+      };
+      auto();
+    })(carrus[c]);
+  }
 
-    var modo = 'entrar';
-    var tabs = int.querySelectorAll('.ct-tab');
-    var soloCrear = document.getElementById('ct-solo-crear');
+  // ---------- Teclado numérico táctil del Club ----------
+  // Los "campos" son botones (no inputs): en el celular NUNCA se abre el teclado del sistema.
+  // El valor vive en data-v; el celular se pinta como dígitos y la clave como puntitos secretos.
+  // En escritorio también funciona el teclado físico (números, Backspace y Enter).
+  var KP_FISICO = null; // handler vivo del teclado físico (se recambia al re-pintar la vista)
+  function kpCampoHtml(id, tipo, etiqueta, max) {
+    return '<button type="button" class="kp-campo' + (tipo === 'pin' ? ' kp-cpin' : '') + '" id="' + id +
+      '" data-tipo="' + tipo + '" data-max="' + max + '" data-v="">' +
+      '<span class="kp-eti">' + etiqueta + '</span><span class="kp-visor"></span></button>';
+  }
+  function kpTecladoHtml() {
+    var t = '';
+    for (var n = 1; n <= 9; n++) t += '<button type="button" class="kp-tecla" data-d="' + n + '">' + n + '</button>';
+    t += '<span class="kp-hueco"></span><button type="button" class="kp-tecla" data-d="0">0</button>' +
+      '<button type="button" class="kp-tecla kp-borrar" data-d="borrar" aria-label="Borrar">⌫</button>';
+    return '<div class="kp-teclas">' + t + '</div>';
+  }
+  function kpVal(id) {
+    var c = document.getElementById(id);
+    return c ? (c.getAttribute('data-v') || '') : '';
+  }
+  function kpPintar(campo) {
+    var v = campo.getAttribute('data-v') || '';
+    var visor = campo.querySelector('.kp-visor');
+    if (campo.getAttribute('data-tipo') === 'pin') {
+      // Puntitos secretos: uno lleno por cada número tecleado (4 huecos de guía como mínimo)
+      var men = Math.max(4, v.length);
+      var puntos = '';
+      for (var i = 0; i < men; i++) puntos += '<span class="kp-dot' + (i < v.length ? ' on' : '') + '"></span>';
+      visor.innerHTML = puntos;
+      visor.classList.remove('vacio');
+    } else {
+      visor.classList.toggle('vacio', !v);
+      visor.textContent = v ? (v.slice(0, 3) + ' ' + v.slice(3, 6) + ' ' + v.slice(6)).replace(/\s+$/, '') : '000 000 000';
+    }
+  }
+  // Conecta los campos y el teclado dentro de `zona`; alCambiar se llama en cada tecla.
+  function montarKeypad(zona, alCambiar) {
+    var campos = [].slice.call(zona.querySelectorAll('.kp-campo'));
+    if (!campos.length) return;
+    var activo = null;
+    function activar(c) {
+      activo = c;
+      for (var i = 0; i < campos.length; i++) campos[i].classList.toggle('activo', campos[i] === c);
+    }
+    function primeroIncompleto() {
+      for (var i = 0; i < campos.length; i++) {
+        var v = campos[i].getAttribute('data-v') || '';
+        if (v.length < Number(campos[i].getAttribute('data-max'))) return campos[i];
+      }
+      return campos[campos.length - 1];
+    }
+    function teclear(d) {
+      if (!activo) activar(primeroIncompleto());
+      var v = activo.getAttribute('data-v') || '';
+      var max = Number(activo.getAttribute('data-max'));
+      if (d === 'borrar') {
+        if (!v && campos.indexOf(activo) > 0) { // campo vacío: retrocede al anterior
+          activar(campos[campos.indexOf(activo) - 1]);
+          v = activo.getAttribute('data-v') || '';
+        }
+        activo.setAttribute('data-v', v.slice(0, -1));
+      } else {
+        if (v.length >= max) return;
+        activo.setAttribute('data-v', v + d);
+        // Campo completo → salta solo al siguiente (del celular a la clave, como en el boceto)
+        if ((v + d).length >= max && campos.indexOf(activo) < campos.length - 1) {
+          activar(campos[campos.indexOf(activo) + 1]);
+        }
+      }
+      for (var i = 0; i < campos.length; i++) kpPintar(campos[i]);
+      if (alCambiar) alCambiar();
+    }
+    for (var i = 0; i < campos.length; i++) {
+      kpPintar(campos[i]);
+      campos[i].onclick = function () { activar(this); };
+    }
+    activar(primeroIncompleto());
+    var teclas = zona.querySelectorAll('.kp-tecla');
+    for (var t = 0; t < teclas.length; t++) teclas[t].onclick = function () { teclear(this.getAttribute('data-d')); };
+    // Teclado físico (escritorio): números y Backspace van al campo activo, Enter envía
+    if (KP_FISICO) document.removeEventListener('keydown', KP_FISICO);
+    KP_FISICO = function (e) {
+      if (!document.body.contains(zona)) { document.removeEventListener('keydown', KP_FISICO); KP_FISICO = null; return; }
+      var tag = (document.activeElement && document.activeElement.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return; // los campos de texto usan su teclado normal
+      if (/^[0-9]$/.test(e.key)) { teclear(e.key); e.preventDefault(); }
+      else if (e.key === 'Backspace') { teclear('borrar'); e.preventDefault(); }
+      else if (e.key === 'Enter') { var b = zona.querySelector('.clt-enviar'); if (b && !b.disabled) b.click(); }
+    };
+    document.addEventListener('keydown', KP_FISICO);
+  }
+
+  // Pantalla de acceso: publicidad, accesos rápidos (crear cuenta / recuperar / cambio de
+  // número) y la tarjeta crema "Ingresa tu clave" con el teclado táctil propio.
+  function pintarAcceso(int) {
+    var telGuardado = '';
+    try { telGuardado = (localStorage.getItem('arakaki_club_tel') || '').replace(/\D/g, '').slice(-9); } catch (e) {}
+    int.innerHTML =
+      '<div class="club-login">' +
+        '<div class="cl-lado">' +
+          carruselHtml() +
+          '<div class="club-acciones">' +
+            '<button type="button" class="club-acc" id="ca-crear"><span class="ca-ico">👤</span><span class="ca-txt">Crear cuenta VIP</span></button>' +
+            '<button type="button" class="club-acc" id="ca-rec"><span class="ca-ico">🔑</span><span class="ca-txt">Olvidé mi clave</span></button>' +
+            '<button type="button" class="club-acc" id="ca-tel"><span class="ca-ico">📲</span><span class="ca-txt">Cambio de número</span></button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="club-tarjeta" id="cl-tarjeta">' +
+          '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Ingresa tu clave <span class="clt-rombo">◆</span></h3>' +
+          kpCampoHtml('kp-tel', 'tel', '📱 Tu celular', 9) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
+          kpTecladoHtml() +
+          '<label class="clt-check"><input type="checkbox" id="ct-recordar" checked> Mantenerse conectado</label>' +
+          '<p class="ct-error" id="ct-error"></p>' +
+          '<button type="button" class="ct-enviar clt-enviar" id="ct-enviar" disabled>Entrar a mi cuenta ✨</button>' +
+          '<p class="clt-ayuda">¿Problemas para entrar? <a href="https://wa.me/' + WA + '?text=' +
+            encodeURIComponent('Hola 👋 No puedo entrar a mi cuenta del Club Arakaki, ¿me ayudan?') +
+            '" target="_blank" rel="noopener">Escríbenos por WhatsApp 📲</a></p>' +
+        '</div>' +
+      '</div>';
+    montarCarrusel(int);
     var btn = document.getElementById('ct-enviar');
     var err = document.getElementById('ct-error');
-    for (var i = 0; i < tabs.length; i++) {
-      tabs[i].onclick = function () {
-        modo = this.getAttribute('data-t');
-        for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('activo', tabs[j] === this);
-        soloCrear.style.display = modo === 'crear' ? '' : 'none';
-        btn.textContent = modo === 'crear' ? 'Crear mi cuenta' : 'Entrar';
-        err.textContent = '';
-      };
-    }
-    document.getElementById('ct-form').onsubmit = function (e) {
-      e.preventDefault();
+    if (telGuardado.length === 9) document.getElementById('kp-tel').setAttribute('data-v', telGuardado);
+    montarKeypad(document.getElementById('cl-tarjeta'), function () {
       err.textContent = '';
-      var nombre = (document.getElementById('ct-nombre').value || '').trim();
-      var tel = (document.getElementById('ct-tel').value || '').replace(/\D/g, '');
-      var pin = (document.getElementById('ct-pin').value || '').trim();
-      if (modo === 'crear' && nombre.length < 2) { err.textContent = 'Cuéntanos tu nombre 🙂'; return; }
+      btn.disabled = !(kpVal('kp-tel').length === 9 && kpVal('kp-pin').length >= 4);
+    });
+    btn.onclick = function () {
+      var tel = kpVal('kp-tel');
+      var pin = kpVal('kp-pin');
+      err.textContent = '';
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave tiene de 4 a 6 números.'; return; }
       btn.disabled = true;
       btn.textContent = 'Un momento…';
       var recordar = !!(document.getElementById('ct-recordar') && document.getElementById('ct-recordar').checked);
-      cuentaPost({ action: modo, nombre: nombre, telefono: tel, pin: pin }).then(function (j) {
+      cuentaPost({ action: 'entrar', telefono: tel, pin: pin }).then(function (j) {
         if (j && j.ok && j.token) {
+          try { localStorage.setItem('arakaki_club_tel', tel); } catch (e) {}
           guardarSesion(j.token, recordar);
           cuentaPerfil = j.perfil || null;
           window.renderCuenta();
         } else {
           btn.disabled = false;
-          btn.textContent = modo === 'crear' ? 'Crear mi cuenta' : 'Entrar';
+          btn.textContent = 'Entrar a mi cuenta ✨';
           err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
         }
       }).catch(function () {
         btn.disabled = false;
-        btn.textContent = modo === 'crear' ? 'Crear mi cuenta' : 'Entrar';
+        btn.textContent = 'Entrar a mi cuenta ✨';
         err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
       });
     };
-    document.getElementById('ct-rec').onclick = function (e) { e.preventDefault(); pintarRecuperar(int); };
+    document.getElementById('ca-crear').onclick = function () { pintarCrear(int); };
+    document.getElementById('ca-rec').onclick = function () { pintarRecuperar(int); };
+    document.getElementById('ca-tel').onclick = function () { pintarCambioTel(int); };
+  }
+
+  // Crear cuenta VIP: nombre y correo con teclado normal; celular y clave con el táctil
+  function pintarCrear(int) {
+    int.innerHTML =
+      '<div class="club-login solo-tarjeta">' +
+        '<div class="club-tarjeta" id="cl-tarjeta">' +
+          '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Crear cuenta VIP <span class="clt-rombo">◆</span></h3>' +
+          '<label class="clt-lab" for="cn-nombre">Tu nombre</label>' +
+          '<input class="clt-input" id="cn-nombre" maxlength="60" placeholder="¿Cómo te llamas?">' +
+          '<label class="clt-lab" for="cn-email">Tu correo <small>(opcional, para recuperar tu clave)</small></label>' +
+          '<input class="clt-input" id="cn-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
+          kpCampoHtml('kp-tel', 'tel', '📱 Tu celular (WhatsApp)', 9) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 a 6 números)', 6) +
+          kpTecladoHtml() +
+          '<label class="clt-check"><input type="checkbox" id="cn-recordar" checked> Mantenerse conectado</label>' +
+          '<p class="ct-error" id="cn-error"></p>' +
+          '<button type="button" class="ct-enviar clt-enviar" id="cn-enviar">Crear mi cuenta VIP ✨</button>' +
+          '<p class="clt-ayuda"><a href="#" id="cn-volver">← Ya tengo cuenta</a></p>' +
+        '</div>' +
+      '</div>';
+    var btn = document.getElementById('cn-enviar');
+    var err = document.getElementById('cn-error');
+    montarKeypad(document.getElementById('cl-tarjeta'), function () { err.textContent = ''; });
+    document.getElementById('cn-volver').onclick = function (e) { e.preventDefault(); pintarAcceso(int); };
+    btn.onclick = function () {
+      var nombre = (document.getElementById('cn-nombre').value || '').trim();
+      var email = (document.getElementById('cn-email').value || '').trim();
+      var tel = kpVal('kp-tel');
+      var pin = kpVal('kp-pin');
+      err.textContent = '';
+      if (nombre.length < 2) { err.textContent = 'Cuéntanos tu nombre 🙂'; return; }
+      if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
+      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave debe tener de 4 a 6 números.'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Un momento…';
+      var recordar = !!(document.getElementById('cn-recordar') && document.getElementById('cn-recordar').checked);
+      cuentaPost({ action: 'crear', nombre: nombre, email: email, telefono: tel, pin: pin }).then(function (j) {
+        if (j && j.ok && j.token) {
+          try { localStorage.setItem('arakaki_club_tel', tel); } catch (e) {}
+          guardarSesion(j.token, recordar);
+          cuentaPerfil = j.perfil || null;
+          window.renderCuenta();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Crear mi cuenta VIP ✨';
+          err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Crear mi cuenta VIP ✨';
+        err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
+      });
+    };
+  }
+
+  // Cambio de número: pasa la cuenta entera (puntos, favoritos, pedidos) al celular nuevo.
+  // Se autentica con el celular actual + la clave, igual que al entrar.
+  function pintarCambioTel(int) {
+    int.innerHTML =
+      '<div class="club-login solo-tarjeta">' +
+        '<div class="club-tarjeta" id="cl-tarjeta">' +
+          '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Cambio de número <span class="clt-rombo">◆</span></h3>' +
+          '<p class="clt-desc">¿Estrenaste celular? 📲 Pasa tu cuenta con tus puntos, favoritos y pedidos a tu número nuevo.</p>' +
+          kpCampoHtml('kp-telv', 'tel', '📱 Tu celular ACTUAL', 9) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
+          kpCampoHtml('kp-teln', 'tel', '✨ Tu celular NUEVO', 9) +
+          kpTecladoHtml() +
+          '<p class="ct-error" id="cb-error"></p>' +
+          '<button type="button" class="ct-enviar clt-enviar" id="cb-enviar">Cambiar mi número 📲</button>' +
+          '<p class="clt-ayuda"><a href="#" id="cb-volver">← Volver</a> · ¿No recuerdas tu clave? <a href="https://wa.me/' + WA + '?text=' +
+            encodeURIComponent('Hola 👋 Cambié de número y no recuerdo la clave de mi cuenta del Club Arakaki, ¿me ayudan?') +
+            '" target="_blank" rel="noopener">Escríbenos 📲</a></p>' +
+        '</div>' +
+      '</div>';
+    var btn = document.getElementById('cb-enviar');
+    var err = document.getElementById('cb-error');
+    montarKeypad(document.getElementById('cl-tarjeta'), function () { err.textContent = ''; });
+    document.getElementById('cb-volver').onclick = function (e) { e.preventDefault(); pintarAcceso(int); };
+    btn.onclick = function () {
+      var telV = kpVal('kp-telv');
+      var pin = kpVal('kp-pin');
+      var telN = kpVal('kp-teln');
+      err.textContent = '';
+      if (telV.length < 9) { err.textContent = 'Revisa tu número actual (9 dígitos).'; return; }
+      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave tiene de 4 a 6 números.'; return; }
+      if (telN.length < 9) { err.textContent = 'Revisa tu número nuevo (9 dígitos).'; return; }
+      if (telV === telN) { err.textContent = 'El número nuevo es igual al actual 🙂'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Un momento…';
+      cuentaPost({ action: 'cambiotel', telefono: telV, pin: pin, nuevo: telN }).then(function (j) {
+        if (j && j.ok && j.token) {
+          try { localStorage.setItem('arakaki_club_tel', telN); } catch (e) {}
+          guardarSesion(j.token, true);
+          cuentaPerfil = j.perfil || null;
+          window.renderCuenta();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Cambiar mi número 📲';
+          err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Cambiar mi número 📲';
+        err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
+      });
+    };
   }
 
   // Recuperar la cuenta con el correo registrado en "Mis datos". Si el sistema de correos
@@ -1695,103 +1942,214 @@
       : '<span class="ch-foto ch-foto-vacia"' + (id ? ' id="' + id + '"' : '') + '>👤</span>';
   }
 
-  // Panel del cliente logueado: puntos, promos, sorteos, favoritos, su último pedido,
-  // sus preguntas al negocio y la gestión de su cuenta (datos, foto, direcciones, PIN)
-  function pintarPanelCliente(int, p) {
-    var html = '<div class="cuenta-card cuenta-hola"><div class="ch-cab">' + fotoHtml(p) +
-      '<div><h3>¡Hola, ' + esc(p.nombre || 'casero') + '! 👋</h3>' +
-      '<p>' + (p.pedidos ? 'Llevas <b>' + p.pedidos + '</b> pedido' + (p.pedidos === 1 ? '' : 's') + ' con nosotros 💛' : 'Bienvenido al Club Arakaki 💛') + '</p></div></div>' +
-      '<button type="button" class="ct-salir" id="ct-salir">🚪 Cerrar sesión</button></div>';
+  // Saludo según la hora del cliente
+  function saludoHora() {
+    var h = new Date().getHours();
+    return h < 12 ? 'Buen día' : (h < 19 ? 'Buenas tardes' : 'Buenas noches');
+  }
+  // "Sábado 18, Julio" como en el boceto (con año solo si es de otro año)
+  function fechaPedido(ts) {
+    if (!ts) return 'Pedido anterior';
+    var d = new Date(Number(ts));
+    var dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    var meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    var s = dias[d.getDay()] + ' ' + d.getDate() + ', ' + meses[d.getMonth()];
+    if (d.getFullYear() !== new Date().getFullYear()) s += ' ' + d.getFullYear();
+    return s;
+  }
 
-    if (fnClub('puntos')) {
-      html += '<div class="cuenta-card cuenta-puntos"><h3>🪙 Mis puntos</h3>' +
-        '<div class="cp-num">' + (Number(p.puntos) || 0) + '</div>' +
-        '<p>Ganas puntos con cada pedido entregado. <a href="https://wa.me/' + WA + '?text=' +
-        encodeURIComponent('Hola 👋 Quiero canjear mis puntos del Club Arakaki 🪙') +
-        '" target="_blank" rel="noopener">Canjéalos por WhatsApp 📲</a></p></div>';
-    }
-    if (fnClub('promos')) {
-      html += '<div class="cuenta-card cuenta-promos"><h3>🎁 Promos exclusivas</h3>' +
-        ((p.promos && p.promos.length) ? p.promos.map(function (pr) {
-          return '<div class="cprom"><b>' + esc(pr.titulo) + '</b>' +
-            (pr.texto ? '<p>' + esc(pr.texto) + '</p>' : '') +
-            (pr.hasta ? '<small>Hasta el ' + new Date(Number(pr.hasta)).toLocaleDateString('es-PE') + '</small>' : '') + '</div>';
-        }).join('') : '<p class="ct-vacio">Pronto verás aquí promos solo para miembros 👀</p>');
-      html += '</div>';
-    }
-    if (fnClub('cupones')) {
-      html += '<div class="cuenta-card cuenta-cupones"><h3>🎫 Cupones exclusivos</h3>' +
-        ((p.cupones && p.cupones.length) ? p.cupones.map(function (cu) {
-          return '<div class="ccup">' +
-            (cu.imagen ? '<img src="' + esc(cu.imagen) + '" alt="' + esc(cu.titulo || 'Cupón') + '">' : '') +
-            '<b>' + esc(cu.titulo) + '</b>' +
-            (cu.codigo ? '<span class="ccup-cod">' + esc(cu.codigo) + '</span>' : '') +
-            (cu.hasta ? '<small>Hasta el ' + new Date(Number(cu.hasta)).toLocaleDateString('es-PE') + '</small>' : '') + '</div>';
-        }).join('') : '<p class="ct-vacio">Pronto verás aquí cupones solo para miembros 🎫</p>');
-      html += '</div>';
-    }
-    if (fnClub('sorteos')) {
-      html += '<div class="cuenta-card cuenta-sorteos"><h3>🎟️ Sorteos</h3>' +
-        ((p.sorteos && p.sorteos.length) ? p.sorteos.map(function (s) {
-          return '<div class="csort" data-id="' + esc(s.id) + '"><b>' + esc(s.titulo) + '</b>' +
-            (s.premio ? '<p>🏆 ' + esc(s.premio) + '</p>' : '') +
-            (s.hasta ? '<small>Hasta el ' + new Date(Number(s.hasta)).toLocaleDateString('es-PE') + '</small>' : '') +
-            '<button type="button" class="cs-btn"' + (s.participando ? ' disabled' : '') + '>' +
-            (s.participando ? '✅ Ya estás participando' : '🎟️ Participar gratis') + '</button></div>';
-        }).join('') : '<p class="ct-vacio">No hay sorteos activos ahorita. ¡Atento a los avisos! 🔔</p>');
-      html += '</div>';
-    }
-    if (fnClub('favoritos')) {
-      html += '<div class="cuenta-card cuenta-favs"><h3>⭐ Mis favoritos</h3>' +
-        ((p.favs && p.favs.length)
-          ? '<div class="cfav-grid">' + p.favs.map(function (f) { return favItemHtml(f, true); }).join('') + '</div>' +
-            '<button type="button" class="ct-enviar" id="cf-todos">🛒 Agregar todos a mi pedido</button>'
-          : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto del catálogo y aparecerá aquí.</p>' +
-            '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>');
-      html += '</div>';
-    }
-    if (p.habitual && p.habitual.length) {
-      html += '<div class="cuenta-card cuenta-habitual"><h3>🔁 Mi último pedido</h3><p>Lo que pediste la última vez:</p>' +
-        '<div class="cfav-grid">' + p.habitual.slice(0, 6).map(function (h) { return favItemHtml(h, false); }).join('') + '</div>' +
-        '<button type="button" class="ct-enviar" id="ch-todos">🛒 Repetir mi último pedido</button></div>';
-    }
+  // Panel del cliente logueado, calcado del boceto: saludo por hora + foto arriba, accesos
+  // en grilla (cada uno abre su sección), publicidad, y la hoja crema con Mis Puntos y
+  // Mis Últimos Pedidos por fecha (con detalle y recompra del día elegido).
+  function pintarPanelCliente(int, p, secAbierta) {
+    var conCupones = fnClub('promos') || fnClub('cupones');
+    var tiles = [
+      { id: 'datos', ico: '🪪', txt: 'Mis Datos' },
+      fnClub('favoritos') ? { id: 'favs', ico: '⭐', txt: 'Mis Favoritos' } : null,
+      conCupones ? { id: 'cupones', ico: '🎫', txt: 'Cupones VIP' } : null,
+      { id: 'preguntas', ico: '❓', txt: 'Mis Preguntas' },
+      fnClub('sorteos') ? { id: 'sorteos', ico: '🎁', txt: 'Sorteos' } : null,
+      { id: 'dirs', ico: '📍', txt: 'Mis Direcciones de Entrega' },
+    ].filter(function (t) { return t; });
 
-    // ❓ Mis preguntas: el cliente pregunta y el dueño le responde desde el panel
-    html += '<div class="cuenta-card cuenta-form cuenta-preguntas"><h3>❓ Mis preguntas</h3>' +
-      '<p>Pregúntanos lo que quieras (un producto, precios, tu pedido) y te respondemos aquí mismo.</p>' +
-      '<textarea id="cq-texto" rows="2" maxlength="400" placeholder="Escribe tu pregunta o consulta…"></textarea>' +
-      '<p class="ct-error" id="cq-error"></p>' +
-      '<button type="button" class="ct-enviar" id="cq-enviar">📨 Enviar mi pregunta</button>' +
-      '<div id="cq-lista">' + preguntasHtml(p.preguntas) + '</div></div>';
+    var html = '<div class="club-panel">' +
+      '<div class="cpn-cab">' +
+        '<button type="button" class="cpn-foto" data-sec="datos" aria-label="Mi foto de perfil">' + fotoHtml(p) + '<span>Foto</span></button>' +
+        '<h2 class="cpn-saludo">' + saludoHora() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
+        '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
+      '</div>' +
+      '<div class="club-acciones cpn-tiles">' + tiles.map(function (t) {
+        return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico">' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
+      }).join('') + '</div>' +
+      '<div id="cpn-secciones">';
 
-    // 👤 Mis datos: foto de perfil, nombre y correo (recuperación + avisos exclusivos)
-    html += '<div class="cuenta-card cuenta-form cuenta-datos"><h3>👤 Mis datos</h3>' +
+    // 🪪 Mis datos (+ cambiar la clave): foto, nombre y correo (recuperación + avisos)
+    html += '<div class="cuenta-card cuenta-form cpn-sec" id="sec-datos" hidden>' +
+      '<div class="cpn-sec-cab"><h3>🪪 Mis datos</h3><button type="button" class="cpn-x" data-sec="datos" aria-label="Cerrar">✕</button></div>' +
       '<div class="cd-foto-fila">' + fotoHtml(p, 'cd-foto-prev') +
       '<div class="cd-foto-btns"><button type="button" class="ct-mini" id="cd-foto-btn">📷 ' + (p.foto ? 'Cambiar mi foto' : 'Subir mi foto') + '</button>' +
       (p.foto ? '<button type="button" class="ct-mini" id="cd-foto-del">🗑 Quitar</button>' : '') +
       '<input type="file" id="cd-foto-input" accept="image/*" style="display:none"></div></div>' +
       '<label for="cd-nombre">Tu nombre</label><input id="cd-nombre" maxlength="60" value="' + esc(p.nombre || '') + '">' +
       '<label for="cd-email">Tu correo (opcional)</label><input id="cd-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com" value="' + esc(p.email || '') + '">' +
-      '<p class="ct-nota">📬 Registrando tu correo puedes <b>recuperar tu cuenta</b> si olvidas tu PIN y recibes <b>avisos exclusivos solo para miembros</b> — descuentos, regalos y la respuesta a tus preguntas — que verás reflejados aquí en tu panel.</p>' +
+      '<p class="ct-nota">📬 Registrando tu correo puedes <b>recuperar tu cuenta</b> si olvidas tu clave y recibes <b>avisos exclusivos solo para miembros</b> — descuentos, regalos y la respuesta a tus preguntas — que verás reflejados aquí en tu panel.</p>' +
       '<p class="ct-error" id="cd-error"></p>' +
-      '<button type="button" class="ct-enviar" id="cd-guardar">💾 Guardar mis datos</button></div>';
+      '<button type="button" class="ct-enviar" id="cd-guardar">💾 Guardar mis datos</button>' +
+      '<h3 class="cpn-sub-tit">🔑 Cambiar mi clave</h3>' +
+      '<label for="cp-actual">Tu clave actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+      '<label for="cp-nuevo">Tu clave nueva (4 a 6 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+      '<p class="ct-error" id="cp-error"></p>' +
+      '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button></div>';
+
+    // ⭐ Mis favoritos
+    if (fnClub('favoritos')) {
+      html += '<div class="cuenta-card cpn-sec" id="sec-favs" hidden>' +
+        '<div class="cpn-sec-cab"><h3>⭐ Mis favoritos</h3><button type="button" class="cpn-x" data-sec="favs" aria-label="Cerrar">✕</button></div>' +
+        ((p.favs && p.favs.length)
+          ? '<div class="cfav-grid">' + p.favs.map(function (f) { return favItemHtml(f, true); }).join('') + '</div>' +
+            '<button type="button" class="ct-enviar" id="cf-todos">🛒 Agregar todos a mi pedido</button>'
+          : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto del catálogo y aparecerá aquí.</p>' +
+            '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>') +
+        '</div>';
+    }
+
+    // 🎫 Cupones VIP = promos exclusivas + cupones con código, juntos
+    if (conCupones) {
+      var vip = '';
+      if (fnClub('promos') && p.promos && p.promos.length) {
+        vip += p.promos.map(function (pr) {
+          return '<div class="cprom"><b>' + esc(pr.titulo) + '</b>' +
+            (pr.texto ? '<p>' + esc(pr.texto) + '</p>' : '') +
+            (pr.hasta ? '<small>Hasta el ' + new Date(Number(pr.hasta)).toLocaleDateString('es-PE') + '</small>' : '') + '</div>';
+        }).join('');
+      }
+      if (fnClub('cupones') && p.cupones && p.cupones.length) {
+        vip += p.cupones.map(function (cu) {
+          return '<div class="ccup">' +
+            (cu.imagen ? '<img src="' + esc(cu.imagen) + '" alt="' + esc(cu.titulo || 'Cupón') + '">' : '') +
+            '<b>' + esc(cu.titulo) + '</b>' +
+            (cu.codigo ? '<span class="ccup-cod">' + esc(cu.codigo) + '</span>' : '') +
+            (cu.hasta ? '<small>Hasta el ' + new Date(Number(cu.hasta)).toLocaleDateString('es-PE') + '</small>' : '') + '</div>';
+        }).join('');
+      }
+      html += '<div class="cuenta-card cpn-sec" id="sec-cupones" hidden>' +
+        '<div class="cpn-sec-cab"><h3>🎫 Cupones VIP</h3><button type="button" class="cpn-x" data-sec="cupones" aria-label="Cerrar">✕</button></div>' +
+        (vip || '<p class="ct-vacio">Pronto verás aquí promos y cupones solo para miembros 👀</p>') + '</div>';
+    }
+
+    // ❓ Mis preguntas: el cliente pregunta y el dueño le responde desde el panel
+    html += '<div class="cuenta-card cuenta-form cpn-sec" id="sec-preguntas" hidden>' +
+      '<div class="cpn-sec-cab"><h3>❓ Mis preguntas</h3><button type="button" class="cpn-x" data-sec="preguntas" aria-label="Cerrar">✕</button></div>' +
+      '<p>Pregúntanos lo que quieras (un producto, precios, tu pedido) y te respondemos aquí mismo.</p>' +
+      '<textarea id="cq-texto" rows="2" maxlength="400" placeholder="Escribe tu pregunta o consulta…"></textarea>' +
+      '<p class="ct-error" id="cq-error"></p>' +
+      '<button type="button" class="ct-enviar" id="cq-enviar">📨 Enviar mi pregunta</button>' +
+      '<div id="cq-lista">' + preguntasHtml(p.preguntas) + '</div></div>';
+
+    // 🎁 Sorteos
+    if (fnClub('sorteos')) {
+      html += '<div class="cuenta-card cpn-sec" id="sec-sorteos" hidden>' +
+        '<div class="cpn-sec-cab"><h3>🎁 Sorteos</h3><button type="button" class="cpn-x" data-sec="sorteos" aria-label="Cerrar">✕</button></div>' +
+        ((p.sorteos && p.sorteos.length) ? p.sorteos.map(function (s) {
+          return '<div class="csort" data-id="' + esc(s.id) + '"><b>' + esc(s.titulo) + '</b>' +
+            (s.premio ? '<p>🏆 ' + esc(s.premio) + '</p>' : '') +
+            (s.hasta ? '<small>Hasta el ' + new Date(Number(s.hasta)).toLocaleDateString('es-PE') + '</small>' : '') +
+            '<button type="button" class="cs-btn"' + (s.participando ? ' disabled' : '') + '>' +
+            (s.participando ? '✅ Ya estás participando' : '🎟️ Participar gratis') + '</button></div>';
+        }).join('') : '<p class="ct-vacio">No hay sorteos activos ahorita. ¡Atento a los avisos! 🔔</p>') +
+        '</div>';
+    }
 
     // 📍 Mis direcciones de entrega (se reflejan en el carrito como chips 👤)
-    html += '<div class="cuenta-card cuenta-form cuenta-dirs"><h3>📍 Mis direcciones de entrega</h3>' +
+    html += '<div class="cuenta-card cuenta-form cpn-sec" id="sec-dirs" hidden>' +
+      '<div class="cpn-sec-cab"><h3>📍 Mis direcciones de entrega</h3><button type="button" class="cpn-x" data-sec="dirs" aria-label="Cerrar">✕</button></div>' +
       '<p>La <b>principal</b> ⭐ se llena sola en el carrito; todas aparecen como opciones al hacer tu pedido.</p>' +
       '<div id="cd-dirs"></div>' +
       '<textarea id="cd-dir-nueva" rows="2" maxlength="200" placeholder="Calle, número, distrito y referencia"></textarea>' +
       '<p class="ct-error" id="cd-dir-error"></p>' +
       '<button type="button" class="ct-enviar" id="cd-dir-add">➕ Guardar dirección</button></div>';
 
-    // 🔑 Cambiar mi PIN
-    html += '<div class="cuenta-card cuenta-form cuenta-pin"><h3>🔑 Cambiar mi PIN</h3>' +
-      '<label for="cp-actual">Tu PIN actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
-      '<label for="cp-nuevo">Tu PIN nuevo (4 a 6 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
-      '<p class="ct-error" id="cp-error"></p>' +
-      '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi PIN</button></div>';
+    html += '</div>' + carruselHtml();
+
+    // Hoja crema: Mis Puntos, Mis Últimos Pedidos (por fecha, con recompra) y la tienda
+    var hist = Array.isArray(p.historial) ? p.historial : [];
+    var filasPed = hist.map(function (pe, i) {
+      var det = (pe.items || []).map(function (it) {
+        return '<div class="cs-ped-item"><span>' + (Number(it.qty) || 1) + ' × ' + esc(it.name) + '</span>' +
+          (it.price ? '<b>S/ ' + esc(it.price) + '</b>' : '') + '</div>';
+      }).join('');
+      return '<div class="cs-ped">' +
+        '<button type="button" class="cs-ped-fila" data-i="' + i + '"><span class="cs-ped-ico">🛍️</span><span class="cs-ped-tit">Pedido</span>' +
+        '<span class="cs-ped-fecha">' + fechaPedido(pe.ts) + '</span><span class="cs-punto' + (pe.estado === 'entregado' ? ' ok' : '') + '"></span></button>' +
+        '<div class="cs-ped-det" hidden>' + det +
+          (pe.total ? '<div class="cs-ped-total"><span>Total</span><b>S/ ' + esc(pe.total) + '</b></div>' : '') +
+          '<button type="button" class="ct-enviar cs-ped-rep" data-i="' + i + '">🛒 Repetir la compra de este día</button>' +
+        '</div></div>';
+    }).join('');
+    html += '<div class="club-tarjeta club-sheet">' +
+      (fnClub('puntos')
+        ? '<div class="cs-fila"><span class="cs-ico">🪙</span><span class="cs-txt">Mis Puntos</span><span class="cs-badge">' + (Number(p.puntos) || 0) + '</span></div>'
+        : '') +
+      '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev">⌄</span></button>' +
+      '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
+      '<div class="cs-botones">' +
+        '<a class="cs-vino" href="/pisco"><span>📖</span> Ver catálogo</a>' +
+        '<a class="cs-vino" href="/"><span>🛍️</span> Ir a tienda</a>' +
+      '</div>' +
+    '</div>' +
+    '<button type="button" class="ct-salir cpn-salir" id="ct-salir">🚪 Cerrar sesión</button>' +
+    '</div>';
 
     int.innerHTML = html;
+
+    // Accesos de la grilla (y la foto del saludo): abren/cierran su sección
+    function verSec(id) {
+      var secs = int.querySelectorAll('.cpn-sec');
+      var tilesEls = int.querySelectorAll('.cpn-tiles .club-acc');
+      var objetivo = document.getElementById('sec-' + id);
+      var abrir = !!(objetivo && objetivo.hidden);
+      for (var i = 0; i < secs.length; i++) secs[i].hidden = true;
+      for (var j = 0; j < tilesEls.length; j++) tilesEls[j].classList.remove('activo');
+      if (abrir && objetivo) {
+        objetivo.hidden = false;
+        var t = int.querySelector('.cpn-tiles .club-acc[data-sec="' + id + '"]');
+        if (t) t.classList.add('activo');
+        try { objetivo.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+      }
+    }
+    var accs = int.querySelectorAll('[data-sec]');
+    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () { verSec(this.getAttribute('data-sec')); };
+    if (secAbierta) verSec(secAbierta);
+
+    montarCarrusel(int);
+
+    // Mis Últimos Pedidos: chevron → despliega la lista por fecha (como en el boceto)
+    var pedBtn = document.getElementById('cs-ped-btn');
+    var pedLista = document.getElementById('cs-lista');
+    pedBtn.onclick = function () {
+      pedLista.hidden = !pedLista.hidden;
+      pedBtn.classList.toggle('abierto', !pedLista.hidden);
+      pedBtn.querySelector('.cs-txt').textContent = pedLista.hidden ? 'Mis Últimos Pedidos' : 'Ocultar Pedidos';
+      pedBtn.querySelector('.cs-ico').textContent = pedLista.hidden ? '🕑' : '🙈';
+    };
+    // Tocar un pedido → su detalle; "Repetir" → esos productos van al carrito
+    var filasP = int.querySelectorAll('.cs-ped-fila');
+    for (var f1 = 0; f1 < filasP.length; f1++) filasP[f1].onclick = function () {
+      var det = this.parentNode.querySelector('.cs-ped-det');
+      var estabaAbierto = !det.hidden;
+      var dets = int.querySelectorAll('.cs-ped-det');
+      for (var d1 = 0; d1 < dets.length; d1++) dets[d1].hidden = true;
+      for (var f2 = 0; f2 < filasP.length; f2++) filasP[f2].classList.remove('abierto');
+      if (!estabaAbierto) { det.hidden = false; this.classList.add('abierto'); }
+    };
+    var reps = int.querySelectorAll('.cs-ped-rep');
+    for (var r1 = 0; r1 < reps.length; r1++) reps[r1].onclick = function () {
+      var pe = hist[Number(this.getAttribute('data-i'))];
+      if (!pe) return;
+      agregarListaAlCarrito((pe.items || []).map(function (it) {
+        return { name: it.name, qty: Number(it.qty) || 1, price: it.price, img: it.img || '' };
+      }));
+    };
 
     document.getElementById('ct-salir').onclick = function () {
       cuentaPost({ action: 'salir' }).catch(function () {});
@@ -1800,8 +2158,6 @@
     };
     var cfTodos = document.getElementById('cf-todos');
     if (cfTodos) cfTodos.onclick = function () { agregarListaAlCarrito(p.favs || []); };
-    var chTodos = document.getElementById('ch-todos');
-    if (chTodos) chTodos.onclick = function () { agregarListaAlCarrito(p.habitual || []); };
 
     // Quitar un favorito desde la cuenta
     var xs = int.querySelectorAll('.cfav-x');
@@ -1816,7 +2172,7 @@
               if (fila.parentNode) fila.parentNode.removeChild(fila);
               p.favs = (p.favs || []).filter(function (f) { return f.name !== nom; });
               if (cuentaPerfil) cuentaPerfil.favs = p.favs;
-              if (!p.favs.length) pintarPanelCliente(int, p);
+              if (!p.favs.length) pintarPanelCliente(int, p, 'favs');
             } else fila.style.opacity = '';
           }).catch(function () { fila.style.opacity = ''; });
         };
@@ -1912,7 +2268,7 @@
           if (j && j.ok) {
             p.foto = dataURL;
             if (cuentaPerfil) cuentaPerfil.foto = dataURL;
-            pintarPanelCliente(int, p); // re-pinta con la foto nueva (avatar del saludo + botón Quitar)
+            pintarPanelCliente(int, p, 'datos'); // re-pinta con la foto nueva (avatar del saludo + botón Quitar)
           } else {
             fotoBtn.disabled = false; fotoBtn.textContent = '📷 Subir mi foto';
             document.getElementById('cd-error').textContent = (j && j.error) || 'No se pudo subir la foto 🙏';
@@ -1927,7 +2283,7 @@
     if (fotoDel) fotoDel.onclick = function () {
       fotoDel.disabled = true;
       cuentaPost({ action: 'foto', foto: '' }).then(function (j) {
-        if (j && j.ok) { p.foto = ''; if (cuentaPerfil) cuentaPerfil.foto = ''; pintarPanelCliente(int, p); }
+        if (j && j.ok) { p.foto = ''; if (cuentaPerfil) cuentaPerfil.foto = ''; pintarPanelCliente(int, p, 'datos'); }
         else fotoDel.disabled = false;
       }).catch(function () { fotoDel.disabled = false; });
     };

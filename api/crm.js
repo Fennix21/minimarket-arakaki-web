@@ -479,15 +479,17 @@ module.exports = async (req, res) => {
     // --- Club Arakaki: interruptores, promos exclusivas y sorteos (los lee /api/cuenta) ---
     if (b.action === 'getclub') {
       const club = await getClubCfg();
-      let promos = [], sorteos = [], cupones = [];
+      let promos = [], sorteos = [], cupones = [], banners = [];
       const rp = await redis(['GET', 'config:clubpromos']);
       if (rp) { try { promos = JSON.parse(rp) || []; } catch (e) {} }
       const rs = await redis(['GET', 'config:sorteos']);
       if (rs) { try { sorteos = JSON.parse(rs) || []; } catch (e) {} }
       const rc = await redis(['GET', 'config:clubcupones']);
       if (rc) { try { cupones = JSON.parse(rc) || []; } catch (e) {} }
+      const rb = await redis(['GET', 'config:clubbanners']);
+      if (rb) { try { banners = JSON.parse(rb) || []; } catch (e) {} }
       for (const s of sorteos) s.participantes = Number(await redis(['ZCARD', 'sorteo:' + s.id])) || 0;
-      return res.status(200).json({ club, promos, sorteos, cupones });
+      return res.status(200).json({ club, promos, sorteos, cupones, banners });
     }
     if (b.action === 'setclub') {
       const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
@@ -525,7 +527,19 @@ module.exports = async (req, res) => {
         titulo: txt(c.titulo, 80), codigo: txt(c.codigo, 40).toUpperCase(), imagen: urlImg(c.imagen), hasta: Number(c.hasta) || null,
       })).filter((c) => c.titulo && c.imagen).slice(0, 12);
       await redis(['SET', 'config:clubcupones', JSON.stringify(cupones)]);
-      return res.status(200).json({ ok: true, club, promos, sorteos, cupones });
+      // Banners de publicidad del carrusel de /mi-cuenta (imagen opcional: sin ella la web
+      // pinta una tarjeta degradada con el título). El enlace solo acepta /ruta interna o https.
+      const urlDestino = (v) => {
+        const s = txt(v, 200);
+        return /^(\/[a-z0-9?=&_./-]*|https?:\/\/\S+)$/i.test(s) ? s : '';
+      };
+      const banners = (Array.isArray(b.banners) ? b.banners : []).map((bn) => ({
+        id: txt(bn.id, 20).replace(/[^a-z0-9]/gi, '') || nuevoId('cb'),
+        titulo: txt(bn.titulo, 80), texto: txt(bn.texto, 160), imagen: urlImg(bn.imagen),
+        url: urlDestino(bn.url), hasta: Number(bn.hasta) || null,
+      })).filter((bn) => bn.titulo || bn.imagen).slice(0, 8);
+      await redis(['SET', 'config:clubbanners', JSON.stringify(banners)]);
+      return res.status(200).json({ ok: true, club, promos, sorteos, cupones, banners });
     }
     if (b.action === 'resetpin') { // borra el PIN del cliente y cierra TODAS sus sesiones
       const tel = String(b.telefono || '').replace(/\D/g, '');

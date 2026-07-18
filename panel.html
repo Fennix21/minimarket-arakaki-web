@@ -800,6 +800,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="subtab" data-t="promos" data-gr="clubpromos"><span class="ico">🎁</span><span class="eti">Promos</span></button>
       <button class="subtab" data-t="cupones" data-gr="clubcupones"><span class="ico">🎫</span><span class="eti">Cupones</span></button>
       <button class="subtab" data-t="sorteos" data-gr="clubsorteos"><span class="ico">🎟️</span><span class="eti">Sorteos</span></button>
+      <button class="subtab" data-t="publi" data-gr="clubbanners"><span class="ico">📣</span><span class="eti">Publicidad</span></button>
       <button class="subtab" data-t="clientes"><span class="ico">📇</span><span class="eti">Clientes</span></button>
     </div>
 
@@ -854,6 +855,18 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <button class="btn" data-guardar="clubsorteos" onclick="pedirGuardar('clubsorteos')">💾 Guardar sorteos</button>
       </div>
       <div id="club-sorteo-info" data-sin-seguro></div>
+    </div>
+    </div>
+
+    <div class="subpanel" id="kc-publi">
+    <div class="caja-bot" data-grupo="clubbanners">
+      <h3>📣 Publicidad de la cuenta del cliente</h3>
+      <p class="desc">Los banners del carrusel de <b>/mi-cuenta</b> (se ven al entrar y dentro de la cuenta, rotando solos). Sube una foto ancha (tipo 16:9), ponle un título corto y, si quieres, un enlace: al tocarlo el cliente va a esa página (ej. <b>/pisco</b>). La fecha límite es opcional: vencido, el banner deja de mostrarse solo. Sin banners, la web muestra uno de bienvenida del Club.</p>
+      <div id="club-banners"></div>
+      <div class="fila-conf">
+        <button class="btn gris" onclick="agregarBannerClub()">+ Añadir banner</button>
+        <button class="btn" data-guardar="clubbanners" onclick="pedirGuardar('clubbanners')">💾 Guardar publicidad</button>
+      </div>
     </div>
     </div>
 
@@ -1617,6 +1630,7 @@ var GRUPOS = {
   clubpromos:  { nombre: 'de las promos del Club',    vista: 'club', aviso: 'club-aviso', fn: 'guardarClubPromos',    nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   clubcupones: { nombre: 'de los cupones del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubCupones',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   clubsorteos: { nombre: 'de los sorteos del Club',   vista: 'club', aviso: 'club-aviso', fn: 'guardarClubSorteos',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
+  clubbanners: { nombre: 'de la publicidad del Club', vista: 'club', aviso: 'club-aviso', fn: 'guardarClubBanners',   nota: 'Se guarda todo el Club junto. Se ve en la web en ~1 minuto.' },
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
@@ -2452,6 +2466,7 @@ function pintarClubCfg() {
   pintarPromosClub();
   pintarCuponesClub();
   pintarSorteosClub();
+  pintarBannersClub();
 }
 function pintarPromosClub() {
   var ps = (CLUB_CFG && CLUB_CFG.promos) || [];
@@ -2576,6 +2591,91 @@ function subirImgCupon(inp, i) {
   img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoClub('No se pudo leer esa imagen.', true); };
   img.src = urlTmp;
 }
+// --- 📣 Publicidad: banners del carrusel de /mi-cuenta (config:clubbanners) ---
+function pintarBannersClub() {
+  var bs = (CLUB_CFG && CLUB_CFG.banners) || [];
+  document.getElementById('club-banners').innerHTML = bs.map(function (b, i) {
+    var img = b.imagen || '';
+    var foto = img
+      ? '<img src="' + esc(img) + '" alt="Banner" style="width:150px;height:84px">'
+      : '<div class="cci-nofoto" style="width:150px;height:84px">Sin<br>imagen</div>';
+    return '<div class="club-item" data-id="' + esc(b.id || '') + '" data-img="' + esc(img) + '">' +
+      '<div class="cci-foto">' + foto +
+        '<label class="btn gris" style="cursor:pointer">📷 ' + (img ? 'Cambiar imagen' : 'Subir imagen') +
+          '<input type="file" accept="image/*" style="display:none" onchange="subirImgBanner(this,' + i + ')"></label></div>' +
+      '<input type="text" class="cbi-tit" value="' + esc(b.titulo || '') + '" maxlength="80" placeholder="Título (ej. 🍷 Semana del vino para el Club)">' +
+      '<input type="text" class="cbi-txt" value="' + esc(b.texto || '') + '" maxlength="160" placeholder="Frase corta (opcional, sale debajo del título)">' +
+      '<input type="text" class="cbi-url" value="' + esc(b.url || '') + '" maxlength="200" placeholder="Enlace al tocarlo (opcional, ej. /vinos)">' +
+      '<div class="fila-conf"><label style="font-size:12px">Hasta: <input type="date" class="cbi-hasta" value="' + fechaCorta(b.hasta) + '"></label>' +
+      '<button class="btn gris" onclick="quitarBannerClub(' + i + ')">🗑️ Quitar</button></div></div>';
+  }).join('') || '<span class="hint" style="font-size:12px;color:var(--sub)">Sin banners todavía: toca "+ Añadir banner". Mientras tanto la web muestra el de bienvenida del Club.</span>';
+}
+function leerBannersClubDOM() {
+  var out = [];
+  var items = document.querySelectorAll('#club-banners .club-item');
+  for (var i = 0; i < items.length; i++) {
+    out.push({
+      id: items[i].getAttribute('data-id') || '',
+      titulo: items[i].querySelector('.cbi-tit').value.trim(),
+      texto: items[i].querySelector('.cbi-txt').value.trim(),
+      url: items[i].querySelector('.cbi-url').value.trim(),
+      imagen: items[i].getAttribute('data-img') || '',
+      hasta: fechaMs(items[i].querySelector('.cbi-hasta').value),
+    });
+  }
+  return out;
+}
+function agregarBannerClub() {
+  if (!CLUB_CFG) return;
+  CLUB_CFG.banners = leerBannersClubDOM();
+  if (CLUB_CFG.banners.length >= 8) return avisoClub('Máximo 8 banners: quita uno para añadir otro.', true);
+  CLUB_CFG.banners.push({ id: '', titulo: '', texto: '', url: '', imagen: '', hasta: null });
+  pintarBannersClub();
+  marcarSucio('clubbanners');
+}
+function quitarBannerClub(i) {
+  var b = leerBannersClubDOM()[i];
+  confirmar({
+    titulo: '¿Quitar este banner?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (b && b.titulo ? '"' + b.titulo + '"\n\n' : '') + 'Se va de la lista. Recién desaparece de la web cuando toques 💾 Guardar publicidad.'
+  }, function () {
+    CLUB_CFG.banners = leerBannersClubDOM();
+    CLUB_CFG.banners.splice(i, 1);
+    pintarBannersClub();
+    marcarSucio('clubbanners');
+  });
+}
+// Igual que la imagen del cupón: se comprime EN el navegador y se guarda vía imgup (/api/push?img=<id>)
+function subirImgBanner(inp, i) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoClub('Ese archivo no es una imagen.', true);
+  CLUB_CFG.banners = leerBannersClubDOM(); // conserva lo tipeado antes de subir
+  avisoClub('⏳ Procesando la imagen del banner…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var esc2 = Math.min(1, 1200 / img.naturalWidth, 1200 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * esc2)), h = Math.max(1, Math.round(img.naturalHeight * esc2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) return avisoClub('La imagen pesa demasiado incluso comprimida: prueba con otra más liviana.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      if (CLUB_CFG.banners[i]) CLUB_CFG.banners[i].imagen = j.url;
+      pintarBannersClub();
+      marcarSucio('clubbanners');
+      avisoClub('🖼️ Imagen del banner subida. No olvides "💾 Guardar publicidad".');
+    }).catch(function (e) { avisoClub(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoClub('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
+}
 function pintarSorteosClub() {
   var ss = (CLUB_CFG && CLUB_CFG.sorteos) || [];
   document.getElementById('club-sorteos').innerHTML = ss.map(function (s, i) {
@@ -2640,6 +2740,7 @@ function guardarClubFunciones() { guardarClub('club'); }
 function guardarClubPromos() { guardarClub('clubpromos'); }
 function guardarClubCupones() { guardarClub('clubcupones'); }
 function guardarClubSorteos() { guardarClub('clubsorteos'); }
+function guardarClubBanners() { guardarClub('clubbanners'); }
 function guardarClub(clave) {
   if (!CLUB_CFG) return;
   clave = clave || 'club';
@@ -2655,7 +2756,8 @@ function guardarClub(clave) {
   var promos = leerPromosClubDOM().filter(function (p) { return p.titulo; });
   var sorteos = leerSorteosClubDOM().filter(function (s) { return s.titulo; });
   var cupones = leerCuponesClubDOM().filter(function (c) { return c.titulo && c.imagen; });
-  api('setclub', { club: club, promos: promos, sorteos: sorteos, cupones: cupones }).then(function (j) {
+  var banners = leerBannersClubDOM().filter(function (b) { return b.titulo || b.imagen; });
+  api('setclub', { club: club, promos: promos, sorteos: sorteos, cupones: cupones, banners: banners }).then(function (j) {
     var previos = CLUB_CFG.sorteos || [];
     CLUB_CFG = j;
     // el guardado no devuelve el conteo de participantes: se conserva el conocido
@@ -2663,7 +2765,7 @@ function guardarClub(clave) {
     previos.forEach(function (s) { if (s.id) mapa[s.id] = s.participantes || 0; });
     (CLUB_CFG.sorteos || []).forEach(function (s) { s.participantes = mapa[s.id] || 0; });
     pintarClubCfg();
-    ['club', 'clubpromos', 'clubcupones', 'clubsorteos'].forEach(function (k) { if (k !== clave) limpiarSucio(k); });
+    ['club', 'clubpromos', 'clubcupones', 'clubsorteos', 'clubbanners'].forEach(function (k) { if (k !== clave) limpiarSucio(k); });
     okGuardado(clave, 'Club guardado. Se ve en la web en ~1 minuto.');
   }).catch(function (e) { errGuardado(clave, e); });
 }

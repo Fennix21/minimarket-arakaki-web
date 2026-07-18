@@ -75,15 +75,31 @@ http.createServer((req, res) => {
     }
     // Stub de la cuenta del Club: permite ver /mi-cuenta y las estrellas ⭐ en local
     if (url === '/api/cuenta') {
-      const funciones = { favoritos: true, puntos: true, promos: true, sorteos: true };
+      const funciones = { favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true };
+      const banners = [
+        { id: 'b1', titulo: '🍷 Semana del vino', texto: 'Publicidad de prueba desde el panel (dev)', imagen: '/img/fachada-principal.webp', url: '/vinos' },
+        { id: 'b2', titulo: '🎁 Solo texto', texto: 'Banner sin imagen: tarjeta degradada', imagen: '', url: '' },
+      ];
       const perfil = {
-        on: true, conocido: true, funciones, nombre: 'Cliente de prueba', telefono: '51999999999',
+        on: true, conocido: true, funciones, banners, nombre: 'Cliente de prueba', telefono: '51999999999',
         email: 'prueba@correo.com', foto: '',
         direccion: 'Av. Prueba 123, San Isidro (portón verde)',
         direcciones: ['Calle Los Pinos 456, Miraflores'],
         pedidos: 3, puntos: 120,
         favs: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105 }],
         habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
+        historial: [
+          { id: 'h1', ts: Date.now() - 86400000, total: 129, estado: 'nuevo', items: [
+            { name: 'Pisco Porton Mosto Verde Acholado x 750 ml', qty: 1, price: 105, img: '' },
+            { name: 'Ginger Ale Canada Dry x 355 ml', qty: 4, price: 6, img: '' },
+          ] },
+          { id: 'h2', ts: Date.now() - 4 * 86400000, total: 48, estado: 'entregado', items: [
+            { name: 'Cerveza Cusqueña Dorada x 620 ml', qty: 4, price: 12, img: '' },
+          ] },
+          { id: 'h3', ts: Date.now() - 40 * 86400000, total: 25, estado: 'entregado', items: [
+            { name: 'Chocolate Ferrero Rocher x 8 unidades', qty: 1, price: 25, img: '' },
+          ] },
+        ],
         promos: [{ id: 'cp1', titulo: 'Promo de prueba', texto: '2x1 en helados solo para el Club (dev)' }],
         sorteos: [{ id: 'so1', titulo: 'Sorteo de prueba', premio: 'Canasta Arakaki', participando: false }],
         preguntas: [
@@ -109,7 +125,7 @@ http.createServer((req, res) => {
         return;
       }
       const conToken = (req.url || '').indexOf('token=') >= 0;
-      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true }));
+      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true, banners }));
     }
     // Stub del CRM del panel: datos de MUESTRA para ver /panel en local con cualquier contraseña
     // (el CRM real corre en Vercel con Redis). Cubre las vistas con datos: pedidos, consultas,
@@ -155,6 +171,7 @@ http.createServer((req, res) => {
             promos: [{ id: 'pr1', titulo: '🍦 2x1 en helados para el Club', texto: 'Muestra tu cuenta en caja', hasta: null }],
             cupones: [],
             sorteos: [{ id: 'so1', titulo: '🎆 Sorteo Fiestas Patrias', premio: 'Canasta Arakaki', hasta: null, activo: true, participantes: 11 }],
+            banners: [{ id: 'b1', titulo: '🍷 Semana del vino', texto: 'Banner de muestra (dev)', imagen: '/img/fachada-principal.webp', url: '/vinos', hasta: null }],
           },
           getprecios: { p: { 'pisco|Pisco Ocucaje Acholado x 700 ml': '48' }, s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' }, x: [] },
           list: { leads: [{ phone: '51999999999', name: 'Rosa Quispe', status: 'interesado', lastText: '¿Tienen pisco quebranta?', lastRole: 'user', updatedAt: Date.now() - 1800000, lastUserTs: Date.now() - 1800000, tags: [] }] },
