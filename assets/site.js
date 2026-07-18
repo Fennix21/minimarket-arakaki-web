@@ -1496,12 +1496,12 @@
           x.drawImage(logo, (W - lw) / 2, 92, lw, lh);
         } else {
           x.fillStyle = '#f4ebd6'; x.textAlign = 'center';
-          x.font = 'bold 64px Georgia, serif';
+          x.font = 'bold 64px Poppins, sans-serif';
           x.fillText('MINIMARKET ARAKAKI', W / 2, 170);
         }
         // Un texto editado muy largo no debe salirse: baja el tamaño hasta que entre
         function encajar(prefijo, px, txt, maxW) {
-          do { x.font = prefijo + ' ' + px + 'px Georgia, serif'; px -= 2; }
+          do { x.font = prefijo + ' ' + px + 'px Poppins, sans-serif'; px -= 2; }
           while (px > 16 && x.measureText(txt).width > maxW);
         }
         x.textAlign = 'center';
@@ -1547,16 +1547,16 @@
           x.strokeStyle = '#7a5c17'; x.lineWidth = 4;
           x.beginPath(); x.arc(cxMed, cyMed, rad - 7, 0, Math.PI * 2); x.stroke();
           x.fillStyle = '#3a2708';
-          x.font = 'bold 40px Georgia, serif';
+          x.font = 'bold 40px Poppins, sans-serif';
           x.fillText('S/', cxMed, cyMed - 22);
           var precioTam = d.price.length > 5 ? 58 : 74;
-          x.font = 'bold ' + precioTam + 'px Georgia, serif';
+          x.font = 'bold ' + precioTam + 'px Poppins, sans-serif';
           x.fillText(d.price, cxMed, cyMed + 46);
         }
 
         // Nombre del producto (hasta 3 líneas)
         x.fillStyle = '#f4ebd6';
-        x.font = 'bold 56px Georgia, serif';
+        x.font = 'bold 56px Poppins, sans-serif';
         var ls = lineas(x, d.name, 880, 3);
         var yN = 1452;
         for (var i = 0; i < ls.length; i++) { x.fillText(ls[i], W / 2, yN); yN += 68; }
@@ -1568,7 +1568,7 @@
         }
 
         // Separador y CTA verde WhatsApp (verde = solo WhatsApp)
-        x.fillStyle = '#d4af37'; x.font = '32px Georgia, serif';
+        x.fillStyle = '#d4af37'; x.font = '32px Poppins, sans-serif';
         x.fillText('✦ ──────── ✦ ──────── ✦', W / 2, yN + 26);
         var pw = 760, ph = 108, pxx = (W - pw) / 2, pyy = 1706;
         var cta = x.createLinearGradient(0, pyy, 0, pyy + ph);
@@ -1582,7 +1582,7 @@
         encajar('bold', 44, cta, pw - 60);
         x.fillText(cta, W / 2, pyy + 68);
         x.fillStyle = '#e9c877';
-        x.font = '600 28px Georgia, serif';
+        x.font = '600 28px Poppins, sans-serif';
         x.fillText(location.host, W / 2, 1876);
 
         if (c.toBlob) c.toBlob(function (blob) { cb(blob); }, 'image/jpeg', 0.9);

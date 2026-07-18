@@ -141,7 +141,7 @@ const PRELOADER = `<style>
     z-index: 5;
   }
   #ap-preloader .ap-brand {
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Poppins', system-ui, sans-serif;
     font-size: 22px;
     font-weight: 800;
     letter-spacing: 3px;
@@ -155,7 +155,7 @@ const PRELOADER = `<style>
   }
   @keyframes ap-shimmer-text { to { background-position: 200% center; } }
   #ap-preloader .ap-tagline {
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Poppins', system-ui, sans-serif;
     font-size: 12px;
     letter-spacing: 2px;
     text-transform: uppercase;

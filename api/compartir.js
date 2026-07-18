@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
     '<meta property="og:url" content="' + esc(dest) + '">' +
     '<meta name="twitter:card" content="summary_large_image">' +
     '<meta http-equiv="refresh" content="0;url=' + esc(dest) + '">' +
-    '</head><body style="background:#181310;color:#e9c877;font-family:Georgia,serif;text-align:center;padding:60px 20px">' +
+    '</head><body style="background:#181310;color:#e9c877;font-family:Poppins,sans-serif;text-align:center;padding:60px 20px">' +
     '<p>Llevándote al producto…</p><a style="color:#e9c877" href="' + esc(dest) + '">' + esc(titulo) + '</a>' +
     '<script>location.replace(' + JSON.stringify(dest) + ');</script>' +
     '</body></html>');
