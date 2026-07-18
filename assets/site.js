@@ -80,6 +80,22 @@
   // Valores por defecto: el sitio se ve bien sin backend. El dueño los edita en
   // /panel → 📝 Sitio (Redis config:sitio); /api/sitio los sirve y aquí se aplican.
   var MAP_URL = 'https://www.google.com/maps/search/?api=1&query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro';
+  // ---------- Modo claro / oscuro (botón 🌙 del header) ----------
+  // Solo cambian las superficies de lectura (tokens --superficie/--texto de site.css);
+  // las zonas de marca (vino, premium dark-gold) se ven igual en ambos modos.
+  function temaGuardado() { try { return localStorage.getItem('arakaki_tema') || 'claro'; } catch (e) { return 'claro'; } }
+  function aplicarTema(t) {
+    if (t === 'oscuro') document.documentElement.setAttribute('data-tema', 'oscuro');
+    else document.documentElement.removeAttribute('data-tema');
+    var b = document.getElementById('btn-tema');
+    if (b) {
+      b.textContent = (t === 'oscuro') ? '☀️' : '🌙';
+      var eti = (t === 'oscuro') ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+      b.setAttribute('aria-label', eti); b.title = eti;
+    }
+  }
+  aplicarTema(temaGuardado()); // al arrancar, antes de pintar: sin parpadeo de tema
+
   var SITIO_DEF = {
     lema: 'Lo que necesitas, cuando lo necesitas',
     visitanosTit: 'Visítanos',
@@ -381,8 +397,15 @@
       '<a href="/"><img class="logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
       '<div class="esp"></div>' +
       '<div class="lema-cab">' + esc(SITIO_DEF.lema) + '</div>' +
+      '<button class="btn-tema" id="btn-tema" type="button" aria-label="Cambiar a modo oscuro">🌙</button>' +
       '<button class="btn-menu" id="btn-menu" aria-label="Ver categorías" aria-haspopup="true">☰ Categorías</button>';
     document.body.insertBefore(cab, document.body.firstChild);
+    document.getElementById('btn-tema').onclick = function () {
+      var nuevo = (temaGuardado() === 'oscuro') ? 'claro' : 'oscuro';
+      try { localStorage.setItem('arakaki_tema', nuevo); } catch (e) {}
+      aplicarTema(nuevo);
+    };
+    aplicarTema(temaGuardado()); // pinta el icono correcto en el botón recién creado
 
     var fondo = document.createElement('div');
     fondo.id = 'menu-fondo';
@@ -1218,13 +1241,13 @@
         bg.addColorStop(0, '#1c1510'); bg.addColorStop(0.5, '#120d09'); bg.addColorStop(1, '#0b0908');
         x.fillStyle = bg; x.fillRect(0, 0, W, H);
         var glow = x.createRadialGradient(540, 820, 80, 540, 820, 720);
-        glow.addColorStop(0, 'rgba(212,169,65,0.30)'); glow.addColorStop(1, 'rgba(212,169,65,0)');
+        glow.addColorStop(0, 'rgba(212,175,55,0.30)'); glow.addColorStop(1, 'rgba(212,175,55,0)');
         x.fillStyle = glow; x.fillRect(0, 0, W, H);
 
         // Marco dorado fino (doble línea, como las cards premium)
-        x.strokeStyle = 'rgba(212,169,65,0.65)'; x.lineWidth = 3;
+        x.strokeStyle = 'rgba(212,175,55,0.65)'; x.lineWidth = 3;
         rrect(x, 34, 34, W - 68, H - 68, 34); x.stroke();
-        x.strokeStyle = 'rgba(212,169,65,0.25)'; x.lineWidth = 1.5;
+        x.strokeStyle = 'rgba(212,175,55,0.25)'; x.lineWidth = 1.5;
         rrect(x, 48, 48, W - 96, H - 96, 26); x.stroke();
 
         // Cabecera: gato de la suerte + lema
@@ -1259,7 +1282,7 @@
         var fw = foto.naturalWidth * esc2, fh = foto.naturalHeight * esc2;
         var fx2 = bx + (bw - fw) / 2, fy2 = by + (bh - fh) / 2;
         x.save();
-        x.shadowColor = 'rgba(212,169,65,0.55)'; x.shadowBlur = 60;
+        x.shadowColor = 'rgba(212,175,55,0.55)'; x.shadowBlur = 60;
         rrect(x, fx2, fy2, fw, fh, 26);
         x.fillStyle = '#0a0908'; x.fill();
         x.restore();
@@ -1267,7 +1290,7 @@
         rrect(x, fx2, fy2, fw, fh, 26); x.clip();
         x.drawImage(foto, fx2, fy2, fw, fh);
         x.restore();
-        x.strokeStyle = '#d4a941'; x.lineWidth = 5;
+        x.strokeStyle = '#d4af37'; x.lineWidth = 5;
         rrect(x, fx2, fy2, fw, fh, 26); x.stroke();
 
         // Medallón dorado con el precio (el freno de pulgar)
@@ -1305,7 +1328,7 @@
         }
 
         // Separador y CTA verde WhatsApp (verde = solo WhatsApp)
-        x.fillStyle = '#d4a941'; x.font = '32px Georgia, serif';
+        x.fillStyle = '#d4af37'; x.font = '32px Georgia, serif';
         x.fillText('✦ ──────── ✦ ──────── ✦', W / 2, yN + 26);
         var pw = 760, ph = 108, pxx = (W - pw) / 2, pyy = 1706;
         var cta = x.createLinearGradient(0, pyy, 0, pyy + ph);
