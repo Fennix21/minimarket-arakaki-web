@@ -886,7 +886,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ t });
     }
     if (b.action === 'settipo') {
-      const FUENTES = ['Montserrat', 'Poppins', 'Lato', 'Playfair Display', 'Georgia'];
+      const FUENTES = ['Montserrat', 'Poppins', 'Lato'];
       const num = (v, min, max) => { const n = Number(v); return Number.isFinite(n) && n >= min && n <= max ? n : null; };
       const t = {};
       if (FUENTES.includes(b.titulos)) t.titulos = b.titulos;

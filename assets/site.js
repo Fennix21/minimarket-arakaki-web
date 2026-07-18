@@ -173,16 +173,14 @@
   // hasta que llegue el fetch.
   // ---------- Tipografía global editable (panel → 📝 Sitio → 🔤 Letras) ----------
   // config:tipo llega por /api/sitio como `t`; aquí se pisan las variables --tipo-* de site.css.
-  // Solo fuentes de esta lista blanca (Montserrat/Poppins ya vienen cargadas; Lato y
-  // Playfair Display se cargan de Google Fonts recién si el dueño las elige).
+  // Solo fuentes de esta lista blanca, TODAS sans (Montserrat/Poppins ya vienen cargadas; Lato
+  // se carga de Google Fonts recién si el dueño la elige). Sin serif: la web es de 2 familias.
   var TIPO_FUENTES = {
     'Montserrat': "'Montserrat', sans-serif",
     'Poppins': "'Poppins', 'Montserrat', sans-serif",
     'Lato': "'Lato', 'Montserrat', sans-serif",
-    'Playfair Display': "'Playfair Display', Georgia, serif",
-    'Georgia': "Georgia, 'Times New Roman', serif",
   };
-  var TIPO_GOOGLE = { 'Lato': 'Lato:wght@400;600;700;800', 'Playfair Display': 'Playfair+Display:wght@600;700;800' };
+  var TIPO_GOOGLE = { 'Lato': 'Lato:wght@400;600;700;800' };
   function tipoCache() { try { return JSON.parse(localStorage.getItem('arakaki_tipo') || 'null'); } catch (e) { return null; } }
   function aplicarTipografia(t) {
     if (!t || typeof t !== 'object') t = {};

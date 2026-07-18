@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#e64831">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&family=Lato:wght@400;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&family=Lato:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   /* Tema oscuro con tinte cálido: mismo lenguaje premium dark-gold del sitio público */
@@ -1500,18 +1500,16 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <div class="caja-bot" data-grupo="tipo">
       <h3>🔤 Letras de la web</h3>
       <div class="campo-bloque">
-        <div class="hint">La letra de toda la web pública: la fuente de los títulos y la del texto, el tamaño, el grosor y el aire entre líneas. La vista previa de abajo cambia al toque. <b>La de siempre</b> = el estilo original de la marca. Las letras doradas elegantes de las tarjetas de productos son parte de la marca y no cambian.</div>
+        <div class="hint">La letra de toda la web pública: la fuente de los títulos y la del texto, el tamaño, el grosor y el aire entre líneas. La vista previa de abajo cambia al toque. <b>La de siempre</b> = el estilo original de la marca (Montserrat + Poppins). Toda la web pública usa solo estas dos familias sans.</div>
       </div>
       <div class="tipo-grid">
         <div class="campo-bloque">
           <label>Fuente de los títulos</label>
           <select id="tipo-titulos" onchange="pintarTipoPrev()">
             <option value="">La de siempre (Poppins)</option>
-            <option value="Playfair Display">Playfair Display — elegante premium</option>
             <option value="Montserrat">Montserrat — moderna</option>
             <option value="Poppins">Poppins — redonda</option>
             <option value="Lato">Lato — limpia</option>
-            <option value="Georgia">Georgia — clásica</option>
           </select>
         </div>
         <div class="campo-bloque">
@@ -1521,7 +1519,6 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
             <option value="Lato">Lato — limpia</option>
             <option value="Montserrat">Montserrat — moderna</option>
             <option value="Poppins">Poppins — redonda</option>
-            <option value="Georgia">Georgia — clásica</option>
           </select>
         </div>
         <div class="campo-bloque">
@@ -3885,9 +3882,7 @@ function guardarPopup() {
 var TIPO_FUENTES_P = {
   'Montserrat': "'Montserrat', sans-serif",
   'Poppins': "'Poppins', 'Montserrat', sans-serif",
-  'Lato': "'Lato', sans-serif",
-  'Playfair Display': "'Playfair Display', Georgia, serif",
-  'Georgia': "Georgia, 'Times New Roman', serif"
+  'Lato': "'Lato', sans-serif"
 };
 function tipoVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
 function cargarTipo() {
