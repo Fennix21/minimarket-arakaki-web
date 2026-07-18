@@ -1207,7 +1207,7 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
    dorados, NO crema (pedido del dueño). La hoja del panel (.club-sheet) se mantiene
    crema aparte (ver más abajo), así que aquí protege su color de texto. */
 .club-tarjeta {
-  background: linear-gradient(135deg, #f6d76d 0%, #eac552 48%, #d6aa2c 100%); color: #3c2303;
+  background: linear-gradient(145deg, #f8da73 0%, #e7be4b 48%, #bb7b15 100%); color: #3c2303;
   border: 2px solid #fff0bd; border-radius: 24px;
   box-shadow: 0 16px 38px rgba(51, 29, 2, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.72); padding: 22px 18px 20px;
 }
@@ -1222,7 +1222,7 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .club-tarjeta a { color: #5f2500; font-weight: 800; }
 .clt-ayuda { font-size: 12.5px; text-align: center; margin: 12px 0 0; color: #573400; }
 .clt-check { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 700; color: #4a2a00; margin: 12px 0 0; cursor: pointer; }
-.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--dorado); cursor: pointer; flex: none; }
+.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: #5a3a05; cursor: pointer; flex: none; }
 .clt-lab { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: #4a2a00; margin: 10px 0 5px; }
 .clt-lab small { text-transform: none; letter-spacing: 0; font-weight: 600; }
 .clt-input {
@@ -1235,34 +1235,37 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 /* ---- Teclado numérico táctil (campos sin teclado del sistema + puntitos secretos) ---- */
 .kp-campo {
   display: block; width: 100%; box-sizing: border-box; cursor: pointer; text-align: center;
-  background: rgba(62, 37, 3, 0.88); border: 1.5px solid #8a5205;
+  background: linear-gradient(180deg, #603b08 0%, #4a2c03 100%); border: 1.5px solid #8c5a0b;
   border-radius: 14px; padding: 9px 12px 10px; margin-bottom: 10px; font-family: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 236, 164, 0.12), 0 2px 0 rgba(83, 48, 2, 0.24);
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.kp-campo.activo { border-color: #fff0b7; background: #452a04; box-shadow: 0 0 0 3px rgba(255, 242, 186, 0.38); }
-.kp-eti { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #f5cf6c; margin-bottom: 4px; }
+.kp-campo.activo { border-color: #ffe9a3; background: linear-gradient(180deg, #603b08 0%, #4a2c03 100%); box-shadow: 0 0 0 3px rgba(255, 242, 186, 0.42), inset 0 1px 0 rgba(255, 236, 164, 0.16); }
+.kp-eti { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase; color: #f9d870; margin-bottom: 4px; }
 .kp-visor {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 26px;
-  font-family: var(--tipo-titulos); font-size: 22px; font-weight: 700; color: #fff1bc; letter-spacing: 2px;
+  font-family: var(--tipo-titulos); font-size: 22px; font-weight: 800; color: #fff3c5; letter-spacing: 2px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
 }
-.kp-visor.vacio { color: rgba(212, 175, 55, 0.3); }
-.kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(212, 175, 55, 0.55); box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
-.kp-dot.on { background: var(--dorado); border-color: var(--dorado); transform: scale(1.05); }
+.kp-visor.vacio { color: rgba(255, 227, 132, 0.35); }
+.kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #bd8815; box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
+.kp-dot.on { background: #f3cf5c; border-color: #fff0ab; box-shadow: 0 0 8px rgba(250, 216, 107, 0.55); transform: scale(1.05); }
 .kp-teclas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
 /* Teclas = mismo efecto "3D" (sombra dorada abajo, se hunde al tocar) pero con el borde
    dorado premium y fondo negro de las cards de producto (pedido del dueño). */
 .kp-tecla {
   cursor: pointer; padding: 13px 0; border-radius: 14px; line-height: 1;
   font-family: var(--tipo-titulos); font-size: 26px; font-weight: 800; color: #4a2a00;
-  background: linear-gradient(135deg, #f6d76d 0%, #eac552 48%, #d6aa2c 100%); border: 1.5px solid #fff1b5;
-  box-shadow: 0 3px 0 #8b5709;
+  background: linear-gradient(180deg, #fff0b5 0%, #f1cf62 52%, #deb03a 100%); border: 1.5px solid #fff4c7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 3px 0 #8b5709, 0 6px 12px rgba(91, 54, 3, 0.2);
   transition: transform 0.08s, box-shadow 0.08s, background 0.12s;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
-.kp-tecla:active { transform: translateY(2px); box-shadow: 0 1px 0 #8b5709; background: #d6aa2c; }
-.kp-borrar { font-size: 20px; background: linear-gradient(160deg, #8d1218, var(--rojo)); color: #f6d98a; border-color: var(--dorado); box-shadow: 0 3px 0 rgba(74, 9, 12, 0.6); }
-.kp-borrar:active { background: var(--rojo); }
+.kp-tecla:hover { filter: brightness(1.035); }
+.kp-tecla:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 1px 0 #8b5709; background: #dbac34; }
+.kp-borrar { font-size: 20px; background: linear-gradient(180deg, #b11b25 0%, #8d1119 100%); color: #ffe49a; border-color: #f8dc79; box-shadow: inset 0 1px 0 rgba(255, 205, 179, 0.28), 0 3px 0 #55070b, 0 6px 12px rgba(74, 9, 12, 0.24); }
+.kp-borrar:active { background: #7c0d14; box-shadow: 0 1px 0 #55070b; }
 
 /* ---- Panel del cliente (dashboard del boceto) ---- */
 .club-panel { max-width: 580px; margin: 0 auto; }
@@ -1371,10 +1374,10 @@ label.ct-check input { width: 17px; height: 17px; margin: 0; accent-color: var(-
 .ct-error { color: #ff9d8f; font-size: 13.5px; min-height: 18px; margin: 10px 0 4px; }
 .ct-enviar {
   display: block; width: 100%; box-sizing: border-box; margin-top: 8px;
-  background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
-  color: #3a2708; border: none; border-radius: 14px; padding: 13px 18px;
+  background: linear-gradient(180deg, #edc85b 0%, #d6a431 100%);
+  color: #5a3a05; border: 1px solid rgba(255, 239, 176, 0.72); border-radius: 14px; padding: 13px 18px;
   font-family: var(--tipo-titulos); font-weight: 700; font-size: 15.5px; cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); transition: transform 0.15s, filter 0.15s;
+  box-shadow: inset 0 1px 0 rgba(255, 248, 204, 0.55), 0 6px 16px rgba(83, 48, 2, 0.3); transition: transform 0.15s, filter 0.15s;
   text-align: center;
 }
 .ct-enviar:hover { transform: translateY(-2px); filter: brightness(1.05); }
