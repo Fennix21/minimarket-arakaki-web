@@ -1139,13 +1139,34 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
    panel de texto (fondo crema editable) va debajo. Los slides se apilan en la misma celda
    (crossfade) para que el alto lo dé el más alto. Fondo crema editable: --club-crema-bg. */
 .ccl-slide {
-  grid-area: 1 / 1; display: flex; flex-direction: column; cursor: pointer;
+  grid-area: 1 / 1; position: relative; display: flex; flex-direction: column; cursor: pointer;
   opacity: 0; visibility: hidden; transition: opacity 0.6s ease, visibility 0.6s ease;
   border: 2px solid rgba(212, 175, 55, 0.75); border-radius: 20px; overflow: hidden;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
   background: var(--club-crema-bg, linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%));
 }
 .ccl-slide.activo { opacity: 1; visibility: visible; z-index: 1; }
+/* Brillo premium: una banda de luz recorre la card de publicidad de izquierda a derecha, igual
+   que la barra del header. Se prende con .brillo en el carrusel; color y duración editables
+   desde el panel (👥 Club → 🎨 Apariencia → ✨ Brillo del banner → --club-ban-brillo-*). */
+.club-carru.brillo .ccl-slide::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 45%;
+  pointer-events: none; z-index: 3;
+  background: var(--club-ban-brillo-grad, linear-gradient(100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.14) 40%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.14) 60%,
+    rgba(255, 255, 255, 0) 100%));
+  transform: translateX(-160%) skewX(-20deg);
+  animation: club-ban-brillo var(--club-ban-brillo-dur, 6s) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes club-ban-brillo {
+  0%   { transform: translateX(-160%) skewX(-20deg); }
+  55%  { transform: translateX(320%) skewX(-20deg); }
+  100% { transform: translateX(320%) skewX(-20deg); }
+}
+@media (prefers-reduced-motion: reduce) { .club-carru.brillo .ccl-slide::after { animation: none; display: none; } }
 .ccl-media {
   display: flex; align-items: center; justify-content: center; width: 100%;
   aspect-ratio: 2 / 1; overflow: hidden;
@@ -1171,10 +1192,12 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
   width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
   font-size: 27px; border-radius: 18px;
   background: linear-gradient(160deg, rgba(212, 175, 55, 0.16), rgba(0, 0, 0, 0.25)), linear-gradient(180deg, #211d19 0%, #100e0c 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.8); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  /* Borde y halo del COLOR del emoji (--glow / --glowsh los pone site.js por emoji): toque premium */
+  border: 1.5px solid var(--glow, rgba(212, 175, 55, 0.8));
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), 0 0 15px -2px var(--glowsh, rgba(212, 175, 55, 0.25));
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.club-acc:hover .ca-ico, .club-acc.activo .ca-ico { transform: translateY(-3px); border-color: #f2d894; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45), 0 0 16px rgba(212, 175, 55, 0.35); }
+.club-acc:hover .ca-ico, .club-acc.activo .ca-ico { transform: translateY(-3px); border-color: var(--glow, #f2d894); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45), 0 0 22px 0 var(--glowsh, rgba(212, 175, 55, 0.4)); }
 .club-acc.activo .ca-ico { background: linear-gradient(160deg, #f6d98a, #d4af37); }
 .club-acc .ca-txt { font-size: 12.5px; font-weight: 600; color: #f4ebd6; line-height: 1.3; text-align: center; }
 .cpn-tiles { row-gap: 16px; }
@@ -1269,8 +1292,18 @@ button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .cs-ico { flex: none; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 .cs-txt { flex: 1; font-family: var(--tipo-titulos); font-size: 13px; font-weight: 600; color: #4a0c10; }
 .cs-badge { background: none; color: var(--rojo); font-family: var(--tipo-titulos); font-weight: 700; padding: 0 5px; font-size: 18px; }
-.cs-chev { color: var(--rojo); font-size: 16px; font-weight: 700; line-height: 1; transition: transform 0.2s; }
-.cs-fila.abierto .cs-chev { transform: rotate(180deg); }
+/* Chip dorado con flecha que rebota: señal clara de "toca para ver más". Rota al abrir. */
+.cs-chev {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #f6d98a, #d4af37); color: #4a0c10;
+  font-size: 13px; font-weight: 900; line-height: 1;
+  box-shadow: 0 2px 7px rgba(212, 175, 55, 0.55);
+  animation: cs-chev-bota 1.5s ease-in-out infinite; transition: transform 0.25s;
+}
+.cs-fila.abierto .cs-chev { transform: rotate(180deg); animation: none; }
+@keyframes cs-chev-bota { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(2px); } }
+@media (prefers-reduced-motion: reduce) { .cs-chev { animation: none; } }
 #cs-lista { margin: 2px 0 10px; }
 .cs-ped { margin-bottom: 8px; }
 .cs-ped-fila {
@@ -1341,6 +1374,9 @@ label.ct-check input { width: 17px; height: 17px; margin: 0; accent-color: var(-
 }
 .ct-enviar:hover { transform: translateY(-2px); filter: brightness(1.05); }
 .ct-enviar:disabled { opacity: 0.6; cursor: default; transform: none; }
+/* Botón "Entrar a mi cuenta ✨": halo del color de su emoji (--glowsh lo pone site.js) */
+.clt-enviar { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 18px -3px var(--glowsh, transparent); }
+.clt-enviar:disabled { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); }
 a.ct-link { color: #3a2708 !important; text-decoration: none; }
 .ct-ayuda { font-size: 13px; opacity: 0.85; margin-top: 14px; text-align: center; }
 .cuenta-beneficios ul { margin: 0; padding: 0 0 0 4px; list-style: none; }
@@ -1351,12 +1387,14 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
 .ct-salir {
   flex: none; cursor: pointer;
   background: rgba(212, 175, 55, 0.16); color: #f2d894;
-  border: 1.5px solid rgba(212, 175, 55, 0.6);
+  /* Borde y halo del COLOR de su emoji 🚪 (--glow / --glowsh los pone site.js) */
+  border: 1.5px solid var(--glow, rgba(212, 175, 55, 0.6));
+  box-shadow: 0 0 13px -3px var(--glowsh, transparent);
   border-radius: 999px; padding: 9px 14px; font-size: 13px; font-weight: 700; font-family: inherit;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
-.ct-salir:hover { background: rgba(212, 175, 55, 0.3); color: #fff9ec; border-color: var(--dorado); }
+.ct-salir:hover { background: rgba(212, 175, 55, 0.3); color: #fff9ec; border-color: var(--glow, var(--dorado)); box-shadow: 0 0 18px -1px var(--glowsh, rgba(212, 175, 55, 0.4)); }
 .cp-num {
   font-family: var(--tipo-titulos); font-size: 52px; font-weight: 700;
   color: #e9c877; text-shadow: 0 0 22px rgba(212, 175, 55, 0.35); line-height: 1; margin: 6px 0 12px;

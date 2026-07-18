@@ -553,6 +553,8 @@ module.exports = async (req, res) => {
         // Tamaño (escala 0.8–2) y grosor (400–800) del título y la frase del banner. Vacío = default del CSS.
         bTitEsc: numRango(uiIn.bTitEsc, 0.8, 2), bTitPeso: numRango(uiIn.bTitPeso, 400, 800),
         bTxtEsc: numRango(uiIn.bTxtEsc, 0.8, 2), bTxtPeso: numRango(uiIn.bTxtPeso, 400, 800),
+        // ✨ Brillo de la card de publicidad: prendido por defecto; color (vacío = blanco) y segundos por vuelta (2–15).
+        banBrillo: uiIn.banBrillo !== false, banBrilloCol: colHex(uiIn.banBrilloCol), banBrilloSeg: numRango(uiIn.banBrilloSeg, 2, 15),
       };
       await redis(['SET', 'config:clubui', JSON.stringify(ui)]);
       return res.status(200).json({ ok: true, club, promos, sorteos, cupones, banners, ui });

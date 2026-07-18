@@ -927,6 +927,17 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
 
       <div class="cared-sub">
+        <b>✨ Brillo del banner de publicidad</b>
+        <p class="desc" style="margin:2px 0 8px">Una banda de luz recorre la card de publicidad de izquierda a derecha, igual que la barra de arriba de la web. Elige el color y la velocidad.</p>
+        <div class="toggle-fila"><div class="tf-txt"><b>Prender el brillo</b></div><label class="switch"><input type="checkbox" id="apc-banbrillo-on" onchange="apcSet('banBrillo',this.checked)"><span class="pista"></span></label></div>
+        <div class="cared-colrow">Color del brillo <input type="color" id="apc-banbrillo-col" oninput="apcSet('banBrilloCol',this.value)"> <button type="button" class="reset" onclick="apcReset('banBrilloCol')">el de siempre (blanco)</button></div>
+        <div class="cared-txtrow"><b>Velocidad</b>
+          <label>Una vuelta cada <output id="apc-banbrillo-seg-o">6s</output></label>
+          <input type="range" id="apc-banbrillo-seg" min="2" max="15" step="0.5" oninput="apcSeg(this.value)">
+        </div>
+      </div>
+
+      <div class="cared-sub">
         <b>🔢 Color de los números del teclado</b>
         <p class="desc" style="margin:2px 0 8px">Los números y el celular de la pantalla "Ingresa tu clave".</p>
         <div class="fila-conf" style="flex-wrap:wrap;gap:8px">
@@ -2756,7 +2767,17 @@ function pintarApClub() {
   apcSelInit('apc-btit-peso', u.bTitPeso, 700);
   apcSelInit('apc-btxt-peso', u.bTxtPeso, 400);
   var sw = document.getElementById('apc-footer-on'); if (sw) sw.checked = !!u.footerOn;
+  var swb = document.getElementById('apc-banbrillo-on'); if (swb) swb.checked = u.banBrillo !== false; // prendido por defecto
+  apcColInput('apc-banbrillo-col', u.banBrilloCol, '#ffffff');
+  apcSegInit();
   pintarApLogo();
+}
+// ✨ Velocidad del brillo del banner (segundos por vuelta, 2–15; default 6)
+function apcSeg(v) { apUi().banBrilloSeg = v; var o = document.getElementById('apc-banbrillo-seg-o'); if (o) o.textContent = (Math.round(parseFloat(v) * 10) / 10) + 's'; marcarSucio('clubui'); }
+function apcSegInit() {
+  var el = document.getElementById('apc-banbrillo-seg'); if (!el) return;
+  var n = parseFloat(apUi().banBrilloSeg); if (!(n >= 2 && n <= 15)) n = 6;
+  el.value = n; var o = document.getElementById('apc-banbrillo-seg-o'); if (o) o.textContent = n + 's';
 }
 function apcSet(k, v) { apUi()[k] = v; marcarSucio('clubui'); }
 function apcReset(k) { apUi()[k] = ''; pintarApClub(); marcarSucio('clubui'); }

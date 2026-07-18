@@ -230,6 +230,7 @@
   // Se cachea en localStorage para aplicarlo al arrancar sin parpadeo (igual que los fondos).
   function colClubOk(v) { return typeof v === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v); }
   function clubUiCache() { try { return JSON.parse(localStorage.getItem('arakaki_clubui') || '{}'); } catch (e) { return {}; } }
+  var CLUB_BAN_BRILLO = true; // ¿la card de publicidad lleva el brillo que barre? (config:clubui.banBrillo, default sí)
   function aplicarClubUi(u) {
     if (!u || typeof u !== 'object') u = {};
     var raiz = document.documentElement;
@@ -247,6 +248,25 @@
     document.body.classList.toggle('club-footer-on', !!u.footerOn); // el CSS solo lo muestra en /mi-cuenta
     var logo = document.getElementById('pie-club-logo');
     if (logo) logo.src = logoOk(u.footerLogo) ? u.footerLogo : LOGO_BLANCO;
+    // ✨ Brillo de la card de publicidad: color (barrido armado desde 1 color) y duración editables
+    var bbseg = Number(u.banBrilloSeg); // segundos por vuelta (default 6s = fallback del CSS)
+    if (bbseg >= 2 && bbseg <= 15) raiz.style.setProperty('--club-ban-brillo-dur', bbseg + 's'); else raiz.style.removeProperty('--club-ban-brillo-dur');
+    var bbgrad = brilloGrad(u.banBrilloCol); // vacío = barrido blanco por defecto del CSS
+    if (bbgrad) raiz.style.setProperty('--club-ban-brillo-grad', bbgrad); else raiz.style.removeProperty('--club-ban-brillo-grad');
+    CLUB_BAN_BRILLO = u.banBrillo !== false; // default: prendido
+    var carrus = document.querySelectorAll('.club-carru'); // por si el carrusel ya está pintado
+    for (var ci = 0; ci < carrus.length; ci++) carrus[ci].classList.toggle('brillo', CLUB_BAN_BRILLO);
+  }
+  // Color del emoji de cada acceso/botón del Club → borde y halo del mismo tono (efecto premium).
+  var EMOJI_GLOW = {
+    '🚪': '#c67b3f', '✨': '#f0c34a', '🪪': '#4f9fd4', '⭐': '#f2b91f', '🎫': '#efc043',
+    '❓': '#e85d74', '🎁': '#e8556e', '📍': '#9b6bd6', '👤': '#5b9bd5', '🔑': '#e3ad33', '📲': '#33b98f',
+  };
+  function glowStyle(ico) {
+    var c = EMOJI_GLOW[ico]; if (!c) return '';
+    var m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c);
+    var sh = m ? 'rgba(' + parseInt(m[1], 16) + ',' + parseInt(m[2], 16) + ',' + parseInt(m[3], 16) + ',0.5)' : c;
+    return ' style="--glow:' + c + ';--glowsh:' + sh + '"';
   }
 
   var FONDO_CLAVES = ['pagina', 'vino', 'roja', 'premium', 'card'];
@@ -1749,7 +1769,7 @@
     var dots = bs.length > 1 ? '<div class="ccl-dots">' + bs.map(function (b, i) {
       return '<button type="button" class="ccl-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Aviso ' + (i + 1) + '"></button>';
     }).join('') + '</div>' : '';
-    return '<div class="club-carru">' + slides + dots + '</div>';
+    return '<div class="club-carru' + (CLUB_BAN_BRILLO ? ' brillo' : '') + '">' + slides + dots + '</div>';
   }
   // Rotación automática cada 5s + deslizar con el dedo + toque = ir al enlace del banner
   function montarCarrusel(cont) {
@@ -1890,9 +1910,9 @@
         '<div class="cl-lado">' +
           carruselHtml() +
           '<div class="club-acciones">' +
-            '<button type="button" class="club-acc" id="ca-crear"><span class="ca-ico">👤</span><span class="ca-txt">Crear cuenta VIP</span></button>' +
-            '<button type="button" class="club-acc" id="ca-rec"><span class="ca-ico">🔑</span><span class="ca-txt">Olvidé mi clave</span></button>' +
-            '<button type="button" class="club-acc" id="ca-tel"><span class="ca-ico">📲</span><span class="ca-txt">Cambio de número</span></button>' +
+            '<button type="button" class="club-acc" id="ca-crear"><span class="ca-ico"' + glowStyle('👤') + '>👤</span><span class="ca-txt">Crear cuenta VIP</span></button>' +
+            '<button type="button" class="club-acc" id="ca-rec"><span class="ca-ico"' + glowStyle('🔑') + '>🔑</span><span class="ca-txt">Olvidé mi clave</span></button>' +
+            '<button type="button" class="club-acc" id="ca-tel"><span class="ca-ico"' + glowStyle('📲') + '>📲</span><span class="ca-txt">Cambio de número</span></button>' +
           '</div>' +
         '</div>' +
         '<div class="club-tarjeta" id="cl-tarjeta">' +
@@ -1902,7 +1922,7 @@
           kpTecladoHtml() +
           '<label class="clt-check"><input type="checkbox" id="ct-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="ct-error"></p>' +
-          '<button type="button" class="ct-enviar clt-enviar" id="ct-enviar" disabled>Entrar a mi cuenta ✨</button>' +
+          '<button type="button" class="ct-enviar clt-enviar" id="ct-enviar"' + glowStyle('✨') + ' disabled>Entrar a mi cuenta ✨</button>' +
           '<p class="clt-ayuda">¿Problemas para entrar? <a href="https://wa.me/' + WA + '?text=' +
             encodeURIComponent('Hola 👋 No puedo entrar a mi cuenta del Club Arakaki, ¿me ayudan?') +
             '" target="_blank" rel="noopener">Escríbenos por WhatsApp 📲</a></p>' +
@@ -2252,10 +2272,10 @@
           '<h2 class="cpn-saludo">' + saludoHoraClub() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
           '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
         '</div>' +
-        '<button type="button" class="ct-salir" id="ct-salir" aria-label="Cerrar sesión">🚪 Salir</button>' +
+        '<button type="button" class="ct-salir" id="ct-salir" aria-label="Cerrar sesión"' + glowStyle('🚪') + '>🚪 Salir</button>' +
       '</div>' +
       '<div class="club-acciones cpn-tiles">' + tiles.map(function (t) {
-        return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico">' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
+        return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico"' + glowStyle(t.ico) + '>' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
       }).join('') + '</div>' +
       '<div id="cpn-secciones">';
 
@@ -2366,7 +2386,7 @@
       (fnClub('puntos')
         ? '<div class="cs-fila"><span class="cs-ico">🪙</span><span class="cs-txt">Mis Puntos</span><span class="cs-badge">' + (Number(p.puntos) || 0) + '</span></div>'
         : '') +
-      '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev">⌄</span></button>' +
+      '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev" aria-hidden="true">▼</span></button>' +
       '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
       '<div class="cs-botones">' +
         '<a class="cs-vino" href="/pisco"><span>📖</span> Ver catálogo</a>' +
