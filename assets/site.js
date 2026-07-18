@@ -1340,23 +1340,54 @@
     for (var i = 0; i < cards.length; i++) {
       if (cards[i].getAttribute('data-nombre') === nombre) {
         compartidoHecho = true;
-        var card = cards[i];
-        // El brillo arranca junto con el scroll (600ms): para entonces /api/sitio ya suele
-        // haber traído la duración que el dueño puso en el panel (compBrilloSeg; 0 = apagado)
-        setTimeout(function () {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          var seg = Number(compTxt('compBrilloSeg'));
-          if (isNaN(seg) || seg < 0 || seg > 30) seg = Number(SITIO_DEF.compBrilloSeg);
-          if (seg > 0) {
-            var veces = Math.max(1, Math.round(seg)); // 1 pulso = 1s (CSS --brillo-veces)
-            card.style.setProperty('--brillo-veces', veces);
-            card.classList.add('prod-brillo');
-            setTimeout(function () { card.classList.remove('prod-brillo'); }, veces * 1000 + 400);
-          }
-        }, 600);
+        brillarCard(cards[i]);
         return;
       }
     }
+  }
+
+  // Scroll hasta la card + borde parpadeante. OJO con el arranque en frío / PWA instalada:
+  // si corremos mientras el preloader (portada a pantalla completa) aún tapa todo, el usuario
+  // no ve el parpadeo (la animación es finita y se agota escondida) y el scroll cae mal porque
+  // las fotos todavía no cargaron y el layout se reacomoda. Por eso esperamos a que el
+  // preloader se haya ido y a que la foto de la card cargue antes de mover la pantalla.
+  function brillarCard(card) {
+    esperarPreloader(function () {
+      var img = card.querySelector('.prod-img img');
+      if (img && !img.complete) {
+        var listo = false;
+        var go = function () { if (listo) return; listo = true; irYbrillar(card); };
+        img.addEventListener('load', go);
+        img.addEventListener('error', go);
+        setTimeout(go, 1500); // respaldo si la foto no dispara load/error
+      } else {
+        irYbrillar(card);
+      }
+    });
+  }
+
+  function irYbrillar(card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Duración del parpadeo del panel (compBrilloSeg; 0 = apagado); para acá /api/sitio ya llegó
+    var seg = Number(compTxt('compBrilloSeg'));
+    if (isNaN(seg) || seg < 0 || seg > 30) seg = Number(SITIO_DEF.compBrilloSeg);
+    if (seg > 0) {
+      var veces = Math.max(1, Math.round(seg)); // 1 pulso = 1s (CSS --brillo-veces)
+      card.style.setProperty('--brillo-veces', veces);
+      card.classList.add('prod-brillo');
+      setTimeout(function () { card.classList.remove('prod-brillo'); }, veces * 1000 + 400);
+    }
+  }
+
+  // Espera a que la portada (#ap-preloader) se haya ocultado (no exista o tenga .ap-hidden).
+  // Sondeo simple con tope duro de 6s (el preloader se auto-oculta como máx a los ~5.6s).
+  function esperarPreloader(cb) {
+    var t0 = Date.now();
+    (function chk() {
+      var p = document.getElementById('ap-preloader');
+      if (!p || p.classList.contains('ap-hidden') || Date.now() - t0 > 6000) { cb(); return; }
+      setTimeout(chk, 150);
+    })();
   }
 
   // Índice nombre → producto del catálogo cargado en la página (para foto y precio)
