@@ -83,22 +83,6 @@
   // Valores por defecto: el sitio se ve bien sin backend. El dueño los edita en
   // /panel → 📝 Sitio (Redis config:sitio); /api/sitio los sirve y aquí se aplican.
   var MAP_URL = 'https://www.google.com/maps/search/?api=1&query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro';
-  // ---------- Modo claro / oscuro (botón 🌙 del header) ----------
-  // Solo cambian las superficies de lectura (tokens --superficie/--texto de site.css);
-  // las zonas de marca (vino, premium dark-gold) se ven igual en ambos modos.
-  function temaGuardado() { try { return localStorage.getItem('arakaki_tema') || 'claro'; } catch (e) { return 'claro'; } }
-  function aplicarTema(t) {
-    if (t === 'oscuro') document.documentElement.setAttribute('data-tema', 'oscuro');
-    else document.documentElement.removeAttribute('data-tema');
-    var b = document.getElementById('btn-tema');
-    if (b) {
-      b.textContent = (t === 'oscuro') ? '☀️' : '🌙';
-      var eti = (t === 'oscuro') ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
-      b.setAttribute('aria-label', eti); b.title = eti;
-    }
-  }
-  aplicarTema(temaGuardado()); // al arrancar, antes de pintar: sin parpadeo de tema
-
   var SITIO_DEF = {
     lema: 'Lo que necesitas, cuando lo necesitas',
     visitanosTit: 'Visítanos',
@@ -624,15 +608,11 @@
       '<a href="/"><img class="logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
       '<div class="esp"></div>' +
       '<div class="lema-cab">' + esc(SITIO_DEF.lema) + '</div>' +
-      '<button class="btn-tema" id="btn-tema" type="button" aria-label="Cambiar a modo oscuro">🌙</button>' +
+      '<a class="btn-cuenta-avatar" id="btn-cuenta-avatar" href="/mi-cuenta" aria-label="Ir a mi cuenta" hidden>' +
+        '<img id="cuenta-avatar-img" alt="">' +
+      '</a>' +
       '<button class="btn-menu" id="btn-menu" aria-label="Ver categorías" aria-haspopup="true">☰ Categorías</button>';
     document.body.insertBefore(cab, document.body.firstChild);
-    document.getElementById('btn-tema').onclick = function () {
-      var nuevo = (temaGuardado() === 'oscuro') ? 'claro' : 'oscuro';
-      try { localStorage.setItem('arakaki_tema', nuevo); } catch (e) {}
-      aplicarTema(nuevo);
-    };
-    aplicarTema(temaGuardado()); // pinta el icono correcto en el botón recién creado
 
     var fondo = document.createElement('div');
     fondo.id = 'menu-fondo';
@@ -1156,6 +1136,25 @@
     cuentaPerfil = null;
     try { localStorage.removeItem('arakaki_sesion'); } catch (e) {}
     try { sessionStorage.removeItem('arakaki_sesion'); } catch (e) {}
+    actualizarAvatarCuenta();
+  }
+
+  // El espacio que ocupaba el cambio de tema muestra la foto del cliente con sesión.
+  // Se oculta sin sesión o sin foto: nunca expone una imagen de otra cuenta.
+  function actualizarAvatarCuenta() {
+    var boton = document.getElementById('btn-cuenta-avatar');
+    var imagen = document.getElementById('cuenta-avatar-img');
+    var perfil = cuentaPerfil;
+    if (!boton || !imagen) return;
+    if (!perfil || !perfil.foto) {
+      imagen.removeAttribute('src');
+      imagen.alt = '';
+      boton.hidden = true;
+      return;
+    }
+    imagen.src = perfil.foto;
+    imagen.alt = 'Foto de perfil de ' + (perfil.nombre || 'cliente');
+    boton.hidden = false;
   }
 
   // Flags del Club con caché de 5 min en sessionStorage (una sola consulta por ratito)
@@ -1224,6 +1223,7 @@
           if (j && j.on === true && j.conocido === false) { borrarSesion(); return; }
           if (!j || !j.conocido) return;
           cuentaPerfil = j;
+          actualizarAvatarCuenta();
           pintarFavStars();
           prefillDirCuenta();
           pingVisita();
