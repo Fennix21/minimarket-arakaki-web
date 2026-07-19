@@ -330,8 +330,10 @@
     <div class="interior">
       <!-- Saludo al cliente reconocido: lo pinta assets/site.js (aplicarPerfil) -->
       <p class="portada-hola" id="portada-hola" style="display:none"></p>
+      <!-- El video lo puede cambiar el dueño desde panel → 📝 Sitio → 🎬 Videos (config:sitio.portadaVideo,
+           lo sirve /api/sitio y lo aplica site.js). Este src es el default; "🐱 bienvenida" queda como oficial. -->
       <div class="portada-circulo">
-        <video src="/img/videos/bienvenida.mp4" autoplay muted loop playsinline></video>
+        <video src="/img/videos/logo-animado.mp4" autoplay muted loop playsinline></video>
       </div>
       <div class="portada-texto">
         <h1>Visítanos en:<br>Av. Belén 265, San Isidro<br><span class="golf">(A solo 2 cuadras del Golf)</span></h1>

@@ -1602,6 +1602,22 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
     <!-- 🎬 VIDEOS (grupo "videos") -->
     <div class="subpanel" id="ss-videos">
+
+    <!-- 🏠 Video principal de la portada (config:sitio.portadaVideo; lo sirve /api/sitio, lo aplica site.js) -->
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>🏠 Video principal de la portada</h3>
+      <div class="campo-bloque">
+        <div class="hint">El video del <b>círculo de bienvenida</b> en la página de inicio. Elige otro y guarda: se ve en la web en ~1&nbsp;minuto, sin tocar código. <b>🐱 Bienvenida</b> es el oficial de siempre: siempre puedes volver a él.</div>
+      </div>
+      <div class="fila-conf" style="margin:0 0 4px">
+        <select id="sitio-portadavid" onchange="portadaVidCambio()" style="flex:1"></select>
+      </div>
+      <video id="sitio-portadavid-prev" muted loop playsinline autoplay style="width:130px;height:130px;border-radius:50%;object-fit:cover;margin:12px 0;display:none;border:2px solid var(--dorado)"></video>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar video de la portada</button>
+      </div>
+    </div>
+
     <div class="caja-bot" data-grupo="videos">
       <h3>🎬 Videos de las categorías</h3>
       <div class="campo-bloque">
@@ -3711,15 +3727,51 @@ var SITIO_CAMPOS = {
   carGeoNota: 'sitio-cargeo', carDirFalta: 'sitio-cardir',
   compChat: 'sitio-compchat', compOg: 'sitio-compog', compLema: 'sitio-complema',
   compCintillo: 'sitio-compcintillo', compCta: 'sitio-compcta', compSinPrecio: 'sitio-compsinprecio',
-  compBrilloSeg: 'sitio-compbrillo',
+  compBrilloSeg: 'sitio-compbrillo', portadaVideo: 'sitio-portadavid',
 };
+// 🏠 Video de la portada: default (nada guardado) = logo animado. El repertorio sale de VIDEOS_REPO.
+var PORTADA_DEF = '/img/videos/logo-animado.mp4';
+function armarPortadaVid() {
+  var sel = document.getElementById('sitio-portadavid');
+  if (!sel) return;
+  var ops = '<option value="/img/videos/logo-animado.mp4">✨ Logo animado (nuevo)</option>' +
+    '<option value="/img/videos/bienvenida.mp4">🐱 Bienvenida (el oficial de siempre)</option>';
+  VIDEOS_REPO.forEach(function (n) {
+    if (n === 'bienvenida') return; // ya está arriba con nombre bonito
+    ops += '<option value="/img/videos/' + n + '.mp4">' + n + '.mp4</option>';
+  });
+  ops += '<option value="otro">🔗 Otra URL…</option>';
+  sel.innerHTML = ops;
+}
+function portadaVidCambio() {
+  var sel = document.getElementById('sitio-portadavid');
+  if (sel.value === 'otro') {
+    var u = (prompt('Pega la URL del video (.mp4, debe empezar con https://):') || '').trim();
+    if (/^https:\/\/\S+$/i.test(u)) { vidOpcionExtra(sel, u); sel.value = u; }
+    else { if (u) alert('La URL debe empezar con https://'); sel.value = PORTADA_DEF; }
+  }
+  portadaVidPreview();
+}
+function portadaVidPreview() {
+  var sel = document.getElementById('sitio-portadavid');
+  var vid = document.getElementById('sitio-portadavid-prev');
+  if (!sel || !vid) return;
+  var src = sel.value && sel.value !== 'otro' ? sel.value : PORTADA_DEF;
+  if (vid.getAttribute('src') !== src) { vid.src = src; }
+  vid.style.display = 'block';
+}
 function cargarSitio() {
   api('getsitio').then(function (j) {
     var s = j.s || {};
+    armarPortadaVid(); // arma las opciones del video de la portada antes de fijar su valor
+    var pvSel = document.getElementById('sitio-portadavid');
+    if (pvSel && s.portadaVideo && /^https?:\/\//i.test(s.portadaVideo)) vidOpcionExtra(pvSel, s.portadaVideo);
     for (var k in SITIO_CAMPOS) {
       var el = document.getElementById(SITIO_CAMPOS[k]);
       if (el) el.value = s[k] || '';
     }
+    if (pvSel && !pvSel.value) pvSel.value = PORTADA_DEF; // nada guardado = mostrar el default seleccionado
+    portadaVidPreview(); // muestra el video elegido (o el default) en la vista previa del círculo
   }).catch(function () {});
 }
 function avisoSitio(t, mal, id) {

@@ -803,6 +803,10 @@ module.exports = async (req, res) => {
       const bseg = txt(b.compBrilloSeg, 6);
       if (bseg !== '' && Number.isFinite(Number(bseg))) s.compBrilloSeg = String(Math.max(0, Math.min(30, Math.round(Number(bseg)))));
       ['facebook', 'instagram', 'youtube'].forEach((k) => { const v = url(b[k]); if (v) s[k] = v; });
+      // 🎬 Video de la portada: solo rutas seguras (video del repo, video subido o https). Se aplica
+      // como src del <video>, así que se rechaza cualquier otra cosa (evita javascript:/data:).
+      const pv = txt(b.portadaVideo, 300);
+      if (/^\/img\/videos\/[\w.-]+\.mp4$/i.test(pv) || /^\/api\/precios\?vid=[\w-]+$/i.test(pv) || /^https:\/\/\S+$/i.test(pv)) s.portadaVideo = pv;
       // Campo vacío = vuelve al texto por defecto de site.js (no se guarda nada de más)
       if (Object.keys(s).length) await redis(['SET', 'config:sitio', JSON.stringify(s)]);
       else await redis(['DEL', 'config:sitio']);

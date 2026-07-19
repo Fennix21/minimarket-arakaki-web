@@ -109,6 +109,9 @@
     compCta: '📲 Pídelo al 977 737 199',
     compSinPrecio: 'Pregunta el precio por WhatsApp',
     compBrilloSeg: '5', // segundos de parpadeo al llegar por un enlace compartido (0 = sin parpadeo)
+    // Video del círculo de la portada (home). El dueño lo cambia en panel → 📝 Sitio → 🎬 Videos.
+    // Default = logo animado; "🐱 bienvenida.mp4" queda como el oficial de siempre para volver a él.
+    portadaVideo: '/img/videos/logo-animado.mp4',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -150,7 +153,16 @@
     // Nota bajo el botón de ubicación del carrito (el modal puede no existir aún)
     var geoNota = document.getElementById('car-geo-nota');
     if (geoNota) geoNota.textContent = cfg.carGeoNota || '';
+    aplicarPortadaVideo(cfg.portadaVideo || SITIO_DEF.portadaVideo); // video del círculo (solo home)
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
+  }
+  // Cambia el video del círculo de la portada (solo existe en el home). Se salta si el src ya es
+  // ese para no reiniciar la reproducción en cada aplicarSitio (default → override del dueño).
+  function aplicarPortadaVideo(src) {
+    var v = document.querySelector('.portada-circulo video');
+    if (!v || !src || v.getAttribute('src') === src) return;
+    v.setAttribute('src', src);
+    try { v.load(); var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
   }
 
   // ---------- Fondos editables (secciones y tarjetas) ----------
