@@ -2538,7 +2538,19 @@
       '<p class="ct-error" id="cd-dir-error"></p>' +
       '<button type="button" class="ct-enviar" id="cd-dir-add">➕ Guardar dirección</button></div>';
 
-    html += '</div>' + carruselHtml();
+    html += '</div>' + carruselHtml() +
+      '<div class="club-salir-modal" id="club-salir-modal" hidden>' +
+        '<div class="club-salir-caja" role="dialog" aria-modal="true" aria-labelledby="club-salir-tit">' +
+          '<button type="button" class="club-salir-cerrar" aria-label="Seguir con la sesión abierta">✕</button>' +
+          '<span class="club-salir-ico" aria-hidden="true">💛</span>' +
+          '<h3 id="club-salir-tit">¿Quieres salir del Club?</h3>' +
+          '<p>Mantén tu sesión abierta para acceder fácilmente a tus beneficios, puntos, favoritos, cupones y sorteos.</p>' +
+          '<div class="club-salir-acciones">' +
+            '<button type="button" class="club-salir-quedar">Mantener mi sesión</button>' +
+            '<button type="button" class="club-salir-confirmar">Sí, salir</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
 
     // Hoja crema: Mis Puntos, Mis Últimos Pedidos (por fecha, con recompra) y la tienda
     var hist = Array.isArray(p.historial) ? p.historial : [];
@@ -2619,7 +2631,20 @@
       }));
     };
 
-    document.getElementById('ct-salir').onclick = salirClub;
+    var btnSalir = document.getElementById('ct-salir');
+    var modalSalir = document.getElementById('club-salir-modal');
+    function cerrarAvisoSalir() { modalSalir.hidden = true; }
+    btnSalir.onclick = function () {
+      modalSalir.hidden = false;
+      modalSalir.querySelector('.club-salir-quedar').focus();
+    };
+    modalSalir.querySelector('.club-salir-cerrar').onclick = cerrarAvisoSalir;
+    modalSalir.querySelector('.club-salir-quedar').onclick = cerrarAvisoSalir;
+    modalSalir.querySelector('.club-salir-confirmar').onclick = function () {
+      cerrarAvisoSalir();
+      salirClub();
+    };
+    modalSalir.onclick = function (e) { if (e.target === modalSalir) cerrarAvisoSalir(); };
 
     // Comprar toda una lista de favoritos de un toque (la meta: menos clics)
     var addLista = int.querySelectorAll('.fl-add');

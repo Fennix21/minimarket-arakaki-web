@@ -1453,6 +1453,34 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
   transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .ct-salir:hover { background: rgba(212, 175, 55, 0.3); color: #fff9ec; border-color: var(--glow, var(--dorado)); box-shadow: 0 0 18px -1px var(--glowsh, rgba(212, 175, 55, 0.4)); }
+/* Confirmación de salida: invita a conservar la sesión para entrar al Club sin fricción. */
+.club-salir-modal {
+  position: fixed; inset: 0; z-index: 1450; padding: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5, 4, 3, 0.7); backdrop-filter: blur(4px);
+}
+.club-salir-modal[hidden] { display: none; }
+.club-salir-caja {
+  width: min(100%, 410px); box-sizing: border-box; position: relative;
+  padding: 28px 24px 22px; border: 1.5px solid rgba(212, 175, 55, 0.62); border-radius: 20px;
+  background: linear-gradient(155deg, #292217 0%, #17130f 100%); color: #f4ebd6;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 26px rgba(212, 175, 55, 0.16);
+  text-align: center; animation: club-salir-entra 0.2s ease-out;
+}
+@keyframes club-salir-entra { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+.club-salir-ico { display: block; font-size: 34px; line-height: 1; margin-bottom: 9px; }
+.club-salir-caja h3 { margin: 0; color: #f2d894; font-family: var(--tipo-titulos); font-size: 21px; }
+.club-salir-caja p { margin: 10px 4px 20px; color: #e4dcc6; font-size: 14px; line-height: 1.5; }
+.club-salir-cerrar {
+  position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; padding: 0; cursor: pointer;
+  border: 1px solid rgba(212, 175, 55, 0.45); border-radius: 50%; background: transparent; color: #f2d894; font-size: 16px;
+}
+.club-salir-acciones { display: flex; gap: 10px; }
+.club-salir-acciones button { flex: 1; min-height: 44px; cursor: pointer; border-radius: 12px; padding: 10px 12px; font-family: var(--tipo-titulos); font-size: 13.5px; font-weight: 700; }
+.club-salir-quedar { border: 1px solid #f6d98a; background: linear-gradient(180deg, #f9dc7c, #d9ac32); color: #3a2708; }
+.club-salir-confirmar { border: 1px solid rgba(242, 216, 148, 0.48); background: transparent; color: #f2d894; }
+.club-salir-confirmar:hover { background: rgba(212, 175, 55, 0.14); }
+@media (max-width: 380px) { .club-salir-caja { padding: 26px 18px 18px; } .club-salir-acciones { flex-direction: column; } }
 .cp-num {
   font-family: var(--tipo-titulos); font-size: 52px; font-weight: 700;
   color: #e9c877; text-shadow: 0 0 22px rgba(212, 175, 55, 0.35); line-height: 1; margin: 6px 0 12px;
