@@ -387,7 +387,12 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 @media (min-width: 700px) { #fp-popup .modal-caja { max-width: 620px; } }
 
 /* ---------- Cinta marquee ---------- */
-.cinta { background: var(--rojo); color: var(--blanco); overflow: hidden; padding: 10px 0; white-space: nowrap; }
+/* Comparte el acabado dorado del CTA .btn-elegir para unificar las secciones de productos. */
+.cinta {
+  background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  color: var(--rojo-osc);
+  overflow: hidden; padding: 10px 0; white-space: nowrap;
+}
 .cinta .cinta-rodillo { display: inline-block; animation: cinta-mov 22s linear infinite; }
 .cinta span { margin: 0 26px; font-size: 14px; font-weight: 600; }
 @keyframes cinta-mov { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
