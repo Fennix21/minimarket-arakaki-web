@@ -69,6 +69,33 @@ async function getExtras() {
 
 // Interruptores del Club (panel → 👥 Club). Sin config guardada, todo prendido.
 const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
+
+// ----- Listas de favoritos (el cliente organiza sus favoritos en categorías propias) -----
+// El cliente marca la ⭐ de un producto y elige en qué lista(s) guardarlo ("Desayuno",
+// "Para reuniones", etc.). Se guardan en cli.favCols = [{n:'<lista>', p:['<producto>',…]}].
+// cli.favs (lista plana) se mantiene como la UNIÓN de todas las listas: es la fuente de
+// verdad de "¿está marcado?" (estrella activa) y da compatibilidad con lo ya existente.
+const LISTA_DEF = 'Mis Favoritos';
+const limpioLista = (s) => (s == null ? '' : String(s)).replace(/\s+/g, ' ').trim().slice(0, 30);
+// Devuelve cli.favCols saneado [{n,p}]. Migra al cliente viejo: si tenía favs sueltos sin
+// listas, los mete todos en la lista por defecto para no perder nada.
+function colsDe(cli) {
+  let cols = Array.isArray(cli.favCols) ? cli.favCols : [];
+  cols = cols
+    .map((c) => ({ n: limpioLista(c && c.n), p: Array.isArray(c && c.p) ? c.p.filter((x) => typeof x === 'string') : [] }))
+    .filter((c) => c.n);
+  if (!cols.length) {
+    const favs = Array.isArray(cli.favs) ? cli.favs.filter((x) => typeof x === 'string') : [];
+    if (favs.length) cols = [{ n: LISTA_DEF, p: favs.slice(0, 60) }];
+  }
+  return cols;
+}
+// Unión de las listas (sin repetir, respetando orden) = la lista plana de favoritos.
+function unionCols(cols) {
+  const out = []; const visto = {};
+  cols.forEach((c) => c.p.forEach((x) => { const k = normalizar(x); if (!visto[k]) { visto[k] = 1; out.push(x); } }));
+  return out;
+}
 async function getClub() {
   let c = {};
   const raw = await redis(['GET', 'config:club']);
@@ -225,19 +252,23 @@ async function preguntasDe(tel) {
 async function perfilCompleto(tel, cli, club) {
   const vivos = await getPreciosVivos();
 
-  // Favoritos marcados a mano (⭐), con precio vigente. Los que no están en el catálogo
-  // pueden ser productos nuevos subidos desde el panel (config:prodextra).
-  const favsRaw = Array.isArray(cli.favs) ? cli.favs : [];
+  // Favoritos marcados a mano (⭐), organizados en las listas del cliente (favCols), con
+  // precio vigente. Los que no están en el catálogo pueden ser productos nuevos del panel.
+  // favs = la unión (lista plana, compat); favCols = cada lista con sus productos.
+  const cols = colsDe(cli);
+  const favsRaw = unionCols(cols);
   const extrasIdx = {};
   if (favsRaw.some((n) => !PORNOMBRE[normalizar(n)])) {
     (await getExtras()).forEach((e) => { extrasIdx[normalizar(e.nombre)] = e; });
   }
-  const favs = favsRaw.map((name) => {
+  const enrichFav = (name) => {
     const pr = PORNOMBRE[normalizar(name)];
     if (pr) return { name, price: precioVivo(pr, vivos), pagina: '/' + pr.c };
     const ex = extrasIdx[normalizar(name)];
     return { name, price: (ex && ex.precio && Number(ex.precio) > 0) ? Number(ex.precio) : null, pagina: ex ? '/' + ex.cat : '' };
-  });
+  };
+  const favs = favsRaw.map(enrichFav);
+  const favCols = cols.map((c) => ({ n: c.n, p: c.p.slice() }));
 
   // "Mi último pedido" = la foto exacta que guarda pedido.js (ultimoItems, con cantidades).
   // Clientes de antes de guardarla: se deduce del consumo (lo comprado en la última tanda).
@@ -292,6 +323,7 @@ async function perfilCompleto(tel, cli, club) {
     pedidos: Number(cli.pedidos) || 0,
     puntos: Number(cli.puntos) || 0,
     favs,
+    favCols,
     habitual,
     promos,
     sorteos,
@@ -593,7 +625,9 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: 'Tu sesión expiró. Vuelve a iniciar sesión 🙏', conocido: false });
     }
 
-    // ----- Marcar/desmarcar favorito (⭐ en las páginas de categoría) -----
+    // ----- Marcar/desmarcar favorito y organizarlo en listas (⭐ en las páginas) -----
+    // Modal de la ⭐: manda b.cols = listas donde quiere el producto ([] = quitarlo de todo).
+    // Compatibilidad: si llega el viejo b.on sin cols, entra/sale de "Mis Favoritos".
     if (b.action === 'fav') {
       if (!club.favoritos) return res.status(400).json({ error: 'Los favoritos están en pausa por ahora.' });
       const nombre = limpio(b.producto, 120);
@@ -601,12 +635,33 @@ module.exports = async (req, res) => {
           !(await getExtras()).some((e) => normalizar(e.nombre) === normalizar(nombre))) {
         return res.status(400).json({ error: 'Producto no encontrado.' });
       }
-      let favs = Array.isArray(cli.favs) ? cli.favs : [];
-      favs = favs.filter((n) => normalizar(n) !== normalizar(nombre));
-      if (b.on) favs.unshift(nombre);
-      cli.favs = favs.slice(0, 60);
+      // Listas destino (saneadas, sin repetir, tope por producto)
+      let destino;
+      if (Array.isArray(b.cols)) {
+        destino = []; const vistos = {};
+        b.cols.forEach((raw) => {
+          const n = limpioLista(raw); const k = n.toLowerCase();
+          if (n && !vistos[k]) { vistos[k] = 1; destino.push(n); }
+        });
+        destino = destino.slice(0, 12);
+      } else {
+        destino = b.on ? [LISTA_DEF] : [];
+      }
+      let cols = colsDe(cli);
+      // Sacar el producto de todas las listas y volver a colocarlo solo en las destino
+      cols.forEach((c) => { c.p = c.p.filter((x) => normalizar(x) !== normalizar(nombre)); });
+      destino.forEach((n) => {
+        let c = cols.find((x) => x.n.toLowerCase() === n.toLowerCase());
+        if (!c) { if (cols.length >= 20) return; c = { n, p: [] }; cols.push(c); }
+        c.p = c.p.filter((x) => normalizar(x) !== normalizar(nombre));
+        c.p.unshift(nombre);
+        c.p = c.p.slice(0, 60);
+      });
+      cols = cols.filter((c) => c.p.length); // listas vacías se descartan
+      cli.favCols = cols;
+      cli.favs = unionCols(cols).slice(0, 60);
       await guardarCliente(tel, cli);
-      return res.status(200).json({ ok: true, favs: cli.favs });
+      return res.status(200).json({ ok: true, favs: cli.favs, favCols: cli.favCols });
     }
 
     // ----- Participar en un sorteo (1 vez por cliente) -----

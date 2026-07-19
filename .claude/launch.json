@@ -18,6 +18,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["tools/dev-server.js", "3230"],
       "port": 3230
+    },
+    {
+      "name": "arakaki-web-3247",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/dev-server.js", "3247"],
+      "port": 3247
     }
   ]
 }

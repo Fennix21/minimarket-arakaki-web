@@ -1280,17 +1280,156 @@
         b.textContent = favSet[nom] ? '★' : '☆';
         b.onclick = function (e) {
           e.stopPropagation(); // la imagen también agrega/quita del carrito: no mezclar
-          var on = !b.classList.contains('activo');
-          b.classList.toggle('activo', on);
-          b.textContent = on ? '★' : '☆';
-          cuentaPost({ action: 'fav', producto: nom, on: on }).then(function (j) {
-            if (!j || !j.ok) { b.classList.toggle('activo', !on); b.textContent = on ? '☆' : '★'; return; }
-            if (cuentaPerfil) cuentaPerfil.favs = (j.favs || []).map(function (n) { return { name: n }; });
-          }).catch(function () { b.classList.toggle('activo', !on); b.textContent = on ? '☆' : '★'; });
+          abrirFavModal(nom, b); // abre el modal para organizarlo en listas (no toggle directo)
         };
         img.appendChild(b);
         img.classList.add('tiene-fav'); // el botón compartir se corre a la derecha (CSS)
       })(cards[i]);
+    }
+  }
+
+  // ---------- Modal "Guardar en mis listas": organizar el favorito en categorías ----------
+  // Al tocar la ⭐ se abre este modal (ya no es un toggle directo): el cliente elige en qué
+  // lista(s) guardar el producto ("Desayuno", "Para reuniones"…) para luego comprar toda
+  // una lista de un solo toque desde su cuenta. Los colores calcan el botón "Elegir producto"
+  // (gradiente dorado + texto negro) para que se lea como parte de la misma acción de compra.
+  var FAV_LISTAS_DEF = ['Mis Favoritos', 'Desayuno', 'Para reuniones', 'Almuerzo / Cena', 'Antojos'];
+  var FAV_ICONOS = { 'mis favoritos': '⭐', 'desayuno': '🍳', 'para reuniones': '🎉', 'almuerzo / cena': '🍽️', 'antojos': '🍫' };
+  function favNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim(); }
+  function favIcono(n) { return FAV_ICONOS[favNorm(n)] || '📋'; }
+  function favIncluye(arr, nombre) {
+    if (!arr) return false;
+    for (var i = 0; i < arr.length; i++) if (favNorm(arr[i]) === favNorm(nombre)) return true;
+    return false;
+  }
+  function subirHasta(el, cls) {
+    while (el && el !== document) {
+      if (el.classList && el.classList.contains(cls)) return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+  function favColsPerfil() { return (cuentaPerfil && cuentaPerfil.favCols) || []; }
+  // Listas del cliente + las sugeridas por defecto, sin repetir (para pintar los chips)
+  function favListasDisponibles() {
+    var out = [], vistos = {};
+    function push(n) { var k = favNorm(n); if (n && !vistos[k]) { vistos[k] = 1; out.push(n); } }
+    favColsPerfil().forEach(function (c) { push(c.n); });
+    FAV_LISTAS_DEF.forEach(push);
+    return out;
+  }
+  // Listas donde YA está guardado un producto
+  function favListasDe(nombre) {
+    var out = [];
+    favColsPerfil().forEach(function (c) { if (favIncluye(c.p, nombre)) out.push(c.n); });
+    return out;
+  }
+
+  var favModalNom = null, favModalStar = null;
+  function favModalEl() {
+    var m = document.getElementById('fav-modal');
+    if (m) return m;
+    m = document.createElement('div');
+    m.id = 'fav-modal';
+    m.innerHTML =
+      '<div class="fav-modal" role="dialog" aria-modal="true" aria-labelledby="fav-modal-tit">' +
+        '<button type="button" class="fav-x" aria-label="Cerrar">✕</button>' +
+        '<div class="fav-modal-head"><span class="fav-modal-ico">⭐</span>' +
+          '<h3 class="fav-modal-tit" id="fav-modal-tit">Guardar en mis listas</h3>' +
+          '<p class="fav-modal-prod"></p></div>' +
+        '<p class="fav-modal-hint">Elige en qué lista(s) lo quieres tener a la mano 👇 Luego compras toda la lista de un toque.</p>' +
+        '<div class="fav-chips"></div>' +
+        '<div class="fav-nueva">' +
+          '<input type="text" class="fav-nueva-input" maxlength="30" placeholder="Crear una lista nueva (ej. Cumpleaños)">' +
+          '<button type="button" class="fav-nueva-add">➕ Crear</button></div>' +
+        '<div class="fav-modal-btns">' +
+          '<button type="button" class="fav-cancel">Cancelar</button>' +
+          '<button type="button" class="fav-guardar">Guardar 💾</button></div>' +
+      '</div>';
+    document.body.appendChild(m);
+    m.addEventListener('click', function (e) { if (e.target === m) cerrarFavModal(); });
+    m.querySelector('.fav-x').onclick = cerrarFavModal;
+    m.querySelector('.fav-cancel').onclick = cerrarFavModal;
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && m.classList.contains('abierto')) cerrarFavModal(); });
+    var inp = m.querySelector('.fav-nueva-input');
+    function crear() {
+      var n = (inp.value || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+      if (!n) return;
+      var chips = m.querySelectorAll('.fav-chip'), ya = null;
+      for (var i = 0; i < chips.length; i++) if (favNorm(chips[i].getAttribute('data-lista')) === favNorm(n)) ya = chips[i];
+      if (ya) ya.classList.add('on');
+      else m.querySelector('.fav-chips').appendChild(favChip(n, true));
+      inp.value = '';
+      try { inp.focus(); } catch (e) {}
+    }
+    m.querySelector('.fav-nueva-add').onclick = crear;
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); crear(); } });
+    m.querySelector('.fav-guardar').onclick = guardarFavModal;
+    return m;
+  }
+  function favChip(nombre, on) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'fav-chip' + (on ? ' on' : '');
+    b.setAttribute('data-lista', nombre);
+    b.innerHTML = '<span class="fc-ico">' + favIcono(nombre) + '</span><span class="fc-txt">' + esc(nombre) + '</span><span class="fc-check">✓</span>';
+    b.onclick = function () { b.classList.toggle('on'); };
+    return b;
+  }
+  function abrirFavModal(nombre, star) {
+    if (!cuentaPerfil) return; // solo clientes logueados (la estrella igual solo aparece logueado)
+    favModalNom = nombre;
+    favModalStar = star || null;
+    var m = favModalEl();
+    m.querySelector('.fav-modal-prod').textContent = nombre;
+    var actuales = favListasDe(nombre);
+    var esNuevo = !actuales.length;
+    var actSet = {}; actuales.forEach(function (n) { actSet[favNorm(n)] = 1; });
+    var cont = m.querySelector('.fav-chips');
+    cont.innerHTML = '';
+    favListasDisponibles().forEach(function (n) {
+      // Producto nuevo → "Mis Favoritos" premarcada (guardar en 1 toque); si ya estaba, respeta sus listas
+      var on = esNuevo ? favNorm(n) === favNorm(FAV_LISTAS_DEF[0]) : !!actSet[favNorm(n)];
+      cont.appendChild(favChip(n, on));
+    });
+    m.querySelector('.fav-nueva-input').value = '';
+    m.classList.add('abierto');
+    document.body.classList.add('fav-modal-open');
+  }
+  function cerrarFavModal() {
+    var m = document.getElementById('fav-modal');
+    if (m) m.classList.remove('abierto');
+    document.body.classList.remove('fav-modal-open');
+    favModalNom = null; favModalStar = null;
+  }
+  function guardarFavModal() {
+    var m = document.getElementById('fav-modal');
+    if (!m || !favModalNom) return;
+    var nombre = favModalNom;
+    var sel = [], chips = m.querySelectorAll('.fav-chip.on');
+    for (var i = 0; i < chips.length; i++) sel.push(chips[i].getAttribute('data-lista'));
+    var btn = m.querySelector('.fav-guardar');
+    btn.disabled = true;
+    cuentaPost({ action: 'fav', producto: nombre, cols: sel }).then(function (j) {
+      btn.disabled = false;
+      if (!j || !j.ok) return;
+      if (cuentaPerfil) {
+        cuentaPerfil.favs = (j.favs || []).map(function (n) { return { name: n }; });
+        cuentaPerfil.favCols = j.favCols || [];
+      }
+      marcarFavStars(nombre, sel.length > 0);
+      cerrarFavModal();
+    }).catch(function () { btn.disabled = false; });
+  }
+  // Sincroniza la estrella (★/☆) en TODAS las cards de ese producto (catálogo + combos)
+  function marcarFavStars(nombre, on) {
+    var cards = document.querySelectorAll('.prod');
+    for (var i = 0; i < cards.length; i++) {
+      if (favNorm(cards[i].getAttribute('data-nombre')) !== favNorm(nombre)) continue;
+      var b = cards[i].querySelector('.prod-fav');
+      if (!b) continue;
+      b.classList.toggle('activo', !!on);
+      b.textContent = on ? '★' : '☆';
     }
   }
 
@@ -1696,8 +1835,25 @@
       (img ? '<img loading="lazy" src="' + esc(img) + '" alt="">' : '') +
       '<div class="cfav-info"><span class="cfav-nom">' + esc(f.name) + '</span>' +
       (precio ? '<span class="cfav-precio">S/ ' + esc(precio) + '</span>' : '') + '</div>' +
-      (conQuitar ? '<button type="button" class="cfav-x" aria-label="Quitar de favoritos">✕</button>' : '') +
+      (conQuitar ? '<button type="button" class="cfav-x" aria-label="Quitar de esta lista">✕</button>' : '') +
       '</div>';
+  }
+
+  // Una lista de favoritos en el panel del cliente: encabezado (ícono + nombre + conteo),
+  // sus productos y el botón para comprar toda la lista de un toque. favInfo mapea
+  // nombre→{price} para no perder el precio vigente que trajo el perfil.
+  function favListaHtml(col, favInfo) {
+    var items = (col.p || []).map(function (nombre) {
+      var info = favInfo[favNorm(nombre)] || {};
+      return favItemHtml({ name: nombre, price: info.price }, true);
+    }).join('');
+    return '<div class="fav-lista" data-lista="' + esc(col.n) + '">' +
+      '<div class="fav-lista-cab"><span class="fl-ico">' + favIcono(col.n) + '</span>' +
+        '<span class="fl-nom">' + esc(col.n) + '</span>' +
+        '<span class="fl-count">' + (col.p ? col.p.length : 0) + '</span></div>' +
+      '<div class="cfav-grid">' + items + '</div>' +
+      '<button type="button" class="ct-enviar fl-add">🛒 Agregar toda la lista a mi pedido</button>' +
+    '</div>';
   }
 
   // Suma una lista de productos al carrito (sin duplicar) y lo abre
@@ -2297,14 +2453,17 @@
       '<p class="ct-error" id="cp-error"></p>' +
       '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button></div>';
 
-    // ⭐ Mis favoritos
+    // ⭐ Mis listas de favoritos: cada lista con sus productos y "comprar toda la lista"
     if (fnClub('favoritos')) {
+      var favInfo = {};
+      (p.favs || []).forEach(function (f) { favInfo[favNorm(f.name)] = f; });
+      var favListas = Array.isArray(p.favCols) ? p.favCols : [];
       html += '<div class="cuenta-card cpn-sec" id="sec-favs" hidden>' +
-        '<div class="cpn-sec-cab"><h3>⭐ Mis favoritos</h3><button type="button" class="cpn-x" data-sec="favs" aria-label="Cerrar">✕</button></div>' +
-        ((p.favs && p.favs.length)
-          ? '<div class="cfav-grid">' + p.favs.map(function (f) { return favItemHtml(f, true); }).join('') + '</div>' +
-            '<button type="button" class="ct-enviar" id="cf-todos">🛒 Agregar todos a mi pedido</button>'
-          : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto del catálogo y aparecerá aquí.</p>' +
+        '<div class="cpn-sec-cab"><h3>⭐ Mis listas de favoritos</h3><button type="button" class="cpn-x" data-sec="favs" aria-label="Cerrar">✕</button></div>' +
+        (favListas.length
+          ? '<p class="fav-intro">Compra toda una lista de un solo toque 🛒 Toca la ⭐ de cualquier producto para guardarlo o cambiarlo de lista.</p>' +
+            favListas.map(function (c) { return favListaHtml(c, favInfo); }).join('')
+          : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto y organízalo en tus listas (Desayuno, Para reuniones…) para comprarlo en un toque.</p>' +
             '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>') +
         '</div>';
     }
@@ -2447,23 +2606,46 @@
     };
 
     document.getElementById('ct-salir').onclick = salirClub;
-    var cfTodos = document.getElementById('cf-todos');
-    if (cfTodos) cfTodos.onclick = function () { agregarListaAlCarrito(p.favs || []); };
 
-    // Quitar un favorito desde la cuenta
+    // Comprar toda una lista de favoritos de un toque (la meta: menos clics)
+    var addLista = int.querySelectorAll('.fl-add');
+    for (var al = 0; al < addLista.length; al++) {
+      (function (btn) {
+        btn.onclick = function () {
+          var cont = subirHasta(btn, 'fav-lista');
+          if (!cont) return;
+          var nom = cont.getAttribute('data-lista'), col = null;
+          (p.favCols || []).forEach(function (c) { if (favNorm(c.n) === favNorm(nom)) col = c; });
+          if (!col) return;
+          agregarListaAlCarrito((col.p || []).map(function (n) {
+            var info = favInfo[favNorm(n)] || {}; return { name: n, price: info.price };
+          }));
+        };
+      })(addLista[al]);
+    }
+
+    // Quitar un producto de UNA lista (si queda sin ninguna, sale de favoritos)
     var xs = int.querySelectorAll('.cfav-x');
     for (var i = 0; i < xs.length; i++) {
       (function (x) {
         x.onclick = function () {
-          var fila = x.parentNode;
+          var fila = x.parentNode; // .cfav
           var nom = fila.getAttribute('data-nombre');
+          var cont = subirHasta(x, 'fav-lista');
+          var lista = cont ? cont.getAttribute('data-lista') : '';
           fila.style.opacity = '.4';
-          cuentaPost({ action: 'fav', producto: nom, on: false }).then(function (j) {
+          var nuevas = [];
+          (p.favCols || []).forEach(function (c) {
+            if (favIncluye(c.p, nom) && favNorm(c.n) !== favNorm(lista)) nuevas.push(c.n);
+          });
+          cuentaPost({ action: 'fav', producto: nom, cols: nuevas }).then(function (j) {
             if (j && j.ok) {
-              if (fila.parentNode) fila.parentNode.removeChild(fila);
-              p.favs = (p.favs || []).filter(function (f) { return f.name !== nom; });
-              if (cuentaPerfil) cuentaPerfil.favs = p.favs;
-              if (!p.favs.length) pintarPanelCliente(int, p, 'favs');
+              var prev = {}; (p.favs || []).forEach(function (f) { prev[favNorm(f.name)] = f.price; });
+              p.favs = (j.favs || []).map(function (n) { return { name: n, price: prev[favNorm(n)] }; });
+              p.favCols = j.favCols || [];
+              if (cuentaPerfil) { cuentaPerfil.favs = p.favs; cuentaPerfil.favCols = p.favCols; }
+              marcarFavStars(nom, favIncluye(p.favs.map(function (f) { return f.name; }), nom));
+              pintarPanelCliente(int, p, 'favs');
             } else fila.style.opacity = '';
           }).catch(function () { fila.style.opacity = ''; });
         };

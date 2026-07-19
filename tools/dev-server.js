@@ -87,6 +87,10 @@ http.createServer((req, res) => {
         direcciones: ['Calle Los Pinos 456, Miraflores'],
         pedidos: 3, puntos: 120,
         favs: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105 }],
+        favCols: [
+          { n: 'Mis Favoritos', p: ['Pisco Porton Mosto Verde Acholado x 750 ml'] },
+          { n: 'Para reuniones', p: ['Pisco Porton Mosto Verde Acholado x 750 ml'] },
+        ],
         habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
         historial: [
           { id: 'h1', ts: Date.now() - 86400000, total: 129, estado: 'nuevo', items: [
@@ -112,9 +116,20 @@ http.createServer((req, res) => {
         let cuerpo = '';
         req.on('data', (c) => { cuerpo += c; });
         req.on('end', () => {
-          let accion = '';
-          try { accion = JSON.parse(cuerpo).action || ''; } catch (e) {}
+          let b = {};
+          try { b = JSON.parse(cuerpo) || {}; } catch (e) {}
+          const accion = b.action || '';
           if (accion === 'recuperar') return res.end('{"ok":true,"codigo":true}');
+          // Favoritos por listas: eco de las listas elegidas (stub de 1 producto)
+          if (accion === 'fav') {
+            const cols = Array.isArray(b.cols) ? b.cols : (b.on ? ['Mis Favoritos'] : []);
+            const prod = b.producto || '';
+            return res.end(JSON.stringify({
+              ok: true,
+              favs: (prod && cols.length) ? [prod] : [],
+              favCols: cols.map((n) => ({ n: n, p: [prod] })),
+            }));
+          }
           res.end(JSON.stringify({
             ok: true, token: 'sdevtoken', perfil, favs: perfil.favs.map(f => f.name), participando: true,
             nombre: 'Cliente de prueba', email: 'prueba@correo.com',
