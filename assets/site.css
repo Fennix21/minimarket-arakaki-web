@@ -890,11 +890,9 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .benef img { width: 100%; display: none; }
 .benef img.activa { display: block; }
 .benef .benef-flecha {
-  position: absolute; top: 50%; transform: translateY(-50%); background: var(--fondo-cinta);
-  color: #4a0c10; border: none; font-size: 20px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); transition: transform 0.15s, filter 0.15s;
+  position: absolute; top: 50%; transform: translateY(-50%); background: #fff;
+  color: var(--negro); border: none; font-size: 20px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
 }
-.benef .benef-flecha:hover { transform: translateY(-50%) scale(1.05); filter: brightness(1.05); }
 .benef .benef-izq { left: 10px; }
 .benef .benef-der { right: 10px; }
 
