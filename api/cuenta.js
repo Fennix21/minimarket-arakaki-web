@@ -172,6 +172,31 @@ async function frenoPin(req, tel) {
   return Number(nT) > 5 || Number(nI) > 20;
 }
 
+// Inicio de sesión: permite 15 PIN incorrectos. El bloqueo se activa cuando se
+// intenta una vez más y dura solo 3 minutos; los aciertos limpian el conteo.
+const PIN_LOGIN_MAX_FALLOS = 15;
+const PIN_LOGIN_BLOQUEO_SEG = 3 * 60;
+const pinLoginKey = (tel) => 'pinloginrl:' + tel;
+
+async function loginPinBloqueado(tel) {
+  return Number(await redis(['EXISTS', pinLoginKey(tel) + ':bloqueado'])) > 0;
+}
+
+async function registrarFalloLoginPin(tel) {
+  const key = pinLoginKey(tel);
+  const n = Number(await redis(['INCR', key]));
+  // Los fallos se cuentan en una ventana de tres minutos.
+  if (n === 1) await redis(['EXPIRE', key, String(PIN_LOGIN_BLOQUEO_SEG)]);
+  if (n <= PIN_LOGIN_MAX_FALLOS) return false;
+  await redis(['SET', key + ':bloqueado', '1', 'EX', String(PIN_LOGIN_BLOQUEO_SEG)]);
+  await redis(['DEL', key]);
+  return true;
+}
+
+async function limpiarFallosLoginPin(tel) {
+  await redis(['DEL', pinLoginKey(tel)]);
+}
+
 // ---------- Perfil completo del logueado (lo pinta /mi-cuenta) ----------
 
 async function cargarCliente(tel) {
@@ -433,10 +458,16 @@ module.exports = async (req, res) => {
       const tel = normTel(b.telefono);
       const pin = limpio(b.pin, 6);
       if (!tel || !/^\d{4,6}$/.test(pin)) return res.status(400).json({ error: 'Número o PIN incorrecto.' });
-      if (await frenoPin(req, tel)) return res.status(429).json({ error: 'Demasiados intentos. Espera un rato y vuelve a probar 🙏' });
+      if (await loginPinBloqueado(tel)) return res.status(429).json({ error: 'Demasiados intentos. Espera 3 minutos y vuelve a probar 🙏' });
       const cli = await cargarCliente(tel);
       // Mensaje genérico a propósito: no revela si el número tiene cuenta o no
-      if (!cli || !pinCorrecto(pin, cli)) return res.status(400).json({ error: 'Número o PIN incorrecto.' });
+      if (!cli || !pinCorrecto(pin, cli)) {
+        if (await registrarFalloLoginPin(tel)) {
+          return res.status(429).json({ error: 'Demasiados intentos. Espera 3 minutos y vuelve a probar 🙏' });
+        }
+        return res.status(400).json({ error: 'Número o PIN incorrecto.' });
+      }
+      await limpiarFallosLoginPin(tel);
       const nuevoToken = await crearSesion(cli, tel, uid);
       await guardarCliente(tel, cli);
       await stat('club_login');
