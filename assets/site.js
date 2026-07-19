@@ -36,6 +36,9 @@
       { href: '/backtoschool', ico: '🎒', txt: 'Desayuno Escolar' }, { href: '/frutas-y-vegetales', ico: '🥦', txt: 'Frutas y Vegetales' },
     ] },
   ];
+  // En la portada, enlazar a la propia portada no aporta navegación. Se omite al
+  // construir el menú (en vez de esconderlo con CSS) y se conserva en las demás rutas.
+  var ES_PORTADA = /^(?:\/|\/index(?:\.html)?)$/.test(location.pathname);
   // Fila "Favoritos de la casa" al tope del menú (Von Restorff + prueba social).
   var DESTACADOS = [
     { href: '/pisco', ico: '🥃', txt: 'Piscos' }, { href: '/whisky', ico: '🥃', txt: 'Whisky' },
@@ -652,8 +655,12 @@
 
     html += '<div class="menu-lista">';
     MENU.forEach(function (g, gi) {
-      html += '<div class="menu-grupo" data-g="' + gi + '">' + esc(g.grupo) + '</div>';
-      g.items.forEach(function (it) {
+      var items = g.items.filter(function (it) { return !(ES_PORTADA && it.href === '/'); });
+      // "Mi cuenta" se agrega después, si el Club está activo. Mientras tanto, no
+      // mostramos un encabezado Inicio sin opciones en la portada.
+      var grupoInicioVacio = ES_PORTADA && gi === 0 && !items.length;
+      html += '<div class="menu-grupo" data-g="' + gi + '"' + (grupoInicioVacio ? ' hidden' : '') + '>' + esc(g.grupo) + '</div>';
+      items.forEach(function (it) {
         var here = location.pathname === it.href || location.pathname === it.href + '.html';
         var badge = it.tag === 'top' ? '<span class="mi-badge top">🔥 Top</span>' :
                     it.tag === 'new' ? '<span class="mi-badge new">✨ Nuevo</span>' : '';
@@ -1236,6 +1243,12 @@
     a.setAttribute('data-nombre', 'mi cuenta club arakaki favoritos puntos sorteos');
     a.innerHTML = '<span class="mi-coin">👤</span><span class="mi-main"><span class="mi-txt">Mi cuenta</span>' +
       '<span class="mi-hint"></span></span><span class="mi-badge new">🎁 Club</span><span class="mi-chevron">›</span>';
+    var grupoInicio = lista.querySelector('.menu-grupo[data-g="0"]');
+    if (grupoInicio) grupoInicio.hidden = false;
+    if (ES_PORTADA && grupoInicio) {
+      lista.insertBefore(a, grupoInicio.nextSibling);
+      return;
+    }
     var primero = lista.querySelector('.menu-item'); // "Página principal" (grupo Inicio)
     if (primero && primero.nextSibling) lista.insertBefore(a, primero.nextSibling);
     else lista.appendChild(a);
