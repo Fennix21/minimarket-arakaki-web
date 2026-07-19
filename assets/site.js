@@ -2479,12 +2479,6 @@
       : '<span class="ch-foto ch-foto-vacia"' + (id ? ' id="' + id + '"' : '') + '>👤</span>';
   }
 
-  // Saludo según la hora del cliente (SOLO del panel del Club). OJO: la portada tiene su
-  // saludoHora(nombre) en este MISMO scope — el nombre debe seguir siendo distinto.
-  function saludoHoraClub() {
-    var h = new Date().getHours();
-    return (h >= 5 && h < 12) ? 'Buen día' : (h >= 12 && h < 19) ? 'Buenas tardes' : 'Buenas noches';
-  }
   // "Sábado 18, Julio" como en el boceto (con año solo si es de otro año)
   function fechaPedido(ts) {
     if (!ts) return 'Pedido anterior';
@@ -2517,7 +2511,7 @@
       '<div class="cpn-cab">' +
         '<span class="cpn-avatar">' + fotoHtml(p) + '</span>' +
         '<div class="cpn-tit">' +
-          '<h2 class="cpn-saludo">' + saludoHoraClub() + ', ' + esc((p.nombre || 'casero').split(' ')[0]) + '</h2>' +
+          '<h2 class="cpn-saludo">' + esc(saludoHora(p.nombre || 'casero')) + '</h2>' +
           '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
         '</div>' +
         '<button type="button" class="ct-salir" id="ct-salir" aria-label="Cerrar sesión"' + glowStyle('🚪') + '>🚪 Salir</button>' +
