@@ -2094,7 +2094,7 @@
           '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Ingresa tu clave <span class="clt-rombo">◆</span></h3>' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular', 9) +
           kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
-          kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="ct-enviar"' + glowStyle('✨') + ' disabled>Entrar a mi cuenta ✨</button>') +
+          kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="ct-enviar" disabled>Entrar a mi cuenta</button>') +
           '<label class="clt-check"><input type="checkbox" id="ct-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="ct-error"></p>' +
         '</div>' +
@@ -2125,12 +2125,12 @@
           window.renderCuenta();
         } else {
           btn.disabled = false;
-          btn.textContent = 'Entrar a mi cuenta ✨';
+          btn.textContent = 'Entrar a mi cuenta';
           err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
         }
       }).catch(function () {
         btn.disabled = false;
-        btn.textContent = 'Entrar a mi cuenta ✨';
+        btn.textContent = 'Entrar a mi cuenta';
         err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
       });
     };
@@ -2151,7 +2151,7 @@
           '<input class="clt-input" id="cn-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular (WhatsApp)', 9) +
           kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 a 6 números)', 6) +
-          kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="cn-enviar">Crear mi cuenta VIP ✨</button>') +
+          kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="cn-enviar">Crear mi cuenta VIP</button>') +
           '<label class="clt-check"><input type="checkbox" id="cn-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="cn-error"></p>' +
           '<p class="clt-ayuda"><a href="#" id="cn-volver">← Ya tengo cuenta</a></p>' +
@@ -2181,12 +2181,12 @@
           window.renderCuenta();
         } else {
           btn.disabled = false;
-          btn.textContent = 'Crear mi cuenta VIP ✨';
+          btn.textContent = 'Crear mi cuenta VIP';
           err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
         }
       }).catch(function () {
         btn.disabled = false;
-        btn.textContent = 'Crear mi cuenta VIP ✨';
+        btn.textContent = 'Crear mi cuenta VIP';
         err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
       });
     };
