@@ -411,6 +411,12 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .seccion.roja { background: var(--bg-roja); color: var(--blanco); }
 .seccion.vino { background: var(--bg-vino); color: var(--blanco); }
 .seccion.premium { background: var(--bg-premium); color: var(--blanco); }
+/* Inicio: las categorías, Atención Personalizada y el Club comparten una sola
+   superficie. Así el degradado vino continúa por el documento y no vuelve a
+   empezar en cada sección. El fondo sigue siendo editable desde el panel. */
+.home-flujo-vino { background: var(--bg-vino); color: var(--blanco); }
+.home-flujo-vino .seccion.vino,
+.home-flujo-vino .seccion.roja { background: transparent; }
 .seccion.premium .titulo-seccion { color: #f4ebd6; }
 .seccion.premium .titulo-seccion::after { content: ""; display: block; width: 64px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, #f6d98a, #d4af37); }
 .seccion .interior { max-width: 1100px; margin: 0 auto; }
