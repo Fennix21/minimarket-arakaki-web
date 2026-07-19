@@ -1332,7 +1332,7 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Íconos y contador SIN círculo de fondo (a pedido: se ve todo de un vistazo) */
 .cs-ico { flex: none; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.cs-txt { flex: 1; font-family: var(--tipo-titulos); font-size: 13px; font-weight: 600; color: #4a0c10; }
+.cs-txt { flex: 1; font-family: var(--tipo-titulos); font-size: 15.34px; font-weight: 600; color: #4a0c10; }
 .cs-badge { background: none; color: var(--rojo); font-family: var(--tipo-titulos); font-weight: 700; padding: 0 5px; font-size: 18px; }
 /* Chip dorado con flecha que rebota: señal clara de "toca para ver más". Rota al abrir. */
 .cs-chev {
@@ -1376,6 +1376,22 @@ button.cs-fila { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 8px 18px rgba(124, 83, 4, 0.28); transition: transform 0.15s, filter 0.15s;
 }
 .cs-vino:hover { transform: translateY(-2px); filter: brightness(1.1); }
+/* Barrido de luz exclusivo para "Ir a tienda", de izquierda a derecha. */
+.cs-vino.cs-brillo { position: relative; isolation: isolate; overflow: hidden; }
+.cs-vino.cs-brillo::after {
+  content: ''; position: absolute; z-index: 1; top: 0; bottom: 0; left: 0; width: 45%;
+  pointer-events: none; background: linear-gradient(100deg,
+    rgba(255, 255, 255, 0) 0%, rgba(255, 252, 222, 0.2) 40%,
+    rgba(255, 255, 255, 0.65) 50%, rgba(255, 252, 222, 0.2) 60%,
+    rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-160%) skewX(-20deg);
+  animation: cs-boton-brillo 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes cs-boton-brillo {
+  0% { transform: translateX(-160%) skewX(-20deg); }
+  55%, 100% { transform: translateX(320%) skewX(-20deg); }
+}
+@media (prefers-reduced-motion: reduce) { .cs-vino.cs-brillo::after { animation: none; display: none; } }
 
 /* Escritorio: acceso a 2 columnas (publicidad+accesos | teclado) y panel más aireado */
 @media (min-width: 861px) {

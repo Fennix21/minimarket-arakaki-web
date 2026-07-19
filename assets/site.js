@@ -2563,7 +2563,7 @@
       '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
       '<div class="cs-botones">' +
         '<a class="cs-vino" href="/pisco"><span>📖</span> Ver catálogo</a>' +
-        '<a class="cs-vino" href="/"><span>🛍️</span> Ir a tienda</a>' +
+        '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a tienda</a>' +
       '</div>' +
     '</div>' +
     '</div>';
