@@ -12,6 +12,7 @@
   --verde-wa: #25d366;
   --dorado: #d4af37;       /* dorado (acento) */
   --dorado-claro: #f2c85b; /* dorado claro (acento suave) */
+  --fondo-cinta: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
   /* Semánticos: estados de la interfaz (éxito / advertencia / error) */
   --exito: #28a745;
   --advertencia: #ffc107;
@@ -106,10 +107,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   white-space: nowrap; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
 }
 .cab .esp { flex: 1; }
-/* Botón de menú premium: píldora dorada que no pasa desapercibida en escritorio ni en móvil */
+/* Botón de menú: comparte exactamente el tono de la cinta de horarios. */
 .btn-menu {
   display: inline-flex; align-items: center; gap: 7px;
-  background: linear-gradient(180deg, #f7dc8f 0%, var(--dorado) 60%, #b8912f 100%);
+  background: var(--fondo-cinta);
   border: none; color: #4a0c10;
   font-size: 15px; font-weight: 800; letter-spacing: 0.3px;
   padding: 10px 20px; border-radius: 999px; cursor: pointer; font-family: inherit;
@@ -405,7 +406,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* ---------- Cinta marquee ---------- */
 /* Comparte el acabado dorado del CTA .btn-elegir para unificar las secciones de productos. */
 .cinta {
-  background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  background: var(--fondo-cinta);
   color: var(--rojo-osc);
   overflow: hidden; padding: 10px 0; white-space: nowrap;
 }
