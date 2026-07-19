@@ -2087,6 +2087,12 @@
       visor.textContent = v ? (v.slice(0, 3) + ' ' + v.slice(3, 6) + ' ' + v.slice(6)).replace(/\s+$/, '') : '000 000 000';
     }
   }
+  // Respuesta hÃ¡ptica opcional: los navegadores sin Vibration API ignoran esto y el acceso sigue normal.
+  function kpVibrar() {
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(18);
+    } catch (e) {}
+  }
   // Conecta los campos y el teclado dentro de `zona`; alCambiar se llama en cada tecla.
   function montarKeypad(zona, alCambiar) {
     var campos = [].slice.call(zona.querySelectorAll('.kp-campo'));
@@ -2130,7 +2136,10 @@
     }
     activar(primeroIncompleto());
     var teclas = zona.querySelectorAll('.kp-tecla');
-    for (var t = 0; t < teclas.length; t++) teclas[t].onclick = function () { teclear(this.getAttribute('data-d')); };
+    for (var t = 0; t < teclas.length; t++) teclas[t].onclick = function () {
+      kpVibrar();
+      teclear(this.getAttribute('data-d'));
+    };
     // Teclado físico (escritorio): números y Backspace van al campo activo, Enter envía
     if (KP_FISICO) document.removeEventListener('keydown', KP_FISICO);
     KP_FISICO = function (e) {
