@@ -214,7 +214,7 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 /* Grupos */
 #menu-panel .menu-lista { padding: 2px 0 0; }
 #menu-panel .menu-grupo {
-  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dorado);
+  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dorado); font-weight: 700;
   padding: 15px 22px 7px; display: flex; align-items: center; gap: 10px;
 }
 #menu-panel .menu-grupo::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(212,175,55,0.4), transparent); }
