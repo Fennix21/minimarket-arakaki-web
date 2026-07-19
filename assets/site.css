@@ -1598,4 +1598,6 @@ span.ch-foto-vacia {
   .cpn-avatar .ch-foto { width: 46px; height: 46px; }
   .ct-salir { padding: 8px 12px; font-size: 12.5px; }
   .cuenta-zona { padding-top: 14px; }
+  /* Más aire entre el encabezado de cada lista y sus productos, sin cambiar su tipografía. */
+  .fav-lista-cab { margin-bottom: 16px; }
 }
