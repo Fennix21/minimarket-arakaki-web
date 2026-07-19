@@ -1986,11 +1986,17 @@
       '" data-tipo="' + tipo + '" data-max="' + max + '" data-v="">' +
       '<span class="kp-eti">' + etiqueta + '</span><span class="kp-visor"></span></button>';
   }
-  function kpTecladoHtml() {
+  function kpTecladoHtml(accionHtml) {
     var t = '';
     for (var n = 1; n <= 9; n++) t += '<button type="button" class="kp-tecla" data-d="' + n + '">' + n + '</button>';
-    t += '<span class="kp-hueco"></span><button type="button" class="kp-tecla" data-d="0">0</button>' +
-      '<button type="button" class="kp-tecla kp-borrar" data-d="borrar" aria-label="Borrar">⌫</button>';
+    if (accionHtml) {
+      // En los formularios de acceso, la última fila es borrar · 0 · acción principal.
+      t += '<button type="button" class="kp-tecla kp-borrar" data-d="borrar" aria-label="Borrar">⌫</button>' +
+        '<button type="button" class="kp-tecla" data-d="0">0</button>' + accionHtml;
+    } else {
+      t += '<span class="kp-hueco"></span><button type="button" class="kp-tecla" data-d="0">0</button>' +
+        '<button type="button" class="kp-tecla kp-borrar" data-d="borrar" aria-label="Borrar">⌫</button>';
+    }
     return '<div class="kp-teclas">' + t + '</div>';
   }
   function kpVal(id) {
@@ -2088,13 +2094,9 @@
           '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Ingresa tu clave <span class="clt-rombo">◆</span></h3>' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular', 9) +
           kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
-          kpTecladoHtml() +
+          kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="ct-enviar"' + glowStyle('✨') + ' disabled>Entrar a mi cuenta ✨</button>') +
           '<label class="clt-check"><input type="checkbox" id="ct-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="ct-error"></p>' +
-          '<button type="button" class="ct-enviar clt-enviar" id="ct-enviar"' + glowStyle('✨') + ' disabled>Entrar a mi cuenta ✨</button>' +
-          '<p class="clt-ayuda">¿Problemas para entrar? <a href="https://wa.me/' + WA + '?text=' +
-            encodeURIComponent('Hola 👋 No puedo entrar a mi cuenta del Club Arakaki, ¿me ayudan?') +
-            '" target="_blank" rel="noopener">Escríbenos por WhatsApp 📲</a></p>' +
         '</div>' +
         '<a class="club-volver" href="/">🏪 Volver a la tienda</a>' +
       '</div>';
@@ -2149,10 +2151,9 @@
           '<input class="clt-input" id="cn-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular (WhatsApp)', 9) +
           kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 a 6 números)', 6) +
-          kpTecladoHtml() +
+          kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="cn-enviar">Crear mi cuenta VIP ✨</button>') +
           '<label class="clt-check"><input type="checkbox" id="cn-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="cn-error"></p>' +
-          '<button type="button" class="ct-enviar clt-enviar" id="cn-enviar">Crear mi cuenta VIP ✨</button>' +
           '<p class="clt-ayuda"><a href="#" id="cn-volver">← Ya tengo cuenta</a></p>' +
         '</div>' +
       '</div>';
