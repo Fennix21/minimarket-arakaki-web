@@ -386,6 +386,73 @@
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad moderno
   var PUSH_OK = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
+  // ---------- Instalar la web como aplicación (PWA) ----------
+  // `beforeinstallprompt` solo existe en navegadores que pueden mostrar el diálogo nativo.
+  // En Safari no existe: ahí damos una guía exacta, sin prometer una instalación que no ocurrió.
+  var eventoInstalarPWA = null;
+  var pwaInstaladaConfirmada = false; // appinstalled confirma la acción aun si la pestaña actual sigue en modo navegador
+  function pwaEstaInstalada() {
+    return pwaInstaladaConfirmada || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      window.navigator.standalone === true;
+  }
+  function pwaPintarBoton() {
+    var btn = document.getElementById('instalar-app-btn');
+    if (!btn) return;
+    var instalada = pwaEstaInstalada();
+    btn.classList.toggle('instalada', instalada);
+    btn.disabled = instalada;
+    btn.setAttribute('aria-label', instalada ? 'Aplicación instalada con éxito' : 'Instalar Minimarket Arakaki como aplicación');
+    btn.innerHTML = instalada
+      ? '<span class="menu-pwa-ico">✅</span><span class="menu-pwa-txt"><b>Aplicación instalada</b><small>Aplicación instalada con éxito</small></span>'
+      : '<span class="menu-pwa-ico">📲</span><span class="menu-pwa-txt"><b>Instala la app Arakaki</b><small>Ten la tienda siempre a un toque</small></span><span class="menu-pwa-flecha">›</span>';
+  }
+  function pwaMostrarGuia() {
+    var anterior = document.getElementById('pwa-guia');
+    if (anterior) anterior.parentNode.removeChild(anterior);
+    var guia = document.createElement('div');
+    guia.id = 'pwa-guia';
+    var pasos = IOS
+      ? '<ol><li>Toca <b>Compartir</b> <span class="pg-share">⎋</span> en Safari</li><li>Elige <b>“Agregar a inicio”</b></li><li>Confirma con <b>Agregar</b></li></ol>'
+      : '<p>Abre el menú de tu navegador (<b>⋮</b>) y elige <b>“Instalar aplicación”</b> o <b>“Agregar a pantalla de inicio”</b>.</p>';
+    guia.innerHTML = '<div class="pg-caja" role="dialog" aria-modal="true" aria-labelledby="pwa-guia-titulo">' +
+      '<button class="pg-x" type="button" aria-label="Cerrar">✕</button>' +
+      '<div class="pg-ico">📲</div><h4 id="pwa-guia-titulo">Instala Arakaki en tu celular</h4>' +
+      '<p>Así tendrás la tienda como una aplicación, siempre a un toque.</p>' + pasos +
+      '<button class="pwa-entendido" type="button">Entendido</button></div>';
+    guia.addEventListener('click', function (e) {
+      if (e.target === guia || (e.target.closest && e.target.closest('.pg-x, .pwa-entendido'))) guia.parentNode.removeChild(guia);
+    });
+    document.body.appendChild(guia);
+  }
+  function pwaPedirInstalacion() {
+    if (pwaEstaInstalada()) { pwaPintarBoton(); return; }
+    if (!eventoInstalarPWA) { pwaMostrarGuia(); return; }
+    var btn = document.getElementById('instalar-app-btn');
+    var evento = eventoInstalarPWA;
+    eventoInstalarPWA = null; // el navegador deja usar este evento una sola vez
+    if (btn) { btn.disabled = true; btn.classList.add('cargando'); btn.querySelector('.menu-pwa-txt b').textContent = 'Abriendo instalación…'; }
+    evento.prompt();
+    evento.userChoice.then(function (respuesta) {
+      if (btn) { btn.disabled = false; btn.classList.remove('cargando'); }
+      // appinstalled confirma la instalación; si se cancela, el CTA vuelve a quedar disponible.
+      if (!respuesta || respuesta.outcome !== 'accepted') pwaPintarBoton();
+    }).catch(function () { if (btn) { btn.disabled = false; btn.classList.remove('cargando'); } pwaPintarBoton(); });
+  }
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    eventoInstalarPWA = e;
+    pwaPintarBoton();
+  });
+  window.addEventListener('appinstalled', function () {
+    eventoInstalarPWA = null;
+    pwaInstaladaConfirmada = true;
+    pwaPintarBoton();
+  });
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('#instalar-app-btn') : null;
+    if (btn && !btn.disabled) pwaPedirInstalacion();
+  });
+
   function pushRegistrarSW() {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function () {});
   }
@@ -654,11 +721,13 @@
     });
     html += '</div>';
     html += '<div class="menu-vacio">No encontramos esa categoría. Escríbenos y te ayudamos 💬</div>';
-    html += '<div class="menu-pie"><a href="https://wa.me/' + WA + '" target="_blank" rel="noopener">💬 ¿No lo encuentras? Pídelo por WhatsApp</a></div>';
+    html += '<div class="menu-pie"><button type="button" id="instalar-app-btn" class="menu-pwa-btn" aria-label="Instalar Minimarket Arakaki como aplicación">' +
+      '<span class="menu-pwa-ico">📲</span><span class="menu-pwa-txt"><b>Instala la app Arakaki</b><small>Ten la tienda siempre a un toque</small></span><span class="menu-pwa-flecha">›</span></button></div>';
 
     panel.innerHTML = html;
     document.body.appendChild(fondo);
     document.body.appendChild(panel);
+    pwaPintarBoton();
 
     // Índice de PRODUCTOS por categoría (para buscar productos, no solo categorías).
     // Se arma desde el catálogo cargado en la página (window.ARAKAKI_CATALOG).

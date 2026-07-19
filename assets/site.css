@@ -259,10 +259,26 @@ body.menu-abierto #menu-panel { transform: translateX(0); }
 #menu-panel.buscando .menu-dest, #menu-panel.buscando .menu-dest-tit { display: none; }
 #menu-panel .menu-vacio { display: none; padding: 16px 22px; opacity: .65; font-size: 13px; line-height: 1.5; }
 
-/* Pie: salida a WhatsApp */
+/* Pie: instalar la PWA. Este CTA reemplaza la salida a WhatsApp para que la app no pase desapercibida. */
 #menu-panel .menu-pie { margin: 18px 18px 0; padding-top: 16px; border-top: 1px solid rgba(212,175,55,0.2); }
-#menu-panel .menu-pie a { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 12px; background: rgba(37,211,102,0.14); border: 1px solid rgba(37,211,102,0.4); color: #eafff2; font-weight: 600; font-size: 13px; transition: .15s; }
-#menu-panel .menu-pie a:hover { background: rgba(37,211,102,0.24); }
+#menu-panel .menu-pwa-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 12px; text-align: left;
+  font: inherit; color: #fff6d7; cursor: pointer; border-radius: 14px;
+  border: 1px solid rgba(212,175,55,0.75); background: linear-gradient(105deg, rgba(176,118,12,0.38), rgba(212,175,55,0.16));
+  box-shadow: 0 0 0 1px rgba(255,227,142,0.08) inset, 0 0 18px rgba(212,175,55,0.26); transition: .18s;
+  animation: menuPwaLlamado 2.1s ease-in-out infinite;
+}
+#menu-panel .menu-pwa-btn:hover:not(:disabled), #menu-panel .menu-pwa-btn:focus-visible:not(:disabled) { transform: translateY(-1px); background: linear-gradient(105deg, rgba(176,118,12,0.55), rgba(212,175,55,0.26)); box-shadow: 0 0 0 2px rgba(255,227,142,0.22), 0 8px 22px rgba(212,175,55,0.28); outline: none; }
+#menu-panel .menu-pwa-ico { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; font-size: 21px; border-radius: 11px; background: rgba(0,0,0,0.24); }
+#menu-panel .menu-pwa-txt { min-width: 0; display: grid; gap: 2px; line-height: 1.15; }
+#menu-panel .menu-pwa-txt b { font-size: 13.5px; }
+#menu-panel .menu-pwa-txt small { color: rgba(255,246,215,0.78); font-size: 11px; }
+#menu-panel .menu-pwa-flecha { margin-left: auto; color: var(--dorado); font-size: 27px; line-height: .8; }
+#menu-panel .menu-pwa-btn.instalada { cursor: default; border-color: rgba(91,219,137,0.58); background: rgba(36,143,75,0.18); box-shadow: none; animation: none; }
+#menu-panel .menu-pwa-btn.instalada .menu-pwa-ico { background: rgba(58,184,98,0.18); }
+#menu-panel .menu-pwa-btn:disabled { opacity: 1; }
+#menu-panel .menu-pwa-btn.cargando { cursor: wait; animation: none; }
+@keyframes menuPwaLlamado { 0%, 100% { box-shadow: 0 0 0 1px rgba(255,227,142,0.08) inset, 0 0 14px rgba(212,175,55,0.2); } 50% { box-shadow: 0 0 0 1px rgba(255,227,142,0.28) inset, 0 0 28px rgba(212,175,55,0.52); } }
 
 /* Cascada de aparición al abrir */
 body.menu-abierto #menu-panel .menu-item,
@@ -847,6 +863,26 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 #push-guia-ios p { font-size: 13.5px; opacity: 0.85; }
 #push-guia-ios ol { text-align: left; font-size: 13.5px; line-height: 1.6; margin: 12px 0 4px; padding-left: 22px; }
 #push-guia-ios .pg-share { display: inline-block; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 0 5px; font-size: 12px; }
+
+/* Guía de instalación PWA cuando el navegador no puede abrir su diálogo nativo (Safari, etc.). */
+#pwa-guia {
+  position: fixed; inset: 0; z-index: 10001; background: rgba(0, 0, 0, 0.7);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+#pwa-guia .pg-caja {
+  position: relative; background: #262626; color: #f4ecd8; border: 1px solid rgba(212, 175, 55, 0.6);
+  border-radius: 16px; padding: 26px 24px 20px; max-width: 350px; text-align: center;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+#pwa-guia .pg-x { position: absolute; top: 10px; right: 12px; background: none; border: none; color: rgba(255,255,255,.55); font-size: 17px; cursor: pointer; }
+#pwa-guia .pg-ico { font-size: 38px; }
+#pwa-guia h4 { font-size: 17px; margin: 8px 0 6px; color: var(--dorado); }
+#pwa-guia p, #pwa-guia ol { font-size: 13.5px; line-height: 1.55; }
+#pwa-guia p { margin: 8px 0; opacity: .88; }
+#pwa-guia ol { text-align: left; margin: 12px 0; padding-left: 22px; }
+#pwa-guia .pg-share { display: inline-block; border: 1px solid rgba(255,255,255,.4); border-radius: 4px; padding: 0 5px; font-size: 12px; }
+#pwa-guia .pwa-entendido { margin-top: 5px; padding: 10px 22px; border: 0; border-radius: 999px; color: #261b08; background: var(--dorado); font: inherit; font-weight: 700; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { #menu-panel .menu-pwa-btn { animation: none; } }
 
 /* ---------- Beneficios (carrusel simple) ---------- */
 .benef { max-width: 620px; margin: 30px auto 0; position: relative; border-radius: 14px; overflow: hidden; box-shadow: var(--sombra); }
