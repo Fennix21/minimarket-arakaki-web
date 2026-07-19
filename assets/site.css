@@ -445,13 +445,11 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* Imagen a su ratio original (3:4 ó 1:1), sin recorte: se muestra completa */
 .prod .prod-img { position: relative; background: #0a0908; line-height: 0; }
 .prod .prod-img img { width: 100%; height: auto; display: block; }
-/* Escritorio: todas las cards reservan el mismo marco vertical. Así las fotos cuadradas
-   no dejan una zona de contenido desproporcionada frente a las fotos 3:4. Las imágenes
-   verticales conservan exactamente su encuadre; las cuadradas se centran dentro del marco.
-   Móvil y tablet mantienen su proporción original (regla fuera de este media query). */
+/* Escritorio: cada card toma la altura de su propio contenido. Así las fotos 1:1 conservan
+   su proporción completa y no generan espacio vacío al compartir fila con imágenes 3:4.
+   Móvil y tablet conservan el comportamiento actual. */
 @media (min-width: 901px) {
-  .grilla-prods .prod-img { aspect-ratio: 3 / 4; overflow: hidden; }
-  .grilla-prods .prod-img img { height: 100%; object-fit: cover; object-position: center; }
+  .grilla-prods { align-items: start; }
 }
 /* Sello dorado persistente: de un vistazo se ve que el producto está elegido (también en móvil) */
 .prod .prod-check {
