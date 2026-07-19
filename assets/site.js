@@ -1002,7 +1002,7 @@
   // Saludo según la hora local del cliente: mañana / tarde / noche (solo su primer nombre).
   function saludoHora(nombre) {
     var h = new Date().getHours();
-    var franja = (h >= 5 && h < 12) ? '¡Bonito día' : (h < 19) ? '¡Bonita tarde' : '¡Bonita noche';
+    var franja = (h >= 5 && h < 12) ? '¡Bonito día' : (h >= 12 && h < 19) ? '¡Bonita tarde' : '¡Bonita noche';
     return franja + ', ' + String(nombre).trim().split(' ')[0] + '!';
   }
 
@@ -2483,7 +2483,7 @@
   // saludoHora(nombre) en este MISMO scope — el nombre debe seguir siendo distinto.
   function saludoHoraClub() {
     var h = new Date().getHours();
-    return h < 12 ? 'Buen día' : (h < 19 ? 'Buenas tardes' : 'Buenas noches');
+    return (h >= 5 && h < 12) ? 'Buen día' : (h >= 12 && h < 19) ? 'Buenas tardes' : 'Buenas noches';
   }
   // "Sábado 18, Julio" como en el boceto (con año solo si es de otro año)
   function fechaPedido(ts) {
