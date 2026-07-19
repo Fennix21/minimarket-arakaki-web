@@ -744,11 +744,11 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .cc-arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 8;
   width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
-  background: #fff; color: var(--negro); font-size: 26px; line-height: 1; font-weight: 700;
+  background: var(--fondo-cinta); color: #4a0c10; font-size: 26px; line-height: 1; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); transition: transform 0.15s, background 0.15s, color 0.15s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); transition: transform 0.15s, filter 0.15s;
 }
-.cc-arrow:hover { background: var(--dorado); color: #fff; }
+.cc-arrow:hover { transform: translateY(-50%) scale(1.05); filter: brightness(1.05); }
 .cc-prev { left: 6px; }
 .cc-next { right: 6px; }
 
@@ -761,7 +761,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 
 .cc-cta {
   display: block; width: fit-content; max-width: 94%; margin: 15px auto 0;
-  background: linear-gradient(180deg, #f6d98a 0%, #e6bd55 55%, #d4af37 100%);
+  background: var(--fondo-cinta);
   color: var(--rojo); font-family: var(--tipo-titulos); font-weight: 700; text-align: center;
   padding: 14px 26px; border-radius: 999px; font-size: clamp(13.5px, 1.5vw, 16px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); transition: transform 0.15s, box-shadow 0.15s;
@@ -890,9 +890,11 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .benef img { width: 100%; display: none; }
 .benef img.activa { display: block; }
 .benef .benef-flecha {
-  position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5);
-  color: #fff; border: none; font-size: 20px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+  position: absolute; top: 50%; transform: translateY(-50%); background: var(--fondo-cinta);
+  color: #4a0c10; border: none; font-size: 20px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); transition: transform 0.15s, filter 0.15s;
 }
+.benef .benef-flecha:hover { transform: translateY(-50%) scale(1.05); filter: brightness(1.05); }
 .benef .benef-izq { left: 10px; }
 .benef .benef-der { right: 10px; }
 
