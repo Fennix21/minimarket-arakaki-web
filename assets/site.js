@@ -19,7 +19,6 @@
   var MENU = [
     { grupo: 'Inicio', items: [
       { href: '/', ico: '🏠', txt: 'Página principal' },
-      { href: '/categorias', ico: '🗺️', txt: 'Ver todo el catálogo' },
     ] },
     { grupo: 'Licores', items: [
       { href: '/pisco', ico: '🥃', txt: 'Piscos', tag: 'top' }, { href: '/vinos', ico: '🇪🇸', txt: 'Vinos Españoles', tag: 'top' },
@@ -2570,7 +2569,7 @@
             favListas.map(function (c) { return favListaHtml(c, favInfo); }).join('') +
             '<div class="fav-sel-bar"><button type="button" class="ct-enviar fav-sel-add" disabled>🛒 Marca los productos que quieras agregar</button></div>'
           : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto y organízalo en tus listas (Desayuno, Para reuniones…) para comprarlo en un toque.</p>' +
-            '<a class="ct-enviar ct-link" href="/categorias">Ver el catálogo 🛍️</a>') +
+            '<a class="ct-enviar ct-link" href="/">Ver el catálogo 🛍️</a>') +
         '</div>';
     }
 
@@ -2666,8 +2665,7 @@
       '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev" aria-hidden="true">▼</span></button>' +
       '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
       '<div class="cs-botones">' +
-        '<a class="cs-vino" href="/categorias"><span>📖</span> Ver catálogo</a>' +
-        '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a tienda</a>' +
+        '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a la tienda</a>' +
       '</div>' +
     '</div>' +
     '</div>';
