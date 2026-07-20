@@ -1840,7 +1840,12 @@ span.ch-foto-vacia {
 }
 .cdc-ribbon.top { background: linear-gradient(160deg, #f7dc8f, #d4af37); color: #4a370a; }
 .cdc-ribbon.nuevo { background: linear-gradient(160deg, #a51f27, var(--rojo)); color: #f6d98a; }
-.cdc-body { padding: 13px 14px 4px; flex: 1; }
+.cdc-body {
+  padding: 13px 14px 8px; flex: 1;
+  /* Dorado premium suave tipo mate para la sección del título */
+  background: linear-gradient(180deg, #f7edd3 0%, #efe0bd 100%);
+  border-top: 1px solid rgba(212,175,55,0.28);
+}
 .cdc-name { font-family: var(--tipo-titulos); font-weight: 700; font-size: 15.5px; color: var(--texto); margin: 0 0 7px; line-height: 1.25; overflow-wrap: break-word; }
 .cdc-count {
   display: inline-block; font-family: var(--tipo-cuerpo); font-weight: 600; font-size: 12px;
