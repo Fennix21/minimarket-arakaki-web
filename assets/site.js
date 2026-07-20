@@ -3797,6 +3797,48 @@
     });
     if (btnX) btnX.addEventListener('click', function () { input.value = ''; buscar(''); input.focus(); });
 
+    // Placeholder tipo "máquina de escribir": va sugiriendo qué buscar (chocolates → helados → aguas…).
+    // Solo mientras el campo está vacío; se pausa al enfocar/escribir y respeta prefers-reduced-motion.
+    (function animarPlaceholder() {
+      if (!input) return;
+      var FIJO = 'Busca un producto o categoría… (pisco, chocolate, agua…)'; // placeholder de reposo (foco / sin animación)
+      var SUGE = ['chocolates', 'helados', 'aguas', 'pisco', 'vino', 'whisky', 'ron', 'galletas'];
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) { input.placeholder = FIJO; return; } // sin animación: placeholder fijo
+
+      var t = null, i = 0, pos = 0, borrando = false, activo = false;
+
+      function pintar(txt) { input.placeholder = 'Busca “' + txt + '”…'; }
+
+      function paso() {
+        if (!activo) return;
+        var palabra = SUGE[i % SUGE.length];
+        if (!borrando) {
+          pos++;
+          pintar(palabra.slice(0, pos));
+          if (pos >= palabra.length) { borrando = true; t = setTimeout(paso, 1500); return; } // palabra completa: pausa
+          t = setTimeout(paso, 85);
+        } else {
+          pos--;
+          pintar(palabra.slice(0, pos));
+          if (pos <= 0) { borrando = false; i++; t = setTimeout(paso, 350); return; } // pasa a la siguiente
+          t = setTimeout(paso, 45);
+        }
+      }
+
+      function arrancar() {
+        if (activo) return;
+        if (input.value.trim() || document.activeElement === input) return; // solo en reposo y vacío
+        activo = true; i = 0; pos = 0; borrando = false;
+        t = setTimeout(paso, 400);
+      }
+      function parar() { activo = false; clearTimeout(t); }
+
+      input.addEventListener('focus', function () { parar(); input.placeholder = FIJO; });
+      input.addEventListener('blur', function () { if (!input.value.trim()) arrancar(); });
+      arrancar();
+    })();
+
     // Datos en vivo: conteos que CALCAN lo que ve el cliente en cada página de categoría
     // (sin ocultos, + productos nuevos del panel) e índice para el buscador.
     cargarVivo(function (data) {
