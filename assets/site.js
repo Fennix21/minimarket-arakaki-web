@@ -2088,6 +2088,9 @@
   function kpPintar(campo) {
     var v = campo.getAttribute('data-v') || '';
     var visor = campo.querySelector('.kp-visor');
+    // Campo completo (celular de 9 dígitos o clave de 4) → se pinta de verde esmeralda.
+    var max = Number(campo.getAttribute('data-max')) || 0;
+    campo.classList.toggle('lleno', max > 0 && v.length >= max);
     if (campo.getAttribute('data-tipo') === 'pin') {
       // Puntitos secretos: uno lleno por cada número tecleado (4 huecos de guía como mínimo)
       var men = Math.max(4, v.length);
@@ -2184,7 +2187,7 @@
         '<div class="club-tarjeta" id="cl-tarjeta">' +
           '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Ingresa tu clave <span class="clt-rombo">◆</span></h3>' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular', 9) +
-          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 4) +
           kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="ct-enviar" disabled>Entrar a mi cuenta</button>') +
           '<label class="clt-check"><input type="checkbox" id="ct-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="ct-error"></p>' +
@@ -2204,7 +2207,7 @@
       var pin = kpVal('kp-pin');
       err.textContent = '';
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave tiene de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave tiene 4 números.'; return; }
       btn.disabled = true;
       btn.textContent = 'Un momento…';
       var recordar = !!(document.getElementById('ct-recordar') && document.getElementById('ct-recordar').checked);
@@ -2241,7 +2244,7 @@
           '<label class="clt-lab" for="cn-email">Tu correo <small>(opcional, para recuperar tu clave)</small></label>' +
           '<input class="clt-input" id="cn-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular (WhatsApp)', 9) +
-          kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 a 6 números)', 6) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 números)', 4) +
           kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="cn-enviar">Crear mi cuenta VIP</button>') +
           '<label class="clt-check"><input type="checkbox" id="cn-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="cn-error"></p>' +
@@ -2260,7 +2263,7 @@
       err.textContent = '';
       if (nombre.length < 2) { err.textContent = 'Cuéntanos tu nombre 🙂'; return; }
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave debe tener 4 números.'; return; }
       btn.disabled = true;
       btn.textContent = 'Un momento…';
       var recordar = !!(document.getElementById('cn-recordar') && document.getElementById('cn-recordar').checked);
@@ -2292,7 +2295,7 @@
           '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Cambio de número <span class="clt-rombo">◆</span></h3>' +
           '<p class="clt-desc">¿Estrenaste celular? 📲 Pasa tu cuenta con tus puntos, favoritos y pedidos a tu número nuevo.</p>' +
           kpCampoHtml('kp-telv', 'tel', '📱 Tu celular ACTUAL', 9) +
-          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 4) +
           kpCampoHtml('kp-teln', 'tel', '✨ Tu celular NUEVO', 9) +
           kpTecladoHtml() +
           '<p class="ct-error" id="cb-error"></p>' +
@@ -2312,7 +2315,7 @@
       var telN = kpVal('kp-teln');
       err.textContent = '';
       if (telV.length < 9) { err.textContent = 'Revisa tu número actual (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave tiene de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave tiene 4 números.'; return; }
       if (telN.length < 9) { err.textContent = 'Revisa tu número nuevo (9 dígitos).'; return; }
       if (telV === telN) { err.textContent = 'El número nuevo es igual al actual 🙂'; return; }
       btn.disabled = true;
@@ -2353,8 +2356,8 @@
           '<label for="cr-email">Tu correo registrado</label>' +
           '<input id="cr-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
           (porCodigo ? '' :
-            '<label for="cr-pin">Tu PIN nuevo (4 a 6 números)</label>' +
-            '<input id="cr-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+            '<label for="cr-pin">Tu PIN nuevo (4 números)</label>' +
+            '<input id="cr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
             '<label class="ct-check"><input type="checkbox" id="cr-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>') +
           '<p class="ct-error" id="cr-error"></p>' +
           '<button type="submit" class="ct-enviar" id="cr-enviar">' + (porCodigo ? '📩 Enviarme el código' : 'Recuperar y entrar') + '</button>' +
@@ -2376,7 +2379,7 @@
       err.textContent = '';
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
       if (!email) { err.textContent = 'Ingresa el correo que registraste en tu cuenta.'; return; }
-      if (!porCodigo && !/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!porCodigo && !/^\d{4}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener 4 números.'; return; }
       var recordar = !!(document.getElementById('cr-recordar') && document.getElementById('cr-recordar').checked);
       btn.disabled = true;
       btn.textContent = 'Un momento…';
@@ -2409,8 +2412,8 @@
         '<form id="cc-form" autocomplete="off">' +
           '<label for="cc-codigo">Código del correo</label>' +
           '<input id="cc-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">' +
-          '<label for="cc-pin">Tu PIN nuevo (4 a 6 números)</label>' +
-          '<input id="cc-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+          '<label for="cc-pin">Tu PIN nuevo (4 números)</label>' +
+          '<input id="cc-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
           '<label class="ct-check"><input type="checkbox" id="cc-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
           '<p class="ct-error" id="cc-error"></p>' +
           '<button type="submit" class="ct-enviar" id="cc-enviar">Cambiar mi PIN y entrar</button>' +
@@ -2426,7 +2429,7 @@
       var pin = (document.getElementById('cc-pin').value || '').trim();
       err.textContent = '';
       if (codigo.length !== 6) { err.textContent = 'Escribe el código de 6 números que te llegó al correo.'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener 4 números.'; return; }
       var recordar = !!(document.getElementById('cc-recordar') && document.getElementById('cc-recordar').checked);
       btn.disabled = true;
       btn.textContent = 'Un momento…';
@@ -2547,8 +2550,8 @@
       '<p class="ct-error" id="cd-error"></p>' +
       '<button type="button" class="ct-enviar" id="cd-guardar">💾 Guardar mis datos</button>' +
       '<h3 class="cpn-sub-tit">🔑 Cambiar mi clave</h3>' +
-      '<label for="cp-actual">Tu clave actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
-      '<label for="cp-nuevo">Tu clave nueva (4 a 6 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+      '<label for="cp-actual">Tu clave actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
+      '<label for="cp-nuevo">Tu clave nueva (4 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
       '<p class="ct-error" id="cp-error"></p>' +
       '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button></div>';
 
@@ -2984,7 +2987,7 @@
       var actual = (document.getElementById('cp-actual').value || '').trim();
       var nuevo = (document.getElementById('cp-nuevo').value || '').trim();
       errP.textContent = '';
-      if (!/^\d{4,6}$/.test(nuevo)) { errP.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(nuevo)) { errP.textContent = 'El PIN nuevo debe tener 4 números.'; return; }
       cpBtn.disabled = true; cpBtn.textContent = 'Un momento…';
       cuentaPost({ action: 'pin', pinActual: actual, pinNuevo: nuevo }).then(function (j) {
         cpBtn.disabled = false;
