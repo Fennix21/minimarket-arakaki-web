@@ -3491,6 +3491,90 @@
       '</div></div>';
   }
 
+  // ---------- Carrusel coverflow de la categoría (antes vivía en el home) ----------
+  // Se muestra al inicio de cada página de categoría, debajo del video del hero.
+  // Categorías con foto de producto cuadrada (1:1): card 1:1 (cc-cuadrado) para no recortar.
+  var CC_CUADRADAS = { 'refrescos': 1, 'helados': 1, 'chocolates-importados': 1, 'dulces': 1, 'galletas': 1, 'backtoschool': 1, 'frutas-y-vegetales': 1 };
+
+  function carruselCatHTML(slug) {
+    var cat = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
+    if (!cat) return '';
+    var prods = [];
+    cat.sections.forEach(function (s) { prods = prods.concat(s.products); });
+    var slides = prods.slice(0, 6); // hasta 6 posters en el coverflow (imagen a su ratio, sin recorte)
+    if (!slides.length) return '';
+    var caras = slides.map(function (p) {
+      return '<div class="cc-slide" data-nombre="' + esc(p.name) + '"><img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '"></div>';
+    }).join('');
+    var multi = slides.length > 1;
+    var puntos = multi ? slides.map(function (p, i) {
+      return '<span' + (i === 0 ? ' class="on"' : '') + '></span>';
+    }).join('') : '';
+    // Sin CTA: el carrusel ya está DENTRO de su categoría. El nombre del producto activo
+    // reemplaza al contador "01 / 06" de la versión del home.
+    return '<section class="seccion premium cc-intro"><div class="interior">' +
+      '<div class="cat-carrusel' + (CC_CUADRADAS[slug] ? ' cc-cuadrado' : '') + '" data-carrusel>' +
+        '<div class="cc-stage">' + caras +
+          (multi ? '<button class="cc-arrow cc-prev" aria-label="Anterior">‹</button>' +
+                   '<button class="cc-arrow cc-next" aria-label="Siguiente">›</button>' : '') +
+        '</div>' +
+        '<div class="cc-nombre">' + esc(slides[0].name) + '</div>' +
+        (multi ? '<div class="cc-dots">' + puntos + '</div>' : '') +
+      '</div>' +
+    '</div></section>';
+  }
+
+  // Inicializa el coverflow (posición/opacidad según distancia al centro) y muestra el nombre del activo.
+  function crearCarrusel(nodo) {
+    var slides = nodo.querySelectorAll('.cc-slide');
+    var puntos = nodo.querySelectorAll('.cc-dots span');
+    var nombre = nodo.querySelector('.cc-nombre');
+    var n = slides.length, idx = 0, pausa = false;
+    function pintar() {
+      for (var i = 0; i < n; i++) {
+        var off = i - idx;                 // distancia circular más corta al slide activo
+        if (off > n / 2) off -= n;
+        if (off < -n / 2) off += n;
+        var s = slides[i];
+        s.classList.remove('es-activa', 'es-lado');
+        if (off === 0) {
+          s.style.transform = 'translate(-50%,-50%) scale(1)';
+          s.style.opacity = '1'; s.style.zIndex = '5';
+          s.classList.add('es-activa');
+        } else if (off === -1) {
+          s.style.transform = 'translate(-50%,-50%) translateX(-72%) scale(0.8) rotateY(22deg)';
+          s.style.opacity = '0.5'; s.style.zIndex = '3';
+          s.classList.add('es-lado');
+        } else if (off === 1) {
+          s.style.transform = 'translate(-50%,-50%) translateX(72%) scale(0.8) rotateY(-22deg)';
+          s.style.opacity = '0.5'; s.style.zIndex = '3';
+          s.classList.add('es-lado');
+        } else {
+          s.style.transform = 'translate(-50%,-50%) scale(0.65)';
+          s.style.opacity = '0'; s.style.zIndex = '1';
+        }
+      }
+      for (var d = 0; d < puntos.length; d++) puntos[d].className = (d === idx ? 'on' : '');
+      if (nombre && slides[idx]) nombre.textContent = slides[idx].getAttribute('data-nombre') || '';
+    }
+    function ir(paso) { idx = (idx + paso + n) % n; pintar(); }
+    var prev = nodo.querySelector('.cc-prev'), next = nodo.querySelector('.cc-next');
+    if (prev) prev.onclick = function () { ir(-1); };
+    if (next) next.onclick = function () { ir(1); };
+    for (var q = 0; q < puntos.length; q++) (function (j) { puntos[j].onclick = function () { idx = j; pintar(); }; })(q);
+    nodo.onmouseenter = function () { pausa = true; };
+    nodo.onmouseleave = function () { pausa = false; };
+    pintar();
+    return { avanzar: function () { if (!pausa && n > 1) ir(1); } };
+  }
+
+  function montarCarruselCat(cont) {
+    var nodo = cont.querySelector('[data-carrusel]');
+    if (!nodo) return;
+    var car = crearCarrusel(nodo);
+    setInterval(function () { car.avanzar(); }, 2000); // autoplay: cada producto 2 s
+  }
+
   window.renderCategoria = function (slug) {
     var cat = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
     var cont = document.getElementById('contenido-categoria');
@@ -3501,6 +3585,8 @@
       (cat.video ? '<video src="' + esc(cat.video) + '" autoplay muted loop playsinline></video>' : '') +
       '</section>';
 
+    html += carruselCatHTML(slug); // carrusel coverflow debajo del video (migrado del home)
+
     cat.sections.forEach(function (sec, si) {
       html += '<section class="seccion premium"><div class="interior">' +
         '<h2 class="titulo-seccion">' + esc(sec.title) + '</h2>' +
@@ -3509,6 +3595,8 @@
         '</div></div></section>';
     });
     cont.innerHTML = html;
+
+    montarCarruselCat(cont); // arranca el coverflow de la categoría (debajo del video)
 
     function conectarCard(card, p) {
       card.querySelector('.btn-elegir').onclick = function () { alternarProducto(p); };

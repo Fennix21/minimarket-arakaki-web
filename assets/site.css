@@ -764,6 +764,20 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .cc-counter b { color: var(--dorado); }
 
+/* Nombre del producto activo bajo el coverflow (reemplaza al contador en las páginas de categoría) */
+.cc-nombre {
+  text-align: center; margin-top: 16px; padding: 0 12px;
+  color: var(--dorado-claro);
+  font-family: var(--tipo-titulos); font-weight: 700;
+  font-size: clamp(15px, 2vw, 21px); letter-spacing: 0.4px; line-height: 1.3;
+  min-height: 2.6em; /* reserva 2 líneas para que el layout no salte al cambiar de producto */
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Carrusel al inicio de cada página de categoría (debajo del video): fondo premium continuo */
+.cc-intro { padding-top: 22px; padding-bottom: 14px; }
+.cc-intro .interior { max-width: 520px; }
+
 .cc-cta {
   display: block; width: fit-content; max-width: 94%; margin: 15px auto 0;
   background: var(--fondo-cinta);
