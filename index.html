@@ -349,6 +349,10 @@
     <span>🎉 Atendemos feriados</span>
   </div></div>
 
+  <!-- Directorio del catálogo ("El mapa de la tienda", antes en /categorias):
+       lo pinta assets/site.js → renderCatalogo() dentro de #contenido-catalogo. -->
+  <div id="contenido-catalogo"></div>
+
   <!-- Beneficios y Club: un solo fondo vino continuo para que el degradado
        no se reinicie al pasar de una sección a otra.
        (Los carruseles de categoría se migraron al inicio de cada página de categoría,
@@ -408,6 +412,7 @@
 
 <script src="/data/catalog.js"></script>
 <script src="/assets/site.js"></script>
+<script>renderCatalogo();</script>
 <script>
 (function () {
   // ----- Popup del mapa -----
