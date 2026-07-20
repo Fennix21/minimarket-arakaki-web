@@ -3664,9 +3664,7 @@
 
     function tileHTML(it) {
       var info = it._info;
-      var ribbon = it.tag === 'top'
-        ? '<span class="cdc-ribbon top">⭐ Favorito</span>'
-        : (it.tag === 'new' ? '<span class="cdc-ribbon nuevo">✨ Nuevo</span>' : '');
+      var ribbon = it.tag === 'new' ? '<span class="cdc-ribbon nuevo">✨ Nuevo</span>' : '';
       return '<a class="cat-dir-card" href="' + it.href + '" data-slug="' + it._slug + '">' +
         '<div class="cdc-thumb">' + ribbon +
           '<span class="cdc-emoji">' + info.emoji + '</span>' +
