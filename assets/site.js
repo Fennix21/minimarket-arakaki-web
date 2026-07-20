@@ -17,7 +17,10 @@
   // tag opcional ('top'/'new') pinta un badge de social proof. El dueño puede ajustar
   // los badges y los DESTACADOS aquí sin tocar nada más.
   var MENU = [
-    { grupo: 'Inicio', items: [{ href: '/', ico: '🏠', txt: 'Página principal' }] },
+    { grupo: 'Inicio', items: [
+      { href: '/', ico: '🏠', txt: 'Página principal' },
+      { href: '/categorias', ico: '🗺️', txt: 'Ver todo el catálogo' },
+    ] },
     { grupo: 'Licores', items: [
       { href: '/pisco', ico: '🥃', txt: 'Piscos', tag: 'top' }, { href: '/vinos', ico: '🇪🇸', txt: 'Vinos Españoles', tag: 'top' },
       { href: '/vinos-peruanos', ico: '🇵🇪', txt: 'Vinos Peruanos' }, { href: '/vinos-argentinos', ico: '🇦🇷', txt: 'Vinos Argentinos' },
@@ -2567,7 +2570,7 @@
             favListas.map(function (c) { return favListaHtml(c, favInfo); }).join('') +
             '<div class="fav-sel-bar"><button type="button" class="ct-enviar fav-sel-add" disabled>🛒 Marca los productos que quieras agregar</button></div>'
           : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto y organízalo en tus listas (Desayuno, Para reuniones…) para comprarlo en un toque.</p>' +
-            '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>') +
+            '<a class="ct-enviar ct-link" href="/categorias">Ver el catálogo 🛍️</a>') +
         '</div>';
     }
 
@@ -2663,7 +2666,7 @@
       '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev" aria-hidden="true">▼</span></button>' +
       '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
       '<div class="cs-botones">' +
-        '<a class="cs-vino" href="/pisco"><span>📖</span> Ver catálogo</a>' +
+        '<a class="cs-vino" href="/categorias"><span>📖</span> Ver catálogo</a>' +
         '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a tienda</a>' +
       '</div>' +
     '</div>' +
@@ -3611,6 +3614,230 @@
       pintarFavStars(); // estrellas también en las tarjetas recién añadidas
       pintarShareBtns(); // compartir también en las nuevas (productos del panel + combos)
       destacarCompartido(cont); // por si el compartido era un producto subido desde el panel
+    });
+  };
+
+  // ---------- Directorio del catálogo (/categorias) ----------
+  // "El mapa de la tienda": pinta TODAS las categorías agrupadas por familia (misma curaduría
+  // del menú: orden, etiquetas y ⭐/✨) con foto, emoji y conteo de productos, más un buscador
+  // que salta directo al producto (/slug?p=... → brilla al llegar). Formato propio: claro y
+  // aireado, distinto del home (carruseles) y de las grillas oscuras de producto.
+  var CAT_FAM = {
+    'Licores':           { emoji: '🍷', sub: 'Para celebrar, regalar o darte un gusto.' },
+    'Para engreírte':    { emoji: '🍫', sub: 'Dulces, helados y antojos que siempre provocan.' },
+    'Para tu día a día': { emoji: '🛒', sub: 'Lo esencial de tu casa, siempre a la mano.' }
+  };
+
+  // Emoji + foto de portada + conteo base de una categoría del catálogo estático.
+  function catInfoDir(slug) {
+    var c = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
+    var img = '', n = 0;
+    if (c) (c.sections || []).forEach(function (s) {
+      (s.products || []).forEach(function (p) { n++; if (!img && p.img) img = p.img; });
+    });
+    return { emoji: (c && c.emoji) || '🛍️', img: img, n: n };
+  }
+
+  window.renderCatalogo = function () {
+    var cont = document.getElementById('contenido-catalogo');
+    if (!cont) return;
+
+    // Familias desde el MENÚ (una sola fuente de verdad con el resto del sitio).
+    var familias = [];
+    MENU.forEach(function (g) {
+      var items = (g.items || []).filter(function (it) {
+        return it.href && it.href.charAt(0) === '/' && it.href !== '/' &&
+               it.href.indexOf('/categorias') !== 0 && it.href.indexOf('/mi-cuenta') !== 0;
+      });
+      if (items.length) familias.push({ nombre: g.grupo, items: items });
+    });
+
+    // Conteos base (catálogo estático) para la cinta de stats y las píldoras.
+    var totalProd = 0, totalCat = 0;
+    familias.forEach(function (f) {
+      f.items.forEach(function (it) {
+        it._slug = it.href.replace(/^\//, '');
+        it._info = catInfoDir(it._slug);
+        totalProd += it._info.n; totalCat++;
+      });
+    });
+
+    function tileHTML(it) {
+      var info = it._info;
+      var ribbon = it.tag === 'top'
+        ? '<span class="cdc-ribbon top">⭐ Favorito</span>'
+        : (it.tag === 'new' ? '<span class="cdc-ribbon nuevo">✨ Nuevo</span>' : '');
+      return '<a class="cat-dir-card" href="' + it.href + '" data-slug="' + it._slug + '">' +
+        '<div class="cdc-thumb">' + ribbon +
+          '<span class="cdc-emoji">' + info.emoji + '</span>' +
+          (info.img ? '<img src="' + esc(info.img) + '" alt="' + esc(it.txt) + '" loading="lazy">' : '') +
+        '</div>' +
+        '<div class="cdc-body">' +
+          '<h3 class="cdc-name">' + esc(it.txt) + '</h3>' +
+          '<span class="cdc-count" data-slug="' + it._slug + '">' + info.n + ' productos</span>' +
+        '</div>' +
+        '<span class="cdc-cta">Ver productos <b>→</b></span>' +
+      '</a>';
+    }
+
+    var html = '<section class="cat-dir">' +
+      '<div class="cat-dir-hero"><div class="cdh-in">' +
+        '<span class="cdh-eyebrow">🗺️ El mapa de la tienda</span>' +
+        '<h1 class="cdh-tit">Todo lo que tenemos, en un solo lugar</h1>' +
+        '<p class="cdh-sub">Elige una categoría o busca tu producto: lo encuentras en segundos.</p>' +
+        '<div class="cdh-buscar"><span class="cdh-lupa" aria-hidden="true">🔍</span>' +
+          '<input type="search" id="cat-dir-q" autocomplete="off" ' +
+            'placeholder="Busca un producto o categoría… (pisco, chocolate, agua…)" aria-label="Buscar en el catálogo">' +
+          '<button type="button" class="cdh-x" id="cat-dir-x" aria-label="Limpiar búsqueda" hidden>✕</button>' +
+        '</div>' +
+        '<div class="cdh-stats">' +
+          '<span class="cdh-chip">🗂️ <b id="cd-ncat">' + totalCat + '</b> categorías</span>' +
+          '<span class="cdh-chip">🛍️ <b id="cd-nprod">' + totalProd + '</b> productos</span>' +
+          '<span class="cdh-chip">🚚 Delivery por WhatsApp</span>' +
+        '</div>' +
+      '</div></div>' +
+      '<div class="cat-dir-wrap">' +
+        '<div class="cat-dir-res" id="cat-dir-res" hidden></div>' +
+        '<div id="cat-dir-fams">';
+
+    familias.forEach(function (f) {
+      var meta = CAT_FAM[f.nombre] || { emoji: '🛍️', sub: '' };
+      html += '<section class="cat-dir-familia">' +
+        '<div class="cdf-cab"><span class="cdf-emoji" aria-hidden="true">' + meta.emoji + '</span>' +
+          '<div><h2 class="cdf-tit">' + esc(f.nombre) + '</h2>' +
+          (meta.sub ? '<p class="cdf-sub">' + esc(meta.sub) + '</p>' : '') + '</div>' +
+          '<span class="cdf-num">' + f.items.length + ' cat.</span>' +
+        '</div>' +
+        '<div class="cat-dir-grid">' + f.items.map(tileHTML).join('') + '</div>' +
+      '</section>';
+    });
+
+    html += '</div>' +
+      '<div class="cat-dir-pie">' +
+        '<p>¿No encuentras lo que buscas? Con gusto te ayudamos a ubicarlo.</p>' +
+        '<a class="cdp-wa" href="https://wa.me/' + WA + '?text=' +
+          encodeURIComponent('Hola, estoy buscando un producto en su tienda 🛍️') +
+          '" target="_blank" rel="noopener">💬 Escríbenos por WhatsApp</a>' +
+      '</div>' +
+    '</div></section>';
+
+    cont.innerHTML = html;
+
+    // ----- Buscador (categorías + productos) -----
+    var input = document.getElementById('cat-dir-q');
+    var btnX = document.getElementById('cat-dir-x');
+    var res = document.getElementById('cat-dir-res');
+    var fams = document.getElementById('cat-dir-fams');
+    var indiceProd = null; // se llena con cargarVivo (respeta stock/ocultos y suma productos del panel)
+
+    function nombreCat(slug) {
+      for (var i = 0; i < familias.length; i++)
+        for (var j = 0; j < familias[i].items.length; j++)
+          if (familias[i].items[j]._slug === slug) return familias[i].items[j].txt;
+      var c = window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug];
+      return (c && c.title) || slug;
+    }
+
+    function buscar(q) {
+      q = norm(q).trim();
+      if (!q) { res.hidden = true; res.innerHTML = ''; fams.hidden = false; if (btnX) btnX.hidden = true; return; }
+      if (btnX) btnX.hidden = false;
+      fams.hidden = true; res.hidden = false;
+      var toks = q.split(/\s+/).filter(Boolean);
+
+      // Categorías que casan por nombre
+      var catsHit = [];
+      familias.forEach(function (f) {
+        f.items.forEach(function (it) {
+          if (productoCoincide(toks, norm(it.txt).split(/\s+/))) catsHit.push(it);
+        });
+      });
+
+      // Productos que casan (hasta 30)
+      var prodHit = [], tope = 30;
+      if (indiceProd) {
+        for (var i = 0; i < indiceProd.length && prodHit.length < tope; i++) {
+          if (productoCoincide(toks, indiceProd[i].pal)) prodHit.push(indiceProd[i]);
+        }
+      }
+
+      var h = '';
+      if (catsHit.length) {
+        h += '<div class="cdr-bloque"><h2 class="cdr-tit">📂 Categorías</h2>' +
+          '<div class="cat-dir-grid">' + catsHit.map(tileHTML).join('') + '</div></div>';
+      }
+      if (prodHit.length) {
+        h += '<div class="cdr-bloque"><h2 class="cdr-tit">🛍️ Productos' +
+          '<span class="cdr-num">' + prodHit.length + (prodHit.length >= tope ? '+' : '') + '</span></h2>' +
+          '<div class="cdr-hits">' + prodHit.map(function (p) {
+            return '<a class="cdr-hit' + (p.agotado ? ' agotado' : '') + '" href="/' + p.slug + '?p=' + encodeURIComponent(p.name) + '">' +
+              '<span class="cdr-hit-img">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : '🛍️') + '</span>' +
+              '<span class="cdr-hit-txt"><b>' + esc(p.name) + '</b>' +
+                '<span class="cdr-hit-cat">' + esc(nombreCat(p.slug)) +
+                  (p.agotado ? ' · agotado' : (p.price ? ' · S/ ' + esc(p.price) : '')) + '</span>' +
+              '</span><span class="cdr-hit-go" aria-hidden="true">→</span></a>';
+          }).join('') + '</div></div>';
+      }
+      if (!catsHit.length && !prodHit.length) {
+        h = '<div class="cdr-vacio"><span class="cdr-vacio-ico" aria-hidden="true">🔎</span>' +
+          '<p>No encontramos <b>«' + esc(q) + '»</b>.</p>' +
+          '<p class="cdr-vacio-sub">Prueba con otra palabra o escríbenos y te lo conseguimos.</p>' +
+          '<a class="cdp-wa" href="https://wa.me/' + WA + '?text=' +
+            encodeURIComponent('Hola, busco «' + q + '» ¿lo tienen en su tienda? 🛍️') +
+            '" target="_blank" rel="noopener">💬 Preguntar por WhatsApp</a></div>';
+      }
+      res.innerHTML = h;
+    }
+
+    var deb = null;
+    if (input) input.addEventListener('input', function () {
+      clearTimeout(deb);
+      var v = input.value;
+      deb = setTimeout(function () { buscar(v); }, 120);
+    });
+    if (btnX) btnX.addEventListener('click', function () { input.value = ''; buscar(''); input.focus(); });
+
+    // Datos en vivo: conteos que CALCAN lo que ve el cliente en cada página de categoría
+    // (sin ocultos, + productos nuevos del panel) e índice para el buscador.
+    cargarVivo(function (data) {
+      data = data || {};
+      var stock = data.s || {}, extra = data.x || [];
+      var cats = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories) || {};
+      var totProd = 0;
+      familias.forEach(function (f) {
+        f.items.forEach(function (it) {
+          var slug = it._slug, vistos = {}, n = 0;
+          var c = cats[slug];
+          if (c) (c.sections || []).forEach(function (s) {
+            (s.products || []).forEach(function (p) {
+              if (vistos[p.name]) return; vistos[p.name] = 1;
+              if (stock[slug + '|' + p.name] !== 'oculto') n++;
+            });
+          });
+          extra.forEach(function (e) { // productos subidos desde el panel a esta categoría
+            if (e.cat !== slug || !e.nombre || vistos[e.nombre]) return;
+            vistos[e.nombre] = 1;
+            if (stock[slug + '|' + e.nombre] !== 'oculto') n++;
+          });
+          totProd += n;
+          var el = cont.querySelector('.cdc-count[data-slug="' + slug + '"]');
+          if (el) el.textContent = n + (n === 1 ? ' producto' : ' productos');
+        });
+      });
+      var nprod = document.getElementById('cd-nprod');
+      if (nprod) nprod.textContent = totProd;
+
+      // Índice del buscador de productos (índice global ya con precio/stock en vivo; dedup por nombre).
+      var idx = indiceVivo();
+      var arr = [];
+      Object.keys(idx.porCat).forEach(function (slug) {
+        (idx.porCat[slug] || []).forEach(function (p) {
+          if (p.oculto) return;
+          arr.push({ name: p.name, slug: slug, img: p.img, price: p.price, agotado: p.agotado, pal: norm(p.name).split(/\s+/) });
+        });
+      });
+      indiceProd = arr;
+      if (input && input.value.trim()) buscar(input.value); // refrescar si ya estaba buscando
     });
   };
 
