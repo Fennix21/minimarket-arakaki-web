@@ -1300,6 +1300,18 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .kp-visor.vacio { color: rgba(255, 225, 139, 0.38); }
 .kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #deb03a; box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
 .kp-dot.on { background: #f4cf60; border-color: #fff0b5; box-shadow: 0 0 7px rgba(244, 207, 96, 0.42); transform: scale(1.05); }
+/* Campo COMPLETO → fondo verde esmeralda (el mismo del botón "Entrar a mi cuenta"):
+   confirmación visual de que ese dato (celular de 9 dígitos o clave de 4) ya está listo. */
+.kp-campo.lleno {
+  background: linear-gradient(180deg, #249b78 0%, #126d58 58%, #0b513f 100%);
+  border-color: #9cf3d4;
+}
+.kp-campo.lleno.activo { border-color: #9cf3d4; background: linear-gradient(180deg, #249b78 0%, #126d58 58%, #0b513f 100%); box-shadow: 0 0 0 3px rgba(156, 243, 212, 0.3); }
+.kp-campo.lleno .kp-eti { color: #eafff6; }
+.kp-campo.lleno .kp-visor { color: #f4fff9; }
+.kp-campo.lleno .kp-visor.vacio { color: rgba(244, 255, 249, 0.55); }
+.kp-campo.lleno .kp-dot { border-color: #bffbe4; }
+.kp-campo.lleno .kp-dot.on { background: #eafff6; border-color: #fff; box-shadow: 0 0 7px rgba(200, 255, 235, 0.5); }
 .kp-teclas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
 /* Teclas = mismo efecto "3D" (sombra dorada abajo, se hunde al tocar) pero con el borde
    dorado premium y fondo negro de las cards de producto (pedido del dueño). */
