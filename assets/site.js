@@ -1926,6 +1926,7 @@
     var img = f.img || pr.img || '';
     var precio = (f.price != null && f.price !== '') ? f.price : pr.price;
     return '<div class="cfav" data-nombre="' + esc(f.name) + '">' +
+      (conQuitar ? '<label class="cfav-check"><input type="checkbox" class="cfav-sel" aria-label="Elegir ' + esc(f.name) + '"></label>' : '') +
       (img ? '<img loading="lazy" src="' + esc(img) + '" alt="">' : '') +
       '<div class="cfav-info"><span class="cfav-nom">' + esc(f.name) + '</span>' +
       (precio ? '<span class="cfav-precio">S/ ' + esc(precio) + '</span>' : '') + '</div>' +
@@ -2559,8 +2560,9 @@
       html += '<div class="cuenta-card cpn-sec" id="sec-favs" hidden>' +
         '<div class="cpn-sec-cab"><h3>⭐ Mis listas de favoritos</h3><button type="button" class="cpn-x" data-sec="favs" aria-label="Cerrar">✕</button></div>' +
         (favListas.length
-          ? '<p class="fav-intro">Compra toda una lista de un solo toque 🛒 Toca la ⭐ de cualquier producto para guardarlo o cambiarlo de lista.</p>' +
-            favListas.map(function (c) { return favListaHtml(c, favInfo); }).join('')
+          ? '<p class="fav-intro">Marca ☑️ los productos que quieras — de una o varias listas — y agrégalos juntos, o compra una lista entera de un toque 🛒 Toca la ⭐ de cualquier producto para guardarlo o cambiarlo de lista.</p>' +
+            favListas.map(function (c) { return favListaHtml(c, favInfo); }).join('') +
+            '<div class="fav-sel-bar"><button type="button" class="ct-enviar fav-sel-add" disabled>🛒 Marca los productos que quieras agregar</button></div>'
           : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto y organízalo en tus listas (Desayuno, Para reuniones…) para comprarlo en un toque.</p>' +
             '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>') +
         '</div>';
@@ -2746,6 +2748,39 @@
         };
       })(addLista[al]);
     }
+
+    // Elegir productos sueltos (de una o varias listas) con su casillero y agregarlos
+    // todos juntos al carrito. Dedup por nombre: el mismo producto marcado en dos
+    // listas cuenta una sola vez.
+    var favSels = int.querySelectorAll('.cfav-sel');
+    var favAddSel = int.querySelector('.fav-sel-add');
+    function seleccionFavs() {
+      var vistos = {}, out = [];
+      for (var s = 0; s < favSels.length; s++) {
+        if (!favSels[s].checked) continue;
+        var fila = subirHasta(favSels[s], 'cfav');
+        if (!fila) continue;
+        var nom = fila.getAttribute('data-nombre'), key = favNorm(nom);
+        if (vistos[key]) continue;
+        vistos[key] = 1;
+        out.push({ name: nom, price: (favInfo[key] || {}).price });
+      }
+      return out;
+    }
+    function refrescarFavSel() {
+      if (!favAddSel) return;
+      var n = seleccionFavs().length;
+      favAddSel.disabled = n === 0;
+      favAddSel.textContent = n
+        ? '🛒 Agregar ' + n + ' producto' + (n === 1 ? '' : 's') + ' a mi pedido'
+        : '🛒 Marca los productos que quieras agregar';
+    }
+    for (var fsel = 0; fsel < favSels.length; fsel++) favSels[fsel].onchange = refrescarFavSel;
+    if (favAddSel) favAddSel.onclick = function () {
+      var sel = seleccionFavs();
+      if (sel.length) agregarListaAlCarrito(sel);
+    };
+    refrescarFavSel();
 
     // Quitar un producto de UNA lista (si queda sin ninguna, sale de favoritos)
     var xs = int.querySelectorAll('.cfav-x');

@@ -86,10 +86,15 @@ http.createServer((req, res) => {
         direccion: 'Av. Prueba 123, San Isidro (portón verde)',
         direcciones: ['Calle Los Pinos 456, Miraflores'],
         pedidos: 3, puntos: 120,
-        favs: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105 }],
+        favs: [
+          { name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105 },
+          { name: 'Ginger Ale Canada Dry x 355 ml', price: 6 },
+          { name: 'Cerveza Cusqueña Dorada x 620 ml', price: 12 },
+          { name: 'Chocolate Ferrero Rocher x 8 unidades', price: 25 },
+        ],
         favCols: [
-          { n: 'Mis Favoritos', p: ['Pisco Porton Mosto Verde Acholado x 750 ml'] },
-          { n: 'Para reuniones', p: ['Pisco Porton Mosto Verde Acholado x 750 ml'] },
+          { n: 'Para reuniones', p: ['Pisco Porton Mosto Verde Acholado x 750 ml', 'Ginger Ale Canada Dry x 355 ml', 'Cerveza Cusqueña Dorada x 620 ml'] },
+          { n: 'Antojos', p: ['Chocolate Ferrero Rocher x 8 unidades', 'Pisco Porton Mosto Verde Acholado x 750 ml'] },
         ],
         habitual: [{ name: 'Pisco Porton Mosto Verde Acholado x 750 ml', price: 105, img: '', qty: 1, veces: 3 }],
         historial: [

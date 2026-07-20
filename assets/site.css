@@ -1557,6 +1557,11 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
   background: transparent; color: #cfc4a8; border: 1.5px solid rgba(212, 175, 55, 0.3); font-size: 13px;
 }
 .cfav-x:hover { color: #ff9d8f; border-color: #ff9d8f; }
+.cfav-check { flex: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.cfav-check input { width: 22px; height: 22px; margin: 0; accent-color: #d4af37; cursor: pointer; flex: none; }
+.fav-sel-bar { position: sticky; bottom: 8px; margin-top: 6px; }
+.fav-sel-bar .fav-sel-add { width: 100%; font-size: 14px; padding: 13px; }
+.fav-sel-bar .fav-sel-add:disabled { opacity: .55; cursor: default; }
 
 /* ---------- Listas de favoritos: agrupación en el panel del cliente ---------- */
 .fav-intro { font-size: 13px; line-height: 1.5; color: #d8cba7; margin: 0 0 14px; }
