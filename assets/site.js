@@ -2533,7 +2533,9 @@
       '<div class="club-acciones cpn-tiles">' + tiles.map(function (t) {
         return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico"' + glowStyle(t.ico) + '>' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
       }).join('') + '</div>' +
-      '<div id="cpn-secciones">';
+      // Cada acceso abre su sección como POPUP independiente (overlay), para que NO se mezcle
+      // con la publicidad, los puntos ni los últimos pedidos de abajo.
+      '<div class="cpn-modal" id="cpn-modal" hidden>';
 
     // 🪪 Mis datos (+ cambiar la clave): foto, nombre y correo (recuperación + avisos)
     html += '<div class="cuenta-card cuenta-form cpn-sec" id="sec-datos" hidden>' +
@@ -2625,7 +2627,7 @@
       '<p class="ct-error" id="cd-dir-error"></p>' +
       '<button type="button" class="ct-enviar" id="cd-dir-add">➕ Guardar dirección</button></div>';
 
-    html += '</div>' + carruselHtml() +
+    html += '</div>' /* /.cpn-modal */ + carruselHtml() +
       '<div class="club-salir-modal" id="club-salir-modal" hidden>' +
         '<div class="club-salir-caja" role="dialog" aria-modal="true" aria-labelledby="club-salir-tit">' +
           '<button type="button" class="club-salir-cerrar" aria-label="Seguir con la sesión abierta">✕</button>' +
@@ -2668,24 +2670,47 @@
 
     int.innerHTML = html;
 
-    // Accesos de la grilla: abren/cierran su sección
-    function verSec(id) {
+    // Accesos de la grilla: abren su sección como POPUP independiente (overlay), para que la
+    // info de cada función NO se mezcle con la publicidad, los puntos ni los últimos pedidos.
+    var modalSec = int.querySelector('#cpn-modal');
+    function cerrarModalSec() {
+      if (!modalSec) return;
+      modalSec.hidden = true;
+      document.body.classList.remove('cpn-modal-abierto');
       var secs = int.querySelectorAll('.cpn-sec');
-      var tilesEls = int.querySelectorAll('.cpn-tiles .club-acc');
-      var objetivo = document.getElementById('sec-' + id);
-      var abrir = !!(objetivo && objetivo.hidden);
       for (var i = 0; i < secs.length; i++) secs[i].hidden = true;
-      for (var j = 0; j < tilesEls.length; j++) tilesEls[j].classList.remove('activo');
-      if (abrir && objetivo) {
-        objetivo.hidden = false;
-        var t = int.querySelector('.cpn-tiles .club-acc[data-sec="' + id + '"]');
-        if (t) t.classList.add('activo');
-        try { objetivo.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
-      }
+      var ts = int.querySelectorAll('.cpn-tiles .club-acc');
+      for (var j = 0; j < ts.length; j++) ts[j].classList.remove('activo');
     }
-    var accs = int.querySelectorAll('[data-sec]');
-    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () { verSec(this.getAttribute('data-sec')); };
-    if (secAbierta) verSec(secAbierta);
+    function abrirSec(id) {
+      var objetivo = int.querySelector('#sec-' + id);
+      if (!modalSec || !objetivo) return;
+      var secs = int.querySelectorAll('.cpn-sec');
+      for (var i = 0; i < secs.length; i++) secs[i].hidden = secs[i] !== objetivo;
+      var ts = int.querySelectorAll('.cpn-tiles .club-acc');
+      for (var j = 0; j < ts.length; j++) ts[j].classList.toggle('activo', ts[j].getAttribute('data-sec') === id);
+      modalSec.hidden = false;
+      document.body.classList.add('cpn-modal-abierto');
+      objetivo.scrollTop = 0;
+      var x = objetivo.querySelector('.cpn-x'); if (x) try { x.focus(); } catch (e) {}
+    }
+    var accs = int.querySelectorAll('.cpn-tiles .club-acc');
+    for (var a1 = 0; a1 < accs.length; a1++) accs[a1].onclick = function () { abrirSec(this.getAttribute('data-sec')); };
+    var xsSec = int.querySelectorAll('.cpn-sec .cpn-x');
+    for (var x1 = 0; x1 < xsSec.length; x1++) xsSec[x1].onclick = cerrarModalSec;
+    if (modalSec) modalSec.onclick = function (e) { if (e.target === modalSec) cerrarModalSec(); };
+    // Escape cierra el popup (un solo handler global, resiste los re-pintados del panel)
+    if (!window.__cpnEsc) {
+      window.__cpnEsc = function (e) {
+        if (e.key !== 'Escape' && e.keyCode !== 27) return;
+        var m = document.getElementById('cpn-modal');
+        if (!m || m.hidden) return;
+        var vx = m.querySelector('.cpn-sec:not([hidden]) .cpn-x');
+        if (vx) vx.click();
+      };
+      document.addEventListener('keydown', window.__cpnEsc);
+    }
+    if (secAbierta) abrirSec(secAbierta);
 
     montarCarrusel(int);
 

@@ -1493,6 +1493,36 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .cpn-sec-cab h3 { margin: 0; }
 .cpn-x { flex: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; background: rgba(212, 175, 55, 0.14); color: #f2d894; border: 1.5px solid rgba(212, 175, 55, 0.5); font-size: 14px; }
 .cpn-x:hover { background: rgba(212, 175, 55, 0.3); }
+
+/* Accesos de la cuenta como POPUP independiente: cada función se abre sobre un velo, aislada
+   de la publicidad, los puntos y los últimos pedidos (antes se abrían en el flujo y se
+   veía todo mezclado y cargado). */
+.cpn-modal {
+  position: fixed; inset: 0; z-index: 1460; padding: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5, 4, 3, 0.72); backdrop-filter: blur(5px);
+  animation: cpn-modal-fade 0.18s ease-out;
+}
+.cpn-modal[hidden] { display: none; }
+@keyframes cpn-modal-fade { from { opacity: 0; } to { opacity: 1; } }
+.cpn-modal .cpn-sec {
+  width: min(100%, 560px); box-sizing: border-box; margin: 0;
+  max-height: min(92vh, 780px); overflow-y: auto; overflow-x: hidden;
+  padding-top: 0; -webkit-overflow-scrolling: touch;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 175, 55, 0.14);
+  animation: cpn-sec-entra 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes cpn-sec-entra { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+/* Cabecera pegada dentro del popup: título + ✕ siempre visibles aunque el contenido sea largo */
+.cpn-modal .cpn-sec-cab {
+  position: sticky; top: 0; z-index: 3;
+  margin: 0 -22px 14px; padding: 18px 22px 12px;
+  background: var(--bg-card);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.26);
+}
+.cpn-modal .cpn-sec::-webkit-scrollbar { width: 8px; }
+.cpn-modal .cpn-sec::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 8px; }
+body.cpn-modal-abierto { overflow: hidden; }
 .cpn-sub-tit { margin-top: 22px !important; padding-top: 16px; border-top: 1px dashed rgba(212, 175, 55, 0.3); }
 
 /* Hoja crema del panel: Mis Puntos, Mis Últimos Pedidos y los botones a la tienda.
