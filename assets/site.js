@@ -3769,10 +3769,14 @@
         '<span class="cdh-eyebrow">🗺️ El mapa de la tienda</span>' +
         '<h1 class="cdh-tit">Todo lo que tenemos, en un solo lugar</h1>' +
         '<p class="cdh-sub">Elige una categoría o busca tu producto: lo encuentras en segundos.</p>' +
-        '<div class="cdh-buscar"><span class="cdh-lupa" aria-hidden="true">🔍</span>' +
-          '<input type="search" id="cat-dir-q" autocomplete="off" ' +
-            'placeholder="Busca un producto o categoría… (pisco, chocolate, agua…)" aria-label="Buscar en el catálogo">' +
-          '<button type="button" class="cdh-x" id="cat-dir-x" aria-label="Limpiar búsqueda" hidden>✕</button>' +
+        '<div class="cdh-fila">' +
+          '<div class="cdh-buscar"><span class="cdh-lupa" aria-hidden="true">🔍</span>' +
+            '<input type="search" id="cat-dir-q" autocomplete="off" ' +
+              'placeholder="Busca un producto o categoría… (pisco, chocolate, agua…)" aria-label="Buscar en el catálogo">' +
+            '<button type="button" class="cdh-x" id="cat-dir-x" aria-label="Limpiar búsqueda" hidden>✕</button>' +
+          '</div>' +
+          // Solo visible en móvil dentro del "modo búsqueda": sale del modo y cierra el teclado
+          '<button type="button" class="cdh-cancel" id="cat-dir-cancel">Cancelar</button>' +
         '</div>' +
         '<div class="cdh-stats">' +
           '<span class="cdh-chip">🗂️ <b id="cd-ncat">' + totalCat + '</b> categorías</span>' +
@@ -3880,6 +3884,35 @@
       deb = setTimeout(function () { buscar(v); }, 120);
     });
     if (btnX) btnX.addEventListener('click', function () { input.value = ''; buscar(''); input.focus(); });
+
+    // --- UX móvil: "modo búsqueda" para que el teclado NO tape los resultados ---
+    // Al enfocar en móvil, el buscador se ancla arriba (sticky bajo el header), se colapsan
+    // los adornos del hero y los resultados fluyen debajo con scroll propio (siempre visibles
+    // sobre el teclado). Se sale con "Cancelar" o al perder foco con el campo vacío.
+    var cancelar = document.getElementById('cat-dir-cancel');
+    function esMovilBusq() { return !!(window.matchMedia && window.matchMedia('(max-width: 860px)').matches); }
+    function altoCab() { var c = document.querySelector('.cab'); return c ? Math.round(c.getBoundingClientRect().height) : 0; }
+    function entrarBusqueda() {
+      if (!esMovilBusq()) return;
+      document.documentElement.style.setProperty('--cab-h', altoCab() + 'px'); // ancla el buscador justo bajo el header
+      document.body.classList.add('cat-buscando');
+    }
+    function salirBusqueda() { document.body.classList.remove('cat-buscando'); }
+    if (input) {
+      input.addEventListener('focus', entrarBusqueda);
+      input.addEventListener('blur', function () {
+        // Espera un tick: si el foco no volvió y el campo quedó vacío, sale del modo
+        // (así no rompe el tap en "Cancelar" ni en un resultado).
+        setTimeout(function () {
+          if (document.activeElement === input) return;
+          if (!input.value.trim()) salirBusqueda();
+        }, 200);
+      });
+    }
+    if (cancelar) cancelar.addEventListener('click', function () {
+      input.value = ''; buscar(''); salirBusqueda(); input.blur();
+    });
+    window.addEventListener('resize', function () { if (!esMovilBusq()) salirBusqueda(); });
 
     // Placeholder tipo "máquina de escribir": va sugiriendo qué buscar (chocolates → helados → aguas…).
     // Solo mientras el campo está vacío; se pausa al enfocar/escribir y respeta prefers-reduced-motion.
