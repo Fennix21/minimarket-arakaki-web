@@ -3745,37 +3745,29 @@
     return { emoji: (c && c.emoji) || '🛍️', img: img, n: n };
   }
 
-  // El subtítulo de cada familia (/categorias) se escribe solo al aparecer, letra por
-  // letra, conservando EL MISMO texto ("Para celebrar, regalar o darte un gusto." etc.).
-  // Escribe UNA vez (no molesta en bucle) y el cursor dorado se apaga al terminar.
-  function montarTypeCatDir(cont) {
+  // Título de la familia "Licores" del directorio: "Licores" queda fijo y su continuación
+  // se escribe/borra EN BUCLE ("para celebrar" → "para compartir" → "para sorprender"…),
+  // volviendo siempre desde "Licores". La cola va en color de acento para que resalte.
+  function montarTituloLicores(cont) {
     if (!cont) return;
+    var tail = cont.querySelector('.cdf-tail');
+    if (!tail) return;
+    var frases = ['para celebrar', 'para compartir', 'para sorprender', 'para regalar'];
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var spans = cont.querySelectorAll('.cdf-type');
-    spans.forEach(function (sp) {
-      var full = sp.getAttribute('data-full') || sp.textContent;
-      var p = sp.parentNode;
-      var cursor = p && p.querySelector('.cdf-cursor');
-      function finCursor() { if (cursor) cursor.className = 'cdf-cursor fin'; }
-      if (reduce) { sp.textContent = full; finCursor(); return; }
-      sp.textContent = ''; // vacía en el mismo frame: no se ve el texto completo antes de escribir
-      var arrancado = false;
-      function escribir() {
-        if (arrancado) return; arrancado = true;
-        var i = 0;
-        (function paso() {
-          sp.textContent = full.substring(0, i);
-          if (i < full.length) { i++; setTimeout(paso, 42); }
-          else { setTimeout(finCursor, 2200); } // al terminar, el cursor se desvanece
-        })();
+    if (reduce) { tail.textContent = frases[0]; return; }
+    var pi = 0, ci = 0, borrando = false;
+    function tic() {
+      if (!tail.isConnected) return; // se re-renderizó el directorio: paramos el bucle
+      tail.textContent = frases[pi].substring(0, ci);
+      if (!borrando) {
+        if (ci < frases[pi].length) { ci++; setTimeout(tic, 80); }
+        else { borrando = true; setTimeout(tic, 1500); } // pausa con la frase completa
+      } else {
+        if (ci > 0) { ci--; setTimeout(tic, 40); }
+        else { borrando = false; pi = (pi + 1) % frases.length; setTimeout(tic, 400); }
       }
-      if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function (en) {
-          if (en[0].isIntersecting) { io.disconnect(); escribir(); }
-        }, { threshold: 0.6 });
-        io.observe(p);
-      } else { escribir(); }
-    });
+    }
+    tic();
   }
 
   window.renderCatalogo = function () {
@@ -3844,11 +3836,20 @@
 
     familias.forEach(function (f) {
       var meta = CAT_FAM[f.nombre] || { emoji: '🛍️', sub: '' };
+      var tituloHtml, subHtml;
+      if (f.nombre === 'Licores') {
+        // "Licores" queda fijo y su continuación se escribe/borra EN BUCLE. Sin subtítulo.
+        tituloHtml = '<h2 class="cdf-tit cdf-tit-licores">Licores ' +
+          '<span class="cdf-tail" aria-hidden="true"></span>' +
+          '<span class="cdf-tcursor" aria-hidden="true"></span></h2>';
+        subHtml = '';
+      } else {
+        tituloHtml = '<h2 class="cdf-tit">' + esc(f.nombre) + '</h2>';
+        subHtml = (meta.sub ? '<p class="cdf-sub">' + esc(meta.sub) + '</p>' : '');
+      }
       html += '<section class="cat-dir-familia">' +
         '<div class="cdf-cab"><span class="cdf-emoji" aria-hidden="true">' + meta.emoji + '</span>' +
-          '<div><h2 class="cdf-tit">' + esc(f.nombre) + '</h2>' +
-          (meta.sub ? '<p class="cdf-sub"><span class="cdf-type" data-full="' + esc(meta.sub) + '">' +
-            esc(meta.sub) + '</span><span class="cdf-cursor" aria-hidden="true"></span></p>' : '') + '</div>' +
+          '<div>' + tituloHtml + subHtml + '</div>' +
           '<span class="cdf-num">' + f.items.length + ' cat.</span>' +
         '</div>' +
         '<div class="cat-dir-grid">' + f.items.map(tileHTML).join('') + '</div>' +
@@ -3865,7 +3866,7 @@
     '</div></section>';
 
     cont.innerHTML = html;
-    montarTypeCatDir(cont); // los subtítulos de familia se escriben solos (máquina de escribir)
+    montarTituloLicores(cont); // el título "Licores" continúa escribiéndose en bucle
 
     // ----- Buscador (categorías + productos) -----
     var input = document.getElementById('cat-dir-q');
