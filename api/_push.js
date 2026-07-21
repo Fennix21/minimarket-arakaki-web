@@ -39,7 +39,7 @@ async function iconoPush() {
     const raw = await redis(['GET', 'config:logos']);
     if (raw) { const l = JSON.parse(raw); if (l && l.push) return l.push; }
   } catch (e) {}
-  return '/img/logo-oficial-192.png';
+  return '/img/logo-push-192.png';
 }
 
 // Envía payload {title,body,url,icon,tag} a TODAS las suscripciones de un rol
