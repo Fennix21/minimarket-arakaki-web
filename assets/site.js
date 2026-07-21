@@ -3735,6 +3735,15 @@
     'Para tu día a día': { emoji: '🛒', sub: 'Lo esencial de tu casa, siempre a la mano.' }
   };
 
+  // Frases que se escriben en bucle DETRÁS del nombre de cada familia del directorio (el
+  // nombre queda fijo; la cola en color de acento). Cada familia lleva frases que leen bien
+  // tras su título. Familia sin entrada aquí = título estático + su subtítulo de CAT_FAM.
+  var FAM_FRASES = {
+    'Licores':           ['para celebrar', 'para compartir', 'para sorprender', 'para regalar'],
+    'Para engreírte':    ['sin culpa', 'porque sí', 'hoy mismo', 'un ratito'],
+    'Para tu día a día': ['resuelto', 'al toque', 'completo', 'sin salir']
+  };
+
   // Emoji + foto de portada + conteo base de una categoría del catálogo estático.
   function catInfoDir(slug) {
     var c = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
@@ -3745,29 +3754,31 @@
     return { emoji: (c && c.emoji) || '🛍️', img: img, n: n };
   }
 
-  // Título de la familia "Licores" del directorio: "Licores" queda fijo y su continuación
-  // se escribe/borra EN BUCLE ("para celebrar" → "para compartir" → "para sorprender"…),
-  // volviendo siempre desde "Licores". La cola va en color de acento para que resalte.
-  function montarTituloLicores(cont) {
+  // Títulos animados del directorio: el nombre de la familia queda FIJO y su continuación
+  // se escribe/borra EN BUCLE con las frases de FAM_FRASES (cola en color de acento),
+  // volviendo siempre desde el título. Respeta prefers-reduced-motion.
+  function montarTitulosDir(cont) {
     if (!cont) return;
-    var tail = cont.querySelector('.cdf-tail');
-    if (!tail) return;
-    var frases = ['para celebrar', 'para compartir', 'para sorprender', 'para regalar'];
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) { tail.textContent = frases[0]; return; }
-    var pi = 0, ci = 0, borrando = false;
-    function tic() {
-      if (!tail.isConnected) return; // se re-renderizó el directorio: paramos el bucle
-      tail.textContent = frases[pi].substring(0, ci);
-      if (!borrando) {
-        if (ci < frases[pi].length) { ci++; setTimeout(tic, 80); }
-        else { borrando = true; setTimeout(tic, 1500); } // pausa con la frase completa
-      } else {
-        if (ci > 0) { ci--; setTimeout(tic, 40); }
-        else { borrando = false; pi = (pi + 1) % frases.length; setTimeout(tic, 400); }
+    var tails = cont.querySelectorAll('.cdf-tail');
+    tails.forEach(function (tail) {
+      var frases = FAM_FRASES[tail.getAttribute('data-fam')];
+      if (!frases || !frases.length) return;
+      if (reduce) { tail.textContent = frases[0]; return; }
+      var pi = 0, ci = 0, borrando = false;
+      function tic() {
+        if (!tail.isConnected) return; // se re-renderizó el directorio: paramos el bucle
+        tail.textContent = frases[pi].substring(0, ci);
+        if (!borrando) {
+          if (ci < frases[pi].length) { ci++; setTimeout(tic, 80); }
+          else { borrando = true; setTimeout(tic, 1500); } // pausa con la frase completa
+        } else {
+          if (ci > 0) { ci--; setTimeout(tic, 40); }
+          else { borrando = false; pi = (pi + 1) % frases.length; setTimeout(tic, 400); }
+        }
       }
-    }
-    tic();
+      tic();
+    });
   }
 
   window.renderCatalogo = function () {
@@ -3836,11 +3847,13 @@
 
     familias.forEach(function (f) {
       var meta = CAT_FAM[f.nombre] || { emoji: '🛍️', sub: '' };
+      var frasesFam = FAM_FRASES[f.nombre];
       var tituloHtml, subHtml;
-      if (f.nombre === 'Licores') {
-        // "Licores" queda fijo y su continuación se escribe/borra EN BUCLE. Sin subtítulo.
-        tituloHtml = '<h2 class="cdf-tit cdf-tit-licores">Licores ' +
-          '<span class="cdf-tail" aria-hidden="true"></span>' +
+      if (frasesFam) {
+        // El nombre de la familia queda FIJO y su continuación se escribe/borra EN BUCLE.
+        // Sin subtítulo: el movimiento del propio título hace de gancho.
+        tituloHtml = '<h2 class="cdf-tit cdf-tit-anim">' + esc(f.nombre) + ' ' +
+          '<span class="cdf-tail" data-fam="' + esc(f.nombre) + '" aria-hidden="true"></span>' +
           '<span class="cdf-tcursor" aria-hidden="true"></span></h2>';
         subHtml = '';
       } else {
@@ -3866,7 +3879,7 @@
     '</div></section>';
 
     cont.innerHTML = html;
-    montarTituloLicores(cont); // el título "Licores" continúa escribiéndose en bucle
+    montarTitulosDir(cont); // los títulos de familia continúan escribiéndose en bucle
 
     // ----- Buscador (categorías + productos) -----
     var input = document.getElementById('cat-dir-q');
