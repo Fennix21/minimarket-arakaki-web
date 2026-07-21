@@ -3745,6 +3745,39 @@
     return { emoji: (c && c.emoji) || '🛍️', img: img, n: n };
   }
 
+  // El subtítulo de cada familia (/categorias) se escribe solo al aparecer, letra por
+  // letra, conservando EL MISMO texto ("Para celebrar, regalar o darte un gusto." etc.).
+  // Escribe UNA vez (no molesta en bucle) y el cursor dorado se apaga al terminar.
+  function montarTypeCatDir(cont) {
+    if (!cont) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var spans = cont.querySelectorAll('.cdf-type');
+    spans.forEach(function (sp) {
+      var full = sp.getAttribute('data-full') || sp.textContent;
+      var p = sp.parentNode;
+      var cursor = p && p.querySelector('.cdf-cursor');
+      function finCursor() { if (cursor) cursor.className = 'cdf-cursor fin'; }
+      if (reduce) { sp.textContent = full; finCursor(); return; }
+      sp.textContent = ''; // vacía en el mismo frame: no se ve el texto completo antes de escribir
+      var arrancado = false;
+      function escribir() {
+        if (arrancado) return; arrancado = true;
+        var i = 0;
+        (function paso() {
+          sp.textContent = full.substring(0, i);
+          if (i < full.length) { i++; setTimeout(paso, 42); }
+          else { setTimeout(finCursor, 2200); } // al terminar, el cursor se desvanece
+        })();
+      }
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (en) {
+          if (en[0].isIntersecting) { io.disconnect(); escribir(); }
+        }, { threshold: 0.6 });
+        io.observe(p);
+      } else { escribir(); }
+    });
+  }
+
   window.renderCatalogo = function () {
     var cont = document.getElementById('contenido-catalogo');
     if (!cont) return;
@@ -3814,7 +3847,8 @@
       html += '<section class="cat-dir-familia">' +
         '<div class="cdf-cab"><span class="cdf-emoji" aria-hidden="true">' + meta.emoji + '</span>' +
           '<div><h2 class="cdf-tit">' + esc(f.nombre) + '</h2>' +
-          (meta.sub ? '<p class="cdf-sub">' + esc(meta.sub) + '</p>' : '') + '</div>' +
+          (meta.sub ? '<p class="cdf-sub"><span class="cdf-type" data-full="' + esc(meta.sub) + '">' +
+            esc(meta.sub) + '</span><span class="cdf-cursor" aria-hidden="true"></span></p>' : '') + '</div>' +
           '<span class="cdf-num">' + f.items.length + ' cat.</span>' +
         '</div>' +
         '<div class="cat-dir-grid">' + f.items.map(tileHTML).join('') + '</div>' +
@@ -3831,6 +3865,7 @@
     '</div></section>';
 
     cont.innerHTML = html;
+    montarTypeCatDir(cont); // los subtítulos de familia se escriben solos (máquina de escribir)
 
     // ----- Buscador (categorías + productos) -----
     var input = document.getElementById('cat-dir-q');
