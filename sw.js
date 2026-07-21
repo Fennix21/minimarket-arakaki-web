@@ -15,7 +15,9 @@ self.addEventListener('push', function (e) {
     body: data.body || '',
     // Logo oficial (gato sobre cuadro rojo lleno): ninguna notificación sale sin identidad visual
     icon: data.icon || '/img/logo-push-192.png',
-    badge: '/img/logo-oficial-192.png',
+    // Badge = silueta monocroma del gato (el sistema solo usa el alfa): antes era un
+    // circulo opaco y salia como un punto blanco liso
+    badge: '/img/logo-badge-96.png',
     tag: data.tag || 'arakaki',
     renotify: true,
     data: { url: data.url || '/', cid: data.cid || '' },
