@@ -129,7 +129,6 @@
         '<div class="pie-col pie-brand">' +
           '<a href="/"><img class="pie-logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
           (cfg.lema ? '<p class="pie-lema">' + esc(cfg.lema) + '</p>' : '') +
-          '<a class="pie-wa" href="https://wa.me/' + WA + '?text=' + encodeURIComponent('Hola 👋 quiero hacer un pedido') + '" target="_blank" rel="noopener">💬 Pide por WhatsApp</a>' +
         '</div>' +
         '<div class="pie-col"><h4>' + esc(cfg.horarioTit) + '</h4><div class="pie-horario">' + horarioHtml + '</div></div>' +
         '<div class="pie-col"><h4>' + esc(cfg.redesTit) + '</h4><div class="redes">' + redesHtml + '</div></div>' +
