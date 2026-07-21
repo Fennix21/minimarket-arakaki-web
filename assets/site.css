@@ -2096,5 +2096,7 @@ span.ch-foto-vacia {
   .cdc-thumb { height: 128px; padding: 9px; }
   .cdc-name { font-size: 14px; }
   .cdf-tit { font-size: 18px; }
+  /* Que el título (con su frase larga) envuelva si falta ancho, en vez de empujar el badge. */
+  .cdf-cab > div { flex: 1; min-width: 0; }
   .cdr-hits { grid-template-columns: 1fr; }
 }

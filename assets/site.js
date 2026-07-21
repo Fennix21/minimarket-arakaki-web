@@ -3739,7 +3739,7 @@
   // nombre queda fijo; la cola en color de acento). Cada familia lleva frases que leen bien
   // tras su título. Familia sin entrada aquí = título estático + su subtítulo de CAT_FAM.
   var FAM_FRASES = {
-    'Licores':           ['para celebrar', 'para compartir', 'para sorprender', 'para regalar'],
+    'Licores':           ['para celebrar', 'para compartir', 'para sorprender', 'para regalar', 'para una cena romántica', 'para un brindis especial'],
     'Para engreírte':    ['sin culpa', 'porque sí', 'hoy mismo', 'un ratito'],
     'Para tu día a día': ['resuelto', 'al toque', 'completo', 'sin salir']
   };
