@@ -1963,14 +1963,15 @@ span.ch-foto-vacia {
 }
 .cdf-tit { font-family: var(--tipo-titulos); font-weight: 800; font-size: 21px; color: var(--texto); margin: 0; }
 .cdf-sub { font-size: 13.5px; color: var(--texto-suave); margin: 2px 0 0; }
-/* El subtítulo se escribe solo (máquina de escribir); cursor dorado que se apaga al terminar. */
-.cdf-cursor {
-  display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: -0.13em;
-  background: var(--texto-oro); animation: cdf-parpadeo 0.85s steps(1) infinite;
+/* Título "Licores" con la continuación escribiéndose en bucle: "Licores" queda en el color
+   del título (oscuro) y la cola en el naranja de marca para que resalte y no pase desapercibida. */
+.cdf-tail { color: var(--naranja); }
+.cdf-tcursor {
+  display: inline-block; width: 3px; height: 0.95em; margin-left: 3px; vertical-align: -0.08em;
+  background: var(--naranja); border-radius: 1px; animation: cdf-parpadeo 0.8s steps(1) infinite;
 }
-.cdf-cursor.fin { animation: none; opacity: 0; }
 @keyframes cdf-parpadeo { 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .cdf-cursor { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cdf-tcursor { display: none; } }
 .cdf-cab .cdf-num {
   margin-left: auto; font-family: var(--tipo-titulos); font-weight: 700; font-size: 12px;
   color: var(--texto-oro); background: var(--crema-suave); border: 1px solid var(--borde-suave);
