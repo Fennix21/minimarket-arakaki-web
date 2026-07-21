@@ -1,7 +1,6 @@
 // Textos y fondos editables del sitio, guardados en Redis (config:sitio + config:fondos).
 // Se editan desde /panel → 📝 Sitio. assets/site.js los aplica sobre sus valores por defecto.
-//   GET -> { s: { lema, visitanosTit, direccion, referencia, mapLabel, horarioTit,
-//                 horario, contactoTit, telefonos, redesTit, facebook, instagram, youtube, copy },
+//   GET -> { s: { lema, horarioTit, horario, redesTit, facebook, instagram, youtube, copy, … },
 //            f: { pagina, vino, roja, premium, card },   // CSS del fondo → variable --bg-<clave>
 //            k: { txt, tam, fx, toqueBg, toqueTitCol, btnSumar, btnSumarTxt } } // apariencia del carrito
 // Sin env vars de Redis (o sin config guardada) devuelve {}: el sitio usa sus defaults.

@@ -792,8 +792,8 @@ module.exports = async (req, res) => {
       const url = (v) => { const u = txt(v, 300); return /^https?:\/\//i.test(u) ? u : ''; };
       const s = {};
       const campos = {
-        lema: 80, visitanosTit: 40, direccion: 160, referencia: 120, mapLabel: 60,
-        horarioTit: 40, horario: 300, contactoTit: 40, telefonos: 300, redesTit: 60, copy: 200,
+        // El footer ya no lleva dirección ni teléfonos (jul 2026): esos campos se retiraron.
+        lema: 80, horarioTit: 40, horario: 300, redesTit: 60, copy: 200,
         carGeoNota: 220, carDirFalta: 200,
         // Copys de compartir producto (mensaje de chat, preview OG e imagen del estado)
         compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,

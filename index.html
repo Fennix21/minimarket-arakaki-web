@@ -353,43 +353,58 @@
        lo pinta assets/site.js → renderCatalogo() dentro de #contenido-catalogo. -->
   <div id="contenido-catalogo"></div>
 
-  <!-- Beneficios y Club: un solo fondo vino continuo para que el degradado
-       no se reinicie al pasar de una sección a otra.
+  <!-- Beneficios y Club: un solo fondo premium dark-gold continuo (el mismo de las
+       secciones de productos) para que el degradado no se reinicie entre secciones.
        (Los carruseles de categoría se migraron al inicio de cada página de categoría,
         debajo del video del hero: assets/site.js → renderCategoria). -->
   <div class="home-flujo-vino">
-  <!-- Beneficios -->
-  <section class="seccion vino" style="padding-top:20px">
+  <!-- Beneficios: carrusel premium con tarjeta dorada + texto por lámina -->
+  <section class="seccion vino benef-sec" style="padding-top:34px">
     <div class="interior">
+      <span class="sec-eyebrow">🤝 Nuestro sello</span>
       <h2 class="titulo-seccion">Atención Personalizada</h2>
+      <p class="sub-seccion">Más de 30 años cuidando cada detalle para ti.</p>
       <div class="benef" id="benef">
-        <img class="activa" src="/img/beneficios/aniversario.webp" alt="Desde 1994 a su servicio">
-        <img src="/img/beneficios/pet-friendly.webp" alt="Somos Pet Friendly">
-        <img src="/img/beneficios/elevador.webp" alt="Tenemos Elevador">
-        <button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>
-        <button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>
+        <div class="benef-visor">
+          <figure class="benef-slide activa">
+            <img src="/img/beneficios/aniversario.webp" alt="Desde 1994 a su servicio">
+            <figcaption><b>Desde 1994 a tu servicio</b><span>Más de 30 años atendiendo con cariño a las familias de San Isidro.</span></figcaption>
+          </figure>
+          <figure class="benef-slide">
+            <img src="/img/beneficios/delivery-gratis.webp" alt="Delivery gratis" loading="lazy">
+            <figcaption><b>Delivery hasta tu puerta</b><span>Gratis llegando a un monto mínimo · pago contra entrega o Yape/Plin.</span></figcaption>
+          </figure>
+          <figure class="benef-slide">
+            <img src="/img/beneficios/pet-friendly.webp" alt="Somos Pet Friendly" loading="lazy">
+            <figcaption><b>Somos Pet Friendly</b><span>Ven con tu engreído: aquí también es bienvenido.</span></figcaption>
+          </figure>
+          <figure class="benef-slide">
+            <img src="/img/beneficios/elevador.webp" alt="Tenemos Elevador" loading="lazy">
+            <figcaption><b>Tenemos elevador</b><span>Acceso cómodo para todos los que nos visitan.</span></figcaption>
+          </figure>
+          <button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>
+          <button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>
+        </div>
+        <div class="benef-dots" id="benef-dots" role="tablist" aria-label="Ver beneficio"></div>
       </div>
     </div>
   </section>
 
-  <!-- Club Arakaki: registro de clientes -->
-  <section class="seccion roja" style="text-align:center">
+  <!-- Club Arakaki: invitación a la cuenta VIP (el registro completo vive en /mi-cuenta).
+       El botón abre el popup #vip-popup con los beneficios del Club. -->
+  <section class="seccion roja club-vip">
     <div class="interior">
-      <h2 class="titulo-seccion">Únete al Club Arakaki 🎁</h2>
-      <p class="sub-seccion">Déjanos tus datos y entérate primero de las ofertas, novedades y sorteos.</p>
-      <form class="club-form" id="club-form">
-        <input id="club-nombre" placeholder="Tu nombre" maxlength="60" required>
-        <input id="club-wsp" placeholder="Tu WhatsApp (ej. 999 999 999)" maxlength="15" inputmode="tel" required>
-        <select id="club-interes">
-          <option value="">¿Qué te interesa más? (opcional)</option>
-          <option>Licores y vinos</option>
-          <option>Helados y chocolates</option>
-          <option>Snacks y dulces</option>
-          <option>Todo un poco</option>
-        </select>
-        <button type="submit" data-ev="registro_club">Quiero unirme 🙌</button>
-        <p class="club-ok" id="club-ok">¡Listo! 🎉 Ya eres parte del Club Arakaki. Te avisaremos por WhatsApp de las novedades.</p>
-      </form>
+      <span class="sec-eyebrow">👑 Solo para miembros</span>
+      <h2 class="titulo-seccion">Únete al Club Arakaki</h2>
+      <p class="sub-seccion">Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos.</p>
+      <div class="vip-minis">
+        <span class="vip-mini">🪙 Puntos por compra</span>
+        <span class="vip-mini">🎫 Cupones VIP</span>
+        <span class="vip-mini">🎁 Sorteos exclusivos</span>
+        <span class="vip-mini">⭐ Tus favoritos</span>
+      </div>
+      <button class="vip-cta" id="vip-abrir" data-ev="vip_abrir">👑 Quiero mi cuenta VIP</button>
+      <p class="vip-nota">Gratis para siempre · solo necesitas tu celular</p>
     </div>
   </section>
   </div>
@@ -404,6 +419,26 @@
     <p class="ref">(A solo 2 cuadras del Golf)</p>
     <iframe data-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.6756713577665!2d-77.04980248960267!3d-12.105550342948039!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c848f932328b%3A0xc2974606f6e028a9!2sARAKAKI%20Minimarket!5e1!3m2!1ses-419!2spe!4v1748490736305!5m2!1ses-419!2spe"
       loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa: Minimarket Arakaki"></iframe>
+  </div>
+</div>
+
+<!-- Popup del Club VIP (se abre con el botón "Quiero mi cuenta VIP"): beneficios + CTA
+     que lleva directo a crear la cuenta en /mi-cuenta#crear -->
+<div class="modal-fondo" id="vip-popup">
+  <div class="modal-caja vip-caja">
+    <button class="modal-cerrar" aria-label="Cerrar">✕</button>
+    <span class="vip-corona">👑</span>
+    <h2>Club Arakaki <span class="vip-oro">VIP</span></h2>
+    <p class="vip-sub">Todo esto te espera desde tu primera compra:</p>
+    <ul class="vip-lista">
+      <li><span class="vl-ico">🪙</span><span class="vl-txt"><b>Puntos por cada compra</b><small>Se acumulan solos y los canjeas en la tienda.</small></span></li>
+      <li><span class="vl-ico">🎫</span><span class="vl-txt"><b>Cupones y promos VIP</b><small>Ofertas que solo ven los miembros del Club.</small></span></li>
+      <li><span class="vl-ico">🎁</span><span class="vl-txt"><b>Sorteos exclusivos</b><small>Participa con un toque desde tu cuenta.</small></span></li>
+      <li><span class="vl-ico">⭐</span><span class="vl-txt"><b>Tus listas de favoritos</b><small>Guarda lo que más te gusta y encuéntralo al instante.</small></span></li>
+      <li><span class="vl-ico">🛒</span><span class="vl-txt"><b>Repite tu pedido en un toque</b><small>Tu compra de siempre, lista para volver a pedir.</small></span></li>
+    </ul>
+    <a class="vip-crear" href="/mi-cuenta#crear" data-ev="vip_crear">Crear mi cuenta VIP gratis ✨</a>
+    <p class="vip-ya"><a href="/mi-cuenta">Ya tengo cuenta · Entrar 🔑</a></p>
   </div>
 </div>
 
@@ -439,33 +474,46 @@
   // Los carruseles de categoría se migraron al inicio de cada página de categoría
   // (debajo del video del hero): assets/site.js → renderCategoria / carruselCatHTML.
 
-  // ----- Carrusel de beneficios -----
+  // ----- Carrusel de beneficios (láminas con texto + dots + deslizar con el dedo) -----
   var benef = document.getElementById('benef');
-  var bImgs = benef.querySelectorAll('img');
-  var bIdx = 0;
-  function verBenef(i) {
-    bImgs[bIdx].classList.remove('activa');
-    bIdx = (i + bImgs.length) % bImgs.length;
-    bImgs[bIdx].classList.add('activa');
+  var bSlides = benef.querySelectorAll('.benef-slide');
+  var bDots = document.getElementById('benef-dots');
+  var bIdx = 0, bTimer = null;
+  var dotsHtml = '';
+  for (var d = 0; d < bSlides.length; d++) {
+    dotsHtml += '<button type="button" class="benef-dot' + (d === 0 ? ' on' : '') + '" data-i="' + d + '" aria-label="Beneficio ' + (d + 1) + '"></button>';
   }
-  benef.querySelector('.benef-izq').onclick = function () { verBenef(bIdx - 1); };
-  benef.querySelector('.benef-der').onclick = function () { verBenef(bIdx + 1); };
-  setInterval(function () { verBenef(bIdx + 1); }, 5000);
+  bDots.innerHTML = dotsHtml;
+  var bBtns = bDots.querySelectorAll('.benef-dot');
+  function verBenef(i) {
+    bSlides[bIdx].classList.remove('activa');
+    bBtns[bIdx].classList.remove('on');
+    bIdx = (i + bSlides.length) % bSlides.length;
+    bSlides[bIdx].classList.add('activa');
+    bBtns[bIdx].classList.add('on');
+  }
+  function benefAuto() { // reinicia el reloj tras cada toque para no "saltarse" la lámina elegida
+    if (bTimer) clearInterval(bTimer);
+    bTimer = setInterval(function () { verBenef(bIdx + 1); }, 5000);
+  }
+  benef.querySelector('.benef-izq').onclick = function () { verBenef(bIdx - 1); benefAuto(); };
+  benef.querySelector('.benef-der').onclick = function () { verBenef(bIdx + 1); benefAuto(); };
+  for (var b = 0; b < bBtns.length; b++) {
+    bBtns[b].onclick = function () { verBenef(Number(this.getAttribute('data-i'))); benefAuto(); };
+  }
+  var bX0 = null;
+  benef.addEventListener('touchstart', function (e) { bX0 = e.touches[0].clientX; }, { passive: true });
+  benef.addEventListener('touchend', function (e) {
+    if (bX0 == null) return;
+    var dx = e.changedTouches[0].clientX - bX0;
+    bX0 = null;
+    if (Math.abs(dx) > 40) { verBenef(bIdx + (dx < 0 ? 1 : -1)); benefAuto(); }
+  }, { passive: true });
+  benefAuto();
 
-  // ----- Formulario Club Arakaki -----
-  document.getElementById('club-form').onsubmit = function (e) {
-    e.preventDefault();
-    var nombre = document.getElementById('club-nombre').value.trim();
-    var wsp = document.getElementById('club-wsp').value.replace(/\D/g, '');
-    if (!nombre || wsp.length < 9) { alert('Escribe tu nombre y un WhatsApp válido 🙂'); return; }
-    var interes = document.getElementById('club-interes').value;
-    var uid = ''; try { uid = localStorage.getItem('arakaki_uid') || ''; } catch (e) {}
-    fetch('/api/pedido', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'registro', nombre: nombre, telefono: wsp, interes: interes, uid: uid }),
-    }).catch(function () {});
-    document.getElementById('club-ok').style.display = 'block';
-    this.reset();
+  // ----- Club Arakaki: el botón abre el popup VIP (el registro vive en /mi-cuenta#crear) -----
+  document.getElementById('vip-abrir').onclick = function () {
+    document.getElementById('vip-popup').classList.add('abierto');
   };
 })();
 </script>
