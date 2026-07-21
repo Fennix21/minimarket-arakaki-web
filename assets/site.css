@@ -894,6 +894,11 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .benef { max-width: 620px; margin: 30px auto 0; position: relative; border-radius: 14px; overflow: hidden; box-shadow: var(--sombra); }
 .benef img { width: 100%; display: none; }
 .benef img.activa { display: block; }
+/* En escritorio, la tarjeta completa del carrusel se muestra 30% más pequeña.
+   La imagen conserva su relación de aspecto al ocupar todo el ancho del contenedor. */
+@media (min-width: 601px) {
+  .benef { max-width: 434px; }
+}
 .benef .benef-flecha {
   position: absolute; top: 50%; transform: translateY(-50%); background: #fff;
   color: var(--negro); border: none; font-size: 20px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
