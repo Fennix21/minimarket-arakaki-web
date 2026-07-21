@@ -84,17 +84,12 @@
   // ---------- Textos editables del sitio (lema del header + footer) ----------
   // Valores por defecto: el sitio se ve bien sin backend. El dueño los edita en
   // /panel → 📝 Sitio (Redis config:sitio); /api/sitio los sirve y aquí se aplican.
-  var MAP_URL = 'https://www.google.com/maps/search/?api=1&query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro';
+  // El footer ya NO lleva dirección ni teléfonos (jul 2026): la ubicación vive en la
+  // portada + popup del mapa, y el contacto es el botón de WhatsApp.
   var SITIO_DEF = {
     lema: 'Lo que necesitas, cuando lo necesitas',
-    visitanosTit: 'Visítanos',
-    direccion: 'Av. Belén 265, San Isidro',
-    referencia: 'A solo 2 cuadras del Golf',
-    mapLabel: 'Ver ubicación en el mapa',
     horarioTit: 'Horario de atención',
     horario: 'Lun – Sáb · 7:00 am – 9:00 pm\nDomingos · 8:00 am – 8:00 pm\nAbierto todos los días, incluso feriados',
-    contactoTit: 'Contáctanos',
-    telefonos: '012218582\n977737199\n960725996\n964295436\n933477179',
     redesTit: 'Síguenos',
     facebook: REDES.facebook.url,
     instagram: REDES.instagram.url,
@@ -119,9 +114,6 @@
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
   }
   function footerHTML(cfg) {
-    var telsHtml = lineas(cfg.telefonos).map(function (t) {
-      return '<a class="tel" href="tel:' + esc(t.replace(/[^\d+]/g, '')) + '"><span class="tel-ico">📞</span>' + esc(t) + '</a>';
-    }).join('');
     var horarioHtml = lineas(cfg.horario).map(function (l) { return '<p>' + esc(l) + '</p>'; }).join('');
     var redes = [['facebook', cfg.facebook], ['instagram', cfg.instagram], ['youtube', cfg.youtube]];
     var redesHtml = redes.filter(function (r) { return r[1]; }).map(function (r) {
@@ -131,19 +123,19 @@
     // Botón de notificaciones push (ofertas). Vive en el footer porque este se
     // re-renderiza (aplicarSitio): el click se maneja por delegación en initPush().
     var pushBtn = '<p class="pie-push"><button type="button" id="push-ofertas-btn">🔔 Avísame de las ofertas</button></p>';
+    // Compacto y premium: marca (logo + lema + WhatsApp) · horario · redes. La dirección
+    // vive en la portada y en el popup del mapa; el contacto es el botón verde de WhatsApp.
     return '<div class="interior">' +
-        '<div class="pie-col"><h4>' + esc(cfg.visitanosTit) + '</h4>' +
-          '<p class="pie-dir">' + esc(cfg.direccion) + '</p>' +
-          (cfg.referencia ? '<p class="pie-ref">' + esc(cfg.referencia) + '</p>' : '') +
-          (cfg.mapLabel ? '<p class="pie-mapa"><a href="' + MAP_URL + '" target="_blank" rel="noopener">📍 ' + esc(cfg.mapLabel) + '</a></p>' : '') +
+        '<div class="pie-col pie-brand">' +
+          '<a href="/"><img class="pie-logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
+          (cfg.lema ? '<p class="pie-lema">' + esc(cfg.lema) + '</p>' : '') +
+          '<a class="pie-wa" href="https://wa.me/' + WA + '?text=' + encodeURIComponent('Hola 👋 quiero hacer un pedido') + '" target="_blank" rel="noopener">💬 Pide por WhatsApp</a>' +
         '</div>' +
         '<div class="pie-col"><h4>' + esc(cfg.horarioTit) + '</h4><div class="pie-horario">' + horarioHtml + '</div></div>' +
-        '<div class="pie-col"><h4>' + esc(cfg.contactoTit) + '</h4><div class="pie-tels">' + telsHtml + '</div></div>' +
         '<div class="pie-col"><h4>' + esc(cfg.redesTit) + '</h4><div class="redes">' + redesHtml + '</div></div>' +
       '</div>' +
       pushBtn +
-      '<p class="copy">' + esc(copy) + '</p>' +
-      '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
+      '<p class="copy">' + esc(copy) + '</p>';
   }
   var sitioActual = SITIO_DEF; // último config aplicado (para textos del carrito en enviarPedido)
   function aplicarSitio(cfg) {
@@ -1985,7 +1977,12 @@
         return;
       }
       var tk = leerSesion();
-      if (!tk) { pintarAcceso(int); return; }
+      // /mi-cuenta#crear (CTA "Crear mi cuenta VIP" del inicio): aterriza directo en el
+      // registro, sin pasar por la pantalla de acceso. Con sesión viva se ignora.
+      if (!tk) {
+        if (location.hash === '#crear') pintarCrear(int); else pintarAcceso(int);
+        return;
+      }
       if (cuentaPerfil) { pintarPanelCliente(int, cuentaPerfil); return; }
       fetch('/api/cuenta?token=' + encodeURIComponent(tk))
         .then(function (r) { return r.json(); })
