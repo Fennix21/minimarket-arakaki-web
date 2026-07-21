@@ -42,8 +42,10 @@
      los pisa con style.setProperty en <html>). Estos son los valores por defecto: sin backend el sitio
      se ve exactamente igual. Aceptan color sólido o degradado indistintamente. */
   --bg-pagina: var(--gris);
-  --bg-vino: radial-gradient(120% 80% at 50% 0%, #9c1c20 0%, #720e12 50%, #4c090c 100%);
-  --bg-roja: var(--rojo);
+  /* Las franjas del inicio (beneficios + Club) van en el MISMO dark-gold premium de las
+     secciones de productos: coherencia total con las categorías, sin rojo vino (jul 2026). */
+  --bg-vino: radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%);
+  --bg-roja: linear-gradient(180deg, #1d1915 0%, #0e0c0a 100%);
   --bg-premium: radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%);
   --bg-card: linear-gradient(180deg, #211d19 0%, #100e0c 100%);
 }
@@ -426,14 +428,22 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 .seccion.roja { background: var(--bg-roja); color: var(--blanco); }
 .seccion.vino { background: var(--bg-vino); color: var(--blanco); }
 .seccion.premium { background: var(--bg-premium); color: var(--blanco); }
-/* Inicio: las categorías, Atención Personalizada y el Club comparten una sola
-   superficie. Así el degradado vino continúa por el documento y no vuelve a
-   empezar en cada sección. El fondo sigue siendo editable desde el panel. */
+/* Inicio: Atención Personalizada y el Club comparten una sola superficie premium
+   dark-gold (la misma de las categorías). Así el degradado continúa por el documento
+   y no vuelve a empezar en cada sección. El fondo sigue siendo editable desde el panel
+   (zona "vino" de 📝 Sitio → 🎨 Fondos, que ahora es esta franja oscura). */
 .home-flujo-vino { background: var(--bg-vino); color: var(--blanco); }
 .home-flujo-vino .seccion.vino,
 .home-flujo-vino .seccion.roja { background: transparent; }
-.seccion.premium .titulo-seccion { color: #f4ebd6; }
-.seccion.premium .titulo-seccion::after { content: ""; display: block; width: 64px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, #f6d98a, #d4af37); }
+.seccion.premium .titulo-seccion, .home-flujo-vino .titulo-seccion { color: #f4ebd6; }
+.seccion.premium .titulo-seccion::after, .home-flujo-vino .titulo-seccion::after { content: ""; display: block; width: 64px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, #f6d98a, #d4af37); }
+/* Cejilla dorada sobre los títulos de sección (misma familia visual que .cdh-eyebrow) */
+.sec-eyebrow {
+  display: table; margin: 0 auto 14px; font-family: var(--tipo-titulos);
+  font-size: 12px; font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--dorado-claro); background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.32); border-radius: 999px; padding: 6px 14px;
+}
 .seccion .interior { max-width: 1100px; margin: 0 auto; }
 .titulo-seccion { text-align: center; font-size: calc(clamp(24px, 4vw, 40px) * var(--tipo-esc)); font-weight: var(--tipo-peso-tit); }
 .sub-seccion { text-align: center; font-size: calc(16px * var(--tipo-esc)); margin-top: 8px; opacity: 0.85; }
@@ -764,6 +774,20 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .cc-counter b { color: var(--dorado); }
 
+/* Nombre del producto activo bajo el coverflow (reemplaza al contador en las páginas de categoría) */
+.cc-nombre {
+  text-align: center; margin-top: 16px; padding: 0 12px;
+  color: var(--dorado-claro);
+  font-family: var(--tipo-titulos); font-weight: 700;
+  font-size: clamp(15px, 2vw, 21px); letter-spacing: 0.4px; line-height: 1.3;
+  min-height: 2.6em; /* reserva 2 líneas para que el layout no salte al cambiar de producto */
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Carrusel al inicio de cada página de categoría (debajo del video): fondo premium continuo */
+.cc-intro { padding-top: 22px; padding-bottom: 14px; }
+.cc-intro .interior { max-width: 520px; }
+
 .cc-cta {
   display: block; width: fit-content; max-width: 94%; margin: 15px auto 0;
   background: var(--fondo-cinta);
@@ -780,24 +804,76 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* Tablet / móvil grande: 1 categoría por fila para que el poster respire */
 @media (max-width: 820px) { .grilla-cats { grid-template-columns: 1fr; } }
 
-/* ---------- Formulario club ---------- */
-.club-form { max-width: 460px; margin: 28px auto 0; display: flex; flex-direction: column; gap: 14px; }
-.club-form input, .club-form select {
-  padding: 13px 14px; border-radius: 10px; border: none; font-size: 16px; font-family: inherit;
+/* ---------- Club Arakaki VIP (invitación en el inicio; el registro vive en /mi-cuenta) ---------- */
+.club-vip { text-align: center; }
+.vip-minis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 22px; }
+.vip-mini {
+  font-family: var(--tipo-cuerpo); font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(212, 175, 55, 0.32);
+  border-radius: 999px; padding: 9px 15px;
 }
-.club-form button {
-  background: var(--negro); color: #fff; border: none; border-radius: 10px; padding: 14px;
-  font-size: 15.5px; font-weight: 800; cursor: pointer; font-family: inherit;
+/* CTA principal: mismo degradado dorado + texto negro de "Elegir producto" (la voz que vende) */
+.vip-cta {
+  display: inline-block; margin-top: 26px; cursor: pointer; border: none;
+  font-family: var(--tipo-titulos); font-weight: 800; font-size: 17px; letter-spacing: 0.4px;
+  color: #261b08; background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  border-radius: 999px; padding: 16px 34px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 24px rgba(212, 175, 55, 0.22);
+  transition: transform 0.14s, box-shadow 0.14s;
 }
-.club-form .club-ok { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 13px; font-size: 14.5px; display: none; }
+.vip-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 34px rgba(212, 175, 55, 0.3); }
+.vip-nota { margin-top: 12px; font-size: 12.5px; letter-spacing: 0.4px; color: rgba(255, 255, 255, 0.62); }
 
-/* ---------- Footer ---------- */
+/* Popup VIP: tarjeta negra premium con borde dorado (misma familia que #fp-popup) */
+#vip-popup .modal-caja {
+  max-width: 480px; text-align: center; padding: 30px 24px 26px;
+  background: linear-gradient(180deg, #2b2723 0%, #16130f 60%, #0c0b0a 100%);
+  color: var(--blanco); border: 1.5px solid rgba(212, 175, 55, 0.55);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 175, 55, 0.12);
+}
+#vip-popup .modal-cerrar { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); box-shadow: none; }
+#vip-popup .vip-corona { font-size: 40px; display: block; filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.55)); }
+#vip-popup h2 { font-family: var(--tipo-titulos); color: #f4ebd6; margin-top: 6px; font-size: clamp(23px, 3.4vw, 30px); }
+#vip-popup .vip-oro {
+  background: linear-gradient(92deg, #f6d98a 0%, var(--dorado) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+#vip-popup .vip-sub { margin-top: 6px; font-size: 14px; color: rgba(255, 255, 255, 0.75); }
+.vip-lista { list-style: none; margin: 18px 0 0; padding: 0; text-align: left; }
+.vip-lista li {
+  display: flex; align-items: flex-start; gap: 12px; padding: 11px 2px;
+  border-bottom: 1px dashed rgba(212, 175, 55, 0.22);
+}
+.vip-lista li:last-child { border-bottom: none; }
+.vip-lista .vl-ico {
+  flex: 0 0 auto; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  font-size: 19px; border-radius: 12px;
+  background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.32);
+}
+.vip-lista .vl-txt b { display: block; font-size: 14.5px; color: #f4ebd6; }
+.vip-lista .vl-txt small { display: block; font-size: 12.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.62); margin-top: 1px; }
+#vip-popup .vip-crear {
+  display: block; margin-top: 20px; font-family: var(--tipo-titulos); font-weight: 800; font-size: 16px;
+  color: #261b08; background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  border-radius: 999px; padding: 15px 20px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 22px rgba(212, 175, 55, 0.2);
+  transition: transform 0.14s;
+}
+#vip-popup .vip-crear:hover { transform: translateY(-2px); }
+#vip-popup .vip-ya { margin-top: 13px; font-size: 13px; }
+#vip-popup .vip-ya a { color: var(--dorado-claro); border-bottom: 1px solid rgba(212, 175, 55, 0.4); padding-bottom: 1px; }
+
+/* ---------- Footer (premium compacto: marca + horario + redes; sin dirección ni teléfonos,
+   el canal de contacto es el botón de WhatsApp) ---------- */
 .pie {
   background: #1a1715;
-  color: var(--blanco); padding: 12px 18px 30px;
+  color: var(--blanco); padding: 12px 18px 26px;
   border-top: 2px solid rgba(212, 175, 55, 0.55);
 }
-.pie .interior { max-width: 1080px; margin: 0 auto; display: grid; gap: 34px 42px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); padding-top: 30px; }
+.pie .interior {
+  max-width: 980px; margin: 0 auto; display: grid; gap: 34px 48px; align-items: start;
+  grid-template-columns: 1.3fr 1fr 1fr; padding-top: 36px;
+}
 .pie h4 {
   font-size: 12.5px; letter-spacing: 1.6px; text-transform: uppercase;
   margin-bottom: 15px; color: var(--dorado); font-weight: 700;
@@ -805,29 +881,38 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 }
 .pie h4::after { content: ""; position: absolute; left: 0; bottom: 0; width: 30px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--dorado), transparent); }
 .pie p { font-size: calc(14px * var(--tipo-esc)); line-height: var(--tipo-lh); opacity: 0.82; }
-.pie .pie-dir { font-weight: 600; opacity: 0.95; }
-.pie .pie-ref { font-size: 13px; opacity: 0.58; margin-top: 2px; }
+/* Columna de la marca: logo + lema + CTA de WhatsApp (el verde es SOLO de WhatsApp) */
+.pie .pie-logo { height: 84px; width: auto; display: block; }
+.pie .pie-lema { margin-top: 10px; font-size: 13.5px; color: rgba(255, 255, 255, 0.68); max-width: 260px; }
+.pie .pie-wa {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+  background: var(--verde-wa); color: #fff; font-family: var(--tipo-titulos);
+  font-weight: 800; font-size: 14px; border-radius: 999px; padding: 11px 20px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); transition: transform 0.14s, box-shadow 0.14s;
+}
+.pie .pie-wa:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45); }
 .pie .pie-horario p { padding: 2px 0; }
-.pie .pie-mapa { margin-top: 12px; }
-.pie .pie-mapa a { color: var(--dorado); font-size: 13.5px; font-weight: 600; border-bottom: 1px solid rgba(212, 175, 55, 0.35); padding-bottom: 1px; }
-.pie .pie-mapa a:hover { border-bottom-color: var(--dorado); }
-.pie .pie-tels { display: flex; flex-direction: column; gap: 3px; }
-.pie .tel { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; padding: 3px 0; opacity: 0.88; transition: color .12s, opacity .12s; }
-.pie .tel .tel-ico { font-size: 12px; opacity: 0.65; }
-.pie .tel:hover { color: var(--dorado); opacity: 1; }
 .pie .redes { display: flex; gap: 12px; }
 .pie .redes a { display: block; transition: transform .12s; }
 .pie .redes a:hover { transform: translateY(-2px); }
 .pie .redes a img { width: 34px; height: 34px; }
 .pie .copy {
-  text-align: center; margin: 32px auto 0; padding-top: 20px;
-  max-width: 1080px; font-size: 12.5px; opacity: 0.62;
+  text-align: center; margin: 30px auto 0; padding-top: 18px;
+  max-width: 980px; font-size: 12.5px; opacity: 0.62;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+/* Móvil: todo centrado y apilado (lectura de una columna, sin zig-zag) */
+@media (max-width: 760px) {
+  .pie .interior { grid-template-columns: 1fr; gap: 28px; text-align: center; padding-top: 30px; }
+  .pie h4::after { left: 50%; transform: translateX(-50%); }
+  .pie .pie-logo { margin: 0 auto; }
+  .pie .pie-lema { margin-left: auto; margin-right: auto; }
+  .pie .redes { justify-content: center; }
+}
 
-/* Logo del pie: centrado. En la portada cierra el footer; en las páginas de
-   categoría vive dentro de .pie-mini (cinta + logo). El logo es blanco, por eso
-   siempre va sobre fondo oscuro. */
+/* Logo del pie compacto (.pie-mini de categorías y /mi-cuenta): cinta + logo centrado.
+   En la portada el logo ya vive en la columna de marca del footer (.pie-logo).
+   El logo es blanco, por eso siempre va sobre fondo oscuro. */
 .pie-marca { text-align: center; padding: 26px 18px 6px; }
 .pie-marca img { height: 82px; width: auto; margin: 0 auto; display: inline-block; }
 /* Pie compacto de las páginas de categoría (no llevan el footer completo) */
@@ -890,21 +975,50 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 #pwa-guia .pwa-entendido { margin-top: 5px; padding: 10px 22px; border: 0; border-radius: 999px; color: #261b08; background: var(--dorado); font: inherit; font-weight: 700; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { #menu-panel .menu-pwa-btn { animation: none; } }
 
-/* ---------- Beneficios (carrusel simple) ---------- */
-.benef { max-width: 620px; margin: 30px auto 0; position: relative; border-radius: 14px; overflow: hidden; box-shadow: var(--sombra); }
-.benef img { width: 100%; display: none; }
-.benef img.activa { display: block; }
-/* En escritorio, la tarjeta completa del carrusel se muestra 30% más pequeña.
+/* ---------- Beneficios (carrusel premium dark-gold: lámina = foto + texto) ---------- */
+.benef { max-width: 560px; margin: 30px auto 0; }
+/* En escritorio, la tarjeta completa se muestra 30% más pequeña.
    La imagen conserva su relación de aspecto al ocupar todo el ancho del contenedor. */
 @media (min-width: 601px) {
-  .benef { max-width: 434px; }
+  .benef { max-width: 392px; }
+}
+.benef .benef-visor {
+  position: relative; border-radius: 18px; overflow: hidden;
+  background: var(--bg-card); border: 1px solid rgba(212, 175, 55, 0.38);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px rgba(212, 175, 55, 0.1);
+}
+.benef .benef-slide { display: none; margin: 0; }
+.benef .benef-slide.activa { display: block; animation: benef-fade 0.55s ease; }
+@keyframes benef-fade { from { opacity: 0; transform: scale(1.015); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .benef .benef-slide.activa { animation: none; } }
+.benef .benef-slide img { width: 100%; height: auto; display: block; }
+.benef .benef-slide figcaption {
+  text-align: center; padding: 16px 18px 18px;
+  border-top: 1px solid rgba(212, 175, 55, 0.28);
+}
+.benef .benef-slide figcaption b {
+  display: block; font-family: var(--tipo-titulos); font-size: 17.5px; font-weight: 800; color: #f4ebd6;
+}
+.benef .benef-slide figcaption span {
+  display: block; margin-top: 4px; font-size: 13.5px; line-height: 1.5; color: rgba(255, 255, 255, 0.7);
 }
 .benef .benef-flecha {
-  position: absolute; top: 50%; transform: translateY(-50%); background: #fff;
-  color: var(--negro); border: none; font-size: 20px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+  position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%; font-size: 18px;
+  background: rgba(12, 11, 10, 0.62); color: var(--dorado-claro);
+  border: 1px solid rgba(212, 175, 55, 0.45); backdrop-filter: blur(3px);
+  transition: background 0.15s, transform 0.15s;
 }
-.benef .benef-izq { left: 10px; }
-.benef .benef-der { right: 10px; }
+.benef .benef-flecha:hover { background: rgba(212, 175, 55, 0.25); transform: translateY(-50%) scale(1.06); }
+.benef .benef-izq { left: 12px; }
+.benef .benef-der { right: 12px; }
+/* Dots: mismos de los carruseles del Club (punto → pastilla dorada) */
+.benef .benef-dots { display: flex; justify-content: center; gap: 7px; margin-top: 16px; }
+.benef .benef-dot {
+  width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%; cursor: pointer;
+  background: rgba(255, 255, 255, 0.32); transition: width 0.25s, background 0.25s;
+}
+.benef .benef-dot.on { width: 24px; border-radius: 5px; background: var(--dorado); }
 
 /* WhatsApp flotante en páginas sin carrito visible */
 #wa-flotante {
@@ -1274,7 +1388,7 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .club-tarjeta a { color: #f4cf60; font-weight: 800; }
 .clt-ayuda { font-size: 12.5px; text-align: center; margin: 12px 0 0; color: #d9c9a1; }
 .clt-check { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 700; color: #f5e5bc; margin: 12px 0 0; cursor: pointer; }
-.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: #5a3a05; cursor: pointer; flex: none; }
+.clt-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--dorado); cursor: pointer; flex: none; }
 .clt-lab { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: #f4cf60; margin: 16px 0 7px; }
 .clt-lab small { text-transform: none; letter-spacing: 0; font-weight: 600; }
 .clt-input {
@@ -1305,39 +1419,54 @@ body.pagina-club.club-footer-on .pie-mini { display: block; background: var(--cl
 .kp-visor.vacio { color: rgba(255, 225, 139, 0.38); }
 .kp-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #deb03a; box-sizing: border-box; transition: background 0.12s, border-color 0.12s, transform 0.12s; }
 .kp-dot.on { background: #f4cf60; border-color: #fff0b5; box-shadow: 0 0 7px rgba(244, 207, 96, 0.42); transform: scale(1.05); }
+/* Campo COMPLETO → confirmación DORADA (la paleta premium de la portada):
+   ese dato (celular de 9 dígitos o clave de 4) ya está listo. Antes era verde
+   esmeralda; el verde queda reservado para WhatsApp, así todo el flujo es dark-gold. */
+.kp-campo.lleno {
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.10) 100%);
+  border-color: var(--dorado-claro);
+}
+.kp-campo.lleno.activo { border-color: var(--dorado-claro); background: linear-gradient(180deg, rgba(212, 175, 55, 0.26) 0%, rgba(212, 175, 55, 0.12) 100%); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.28); }
+.kp-campo.lleno .kp-eti { color: #ffe9a8; }
+.kp-campo.lleno .kp-visor { color: #fff3c8; }
+.kp-campo.lleno .kp-visor.vacio { color: rgba(255, 243, 200, 0.55); }
+.kp-campo.lleno .kp-dot { border-color: var(--dorado-claro); }
+.kp-campo.lleno .kp-dot.on { background: #fff3c8; border-color: #fff; box-shadow: 0 0 7px rgba(244, 207, 96, 0.55); }
 .kp-teclas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
-/* Teclas = mismo efecto "3D" (sombra dorada abajo, se hunde al tocar) pero con el borde
-   dorado premium y fondo negro de las cards de producto (pedido del dueño). */
+/* Teclas = tema dark-gold de las cards de producto (.prod): superficie negra cálida,
+   borde y números dorados. El dorado queda para el CTA (el botón que vende), así los
+   9 números no compiten con él y la jerarquía es la misma de la portada. */
 .kp-tecla {
   cursor: pointer; padding: 13px 0; border-radius: 14px; line-height: 1;
-  font-family: var(--tipo-titulos); font-size: 26px; font-weight: 800; color: #4a2a00;
-  background: linear-gradient(180deg, #fff0b5 0%, #f1cf62 52%, #deb03a 100%); border: 1.5px solid #fff4c7;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 3px 0 #8b5709, 0 6px 12px rgba(91, 54, 3, 0.2);
-  transition: transform 0.08s, box-shadow 0.08s, background 0.12s;
+  font-family: var(--tipo-titulos); font-size: 26px; font-weight: 800; color: #f4cf60;
+  background: linear-gradient(180deg, #2c2620 0%, #201b16 55%, #16120e 100%); border: 1.5px solid rgba(212, 175, 55, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 238, 174, 0.14), 0 3px 0 rgba(0, 0, 0, 0.45), 0 6px 12px rgba(0, 0, 0, 0.32);
+  transition: transform 0.08s, box-shadow 0.08s, background 0.12s, border-color 0.12s;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
-.kp-tecla:hover { filter: brightness(1.035); }
-.kp-tecla:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 1px 0 #8b5709; background: #dbac34; }
-.kp-borrar { font-size: 20px; background: linear-gradient(180deg, #b11b25 0%, #8d1119 100%); color: #ffe49a; border-color: #f8dc79; box-shadow: inset 0 1px 0 rgba(255, 205, 179, 0.28), 0 3px 0 #55070b, 0 6px 12px rgba(74, 9, 12, 0.24); }
-.kp-borrar:active { background: #7c0d14; box-shadow: 0 1px 0 #55070b; }
+.kp-tecla:hover { border-color: var(--dorado); filter: brightness(1.08); }
+.kp-tecla:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 238, 174, 0.12), 0 1px 0 rgba(0, 0, 0, 0.5); background: linear-gradient(180deg, #241f19 0%, #16120e 100%); }
+/* Borrar = misma familia oscura pero con guiño al vino de la marca (recede, no compite). */
+.kp-borrar { font-size: 20px; color: #eaa892; background: linear-gradient(180deg, #2a2320 0%, #1d1815 100%); border-color: rgba(142, 27, 34, 0.6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 3px 0 rgba(0, 0, 0, 0.45), 0 6px 12px rgba(0, 0, 0, 0.3); }
+.kp-borrar:active { background: linear-gradient(180deg, #4a0f14 0%, #3a0a0d 100%); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
 /* Acción principal integrada en la última tecla: borrar · 0 · entrar/crear.
-   Verde esmeralda = avanzar/confirmar: se separa con claridad del dorado numérico
-   y del vino reservado para borrar. */
+   DORADO = el mismo botón que vende de la portada (.btn-elegir / .ct-enviar): resalta
+   sobre las teclas oscuras y hace de foco claro. El verde quedó solo para WhatsApp. */
 .kp-teclas .kp-enviar {
   display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 52px;
   margin: 0; padding: 7px 5px; border-radius: 14px; line-height: 1.14; white-space: normal;
   font-family: var(--tipo-titulos); font-size: clamp(10px, 3vw, 13px); font-weight: 800;
   position: relative; isolation: isolate; overflow: hidden;
-  background: linear-gradient(180deg, #249b78 0%, #126d58 58%, #0b513f 100%);
-  color: #f4fff9; border: 1.5px solid #9cf3d4;
-  box-shadow: inset 0 1px 0 rgba(232, 255, 247, 0.58), 0 3px 0 #063b2e, 0 6px 13px rgba(5, 65, 49, 0.36);
+  background: linear-gradient(160deg, #f4d778 0%, #e4bf58 48%, #caa23a 100%);
+  color: #3a2708; border: 1.5px solid #fff4c7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 3px 0 rgba(138, 106, 30, 0.65), 0 6px 13px rgba(70, 48, 3, 0.34);
 }
-/* El mismo barrido de luz del header y las cards de publicidad. */
+/* El mismo barrido de luz del header y las cards de publicidad (glint blanco sobre el oro). */
 .kp-teclas .kp-enviar::after {
   content: ''; position: absolute; z-index: 1; top: 0; bottom: 0; left: 0; width: 45%;
   pointer-events: none; background: linear-gradient(100deg,
-    rgba(255, 255, 255, 0) 0%, rgba(230, 255, 246, 0.16) 40%,
-    rgba(255, 255, 255, 0.56) 50%, rgba(230, 255, 246, 0.16) 60%,
+    rgba(255, 255, 255, 0) 0%, rgba(255, 248, 220, 0.2) 40%,
+    rgba(255, 255, 255, 0.65) 50%, rgba(255, 248, 220, 0.2) 60%,
     rgba(255, 255, 255, 0) 100%);
   transform: translateX(-160%) skewX(-20deg);
   animation: kp-accion-brillo 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -1728,4 +1857,205 @@ span.ch-foto-vacia {
   .cuenta-zona { padding-top: 14px; }
   /* Más aire entre el encabezado de cada lista y sus productos, sin cambiar su tipografía. */
   .fav-lista-cab { margin-bottom: 16px; }
+}
+
+/* ================= Directorio del catálogo (/categorias) =================
+   "El mapa de la tienda": formato propio (claro y aireado, distinto del home y de
+   las grillas de producto). Familias → tarjetas de categoría con foto + conteo +
+   buscador que salta directo al producto. Lo pinta renderCatalogo() de site.js. */
+.cat-dir { width: 100%; }
+
+/* --- Cabecera premium con el buscador --- */
+.cat-dir-hero {
+  background: var(--bg-premium); color: var(--blanco);
+  padding: 46px 18px 40px; text-align: center;
+  border-bottom: 1px solid rgba(212,175,55,0.28);
+}
+.cat-dir-hero .cdh-in { max-width: 780px; margin: 0 auto; }
+.cdh-eyebrow {
+  display: inline-block; font-family: var(--tipo-titulos);
+  font-size: 12px; font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--dorado-claro); background: rgba(212,175,55,0.12);
+  border: 1px solid rgba(212,175,55,0.32); border-radius: 999px; padding: 6px 14px;
+}
+.cdh-tit {
+  font-family: var(--tipo-titulos); font-weight: 800; line-height: 1.15; overflow-wrap: break-word;
+  font-size: clamp(25px, 4.6vw, 40px); margin: 16px 0 8px;
+  background: linear-gradient(92deg, #fff 0%, #f6e3a8 60%, var(--dorado-claro) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.cdh-sub { color: rgba(255,255,255,0.74); font-size: 15px; margin: 0 auto; max-width: 520px; }
+.cdh-buscar {
+  position: relative; max-width: 560px; margin: 24px auto 0;
+  display: flex; align-items: center;
+  background: var(--superficie); border-radius: 999px;
+  border: 1px solid rgba(212,175,55,0.4); box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+.cdh-buscar .cdh-lupa { padding: 0 6px 0 18px; font-size: 18px; opacity: 0.7; }
+.cdh-buscar input {
+  flex: 1; border: 0; background: transparent; outline: none;
+  font-family: var(--tipo-cuerpo); font-size: 16px; color: var(--texto);
+  padding: 15px 8px; min-width: 0;
+}
+.cdh-buscar input::placeholder { color: var(--texto-suave); }
+.cdh-buscar .cdh-x {
+  border: 0; background: var(--superficie-2); color: var(--texto-suave); cursor: pointer;
+  width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; font-size: 14px; line-height: 1;
+}
+.cdh-buscar .cdh-x:hover { background: #ece4d3; color: var(--texto); }
+.cdh-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+.cdh-chip {
+  font-family: var(--tipo-cuerpo); font-size: 13px; color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 999px; padding: 7px 13px;
+}
+.cdh-chip b { color: var(--dorado-claro); font-weight: 800; }
+/* Fila del buscador: el pill + el botón "Cancelar" (este solo se ve en el modo búsqueda móvil) */
+.cdh-fila { display: flex; align-items: center; gap: 10px; max-width: 560px; margin: 24px auto 0; }
+.cdh-fila .cdh-buscar { margin: 0; flex: 1 1 0; min-width: 0; max-width: none; }
+.cdh-cancel {
+  display: none; flex: 0 0 auto; background: transparent; border: 0; cursor: pointer;
+  color: var(--dorado-claro); font-family: var(--tipo-titulos); font-weight: 700; font-size: 15px;
+  padding: 8px 4px; white-space: nowrap;
+}
+
+/* --- Cuerpo centrado --- */
+.cat-dir-wrap { max-width: 1100px; margin: 0 auto; padding: 30px 18px 54px; }
+
+/* --- Familias --- */
+.cat-dir-familia { margin-bottom: 40px; }
+.cdf-cab { display: flex; align-items: center; gap: 13px; margin: 0 0 18px; }
+.cdf-cab .cdf-emoji {
+  font-size: 26px; width: 50px; height: 50px; flex: 0 0 50px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #fff7e0, #f3dd9c); border: 1px solid rgba(212,175,55,0.5);
+  border-radius: 14px; box-shadow: var(--sombra);
+}
+.cdf-tit { font-family: var(--tipo-titulos); font-weight: 800; font-size: 21px; color: var(--texto); margin: 0; }
+.cdf-sub { font-size: 13.5px; color: var(--texto-suave); margin: 2px 0 0; }
+.cdf-cab .cdf-num {
+  margin-left: auto; font-family: var(--tipo-titulos); font-weight: 700; font-size: 12px;
+  color: var(--texto-oro); background: var(--crema-suave); border: 1px solid var(--borde-suave);
+  border-radius: 999px; padding: 4px 11px; white-space: nowrap;
+}
+
+/* --- Grilla de tarjetas de categoría --- */
+.cat-dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
+.cat-dir-card {
+  display: flex; flex-direction: column; text-decoration: none; color: inherit;
+  background: var(--superficie); border: 1px solid var(--borde-suave); border-radius: 18px;
+  overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.cat-dir-card:hover, .cat-dir-card:focus-visible {
+  transform: translateY(-5px); border-color: var(--dorado);
+  box-shadow: 0 16px 34px rgba(0,0,0,0.16), 0 0 0 2px rgba(212,175,55,0.35);
+}
+.cdc-thumb {
+  position: relative; height: 158px; display: flex; align-items: center; justify-content: center;
+  padding: 12px; background: radial-gradient(120% 120% at 50% 0%, #fffdf8 0%, #f3ecdd 100%);
+  border-bottom: 1px solid var(--borde-suave);
+}
+.cdc-thumb img { max-height: 100%; width: auto; max-width: 92%; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.16)); }
+.cdc-emoji {
+  position: absolute; top: 9px; left: 9px; width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: rgba(255,255,255,0.94); border: 1px solid rgba(212,175,55,0.45);
+  border-radius: 50%; box-shadow: 0 2px 7px rgba(0,0,0,0.15);
+}
+.cdc-ribbon {
+  position: absolute; top: 10px; right: 10px; font-family: var(--tipo-titulos);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px; padding: 4px 9px; border-radius: 999px;
+  box-shadow: 0 2px 7px rgba(0,0,0,0.2);
+}
+.cdc-ribbon.top { background: linear-gradient(160deg, #f7dc8f, #d4af37); color: #4a370a; }
+.cdc-ribbon.nuevo { background: linear-gradient(160deg, #a51f27, var(--rojo)); color: #f6d98a; }
+.cdc-body {
+  padding: 13px 14px 8px; flex: 1;
+  /* Dorado premium suave tipo mate para la sección del título */
+  background: linear-gradient(180deg, #f7edd3 0%, #efe0bd 100%);
+  border-top: 1px solid rgba(212,175,55,0.28);
+}
+.cdc-name { font-family: var(--tipo-titulos); font-weight: 700; font-size: 15.5px; color: var(--texto); margin: 0 0 7px; line-height: 1.25; overflow-wrap: break-word; }
+.cdc-count {
+  display: inline-block; font-family: var(--tipo-cuerpo); font-weight: 600; font-size: 12px;
+  color: var(--texto-oro); background: var(--crema-suave); border: 1px solid var(--borde-suave);
+  border-radius: 999px; padding: 3px 10px;
+}
+.cdc-cta {
+  display: flex; align-items: center; gap: 5px; justify-content: space-between;
+  font-family: var(--tipo-titulos); font-weight: 700; font-size: 13px; color: var(--rojo);
+  padding: 11px 14px 14px;
+}
+.cdc-cta b { transition: transform 0.18s ease; }
+.cat-dir-card:hover .cdc-cta b { transform: translateX(4px); }
+
+/* --- Zona de resultados de búsqueda --- */
+.cat-dir-res { margin-bottom: 30px; }
+.cdr-bloque { margin-bottom: 26px; }
+.cdr-tit { font-family: var(--tipo-titulos); font-weight: 800; font-size: 17px; color: var(--texto); margin: 0 0 14px; }
+.cdr-tit .cdr-num {
+  font-size: 12px; color: var(--texto-oro); background: var(--crema-suave);
+  border: 1px solid var(--borde-suave); border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: middle;
+}
+.cdr-hits { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 11px; }
+.cdr-hit {
+  display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit;
+  background: var(--superficie); border: 1px solid var(--borde-suave); border-radius: 14px; padding: 9px 11px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cdr-hit:hover, .cdr-hit:focus-visible { transform: translateY(-2px); border-color: var(--dorado); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+.cdr-hit-img {
+  flex: 0 0 54px; width: 54px; height: 54px; border-radius: 10px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: radial-gradient(120% 120% at 50% 0%, #fffdf8 0%, #f3ecdd 100%); border: 1px solid var(--borde-suave);
+}
+.cdr-hit-img img { max-width: 100%; max-height: 100%; width: auto; object-fit: contain; }
+.cdr-hit-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cdr-hit-txt b { font-family: var(--tipo-cuerpo); font-weight: 600; font-size: 13.5px; color: var(--texto); line-height: 1.25; overflow-wrap: break-word; }
+.cdr-hit-cat { font-size: 12px; color: var(--texto-suave); }
+.cdr-hit-go { color: var(--rojo); font-weight: 800; font-size: 16px; flex: 0 0 auto; }
+.cdr-hit.agotado { opacity: 0.62; }
+.cdr-vacio { text-align: center; padding: 34px 16px; color: var(--texto-suave); }
+.cdr-vacio-ico { font-size: 34px; display: block; margin-bottom: 8px; }
+.cdr-vacio p { margin: 4px 0; font-size: 15px; color: var(--texto); }
+.cdr-vacio .cdr-vacio-sub { font-size: 13.5px; color: var(--texto-suave); }
+
+/* --- Pie: ayuda por WhatsApp --- */
+.cat-dir-pie { text-align: center; margin-top: 12px; padding-top: 26px; border-top: 1px dashed var(--borde-suave); }
+.cat-dir-pie p { color: var(--texto-suave); font-size: 14.5px; margin: 0 0 14px; }
+.cdp-wa {
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+  font-family: var(--tipo-titulos); font-weight: 700; font-size: 14.5px; color: #063d1e;
+  background: var(--verde-wa); border-radius: 999px; padding: 12px 22px;
+  box-shadow: 0 8px 20px rgba(37,211,102,0.34); margin-top: 6px;
+}
+.cdp-wa:hover { filter: brightness(1.05); transform: translateY(-2px); }
+
+/* Modo búsqueda del catálogo en móvil: al enfocar el buscador se ancla arriba (bajo el
+   header) y los resultados fluyen debajo con scroll propio, siempre visibles por encima
+   del teclado. Lo activa assets/site.js poniendo body.cat-buscando y midiendo --cab-h. */
+@media (max-width: 860px) {
+  body.cat-buscando .cat-dir-hero {
+    position: sticky; top: var(--cab-h, 0px); z-index: 480;
+    padding: 12px 12px 14px; margin: 0;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+  }
+  body.cat-buscando .cdh-eyebrow,
+  body.cat-buscando .cdh-tit,
+  body.cat-buscando .cdh-sub,
+  body.cat-buscando .cdh-stats { display: none; }
+  body.cat-buscando .cdh-fila { margin: 0; max-width: none; }
+  body.cat-buscando .cdh-cancel { display: inline-block; }
+  body.cat-buscando .cat-dir-wrap { padding-top: 16px; }
+}
+
+@media (max-width: 620px) {
+  .cat-dir-hero { padding: 34px 14px 30px; }
+  .cat-dir-wrap { padding: 24px 13px 44px; }
+  .cat-dir-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 13px; }
+  .cdc-thumb { height: 128px; padding: 9px; }
+  .cdc-name { font-size: 14px; }
+  .cdf-tit { font-size: 18px; }
+  .cdr-hits { grid-template-columns: 1fr; }
 }

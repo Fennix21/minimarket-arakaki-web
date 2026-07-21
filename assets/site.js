@@ -17,7 +17,9 @@
   // tag opcional ('top'/'new') pinta un badge de social proof. El dueño puede ajustar
   // los badges y los DESTACADOS aquí sin tocar nada más.
   var MENU = [
-    { grupo: 'Inicio', items: [{ href: '/', ico: '🏠', txt: 'Página principal' }] },
+    { grupo: 'Inicio', items: [
+      { href: '/', ico: '🏠', txt: 'Página principal' },
+    ] },
     { grupo: 'Licores', items: [
       { href: '/pisco', ico: '🥃', txt: 'Piscos', tag: 'top' }, { href: '/vinos', ico: '🇪🇸', txt: 'Vinos Españoles', tag: 'top' },
       { href: '/vinos-peruanos', ico: '🇵🇪', txt: 'Vinos Peruanos' }, { href: '/vinos-argentinos', ico: '🇦🇷', txt: 'Vinos Argentinos' },
@@ -82,17 +84,12 @@
   // ---------- Textos editables del sitio (lema del header + footer) ----------
   // Valores por defecto: el sitio se ve bien sin backend. El dueño los edita en
   // /panel → 📝 Sitio (Redis config:sitio); /api/sitio los sirve y aquí se aplican.
-  var MAP_URL = 'https://www.google.com/maps/search/?api=1&query=ARAKAKI+Minimarket+Av+Belen+265+San+Isidro';
+  // El footer ya NO lleva dirección ni teléfonos (jul 2026): la ubicación vive en la
+  // portada + popup del mapa, y el contacto es el botón de WhatsApp.
   var SITIO_DEF = {
     lema: 'Lo que necesitas, cuando lo necesitas',
-    visitanosTit: 'Visítanos',
-    direccion: 'Av. Belén 265, San Isidro',
-    referencia: 'A solo 2 cuadras del Golf',
-    mapLabel: 'Ver ubicación en el mapa',
     horarioTit: 'Horario de atención',
     horario: 'Lun – Sáb · 7:00 am – 9:00 pm\nDomingos · 8:00 am – 8:00 pm\nAbierto todos los días, incluso feriados',
-    contactoTit: 'Contáctanos',
-    telefonos: '012218582\n977737199\n960725996\n964295436\n933477179',
     redesTit: 'Síguenos',
     facebook: REDES.facebook.url,
     instagram: REDES.instagram.url,
@@ -117,9 +114,6 @@
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
   }
   function footerHTML(cfg) {
-    var telsHtml = lineas(cfg.telefonos).map(function (t) {
-      return '<a class="tel" href="tel:' + esc(t.replace(/[^\d+]/g, '')) + '"><span class="tel-ico">📞</span>' + esc(t) + '</a>';
-    }).join('');
     var horarioHtml = lineas(cfg.horario).map(function (l) { return '<p>' + esc(l) + '</p>'; }).join('');
     var redes = [['facebook', cfg.facebook], ['instagram', cfg.instagram], ['youtube', cfg.youtube]];
     var redesHtml = redes.filter(function (r) { return r[1]; }).map(function (r) {
@@ -129,19 +123,18 @@
     // Botón de notificaciones push (ofertas). Vive en el footer porque este se
     // re-renderiza (aplicarSitio): el click se maneja por delegación en initPush().
     var pushBtn = '<p class="pie-push"><button type="button" id="push-ofertas-btn">🔔 Avísame de las ofertas</button></p>';
+    // Compacto y premium: marca (logo + lema + WhatsApp) · horario · redes. La dirección
+    // vive en la portada y en el popup del mapa; el contacto es el botón verde de WhatsApp.
     return '<div class="interior">' +
-        '<div class="pie-col"><h4>' + esc(cfg.visitanosTit) + '</h4>' +
-          '<p class="pie-dir">' + esc(cfg.direccion) + '</p>' +
-          (cfg.referencia ? '<p class="pie-ref">' + esc(cfg.referencia) + '</p>' : '') +
-          (cfg.mapLabel ? '<p class="pie-mapa"><a href="' + MAP_URL + '" target="_blank" rel="noopener">📍 ' + esc(cfg.mapLabel) + '</a></p>' : '') +
+        '<div class="pie-col pie-brand">' +
+          '<a href="/"><img class="pie-logo" src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a>' +
+          (cfg.lema ? '<p class="pie-lema">' + esc(cfg.lema) + '</p>' : '') +
         '</div>' +
         '<div class="pie-col"><h4>' + esc(cfg.horarioTit) + '</h4><div class="pie-horario">' + horarioHtml + '</div></div>' +
-        '<div class="pie-col"><h4>' + esc(cfg.contactoTit) + '</h4><div class="pie-tels">' + telsHtml + '</div></div>' +
         '<div class="pie-col"><h4>' + esc(cfg.redesTit) + '</h4><div class="redes">' + redesHtml + '</div></div>' +
       '</div>' +
       pushBtn +
-      '<p class="copy">' + esc(copy) + '</p>' +
-      '<div class="pie-marca"><a href="/"><img src="' + LOGO_BLANCO + '" alt="Minimarket Arakaki"></a></div>';
+      '<p class="copy">' + esc(copy) + '</p>';
   }
   var sitioActual = SITIO_DEF; // último config aplicado (para textos del carrito en enviarPedido)
   function aplicarSitio(cfg) {
@@ -1983,7 +1976,12 @@
         return;
       }
       var tk = leerSesion();
-      if (!tk) { pintarAcceso(int); return; }
+      // /mi-cuenta#crear (CTA "Crear mi cuenta VIP" del inicio): aterriza directo en el
+      // registro, sin pasar por la pantalla de acceso. Con sesión viva se ignora.
+      if (!tk) {
+        if (location.hash === '#crear') pintarCrear(int); else pintarAcceso(int);
+        return;
+      }
       if (cuentaPerfil) { pintarPanelCliente(int, cuentaPerfil); return; }
       fetch('/api/cuenta?token=' + encodeURIComponent(tk))
         .then(function (r) { return r.json(); })
@@ -2088,6 +2086,9 @@
   function kpPintar(campo) {
     var v = campo.getAttribute('data-v') || '';
     var visor = campo.querySelector('.kp-visor');
+    // Campo completo (celular de 9 dígitos o clave de 4) → se pinta de verde esmeralda.
+    var max = Number(campo.getAttribute('data-max')) || 0;
+    campo.classList.toggle('lleno', max > 0 && v.length >= max);
     if (campo.getAttribute('data-tipo') === 'pin') {
       // Puntitos secretos: uno lleno por cada número tecleado (4 huecos de guía como mínimo)
       var men = Math.max(4, v.length);
@@ -2184,7 +2185,7 @@
         '<div class="club-tarjeta" id="cl-tarjeta">' +
           '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Ingresa tu clave <span class="clt-rombo">◆</span></h3>' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular', 9) +
-          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 4) +
           kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="ct-enviar" disabled>Entrar a mi cuenta</button>') +
           '<label class="clt-check"><input type="checkbox" id="ct-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="ct-error"></p>' +
@@ -2204,7 +2205,7 @@
       var pin = kpVal('kp-pin');
       err.textContent = '';
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave tiene de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave tiene 4 números.'; return; }
       btn.disabled = true;
       btn.textContent = 'Un momento…';
       var recordar = !!(document.getElementById('ct-recordar') && document.getElementById('ct-recordar').checked);
@@ -2241,7 +2242,7 @@
           '<label class="clt-lab" for="cn-email">Tu correo <small>(opcional, para recuperar tu clave)</small></label>' +
           '<input class="clt-input" id="cn-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
           kpCampoHtml('kp-tel', 'tel', '📱 Tu celular (WhatsApp)', 9) +
-          kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 a 6 números)', 6) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Elige tu clave secreta (4 números)', 4) +
           kpTecladoHtml('<button type="button" class="ct-enviar clt-enviar kp-enviar" id="cn-enviar">Crear mi cuenta VIP</button>') +
           '<label class="clt-check"><input type="checkbox" id="cn-recordar" checked> Mantenerse conectado</label>' +
           '<p class="ct-error" id="cn-error"></p>' +
@@ -2260,7 +2261,7 @@
       err.textContent = '';
       if (nombre.length < 2) { err.textContent = 'Cuéntanos tu nombre 🙂'; return; }
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave debe tener 4 números.'; return; }
       btn.disabled = true;
       btn.textContent = 'Un momento…';
       var recordar = !!(document.getElementById('cn-recordar') && document.getElementById('cn-recordar').checked);
@@ -2292,7 +2293,7 @@
           '<h3 class="clt-tit"><span class="clt-rombo">◆</span> Cambio de número <span class="clt-rombo">◆</span></h3>' +
           '<p class="clt-desc">¿Estrenaste celular? 📲 Pasa tu cuenta con tus puntos, favoritos y pedidos a tu número nuevo.</p>' +
           kpCampoHtml('kp-telv', 'tel', '📱 Tu celular ACTUAL', 9) +
-          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 6) +
+          kpCampoHtml('kp-pin', 'pin', '🔒 Tu clave secreta', 4) +
           kpCampoHtml('kp-teln', 'tel', '✨ Tu celular NUEVO', 9) +
           kpTecladoHtml() +
           '<p class="ct-error" id="cb-error"></p>' +
@@ -2312,7 +2313,7 @@
       var telN = kpVal('kp-teln');
       err.textContent = '';
       if (telV.length < 9) { err.textContent = 'Revisa tu número actual (9 dígitos).'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'Tu clave tiene de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave tiene 4 números.'; return; }
       if (telN.length < 9) { err.textContent = 'Revisa tu número nuevo (9 dígitos).'; return; }
       if (telV === telN) { err.textContent = 'El número nuevo es igual al actual 🙂'; return; }
       btn.disabled = true;
@@ -2353,8 +2354,8 @@
           '<label for="cr-email">Tu correo registrado</label>' +
           '<input id="cr-email" type="email" maxlength="80" placeholder="tucorreo@gmail.com">' +
           (porCodigo ? '' :
-            '<label for="cr-pin">Tu PIN nuevo (4 a 6 números)</label>' +
-            '<input id="cr-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+            '<label for="cr-pin">Tu PIN nuevo (4 números)</label>' +
+            '<input id="cr-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
             '<label class="ct-check"><input type="checkbox" id="cr-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>') +
           '<p class="ct-error" id="cr-error"></p>' +
           '<button type="submit" class="ct-enviar" id="cr-enviar">' + (porCodigo ? '📩 Enviarme el código' : 'Recuperar y entrar') + '</button>' +
@@ -2376,7 +2377,7 @@
       err.textContent = '';
       if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
       if (!email) { err.textContent = 'Ingresa el correo que registraste en tu cuenta.'; return; }
-      if (!porCodigo && !/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!porCodigo && !/^\d{4}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener 4 números.'; return; }
       var recordar = !!(document.getElementById('cr-recordar') && document.getElementById('cr-recordar').checked);
       btn.disabled = true;
       btn.textContent = 'Un momento…';
@@ -2409,8 +2410,8 @@
         '<form id="cc-form" autocomplete="off">' +
           '<label for="cc-codigo">Código del correo</label>' +
           '<input id="cc-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">' +
-          '<label for="cc-pin">Tu PIN nuevo (4 a 6 números)</label>' +
-          '<input id="cc-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+          '<label for="cc-pin">Tu PIN nuevo (4 números)</label>' +
+          '<input id="cc-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
           '<label class="ct-check"><input type="checkbox" id="cc-recordar" checked> Mantener mi sesión iniciada en este dispositivo</label>' +
           '<p class="ct-error" id="cc-error"></p>' +
           '<button type="submit" class="ct-enviar" id="cc-enviar">Cambiar mi PIN y entrar</button>' +
@@ -2426,7 +2427,7 @@
       var pin = (document.getElementById('cc-pin').value || '').trim();
       err.textContent = '';
       if (codigo.length !== 6) { err.textContent = 'Escribe el código de 6 números que te llegó al correo.'; return; }
-      if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'El PIN nuevo debe tener 4 números.'; return; }
       var recordar = !!(document.getElementById('cc-recordar') && document.getElementById('cc-recordar').checked);
       btn.disabled = true;
       btn.textContent = 'Un momento…';
@@ -2547,8 +2548,8 @@
       '<p class="ct-error" id="cd-error"></p>' +
       '<button type="button" class="ct-enviar" id="cd-guardar">💾 Guardar mis datos</button>' +
       '<h3 class="cpn-sub-tit">🔑 Cambiar mi clave</h3>' +
-      '<label for="cp-actual">Tu clave actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
-      '<label for="cp-nuevo">Tu clave nueva (4 a 6 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="6" placeholder="••••">' +
+      '<label for="cp-actual">Tu clave actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
+      '<label for="cp-nuevo">Tu clave nueva (4 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
       '<p class="ct-error" id="cp-error"></p>' +
       '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button></div>';
 
@@ -2564,7 +2565,7 @@
             favListas.map(function (c) { return favListaHtml(c, favInfo); }).join('') +
             '<div class="fav-sel-bar"><button type="button" class="ct-enviar fav-sel-add" disabled>🛒 Marca los productos que quieras agregar</button></div>'
           : '<p class="ct-vacio">Marca la estrellita ⭐ de cualquier producto y organízalo en tus listas (Desayuno, Para reuniones…) para comprarlo en un toque.</p>' +
-            '<a class="ct-enviar ct-link" href="/pisco">Ver el catálogo 🛍️</a>') +
+            '<a class="ct-enviar ct-link" href="/">Ver el catálogo 🛍️</a>') +
         '</div>';
     }
 
@@ -2660,8 +2661,7 @@
       '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev" aria-hidden="true">▼</span></button>' +
       '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
       '<div class="cs-botones">' +
-        '<a class="cs-vino" href="/pisco"><span>📖</span> Ver catálogo</a>' +
-        '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a tienda</a>' +
+        '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a la tienda</a>' +
       '</div>' +
     '</div>' +
     '</div>';
@@ -2984,7 +2984,7 @@
       var actual = (document.getElementById('cp-actual').value || '').trim();
       var nuevo = (document.getElementById('cp-nuevo').value || '').trim();
       errP.textContent = '';
-      if (!/^\d{4,6}$/.test(nuevo)) { errP.textContent = 'El PIN nuevo debe tener de 4 a 6 números.'; return; }
+      if (!/^\d{4}$/.test(nuevo)) { errP.textContent = 'El PIN nuevo debe tener 4 números.'; return; }
       cpBtn.disabled = true; cpBtn.textContent = 'Un momento…';
       cuentaPost({ action: 'pin', pinActual: actual, pinNuevo: nuevo }).then(function (j) {
         cpBtn.disabled = false;
@@ -3485,6 +3485,90 @@
       '</div></div>';
   }
 
+  // ---------- Carrusel coverflow de la categoría (antes vivía en el home) ----------
+  // Se muestra al inicio de cada página de categoría, debajo del video del hero.
+  // Categorías con foto de producto cuadrada (1:1): card 1:1 (cc-cuadrado) para no recortar.
+  var CC_CUADRADAS = { 'refrescos': 1, 'helados': 1, 'chocolates-importados': 1, 'dulces': 1, 'galletas': 1, 'backtoschool': 1, 'frutas-y-vegetales': 1 };
+
+  function carruselCatHTML(slug) {
+    var cat = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
+    if (!cat) return '';
+    var prods = [];
+    cat.sections.forEach(function (s) { prods = prods.concat(s.products); });
+    var slides = prods.slice(0, 6); // hasta 6 posters en el coverflow (imagen a su ratio, sin recorte)
+    if (!slides.length) return '';
+    var caras = slides.map(function (p) {
+      return '<div class="cc-slide" data-nombre="' + esc(p.name) + '"><img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '"></div>';
+    }).join('');
+    var multi = slides.length > 1;
+    var puntos = multi ? slides.map(function (p, i) {
+      return '<span' + (i === 0 ? ' class="on"' : '') + '></span>';
+    }).join('') : '';
+    // Sin CTA: el carrusel ya está DENTRO de su categoría. El nombre del producto activo
+    // reemplaza al contador "01 / 06" de la versión del home.
+    return '<section class="seccion premium cc-intro"><div class="interior">' +
+      '<div class="cat-carrusel' + (CC_CUADRADAS[slug] ? ' cc-cuadrado' : '') + '" data-carrusel>' +
+        '<div class="cc-stage">' + caras +
+          (multi ? '<button class="cc-arrow cc-prev" aria-label="Anterior">‹</button>' +
+                   '<button class="cc-arrow cc-next" aria-label="Siguiente">›</button>' : '') +
+        '</div>' +
+        '<div class="cc-nombre">' + esc(slides[0].name) + '</div>' +
+        (multi ? '<div class="cc-dots">' + puntos + '</div>' : '') +
+      '</div>' +
+    '</div></section>';
+  }
+
+  // Inicializa el coverflow (posición/opacidad según distancia al centro) y muestra el nombre del activo.
+  function crearCarrusel(nodo) {
+    var slides = nodo.querySelectorAll('.cc-slide');
+    var puntos = nodo.querySelectorAll('.cc-dots span');
+    var nombre = nodo.querySelector('.cc-nombre');
+    var n = slides.length, idx = 0, pausa = false;
+    function pintar() {
+      for (var i = 0; i < n; i++) {
+        var off = i - idx;                 // distancia circular más corta al slide activo
+        if (off > n / 2) off -= n;
+        if (off < -n / 2) off += n;
+        var s = slides[i];
+        s.classList.remove('es-activa', 'es-lado');
+        if (off === 0) {
+          s.style.transform = 'translate(-50%,-50%) scale(1)';
+          s.style.opacity = '1'; s.style.zIndex = '5';
+          s.classList.add('es-activa');
+        } else if (off === -1) {
+          s.style.transform = 'translate(-50%,-50%) translateX(-72%) scale(0.8) rotateY(22deg)';
+          s.style.opacity = '0.5'; s.style.zIndex = '3';
+          s.classList.add('es-lado');
+        } else if (off === 1) {
+          s.style.transform = 'translate(-50%,-50%) translateX(72%) scale(0.8) rotateY(-22deg)';
+          s.style.opacity = '0.5'; s.style.zIndex = '3';
+          s.classList.add('es-lado');
+        } else {
+          s.style.transform = 'translate(-50%,-50%) scale(0.65)';
+          s.style.opacity = '0'; s.style.zIndex = '1';
+        }
+      }
+      for (var d = 0; d < puntos.length; d++) puntos[d].className = (d === idx ? 'on' : '');
+      if (nombre && slides[idx]) nombre.textContent = slides[idx].getAttribute('data-nombre') || '';
+    }
+    function ir(paso) { idx = (idx + paso + n) % n; pintar(); }
+    var prev = nodo.querySelector('.cc-prev'), next = nodo.querySelector('.cc-next');
+    if (prev) prev.onclick = function () { ir(-1); };
+    if (next) next.onclick = function () { ir(1); };
+    for (var q = 0; q < puntos.length; q++) (function (j) { puntos[j].onclick = function () { idx = j; pintar(); }; })(q);
+    nodo.onmouseenter = function () { pausa = true; };
+    nodo.onmouseleave = function () { pausa = false; };
+    pintar();
+    return { avanzar: function () { if (!pausa && n > 1) ir(1); } };
+  }
+
+  function montarCarruselCat(cont) {
+    var nodo = cont.querySelector('[data-carrusel]');
+    if (!nodo) return;
+    var car = crearCarrusel(nodo);
+    setInterval(function () { car.avanzar(); }, 2000); // autoplay: cada producto 2 s
+  }
+
   window.renderCategoria = function (slug) {
     var cat = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
     var cont = document.getElementById('contenido-categoria');
@@ -3495,6 +3579,8 @@
       (cat.video ? '<video src="' + esc(cat.video) + '" autoplay muted loop playsinline></video>' : '') +
       '</section>';
 
+    html += carruselCatHTML(slug); // carrusel coverflow debajo del video (migrado del home)
+
     cat.sections.forEach(function (sec, si) {
       html += '<section class="seccion premium"><div class="interior">' +
         '<h2 class="titulo-seccion">' + esc(sec.title) + '</h2>' +
@@ -3503,6 +3589,8 @@
         '</div></div></section>';
     });
     cont.innerHTML = html;
+
+    montarCarruselCat(cont); // arranca el coverflow de la categoría (debajo del video)
 
     function conectarCard(card, p) {
       card.querySelector('.btn-elegir').onclick = function () { alternarProducto(p); };
@@ -3608,6 +3696,303 @@
       pintarFavStars(); // estrellas también en las tarjetas recién añadidas
       pintarShareBtns(); // compartir también en las nuevas (productos del panel + combos)
       destacarCompartido(cont); // por si el compartido era un producto subido desde el panel
+    });
+  };
+
+  // ---------- Directorio del catálogo (/categorias) ----------
+  // "El mapa de la tienda": pinta TODAS las categorías agrupadas por familia (misma curaduría
+  // del menú: orden, etiquetas y ⭐/✨) con foto, emoji y conteo de productos, más un buscador
+  // que salta directo al producto (/slug?p=... → brilla al llegar). Formato propio: claro y
+  // aireado, distinto del home (carruseles) y de las grillas oscuras de producto.
+  var CAT_FAM = {
+    'Licores':           { emoji: '🍷', sub: 'Para celebrar, regalar o darte un gusto.' },
+    'Para engreírte':    { emoji: '🍫', sub: 'Dulces, helados y antojos que siempre provocan.' },
+    'Para tu día a día': { emoji: '🛒', sub: 'Lo esencial de tu casa, siempre a la mano.' }
+  };
+
+  // Emoji + foto de portada + conteo base de una categoría del catálogo estático.
+  function catInfoDir(slug) {
+    var c = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
+    var img = '', n = 0;
+    if (c) (c.sections || []).forEach(function (s) {
+      (s.products || []).forEach(function (p) { n++; if (!img && p.img) img = p.img; });
+    });
+    return { emoji: (c && c.emoji) || '🛍️', img: img, n: n };
+  }
+
+  window.renderCatalogo = function () {
+    var cont = document.getElementById('contenido-catalogo');
+    if (!cont) return;
+
+    // Familias desde el MENÚ (una sola fuente de verdad con el resto del sitio).
+    var familias = [];
+    MENU.forEach(function (g) {
+      var items = (g.items || []).filter(function (it) {
+        return it.href && it.href.charAt(0) === '/' && it.href !== '/' &&
+               it.href.indexOf('/categorias') !== 0 && it.href.indexOf('/mi-cuenta') !== 0;
+      });
+      if (items.length) familias.push({ nombre: g.grupo, items: items });
+    });
+
+    // Conteos base (catálogo estático) para la cinta de stats y las píldoras.
+    var totalProd = 0, totalCat = 0;
+    familias.forEach(function (f) {
+      f.items.forEach(function (it) {
+        it._slug = it.href.replace(/^\//, '');
+        it._info = catInfoDir(it._slug);
+        totalProd += it._info.n; totalCat++;
+      });
+    });
+
+    function tileHTML(it) {
+      var info = it._info;
+      var ribbon = it.tag === 'new' ? '<span class="cdc-ribbon nuevo">✨ Nuevo</span>' : '';
+      return '<a class="cat-dir-card" href="' + it.href + '" data-slug="' + it._slug + '">' +
+        '<div class="cdc-thumb">' + ribbon +
+          '<span class="cdc-emoji">' + info.emoji + '</span>' +
+          (info.img ? '<img src="' + esc(info.img) + '" alt="' + esc(it.txt) + '" loading="lazy">' : '') +
+        '</div>' +
+        '<div class="cdc-body">' +
+          '<h3 class="cdc-name">' + esc(it.txt) + '</h3>' +
+          '<span class="cdc-count" data-slug="' + it._slug + '">' + info.n + ' productos</span>' +
+        '</div>' +
+        '<span class="cdc-cta">Ver productos <b>→</b></span>' +
+      '</a>';
+    }
+
+    var html = '<section class="cat-dir">' +
+      '<div class="cat-dir-hero"><div class="cdh-in">' +
+        '<span class="cdh-eyebrow">🗺️ El mapa de la tienda</span>' +
+        '<h1 class="cdh-tit">Todo lo que tenemos, en un solo lugar</h1>' +
+        '<p class="cdh-sub">Elige una categoría o busca tu producto: lo encuentras en segundos.</p>' +
+        '<div class="cdh-fila">' +
+          '<div class="cdh-buscar"><span class="cdh-lupa" aria-hidden="true">🔍</span>' +
+            '<input type="search" id="cat-dir-q" autocomplete="off" ' +
+              'placeholder="Busca un producto o categoría… (pisco, chocolate, agua…)" aria-label="Buscar en el catálogo">' +
+            '<button type="button" class="cdh-x" id="cat-dir-x" aria-label="Limpiar búsqueda" hidden>✕</button>' +
+          '</div>' +
+          // Solo visible en móvil dentro del "modo búsqueda": sale del modo y cierra el teclado
+          '<button type="button" class="cdh-cancel" id="cat-dir-cancel">Cancelar</button>' +
+        '</div>' +
+        '<div class="cdh-stats">' +
+          '<span class="cdh-chip">🗂️ <b id="cd-ncat">' + totalCat + '</b> categorías</span>' +
+          '<span class="cdh-chip">🛍️ <b id="cd-nprod">' + totalProd + '</b> productos</span>' +
+          '<span class="cdh-chip">🚚 Delivery por WhatsApp</span>' +
+        '</div>' +
+      '</div></div>' +
+      '<div class="cat-dir-wrap">' +
+        '<div class="cat-dir-res" id="cat-dir-res" hidden></div>' +
+        '<div id="cat-dir-fams">';
+
+    familias.forEach(function (f) {
+      var meta = CAT_FAM[f.nombre] || { emoji: '🛍️', sub: '' };
+      html += '<section class="cat-dir-familia">' +
+        '<div class="cdf-cab"><span class="cdf-emoji" aria-hidden="true">' + meta.emoji + '</span>' +
+          '<div><h2 class="cdf-tit">' + esc(f.nombre) + '</h2>' +
+          (meta.sub ? '<p class="cdf-sub">' + esc(meta.sub) + '</p>' : '') + '</div>' +
+          '<span class="cdf-num">' + f.items.length + ' cat.</span>' +
+        '</div>' +
+        '<div class="cat-dir-grid">' + f.items.map(tileHTML).join('') + '</div>' +
+      '</section>';
+    });
+
+    html += '</div>' +
+      '<div class="cat-dir-pie">' +
+        '<p>¿No encuentras lo que buscas? Con gusto te ayudamos a ubicarlo.</p>' +
+        '<a class="cdp-wa" href="https://wa.me/' + WA + '?text=' +
+          encodeURIComponent('Hola, estoy buscando un producto en su tienda 🛍️') +
+          '" target="_blank" rel="noopener">💬 Escríbenos por WhatsApp</a>' +
+      '</div>' +
+    '</div></section>';
+
+    cont.innerHTML = html;
+
+    // ----- Buscador (categorías + productos) -----
+    var input = document.getElementById('cat-dir-q');
+    var btnX = document.getElementById('cat-dir-x');
+    var res = document.getElementById('cat-dir-res');
+    var fams = document.getElementById('cat-dir-fams');
+    var indiceProd = null; // se llena con cargarVivo (respeta stock/ocultos y suma productos del panel)
+
+    function nombreCat(slug) {
+      for (var i = 0; i < familias.length; i++)
+        for (var j = 0; j < familias[i].items.length; j++)
+          if (familias[i].items[j]._slug === slug) return familias[i].items[j].txt;
+      var c = window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug];
+      return (c && c.title) || slug;
+    }
+
+    function buscar(q) {
+      q = norm(q).trim();
+      if (!q) { res.hidden = true; res.innerHTML = ''; fams.hidden = false; if (btnX) btnX.hidden = true; return; }
+      if (btnX) btnX.hidden = false;
+      fams.hidden = true; res.hidden = false;
+      var toks = q.split(/\s+/).filter(Boolean);
+
+      // Categorías que casan por nombre
+      var catsHit = [];
+      familias.forEach(function (f) {
+        f.items.forEach(function (it) {
+          if (productoCoincide(toks, norm(it.txt).split(/\s+/))) catsHit.push(it);
+        });
+      });
+
+      // Productos que casan (hasta 30)
+      var prodHit = [], tope = 30;
+      if (indiceProd) {
+        for (var i = 0; i < indiceProd.length && prodHit.length < tope; i++) {
+          if (productoCoincide(toks, indiceProd[i].pal)) prodHit.push(indiceProd[i]);
+        }
+      }
+
+      var h = '';
+      if (catsHit.length) {
+        h += '<div class="cdr-bloque"><h2 class="cdr-tit">📂 Categorías</h2>' +
+          '<div class="cat-dir-grid">' + catsHit.map(tileHTML).join('') + '</div></div>';
+      }
+      if (prodHit.length) {
+        h += '<div class="cdr-bloque"><h2 class="cdr-tit">🛍️ Productos' +
+          '<span class="cdr-num">' + prodHit.length + (prodHit.length >= tope ? '+' : '') + '</span></h2>' +
+          '<div class="cdr-hits">' + prodHit.map(function (p) {
+            return '<a class="cdr-hit' + (p.agotado ? ' agotado' : '') + '" href="/' + p.slug + '?p=' + encodeURIComponent(p.name) + '">' +
+              '<span class="cdr-hit-img">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : '🛍️') + '</span>' +
+              '<span class="cdr-hit-txt"><b>' + esc(p.name) + '</b>' +
+                '<span class="cdr-hit-cat">' + esc(nombreCat(p.slug)) +
+                  (p.agotado ? ' · agotado' : (p.price ? ' · S/ ' + esc(p.price) : '')) + '</span>' +
+              '</span><span class="cdr-hit-go" aria-hidden="true">→</span></a>';
+          }).join('') + '</div></div>';
+      }
+      if (!catsHit.length && !prodHit.length) {
+        h = '<div class="cdr-vacio"><span class="cdr-vacio-ico" aria-hidden="true">🔎</span>' +
+          '<p>No encontramos <b>«' + esc(q) + '»</b>.</p>' +
+          '<p class="cdr-vacio-sub">Prueba con otra palabra o escríbenos y te lo conseguimos.</p>' +
+          '<a class="cdp-wa" href="https://wa.me/' + WA + '?text=' +
+            encodeURIComponent('Hola, busco «' + q + '» ¿lo tienen en su tienda? 🛍️') +
+            '" target="_blank" rel="noopener">💬 Preguntar por WhatsApp</a></div>';
+      }
+      res.innerHTML = h;
+    }
+
+    var deb = null;
+    if (input) input.addEventListener('input', function () {
+      clearTimeout(deb);
+      var v = input.value;
+      deb = setTimeout(function () { buscar(v); }, 120);
+    });
+    if (btnX) btnX.addEventListener('click', function () { input.value = ''; buscar(''); input.focus(); });
+
+    // --- UX móvil: "modo búsqueda" para que el teclado NO tape los resultados ---
+    // Al enfocar en móvil, el buscador se ancla arriba (sticky bajo el header), se colapsan
+    // los adornos del hero y los resultados fluyen debajo con scroll propio (siempre visibles
+    // sobre el teclado). Se sale con "Cancelar" o al perder foco con el campo vacío.
+    var cancelar = document.getElementById('cat-dir-cancel');
+    function esMovilBusq() { return !!(window.matchMedia && window.matchMedia('(max-width: 860px)').matches); }
+    function altoCab() { var c = document.querySelector('.cab'); return c ? Math.round(c.getBoundingClientRect().height) : 0; }
+    function entrarBusqueda() {
+      if (!esMovilBusq()) return;
+      document.documentElement.style.setProperty('--cab-h', altoCab() + 'px'); // ancla el buscador justo bajo el header
+      document.body.classList.add('cat-buscando');
+    }
+    function salirBusqueda() { document.body.classList.remove('cat-buscando'); }
+    if (input) {
+      input.addEventListener('focus', entrarBusqueda);
+      input.addEventListener('blur', function () {
+        // Espera un tick: si el foco no volvió y el campo quedó vacío, sale del modo
+        // (así no rompe el tap en "Cancelar" ni en un resultado).
+        setTimeout(function () {
+          if (document.activeElement === input) return;
+          if (!input.value.trim()) salirBusqueda();
+        }, 200);
+      });
+    }
+    if (cancelar) cancelar.addEventListener('click', function () {
+      input.value = ''; buscar(''); salirBusqueda(); input.blur();
+    });
+    window.addEventListener('resize', function () { if (!esMovilBusq()) salirBusqueda(); });
+
+    // Placeholder tipo "máquina de escribir": va sugiriendo qué buscar (chocolates → helados → aguas…).
+    // Solo mientras el campo está vacío; se pausa al enfocar/escribir y respeta prefers-reduced-motion.
+    (function animarPlaceholder() {
+      if (!input) return;
+      var FIJO = 'Busca un producto o categoría… (pisco, chocolate, agua…)'; // placeholder de reposo (foco / sin animación)
+      var SUGE = ['chocolates', 'helados', 'aguas', 'pisco', 'vino', 'whisky', 'ron', 'galletas'];
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) { input.placeholder = FIJO; return; } // sin animación: placeholder fijo
+
+      var t = null, i = 0, pos = 0, borrando = false, activo = false;
+
+      function pintar(txt) { input.placeholder = 'Busca “' + txt + '”…'; }
+
+      function paso() {
+        if (!activo) return;
+        var palabra = SUGE[i % SUGE.length];
+        if (!borrando) {
+          pos++;
+          pintar(palabra.slice(0, pos));
+          if (pos >= palabra.length) { borrando = true; t = setTimeout(paso, 1500); return; } // palabra completa: pausa
+          t = setTimeout(paso, 85);
+        } else {
+          pos--;
+          pintar(palabra.slice(0, pos));
+          if (pos <= 0) { borrando = false; i++; t = setTimeout(paso, 350); return; } // pasa a la siguiente
+          t = setTimeout(paso, 45);
+        }
+      }
+
+      function arrancar() {
+        if (activo) return;
+        if (input.value.trim() || document.activeElement === input) return; // solo en reposo y vacío
+        activo = true; i = 0; pos = 0; borrando = false;
+        t = setTimeout(paso, 400);
+      }
+      function parar() { activo = false; clearTimeout(t); }
+
+      input.addEventListener('focus', function () { parar(); input.placeholder = FIJO; });
+      input.addEventListener('blur', function () { if (!input.value.trim()) arrancar(); });
+      arrancar();
+    })();
+
+    // Datos en vivo: conteos que CALCAN lo que ve el cliente en cada página de categoría
+    // (sin ocultos, + productos nuevos del panel) e índice para el buscador.
+    cargarVivo(function (data) {
+      data = data || {};
+      var stock = data.s || {}, extra = data.x || [];
+      var cats = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories) || {};
+      var totProd = 0;
+      familias.forEach(function (f) {
+        f.items.forEach(function (it) {
+          var slug = it._slug, vistos = {}, n = 0;
+          var c = cats[slug];
+          if (c) (c.sections || []).forEach(function (s) {
+            (s.products || []).forEach(function (p) {
+              if (vistos[p.name]) return; vistos[p.name] = 1;
+              if (stock[slug + '|' + p.name] !== 'oculto') n++;
+            });
+          });
+          extra.forEach(function (e) { // productos subidos desde el panel a esta categoría
+            if (e.cat !== slug || !e.nombre || vistos[e.nombre]) return;
+            vistos[e.nombre] = 1;
+            if (stock[slug + '|' + e.nombre] !== 'oculto') n++;
+          });
+          totProd += n;
+          var el = cont.querySelector('.cdc-count[data-slug="' + slug + '"]');
+          if (el) el.textContent = n + (n === 1 ? ' producto' : ' productos');
+        });
+      });
+      var nprod = document.getElementById('cd-nprod');
+      if (nprod) nprod.textContent = totProd;
+
+      // Índice del buscador de productos (índice global ya con precio/stock en vivo; dedup por nombre).
+      var idx = indiceVivo();
+      var arr = [];
+      Object.keys(idx.porCat).forEach(function (slug) {
+        (idx.porCat[slug] || []).forEach(function (p) {
+          if (p.oculto) return;
+          arr.push({ name: p.name, slug: slug, img: p.img, price: p.price, agotado: p.agotado, pal: norm(p.name).split(/\s+/) });
+        });
+      });
+      indiceProd = arr;
+      if (input && input.value.trim()) buscar(input.value); // refrescar si ya estaba buscando
     });
   };
 

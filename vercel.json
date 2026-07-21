@@ -1,6 +1,9 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/categorias", "destination": "/", "permanent": true }
+  ],
   "functions": {
     "api/whatsapp.js": { "maxDuration": 30 },
     "api/chat.js": { "maxDuration": 30 },

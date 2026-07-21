@@ -1380,28 +1380,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
     <div class="caja-bot" data-grupo="sitio">
       <h3>🦶 Pie de página</h3>
-      <div class="desc">Lo que sale al final de todas las páginas: dónde estás, a qué hora atiendes, tus teléfonos y tus redes.</div>
-      <div class="cared-sub">
-        <b>📍 Visítanos</b>
-        <div class="campo-bloque">
-          <label>Título</label>
-          <input type="text" id="sitio-vtit" maxlength="40" placeholder="Visítanos" style="width:100%">
-        </div>
-        <div class="campo-bloque">
-          <label>Dirección</label>
-          <input type="text" id="sitio-dir" maxlength="160" placeholder="Av. Belén 265, San Isidro" style="width:100%">
-        </div>
-        <div class="campo-bloque">
-          <label>Referencia</label>
-          <input type="text" id="sitio-ref" maxlength="120" placeholder="A solo 2 cuadras del Golf" style="width:100%">
-        </div>
-        <div class="campo-bloque">
-          <label>Texto del enlace al mapa</label>
-          <div class="hint">El enlace abre tu ubicación en Google Maps. Aquí solo cambias el texto.</div>
-          <input type="text" id="sitio-maplabel" maxlength="60" placeholder="Ver ubicación en el mapa" style="width:100%">
-        </div>
-      </div>
-
+      <div class="desc">Lo que sale al final de la portada: tu marca con el botón de WhatsApp, tu horario y tus redes. (La dirección vive en la portada y en el popup del mapa.)</div>
       <div class="cared-sub">
         <b>🕗 Horario</b>
         <div class="campo-bloque">
@@ -1412,19 +1391,6 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
           <label>Líneas del horario</label>
           <div class="hint">Una línea por renglón.</div>
           <textarea id="sitio-horario" style="min-height:92px" placeholder="Lun – Sáb · 7:00 am – 9:00 pm&#10;Domingos · 8:00 am – 8:00 pm&#10;Abierto todos los días, incluso feriados"></textarea>
-        </div>
-      </div>
-
-      <div class="cared-sub">
-        <b>📞 Contáctanos</b>
-        <div class="campo-bloque">
-          <label>Título</label>
-          <input type="text" id="sitio-ctit" maxlength="40" placeholder="Contáctanos" style="width:100%">
-        </div>
-        <div class="campo-bloque">
-          <label>Teléfonos</label>
-          <div class="hint">Un número por renglón. Cada uno queda tocable para llamar.</div>
-          <textarea id="sitio-tels" style="min-height:110px" placeholder="012218582&#10;977737199&#10;960725996"></textarea>
         </div>
       </div>
 
@@ -3348,7 +3314,7 @@ var EV_GRUPOS = [
   { tit: '🛒 Ventas y contacto', evs: [['pedido_enviado', 'Pedidos enviados desde el carrito'], ['whatsapp_click', 'Toques al botón de WhatsApp'], ['llamada_click', 'Toques para llamar'], ['chatweb_pedido', 'Pedidos cerrados por el chat']] },
   { tit: '💬 Chat de la web', evs: [['chatweb_abierto', 'Veces que abrieron el chat'], ['chatweb_msg', 'Mensajes conversados'], ['chatweb_suscriptor', 'Suscriptores captados'], ['chatweb_consulta', 'Preguntas que el bot no supo']] },
   { tit: '📤 Compartir productos', evs: [['compartir_chat', 'Compartidos por chat de WhatsApp'], ['compartir_estado', 'Imágenes para estados creadas'], ['compartir_link', 'Enlaces copiados']] },
-  { tit: '👥 Club', evs: [['club_cuenta', 'Cuentas creadas'], ['club_login', 'Inicios de sesión'], ['club_sorteo', 'Participaciones en sorteos'], ['club_pregunta', 'Preguntas al negocio'], ['club_recupero', 'PIN recuperados']] },
+  { tit: '👥 Club', evs: [['vip_abrir', 'Popup VIP abierto en el inicio'], ['vip_crear', 'Toques en "Crear mi cuenta VIP"'], ['club_cuenta', 'Cuentas creadas'], ['club_login', 'Inicios de sesión'], ['club_sorteo', 'Participaciones en sorteos'], ['club_pregunta', 'Preguntas al negocio'], ['club_recupero', 'PIN recuperados']] },
   { tit: '🧩 Combos (venta cruzada)', evs: [['comple_elegir', 'Complemento elegido en la página'], ['comple_carrito', 'Toque final añadido en el carrito']] },
   { tit: '🔔 Avisos', evs: [['push_enviados', 'Notificaciones push enviadas'], ['push_click', 'Notificaciones abiertas'], ['correo_enviados', 'Correos de promo enviados']] },
 ];
@@ -3719,10 +3685,9 @@ function probarChat() {
 }
 function reiniciarPrueba() { WEB_TEST_MSGS = []; document.getElementById('web-test-sug').innerHTML = ''; pintarPrueba(); }
 // --- Textos del sitio (lema del header + footer): config:sitio, los lee /api/sitio ---
+// El footer ya no lleva dirección ni teléfonos (jul 2026): esos campos se retiraron.
 var SITIO_CAMPOS = {
-  lema: 'sitio-lema', visitanosTit: 'sitio-vtit', direccion: 'sitio-dir', referencia: 'sitio-ref',
-  mapLabel: 'sitio-maplabel', horarioTit: 'sitio-htit', horario: 'sitio-horario',
-  contactoTit: 'sitio-ctit', telefonos: 'sitio-tels', redesTit: 'sitio-rtit',
+  lema: 'sitio-lema', horarioTit: 'sitio-htit', horario: 'sitio-horario', redesTit: 'sitio-rtit',
   facebook: 'sitio-fb', instagram: 'sitio-ig', youtube: 'sitio-yt', copy: 'sitio-copy',
   carGeoNota: 'sitio-cargeo', carDirFalta: 'sitio-cardir',
   compChat: 'sitio-compchat', compOg: 'sitio-compog', compLema: 'sitio-complema',
@@ -4005,10 +3970,10 @@ var FONDO_ZONAS = [
     def: 'radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%)', base: { t: 'radial', c1: '#2b2723', c2: '#1a1715', c3: '#0c0b0a', a: 180 } },
   { k: 'card', n: '🃏 Tarjetas de producto', d: 'El fondo de cada tarjeta de producto (y de las tarjetas de la cuenta del cliente). Ojo: el nombre y el precio van en letra clara, así que un fondo muy claro se leería mal.', card: 1,
     def: 'linear-gradient(180deg, #211d19 0%, #100e0c 100%)', base: { t: 'lineal', c1: '#211d19', c2: '#100e0c', c3: '', a: 180 } },
-  { k: 'vino', n: '🍷 Franjas del inicio', d: 'Las franjas vino de la portada: los carruseles de categorías y los beneficios.',
-    def: 'radial-gradient(120% 80% at 50% 0%, #9c1c20 0%, #720e12 50%, #4c090c 100%)', base: { t: 'radial', c1: '#9c1c20', c2: '#720e12', c3: '#4c090c', a: 180 } },
-  { k: 'roja', n: '🎁 Franja del Club Arakaki', d: 'La franja del inicio con el formulario para inscribirse al Club.',
-    def: '#8e1b22', base: { t: 'solido', c1: '#8e1b22', c2: '#5d0b0f', c3: '', a: 180 } },
+  { k: 'vino', n: '🏠 Franjas del inicio', d: 'La franja oscura de la portada con Atención Personalizada y el Club Arakaki. De fábrica va en el mismo dark-gold de las secciones de productos.',
+    def: 'radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%)', base: { t: 'radial', c1: '#2b2723', c2: '#1a1715', c3: '#0c0b0a', a: 180 } },
+  { k: 'roja', n: '🎁 Franja del Club Arakaki', d: 'Reservada: hoy el Club comparte la franja del inicio, así que esta zona casi no se ve.',
+    def: 'linear-gradient(180deg, #1d1915 0%, #0e0c0a 100%)', base: { t: 'lineal', c1: '#1d1915', c2: '#0e0c0a', c3: '', a: 180 } },
   { k: 'pagina', n: '📄 Fondo general', d: 'El fondo de la página, detrás de todo: se ve en los bordes y entre una sección y otra.', claro: 1,
     def: '#f0ece2', base: { t: 'solido', c1: '#f0ece2', c2: '#ffffff', c3: '', a: 180 } },
 ];

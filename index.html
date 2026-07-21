@@ -349,58 +349,58 @@
     <span>🎉 Atendemos feriados</span>
   </div></div>
 
-  <!-- Categorías, beneficios y Club: un solo fondo continuo para que el degradado
-       no se reinicie al pasar de una sección a otra. -->
+  <!-- Directorio del catálogo ("El mapa de la tienda", antes en /categorias):
+       lo pinta assets/site.js → renderCatalogo() dentro de #contenido-catalogo. -->
+  <div id="contenido-catalogo"></div>
+
+  <!-- Beneficios y Club: un solo fondo premium dark-gold continuo (el mismo de las
+       secciones de productos) para que el degradado no se reinicie entre secciones.
+       (Los carruseles de categoría se migraron al inicio de cada página de categoría,
+        debajo del video del hero: assets/site.js → renderCategoria). -->
   <div class="home-flujo-vino">
-  <!-- Categorías -->
-  <section class="seccion vino">
+  <!-- Beneficios: carrusel premium con tarjeta dorada + texto por lámina -->
+  <section class="seccion vino benef-sec" style="padding-top:34px">
     <div class="interior">
-      <h2 class="titulo-seccion">Nuestras Categorías</h2>
-      <p class="sub-seccion">Tenemos lo que necesitas cuando lo necesitas</p>
-      <div class="grilla-cats" id="cats-licores"></div>
-    </div>
-  </section>
-
-  <section class="seccion vino">
-    <div class="interior">
-      <h2 class="titulo-seccion">Productos Nacionales e Importados</h2>
-      <p class="sub-seccion">Atendemos todos los días de la semana, incluso en feriados</p>
-      <div class="grilla-cats" id="cats-tienda"></div>
-    </div>
-  </section>
-
-  <!-- Beneficios (fondo vino: acompaña a la sección de categorías de arriba) -->
-  <section class="seccion vino" style="padding-top:20px">
-    <div class="interior">
+      <span class="sec-eyebrow">🤝 Nuestro sello</span>
       <h2 class="titulo-seccion">Atención Personalizada</h2>
+      <p class="sub-seccion">Más de 30 años cuidando cada detalle para ti.</p>
       <div class="benef" id="benef">
-        <img class="activa" src="/img/beneficios/aniversario.webp" alt="Desde 1994 a su servicio">
-        <img src="/img/beneficios/pet-friendly.webp" alt="Somos Pet Friendly">
-        <img src="/img/beneficios/elevador.webp" alt="Tenemos Elevador">
-        <button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>
-        <button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>
+        <div class="benef-visor">
+          <figure class="benef-slide activa">
+            <img src="/img/beneficios/aniversario.webp" alt="Desde 1994 a su servicio">
+            <figcaption><b>Desde 1994 a tu servicio</b><span>Más de 30 años atendiendo con cariño a las familias de San Isidro.</span></figcaption>
+          </figure>
+          <figure class="benef-slide">
+            <img src="/img/beneficios/pet-friendly.webp" alt="Somos Pet Friendly" loading="lazy">
+            <figcaption><b>Somos Pet Friendly</b><span>Ven con tu engreído: aquí también es bienvenido.</span></figcaption>
+          </figure>
+          <figure class="benef-slide">
+            <img src="/img/beneficios/elevador.webp" alt="Tenemos Elevador" loading="lazy">
+            <figcaption><b>Tenemos elevador</b><span>Acceso cómodo para todos los que nos visitan.</span></figcaption>
+          </figure>
+          <button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>
+          <button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>
+        </div>
+        <div class="benef-dots" id="benef-dots" role="tablist" aria-label="Ver beneficio"></div>
       </div>
     </div>
   </section>
 
-  <!-- Club Arakaki: registro de clientes -->
-  <section class="seccion roja" style="text-align:center">
+  <!-- Club Arakaki: invitación a la cuenta VIP (el registro completo vive en /mi-cuenta).
+       El botón abre el popup #vip-popup con los beneficios del Club. -->
+  <section class="seccion roja club-vip">
     <div class="interior">
-      <h2 class="titulo-seccion">Únete al Club Arakaki 🎁</h2>
-      <p class="sub-seccion">Déjanos tus datos y entérate primero de las ofertas, novedades y sorteos.</p>
-      <form class="club-form" id="club-form">
-        <input id="club-nombre" placeholder="Tu nombre" maxlength="60" required>
-        <input id="club-wsp" placeholder="Tu WhatsApp (ej. 999 999 999)" maxlength="15" inputmode="tel" required>
-        <select id="club-interes">
-          <option value="">¿Qué te interesa más? (opcional)</option>
-          <option>Licores y vinos</option>
-          <option>Helados y chocolates</option>
-          <option>Snacks y dulces</option>
-          <option>Todo un poco</option>
-        </select>
-        <button type="submit" data-ev="registro_club">Quiero unirme 🙌</button>
-        <p class="club-ok" id="club-ok">¡Listo! 🎉 Ya eres parte del Club Arakaki. Te avisaremos por WhatsApp de las novedades.</p>
-      </form>
+      <span class="sec-eyebrow">👑 Solo para miembros</span>
+      <h2 class="titulo-seccion">Únete al Club Arakaki</h2>
+      <p class="sub-seccion">Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos.</p>
+      <div class="vip-minis">
+        <span class="vip-mini">🪙 Puntos por compra</span>
+        <span class="vip-mini">🎫 Cupones VIP</span>
+        <span class="vip-mini">🎁 Sorteos exclusivos</span>
+        <span class="vip-mini">⭐ Tus favoritos</span>
+      </div>
+      <button class="vip-cta" id="vip-abrir" data-ev="vip_abrir">👑 Quiero mi cuenta VIP</button>
+      <p class="vip-nota">Gratis para siempre · solo necesitas tu celular</p>
     </div>
   </section>
   </div>
@@ -418,11 +418,32 @@
   </div>
 </div>
 
+<!-- Popup del Club VIP (se abre con el botón "Quiero mi cuenta VIP"): beneficios + CTA
+     que lleva directo a crear la cuenta en /mi-cuenta#crear -->
+<div class="modal-fondo" id="vip-popup">
+  <div class="modal-caja vip-caja">
+    <button class="modal-cerrar" aria-label="Cerrar">✕</button>
+    <span class="vip-corona">👑</span>
+    <h2>Club Arakaki <span class="vip-oro">VIP</span></h2>
+    <p class="vip-sub">Todo esto te espera desde tu primera compra:</p>
+    <ul class="vip-lista">
+      <li><span class="vl-ico">🪙</span><span class="vl-txt"><b>Puntos por cada compra</b><small>Se acumulan solos y los canjeas en la tienda.</small></span></li>
+      <li><span class="vl-ico">🎫</span><span class="vl-txt"><b>Cupones y promos VIP</b><small>Ofertas que solo ven los miembros del Club.</small></span></li>
+      <li><span class="vl-ico">🎁</span><span class="vl-txt"><b>Sorteos exclusivos</b><small>Participa con un toque desde tu cuenta.</small></span></li>
+      <li><span class="vl-ico">⭐</span><span class="vl-txt"><b>Tus listas de favoritos</b><small>Guarda lo que más te gusta y encuéntralo al instante.</small></span></li>
+      <li><span class="vl-ico">🛒</span><span class="vl-txt"><b>Repite tu pedido en un toque</b><small>Tu compra de siempre, lista para volver a pedir.</small></span></li>
+    </ul>
+    <a class="vip-crear" href="/mi-cuenta#crear" data-ev="vip_crear">Crear mi cuenta VIP gratis ✨</a>
+    <p class="vip-ya"><a href="/mi-cuenta">Ya tengo cuenta · Entrar 🔑</a></p>
+  </div>
+</div>
+
 <!-- El popup principal (campañas, countdown) lo pinta assets/site.js (pintarPopup):
      editable desde /panel → 📝 Sitio → 🎉 Popup; sin backend usa la campaña por defecto -->
 
 <script src="/data/catalog.js"></script>
 <script src="/assets/site.js"></script>
+<script>renderCatalogo();</script>
 <script>
 (function () {
   // ----- Popup del mapa -----
@@ -446,130 +467,49 @@
   var rod = document.getElementById('cinta-rodillo');
   rod.innerHTML += rod.innerHTML;
 
-  // ----- Carruseles premium de categorías (coverflow con acentos dorados) -----
-  var C = window.ARAKAKI_CATALOG;
-  var LICORES = ['pisco', 'vinos', 'vinos-peruanos', 'vinos-argentinos', 'vinos-chilenos', 'whisky', 'ron',
-    'licor-frances', 'licor-italiano', 'vodka', 'tequila', 'anisado', 'licores-variados', 'refrescos', 'aguas-importadas', 'helados'];
-  var TIENDA = ['chocolates-importados', 'galletas', 'dulces', 'backtoschool', 'frutas-y-vegetales'];
+  // Los carruseles de categoría se migraron al inicio de cada página de categoría
+  // (debajo del video del hero): assets/site.js → renderCategoria / carruselCatHTML.
 
-  // Categorías cuyas fotos de producto son cuadradas (1:1, imágenes 720x720): el coverflow
-  // (card 3:4 por defecto) las recortaría, así que llevan la clase cc-cuadrado (card 1:1).
-  // El resto son posters 3:4 (1080x1440) y encajan tal cual. Verificado midiendo naturalWidth/Height.
-  var CUADRADAS = { 'refrescos': 1, 'helados': 1, 'chocolates-importados': 1, 'dulces': 1, 'galletas': 1, 'backtoschool': 1, 'frutas-y-vegetales': 1 };
-
-  function pad2(n) { return (n < 10 ? '0' : '') + n; }
-
-  function tarjeta(slug) {
-    var cat = C.categories[slug];
-    if (!cat) return '';
-    var prods = [];
-    cat.sections.forEach(function (s) { prods = prods.concat(s.products); });
-    var total = prods.length;
-    var slides = prods.slice(0, 6); // hasta 6 posters en el coverflow (imagen 3:3, sin recorte)
-    var caras = slides.map(function (p) {
-      return '<div class="cc-slide"><img loading="lazy" src="' + p.img + '" alt="' + cat.title + '"></div>';
-    }).join('');
-    var puntos = slides.map(function (p, i) {
-      return '<span' + (i === 0 ? ' class="on"' : '') + '></span>';
-    }).join('');
-    var multi = slides.length > 1;
-    return '<div class="cat-carrusel' + (CUADRADAS[slug] ? ' cc-cuadrado' : '') + '" data-carrusel>' +
-      '<h3 class="cc-titulo">' + cat.title + '</h3>' +
-      '<div class="cc-stage">' + caras +
-        (multi ? '<button class="cc-arrow cc-prev" aria-label="Anterior">‹</button>' +
-                 '<button class="cc-arrow cc-next" aria-label="Siguiente">›</button>' : '') +
-      '</div>' +
-      (multi ? '<div class="cc-counter"><b>01</b> / ' + pad2(slides.length) + '</div>' : '') +
-      '<a class="cc-cta" href="/' + slug + '" data-ev="categoria">' + cat.emoji + ' Descubre ' + total + ' Variedades de ' + cat.title + ' ›</a>' +
-      (multi ? '<div class="cc-dots">' + puntos + '</div>' : '') +
-    '</div>';
-  }
-  document.getElementById('cats-licores').innerHTML = LICORES.map(tarjeta).join('');
-  document.getElementById('cats-tienda').innerHTML = TIENDA.map(tarjeta).join('');
-
-  // Inicializa el coverflow de cada carrusel (posición/opacidad según distancia al centro)
-  function crearCarrusel(nodo) {
-    var slides = nodo.querySelectorAll('.cc-slide');
-    var puntos = nodo.querySelectorAll('.cc-dots span');
-    var cont = nodo.querySelector('.cc-counter b');
-    var n = slides.length, idx = 0, pausa = false;
-    function pintar() {
-      for (var i = 0; i < n; i++) {
-        var off = i - idx;                 // distancia circular más corta al slide activo
-        if (off > n / 2) off -= n;
-        if (off < -n / 2) off += n;
-        var s = slides[i];
-        s.classList.remove('es-activa', 'es-lado');
-        if (off === 0) {
-          s.style.transform = 'translate(-50%,-50%) scale(1)';
-          s.style.opacity = '1'; s.style.zIndex = '5';
-          s.classList.add('es-activa');
-        } else if (off === -1) {
-          s.style.transform = 'translate(-50%,-50%) translateX(-72%) scale(0.8) rotateY(22deg)';
-          s.style.opacity = '0.5'; s.style.zIndex = '3';
-          s.classList.add('es-lado');
-        } else if (off === 1) {
-          s.style.transform = 'translate(-50%,-50%) translateX(72%) scale(0.8) rotateY(-22deg)';
-          s.style.opacity = '0.5'; s.style.zIndex = '3';
-          s.classList.add('es-lado');
-        } else {
-          s.style.transform = 'translate(-50%,-50%) scale(0.65)';
-          s.style.opacity = '0'; s.style.zIndex = '1';
-        }
-      }
-      for (var d = 0; d < puntos.length; d++) puntos[d].className = (d === idx ? 'on' : '');
-      if (cont) cont.textContent = pad2(idx + 1);
-    }
-    function ir(paso) { idx = (idx + paso + n) % n; pintar(); }
-    var prev = nodo.querySelector('.cc-prev'), next = nodo.querySelector('.cc-next');
-    if (prev) prev.onclick = function () { ir(-1); };
-    if (next) next.onclick = function () { ir(1); };
-    for (var q = 0; q < puntos.length; q++) (function (j) { puntos[j].onclick = function () { idx = j; pintar(); }; })(q);
-    nodo.onmouseenter = function () { pausa = true; };
-    nodo.onmouseleave = function () { pausa = false; };
-    pintar();
-    return { avanzar: function () { if (!pausa && n > 1) ir(1); } };
-  }
-
-  var carruseles = [], nodos = document.querySelectorAll('[data-carrusel]');
-  for (var k = 0; k < nodos.length; k++) carruseles.push(crearCarrusel(nodos[k]));
-
-  // Autoplay compartido y escalonado: cada producto cambia cada 2 s (3 fases × ~667 ms = 2000 ms)
-  var ticCat = 0;
-  setInterval(function () {
-    ticCat++;
-    for (var i = 0; i < carruseles.length; i++) {
-      if ((ticCat + i) % 3 === 0) carruseles[i].avanzar();
-    }
-  }, 667);
-
-  // ----- Carrusel de beneficios -----
+  // ----- Carrusel de beneficios (láminas con texto + dots + deslizar con el dedo) -----
   var benef = document.getElementById('benef');
-  var bImgs = benef.querySelectorAll('img');
-  var bIdx = 0;
-  function verBenef(i) {
-    bImgs[bIdx].classList.remove('activa');
-    bIdx = (i + bImgs.length) % bImgs.length;
-    bImgs[bIdx].classList.add('activa');
+  var bSlides = benef.querySelectorAll('.benef-slide');
+  var bDots = document.getElementById('benef-dots');
+  var bIdx = 0, bTimer = null;
+  var dotsHtml = '';
+  for (var d = 0; d < bSlides.length; d++) {
+    dotsHtml += '<button type="button" class="benef-dot' + (d === 0 ? ' on' : '') + '" data-i="' + d + '" aria-label="Beneficio ' + (d + 1) + '"></button>';
   }
-  benef.querySelector('.benef-izq').onclick = function () { verBenef(bIdx - 1); };
-  benef.querySelector('.benef-der').onclick = function () { verBenef(bIdx + 1); };
-  setInterval(function () { verBenef(bIdx + 1); }, 5000);
+  bDots.innerHTML = dotsHtml;
+  var bBtns = bDots.querySelectorAll('.benef-dot');
+  function verBenef(i) {
+    bSlides[bIdx].classList.remove('activa');
+    bBtns[bIdx].classList.remove('on');
+    bIdx = (i + bSlides.length) % bSlides.length;
+    bSlides[bIdx].classList.add('activa');
+    bBtns[bIdx].classList.add('on');
+  }
+  function benefAuto() { // reinicia el reloj tras cada toque para no "saltarse" la lámina elegida
+    if (bTimer) clearInterval(bTimer);
+    bTimer = setInterval(function () { verBenef(bIdx + 1); }, 5000);
+  }
+  benef.querySelector('.benef-izq').onclick = function () { verBenef(bIdx - 1); benefAuto(); };
+  benef.querySelector('.benef-der').onclick = function () { verBenef(bIdx + 1); benefAuto(); };
+  for (var b = 0; b < bBtns.length; b++) {
+    bBtns[b].onclick = function () { verBenef(Number(this.getAttribute('data-i'))); benefAuto(); };
+  }
+  var bX0 = null;
+  benef.addEventListener('touchstart', function (e) { bX0 = e.touches[0].clientX; }, { passive: true });
+  benef.addEventListener('touchend', function (e) {
+    if (bX0 == null) return;
+    var dx = e.changedTouches[0].clientX - bX0;
+    bX0 = null;
+    if (Math.abs(dx) > 40) { verBenef(bIdx + (dx < 0 ? 1 : -1)); benefAuto(); }
+  }, { passive: true });
+  benefAuto();
 
-  // ----- Formulario Club Arakaki -----
-  document.getElementById('club-form').onsubmit = function (e) {
-    e.preventDefault();
-    var nombre = document.getElementById('club-nombre').value.trim();
-    var wsp = document.getElementById('club-wsp').value.replace(/\D/g, '');
-    if (!nombre || wsp.length < 9) { alert('Escribe tu nombre y un WhatsApp válido 🙂'); return; }
-    var interes = document.getElementById('club-interes').value;
-    var uid = ''; try { uid = localStorage.getItem('arakaki_uid') || ''; } catch (e) {}
-    fetch('/api/pedido', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'registro', nombre: nombre, telefono: wsp, interes: interes, uid: uid }),
-    }).catch(function () {});
-    document.getElementById('club-ok').style.display = 'block';
-    this.reset();
+  // ----- Club Arakaki: el botón abre el popup VIP (el registro vive en /mi-cuenta#crear) -----
+  document.getElementById('vip-abrir').onclick = function () {
+    document.getElementById('vip-popup').classList.add('abierto');
   };
 })();
 </script>
