@@ -837,6 +837,29 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, l: out });
     }
 
+    // --- 🎨 Colores de marca: config:colores (los sirve /api/sitio como co) ---
+    // Paleta editable {naranja, dorado, doradoClaro, rojo} → variables CSS del sitio (site.js
+    // aplicarColores). Solo #rrggbb / #rgb; clave vacía = color de siempre. Seguro por construcción.
+    if (b.action === 'getcolores') {
+      const raw = await redis(['GET', 'config:colores']);
+      let co = {};
+      if (raw) { try { co = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ co });
+    }
+    if (b.action === 'setcolores') {
+      const CLAVES = ['naranja', 'dorado', 'doradoClaro', 'rojo'];
+      const src = b.colores && typeof b.colores === 'object' ? b.colores : {};
+      const out = {};
+      CLAVES.forEach((k) => {
+        const v = (src[k] == null ? '' : String(src[k])).trim().toLowerCase();
+        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/.test(v)) out[k] = v;
+      });
+      // Sin colores válidos = paleta de siempre (no se guarda nada de más)
+      if (Object.keys(out).length) await redis(['SET', 'config:colores', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:colores']);
+      return res.status(200).json({ ok: true, co: out });
+    }
+
     // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---
     // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, botones[≤3] }.
     // Campo ausente = default de site.js (POPUP_DEF = campaña de Fiestas Patrias).

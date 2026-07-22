@@ -605,6 +605,9 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
 .ed-marco iframe { width:100%; height:100%; border:0; display:block; background:#fff; }
 .ed-marco.movil iframe { border-radius:16px; }
 .ed-pie { font-size:11px; color:var(--sub); padding:7px 12px; border-top:1px solid var(--borde); text-align:center; background:var(--panel); }
+/* 🌈 Colores de marca: reusa .logo-fila; el selector de color va grande y con la muestra visible */
+#colores-lista .col-input { width:56px; height:44px; padding:2px; border:1px solid var(--borde); border-radius:10px; background:var(--campo); cursor:pointer; flex:none; }
+#colores-lista .col-swatch { width:34px; height:34px; border-radius:8px; border:1px solid var(--borde); flex:none; }
 /* Escritorio ancho: el dock queda fijo a la derecha y el contenido se corre para dejarle sitio */
 @media (min-width:1080px){
   #ed-dock { position:fixed; top:0; right:0; bottom:0; width:min(46vw,560px); background:var(--panel); border-left:1px solid var(--borde); z-index:45; box-shadow:-10px 0 26px rgba(0,0,0,.22); }
@@ -1377,6 +1380,7 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
       <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
       <button class="subtab" data-ssub="letras" data-gr="tipo"><span class="ico">🔤</span><span class="eti">Letras</span></button>
       <button class="subtab" data-ssub="fondos" data-gr="fondos"><span class="ico">🎨</span><span class="eti">Fondos</span></button>
+      <button class="subtab" data-ssub="colores" data-gr="colores"><span class="ico">🌈</span><span class="eti">Colores</span></button>
       <button class="subtab" data-ssub="videos" data-gr="videos"><span class="ico">🎬</span><span class="eti">Videos</span></button>
       <button class="subtab" data-ssub="comple" data-gr="comple"><span class="ico">🧩</span><span class="eti">Combos</span></button>
       <button class="subtab" data-ssub="carrito" data-gr="carrito"><span class="ico">🛒</span><span class="eti">Carrito</span></button>
@@ -1595,6 +1599,24 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
       <div class="aviso" id="fondo-aviso"></div>
       <div class="fila-conf">
         <button class="btn" data-guardar="fondos" onclick="pedirGuardar('fondos')">💾 Guardar fondos</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- 🌈 COLORES DE MARCA (grupo "colores"): pisa las variables de color de site.css (config:colores) -->
+    <div class="subpanel" id="ss-colores">
+    <div class="caja-bot" data-grupo="colores">
+      <h3>🌈 Colores de tu marca</h3>
+      <div class="campo-bloque">
+        <div class="hint">Los colores base de toda tu web. Cámbialos y míralos <b>al instante</b> en la vista previa: afectan la barra superior, los botones, los precios y los detalles dorados de todo el sitio. <b>El de siempre</b> = vuelve al color original de la marca. Consejo: cambia de a poco y revisa que el texto se siga leyendo bien.</div>
+      </div>
+      <div id="colores-lista"></div>
+      <div class="fila-conf" style="margin-top:6px">
+        <button type="button" class="btn gris" onclick="colorResetAll()" data-sin-seguro>↩️ Volver a los colores de siempre</button>
+      </div>
+      <div class="aviso" id="colores-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="colores" onclick="pedirGuardar('colores')">💾 Guardar colores</button>
       </div>
     </div>
     </div>
@@ -1955,6 +1977,7 @@ var GRUPOS = {
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
   tipo:    { nombre: 'de las letras del sitio',     vista: 'sitio', aviso: 'tipo-aviso',   fn: 'guardarTipo',    nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
+  colores: { nombre: 'de los colores de marca',     vista: 'sitio', aviso: 'colores-aviso', fn: 'guardarColores', nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
   comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
   carrito: { nombre: 'de la apariencia del carrito', vista: 'sitio', aviso: 'carrito-aviso', fn: 'guardarCarEd',  nota: 'Se ve en la web en ~1 minuto.' },
@@ -2159,7 +2182,7 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
+  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarColores(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
   if (v === 'bot') cargarBot();
   // 🎨 Editor de la web: enciende el dock de vista previa en vivo solo en la sección Sitio
   document.body.classList.toggle('modo-editor', v === 'sitio');
@@ -2200,7 +2223,7 @@ function verSitioSub(sub) {
 var EDFRAME_LISTO = false;                 // el iframe ya registró su escucha de vista previa
 var ED_PAGINA = '/';                        // página cargada en el iframe
 var edTimer = null;
-var ED_GRUPO = { textos: 'sitio', letras: 'tipo', fondos: 'fondos', carrito: 'carrito', popup: 'popup', logos: 'logos' };
+var ED_GRUPO = { textos: 'sitio', letras: 'tipo', fondos: 'fondos', colores: 'colores', carrito: 'carrito', popup: 'popup', logos: 'logos' };
 var ED_PAG_GRUPO = { popup: '/', videos: '/pisco', comple: '/pisco' }; // página que conviene mostrar por bloque
 function edFrame() { return document.getElementById('ed-frame'); }
 function edEnviar(tipo, valor) {
@@ -2232,6 +2255,7 @@ function edModelo(gr) {
     FONDO_ZONAS.forEach(function (z) { var css = fondoCSS(FONDOS[z.k]); if (css) f[z.k] = css; });
     return { tipo: 'fondos', valor: f };
   }
+  if (gr === 'colores') { return { tipo: 'colores', valor: COLORES_CFG || {} }; }
   if (gr === 'carrito') {
     if (!CARED) return null;
     var txt = {}; CAR_TXT_CAMPOS.forEach(function (c) { var el = document.getElementById('car-t-' + c); var v = (el && el.value || '').trim(); if (v) txt[c] = v; });
@@ -4270,6 +4294,61 @@ function guardarFondos() {
     okGuardado('fondos', 'Fondos guardados. Se ven en la web en ~1 minuto.');
     cargarFondos();
   }).catch(function (e) { errGuardado('fondos', e); });
+}
+
+// --- 🌈 Colores de marca: config:colores (los sirve /api/sitio como co, los aplica site.js) ---
+// Pisan las variables de color de site.css. Solo #hex válidos; vacío = el color de siempre.
+var COLOR_SLOTS = [
+  { k: 'naranja', n: '🔶 Color principal (barra superior)', d: 'La barra de arriba de la web y el círculo del video de la portada. Es el color más visible de tu marca.', def: '#e64831' },
+  { k: 'dorado', n: '✨ Dorado (detalles premium)', d: 'El dorado de los botones, los precios y los acentos elegantes de las tarjetas de producto.', def: '#d4af37' },
+  { k: 'doradoClaro', n: '🌟 Dorado claro', d: 'El dorado más brillante que acompaña al anterior en los brillos y degradados.', def: '#f2c85b' },
+  { k: 'rojo', n: '🍷 Rojo vino', d: 'El rojo vino de sellos, insignias y algunos acentos puntuales.', def: '#8e1b22' },
+];
+var COLORES_CFG = {};
+function pintarColores() {
+  var cont = document.getElementById('colores-lista');
+  if (!cont) return;
+  cont.innerHTML = COLOR_SLOTS.map(function (s) {
+    var v = COLORES_CFG[s.k] || '';
+    return '<div class="logo-fila">' +
+      '<input type="color" class="col-input" id="col-i-' + s.k + '" value="' + esc(v || s.def) + '" oninput="colorInput(\'' + s.k + '\', this.value)">' +
+      '<div class="lg-info"><b>' + s.n + '</b><span>' + s.d + '</span></div>' +
+      '<div class="lg-acciones">' +
+        '<button type="button" class="btn gris" onclick="colorReset(\'' + s.k + '\')">el de siempre</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+function colorInput(k, v) {
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) COLORES_CFG[k] = v; else delete COLORES_CFG[k];
+  marcarSucio('colores');
+}
+function colorReset(k) {
+  delete COLORES_CFG[k];
+  var def = '';
+  COLOR_SLOTS.forEach(function (s) { if (s.k === k) def = s.def; });
+  var inp = document.getElementById('col-i-' + k);
+  if (inp) inp.value = def;
+  marcarSucio('colores');
+  edPreviewActivo(true); // el cambio programático no dispara input: refrescamos la vista previa a mano
+}
+function colorResetAll() {
+  COLORES_CFG = {};
+  pintarColores();
+  marcarSucio('colores');
+  edPreviewActivo(true);
+}
+function cargarColores() {
+  api('getcolores').then(function (j) {
+    COLORES_CFG = j.co || {};
+    pintarColores();
+  }).catch(function () { COLORES_CFG = {}; pintarColores(); });
+}
+function guardarColores() {
+  api('setcolores', { colores: COLORES_CFG }).then(function () {
+    okGuardado('colores', 'Colores de marca guardados. Se ven en la web en ~1 minuto.');
+    cargarColores();
+  }).catch(function (e) { errGuardado('colores', e); });
 }
 // --- 🎬 Videos del hero por categoría: config:videos (los sirve /api/precios y los pinta site.js) ---
 // Archivos disponibles en img/videos/ del repo (si se sube un video nuevo al repo, añadirlo aquí):

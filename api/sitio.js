@@ -2,7 +2,8 @@
 // Se editan desde /panel → 📝 Sitio. assets/site.js los aplica sobre sus valores por defecto.
 //   GET -> { s: { lema, horarioTit, horario, redesTit, facebook, instagram, youtube, copy, … },
 //            f: { pagina, vino, roja, premium, card },   // CSS del fondo → variable --bg-<clave>
-//            k: { txt, tam, fx, toqueBg, toqueTitCol, btnSumar, btnSumarTxt } } // apariencia del carrito
+//            k: { txt, tam, fx, toqueBg, toqueTitCol, btnSumar, btnSumarTxt }, // apariencia del carrito
+//            co: { naranja, dorado, doradoClaro, rojo } } // paleta de marca (colores → variables CSS)
 // Sin env vars de Redis (o sin config guardada) devuelve {}: el sitio usa sus defaults.
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -27,9 +28,12 @@ module.exports = async (req, res) => {
   let t = {};
   let p = {};
   let l = {};
+  let co = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const [raw, rawF, rawK, rawT, rawP, rawL] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo', 'config:popup', 'config:logos'])) || [];
+      const [raw, rawF, rawK, rawT, rawP, rawL, rawCo] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo', 'config:popup', 'config:logos', 'config:colores'])) || [];
+      // config:colores (paleta de marca): {clave:'#hex'} validado al guardar (crm.js setcolores); site.js re-valida al aplicar
+      if (rawCo) { try { co = JSON.parse(rawCo) || {}; } catch (e) {} }
       // config:tipo (tipografía global): validada al guardar (crm.js settipo); site.js re-valida al aplicar
       if (rawT) { try { t = JSON.parse(rawT) || {}; } catch (e) {} }
       // config:popup (popup principal del inicio): validado al guardar (crm.js setpopup)
@@ -54,5 +58,5 @@ module.exports = async (req, res) => {
       }
     }
   } catch (e) { console.error('sitio error', e); }
-  return res.status(200).json({ s, f, k, t, p, l });
+  return res.status(200).json({ s, f, k, t, p, l, co });
 };

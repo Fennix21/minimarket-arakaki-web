@@ -276,6 +276,22 @@
   function fondosCache() {
     try { return JSON.parse(localStorage.getItem('arakaki_fondos') || '{}'); } catch (e) { return {}; }
   }
+
+  // ---------- Colores de marca editables (panel → 🎨 Editor de la web → 🌈 Colores) ----------
+  // config:colores llega por /api/sitio como `co`. Aquí se pisan las variables de color de site.css
+  // (barra superior, dorados, rojo vino). Solo #rrggbb/#rgb; clave ausente = color de la marca por
+  // defecto. Se cachea en localStorage y se aplica al arrancar para no parpadear (igual que los fondos).
+  var COLOR_VARS = { naranja: '--naranja', dorado: '--dorado', doradoClaro: '--dorado-claro', rojo: '--rojo' };
+  function colorHexOk(v) { return typeof v === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v); }
+  function coloresCache() { try { return JSON.parse(localStorage.getItem('arakaki_colores') || '{}'); } catch (e) { return {}; } }
+  function aplicarColores(co) {
+    var raiz = document.documentElement;
+    for (var k in COLOR_VARS) {
+      var v = co && co[k];
+      if (colorHexOk(v)) raiz.style.setProperty(COLOR_VARS[k], v);
+      else raiz.style.removeProperty(COLOR_VARS[k]);
+    }
+  }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
       if (!j) { pintarPopup(popupCache()); return; }
@@ -286,6 +302,9 @@
         aplicarFondos(j.f);
         try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
       }
+      // Colores de marca (co puede venir vacío = paleta por defecto; se cachea igual para no parpadear)
+      aplicarColores(j.co);
+      try { localStorage.setItem('arakaki_colores', JSON.stringify(j.co || {})); } catch (e) {}
       if (j.k && typeof j.k === 'object') {
         aplicarCarrito(j.k);
         try { localStorage.setItem('arakaki_carrito_cfg', JSON.stringify(j.k)); } catch (e) {}
@@ -310,6 +329,7 @@
   function enEditor() { try { return !!(window.parent && window.parent !== window); } catch (e) { return false; } }
   function manejarPreview(tipo, v) {
     if (tipo === 'fondos') aplicarFondos(v || {});
+    else if (tipo === 'colores') aplicarColores(v || {});
     else if (tipo === 'tipo') aplicarTipografia(v || {});
     else if (tipo === 'logos') aplicarLogos(v || {});
     else if (tipo === 'sitio') {
@@ -854,6 +874,7 @@
     }
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
+    aplicarColores(coloresCache()); // colores de marca del dueño desde la visita anterior (sin parpadeo)
     aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
     aplicarLogos(logosCache());   // favicon del dueño desde la visita anterior
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
