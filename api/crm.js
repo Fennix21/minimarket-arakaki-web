@@ -795,6 +795,11 @@ module.exports = async (req, res) => {
         // El footer ya no lleva dirección ni teléfonos (jul 2026): esos campos se retiraron.
         lema: 80, horarioTit: 40, horario: 300, redesTit: 60, copy: 200,
         carGeoNota: 220, carDirFalta: 200,
+        // Encabezado del inicio (portada + cinta): dirección/referencia (también en el popup del mapa),
+        // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea)
+        portadaDir: 120, portadaRef: 120, mapaBtn: 40, cinta: 400,
+        // Sección "Únete al Club" de la portada (chips = uno por línea)
+        vipEyebrow: 60, vipTitulo: 60, vipSub: 200, vipChips: 300, vipCta: 60, vipNota: 120,
         // Copys de compartir producto (mensaje de chat, preview OG e imagen del estado)
         compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,
       };
@@ -835,6 +840,56 @@ module.exports = async (req, res) => {
       if (Object.keys(out).length) await redis(['SET', 'config:logos', JSON.stringify(out)]);
       else await redis(['DEL', 'config:logos']);
       return res.status(200).json({ ok: true, l: out });
+    }
+
+    // --- 🎨 Colores de marca: config:colores (los sirve /api/sitio como co) ---
+    // Paleta editable {naranja, dorado, doradoClaro, rojo} → variables CSS del sitio (site.js
+    // aplicarColores). Solo #rrggbb / #rgb; clave vacía = color de siempre. Seguro por construcción.
+    if (b.action === 'getcolores') {
+      const raw = await redis(['GET', 'config:colores']);
+      let co = {};
+      if (raw) { try { co = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ co });
+    }
+    if (b.action === 'setcolores') {
+      const CLAVES = ['naranja', 'dorado', 'doradoClaro', 'rojo'];
+      const src = b.colores && typeof b.colores === 'object' ? b.colores : {};
+      const out = {};
+      CLAVES.forEach((k) => {
+        const v = (src[k] == null ? '' : String(src[k])).trim().toLowerCase();
+        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/.test(v)) out[k] = v;
+      });
+      // Sin colores válidos = paleta de siempre (no se guarda nada de más)
+      if (Object.keys(out).length) await redis(['SET', 'config:colores', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:colores']);
+      return res.status(200).json({ ok: true, co: out });
+    }
+
+    // --- 🖼️ Beneficios del inicio: config:beneficios (los sirve /api/sitio como bn) ---
+    // Array ≤12 de láminas {img,titulo,texto} del carrusel "Atención Personalizada". La foto es
+    // /ruta del repo, /api/push?img=<id> (subida con imgup) o https. Vacío = láminas de siempre.
+    if (b.action === 'getbeneficios') {
+      const raw = await redis(['GET', 'config:beneficios']);
+      let bn = [];
+      if (raw) { try { const a = JSON.parse(raw); if (Array.isArray(a)) bn = a; } catch (e) {} }
+      return res.status(200).json({ bn });
+    }
+    if (b.action === 'setbeneficios') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const src = Array.isArray(b.beneficios) ? b.beneficios : [];
+      const out = [];
+      src.forEach((s) => {
+        if (!s || typeof s !== 'object' || out.length >= 12) return;
+        const img = txt(s.img, 300);
+        const imgOk = img && (img.startsWith('/') || /^https:\/\//i.test(img)) ? img : '';
+        const titulo = txt(s.titulo, 60);
+        const texto = txt(s.texto, 160);
+        if (imgOk || titulo || texto) out.push({ img: imgOk, titulo, texto });
+      });
+      // Sin láminas = las de siempre (no se guarda nada de más)
+      if (out.length) await redis(['SET', 'config:beneficios', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:beneficios']);
+      return res.status(200).json({ ok: true, bn: out });
     }
 
     // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---

@@ -109,6 +109,19 @@
     // Video del círculo de la portada (home). El dueño lo cambia en panel → 📝 Sitio → 🎬 Videos.
     // Default = logo animado; "🐱 bienvenida.mp4" queda como el oficial de siempre para volver a él.
     portadaVideo: '/img/videos/logo-animado.mp4',
+    // Encabezado del inicio (home): dirección + referencia (se reflejan también en el popup del mapa),
+    // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea).
+    portadaDir: 'Av. Belén 265, San Isidro',
+    portadaRef: '(A solo 2 cuadras del Golf)',
+    mapaBtn: 'Ver Ubicación en Mapa',
+    cinta: '📲 Pide por WhatsApp\n🛵 Delivery disponible\n🕗 Lun – Sáb 7:00 am – 9:00 pm\n🕗 Domingos 8:00 am – 8:00 pm\n🎉 Atendemos feriados',
+    // Sección "Únete al Club" de la portada (invitación a la cuenta VIP; el registro vive en /mi-cuenta)
+    vipEyebrow: '👑 Solo para miembros',
+    vipTitulo: 'Únete al Club Arakaki',
+    vipSub: 'Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos.',
+    vipChips: '🪙 Puntos por compra\n🎫 Cupones VIP\n🎁 Sorteos exclusivos\n⭐ Tus favoritos',
+    vipCta: '👑 Quiero mi cuenta VIP',
+    vipNota: 'Gratis para siempre · solo necesitas tu celular',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -147,7 +160,123 @@
     var geoNota = document.getElementById('car-geo-nota');
     if (geoNota) geoNota.textContent = cfg.carGeoNota || '';
     aplicarPortadaVideo(cfg.portadaVideo || SITIO_DEF.portadaVideo); // video del círculo (solo home)
+    aplicarCinta(cfg);    // mensajes de la cinta (marquee) — en el home y en las categorías
+    aplicarPortada(cfg);  // dirección/referencia/botón del mapa (solo existen en la portada)
+    aplicarClubVip(cfg);  // sección "Únete al Club" de la portada (solo existe en el home)
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
+  }
+  // Sección "Únete al Club Arakaki" de la portada (invitación a la cuenta VIP). Solo existe en el home;
+  // el botón conserva su id/data-ev (solo se cambia el texto, no se re-enlaza su click de index.html).
+  function aplicarClubVip(cfg) {
+    var sec = document.querySelector('.club-vip');
+    if (!sec) return;
+    var eb = sec.querySelector('.sec-eyebrow'); if (eb) eb.textContent = cfg.vipEyebrow || SITIO_DEF.vipEyebrow;
+    var ti = sec.querySelector('.titulo-seccion'); if (ti) ti.textContent = cfg.vipTitulo || SITIO_DEF.vipTitulo;
+    var su = sec.querySelector('.sub-seccion'); if (su) su.textContent = cfg.vipSub || SITIO_DEF.vipSub;
+    var minis = sec.querySelector('.vip-minis');
+    if (minis) {
+      var chips = lineas(cfg.vipChips); if (!chips.length) chips = lineas(SITIO_DEF.vipChips);
+      minis.innerHTML = chips.map(function (c) { return '<span class="vip-mini">' + esc(c) + '</span>'; }).join('');
+    }
+    var cta = document.getElementById('vip-abrir'); if (cta) cta.textContent = cfg.vipCta || SITIO_DEF.vipCta;
+    var nota = sec.querySelector('.vip-nota'); if (nota) nota.textContent = cfg.vipNota || SITIO_DEF.vipNota;
+  }
+
+  // ---------- Beneficios (carrusel "Atención Personalizada" del inicio) ----------
+  // Editables (foto + título + texto) desde panel → 🎨 Editor de la web → 🖼️ Beneficios (config:beneficios,
+  // /api/sitio los trae como `bn`). Esta función es la ÚNICA que arma las láminas Y monta el carrusel
+  // (antes lo hacía index.html): así se puede reconstruir cuando el dueño edita, sin referencias colgadas.
+  var BENEF_DEF = [
+    { img: '/img/beneficios/aniversario.webp', titulo: 'Desde 1994 a tu servicio', texto: 'Más de 30 años atendiendo con cariño a las familias de San Isidro.' },
+    { img: '/img/beneficios/pet-friendly.webp', titulo: 'Somos Pet Friendly', texto: 'Ven con tu engreído: aquí también es bienvenido.' },
+    { img: '/img/beneficios/elevador.webp', titulo: 'Tenemos elevador', texto: 'Acceso cómodo para todos los que nos visitan.' },
+  ];
+  function benefCache() { try { return JSON.parse(localStorage.getItem('arakaki_beneficios') || 'null'); } catch (e) { return null; } }
+  function benefLimpia(bn) {
+    if (!bn || !bn.length) return BENEF_DEF;
+    var out = [];
+    for (var i = 0; i < bn.length && out.length < 12; i++) {
+      var s = bn[i];
+      if (s && (s.titulo || s.texto || s.img)) out.push({ img: String(s.img || ''), titulo: String(s.titulo || ''), texto: String(s.texto || '') });
+    }
+    return out.length ? out : BENEF_DEF;
+  }
+  var benefTimer = null, benefIdx = 0, benefTouchBound = false;
+  function benefSlidesNow() { var b = document.getElementById('benef'); return b ? b.querySelectorAll('.benef-slide') : []; }
+  function benefDotsNow() { var b = document.getElementById('benef'); return b ? b.querySelectorAll('.benef-dot') : []; }
+  // ver/auto consultan el DOM EN VIVO: así el touch (enlazado una vez) sigue funcionando tras reconstruir.
+  function benefVer(i) {
+    var slides = benefSlidesNow(), btns = benefDotsNow(), n = slides.length;
+    if (!n) return;
+    if (slides[benefIdx]) slides[benefIdx].classList.remove('activa');
+    if (btns[benefIdx]) btns[benefIdx].classList.remove('on');
+    benefIdx = (i + n) % n;
+    if (slides[benefIdx]) slides[benefIdx].classList.add('activa');
+    if (btns[benefIdx]) btns[benefIdx].classList.add('on');
+  }
+  function benefAuto() {
+    if (benefTimer) clearInterval(benefTimer);
+    if (benefSlidesNow().length > 1) benefTimer = setInterval(function () { benefVer(benefIdx + 1); }, 5000);
+  }
+  function aplicarBeneficios(bn) {
+    var benef = document.getElementById('benef');
+    if (!benef) return; // solo existe en el home
+    var visor = benef.querySelector('.benef-visor'), dots = document.getElementById('benef-dots');
+    if (!visor || !dots) return;
+    var slides = benefLimpia(bn);
+    visor.innerHTML = slides.map(function (s, i) {
+      return '<figure class="benef-slide' + (i === 0 ? ' activa' : '') + '">' +
+        '<img src="' + esc(s.img || BENEF_DEF[0].img) + '" alt="' + esc(s.titulo) + '"' + (i === 0 ? '' : ' loading="lazy"') + '>' +
+        '<figcaption><b>' + esc(s.titulo) + '</b><span>' + esc(s.texto) + '</span></figcaption>' +
+      '</figure>';
+    }).join('') +
+      '<button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>' +
+      '<button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>';
+    dots.innerHTML = slides.map(function (s, i) {
+      return '<button type="button" class="benef-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Beneficio ' + (i + 1) + '"></button>';
+    }).join('');
+    if (benefIdx >= slides.length) benefIdx = 0;
+    var izq = benef.querySelector('.benef-izq'), der = benef.querySelector('.benef-der');
+    if (izq) izq.onclick = function () { benefVer(benefIdx - 1); benefAuto(); };
+    if (der) der.onclick = function () { benefVer(benefIdx + 1); benefAuto(); };
+    var btns = benef.querySelectorAll('.benef-dot');
+    for (var b = 0; b < btns.length; b++) btns[b].onclick = function () { benefVer(Number(this.getAttribute('data-i'))); benefAuto(); };
+    if (!benefTouchBound) { // el contenedor #benef es estable entre reconstrucciones: se enlaza una sola vez
+      benefTouchBound = true;
+      var x0 = null;
+      benef.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      benef.addEventListener('touchend', function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0; x0 = null;
+        if (Math.abs(dx) > 40 && benefSlidesNow().length > 1) { benefVer(benefIdx + (dx < 0 ? 1 : -1)); benefAuto(); }
+      }, { passive: true });
+    }
+    benefAuto();
+  }
+  // Mensajes de la cinta (marquee), uno por línea. El rodillo se duplica para el desplazamiento
+  // continuo (esta función es la ÚNICA que arma la cinta: el home ya no la duplica por su cuenta).
+  function aplicarCinta(cfg) {
+    var rod = document.querySelector('.cinta .cinta-rodillo');
+    if (!rod) return;
+    var items = lineas(cfg.cinta);
+    if (!items.length) items = lineas(SITIO_DEF.cinta);
+    var html = items.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('');
+    rod.innerHTML = html + html;
+  }
+  // Dirección + referencia + texto del botón del mapa de la portada (y del popup del mapa).
+  // Solo existen en el home; en otras páginas los guardas simplemente no encuentran los elementos.
+  function aplicarPortada(cfg) {
+    var dir = cfg.portadaDir || SITIO_DEF.portadaDir;
+    var ref = cfg.portadaRef || SITIO_DEF.portadaRef;
+    var h1 = document.querySelector('.portada-texto h1');
+    if (h1) h1.innerHTML = 'Visítanos en:<br>' + esc(dir) + (ref ? '<br><span class="golf">' + esc(ref) + '</span>' : '');
+    var btnMapa = document.getElementById('btn-mapa');
+    if (btnMapa) btnMapa.textContent = cfg.mapaBtn || SITIO_DEF.mapaBtn;
+    var mp = document.getElementById('mapa-popup');
+    if (mp) {
+      var mpDir = mp.querySelector('.dir'); if (mpDir) mpDir.textContent = dir;
+      var mpRef = mp.querySelector('.ref'); if (mpRef) mpRef.textContent = ref;
+    }
   }
   // Cambia el video del círculo de la portada (solo existe en el home). Se salta si el src ya es
   // ese para no reiniciar la reproducción en cada aplicarSitio (default → override del dueño).
@@ -276,6 +405,22 @@
   function fondosCache() {
     try { return JSON.parse(localStorage.getItem('arakaki_fondos') || '{}'); } catch (e) { return {}; }
   }
+
+  // ---------- Colores de marca editables (panel → 🎨 Editor de la web → 🌈 Colores) ----------
+  // config:colores llega por /api/sitio como `co`. Aquí se pisan las variables de color de site.css
+  // (barra superior, dorados, rojo vino). Solo #rrggbb/#rgb; clave ausente = color de la marca por
+  // defecto. Se cachea en localStorage y se aplica al arrancar para no parpadear (igual que los fondos).
+  var COLOR_VARS = { naranja: '--naranja', dorado: '--dorado', doradoClaro: '--dorado-claro', rojo: '--rojo' };
+  function colorHexOk(v) { return typeof v === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v); }
+  function coloresCache() { try { return JSON.parse(localStorage.getItem('arakaki_colores') || '{}'); } catch (e) { return {}; } }
+  function aplicarColores(co) {
+    var raiz = document.documentElement;
+    for (var k in COLOR_VARS) {
+      var v = co && co[k];
+      if (colorHexOk(v)) raiz.style.setProperty(COLOR_VARS[k], v);
+      else raiz.style.removeProperty(COLOR_VARS[k]);
+    }
+  }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
       if (!j) { pintarPopup(popupCache()); return; }
@@ -286,6 +431,12 @@
         aplicarFondos(j.f);
         try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
       }
+      // Colores de marca (co puede venir vacío = paleta por defecto; se cachea igual para no parpadear)
+      aplicarColores(j.co);
+      try { localStorage.setItem('arakaki_colores', JSON.stringify(j.co || {})); } catch (e) {}
+      // Beneficios del inicio (bn = array; vacío = las láminas por defecto). Se cachea para no parpadear.
+      aplicarBeneficios(j.bn);
+      try { localStorage.setItem('arakaki_beneficios', JSON.stringify(j.bn || [])); } catch (e) {}
       if (j.k && typeof j.k === 'object') {
         aplicarCarrito(j.k);
         try { localStorage.setItem('arakaki_carrito_cfg', JSON.stringify(j.k)); } catch (e) {}
@@ -301,6 +452,45 @@
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
       aplicarSitio(m);
     }).catch(function () { pintarPopup(popupCache()); }); // sin backend: popup con lo último conocido/los defaults
+  }
+
+  // ---------- Puente de vista previa en vivo (editor de la web del panel) ----------
+  // Cuando el sitio se abre DENTRO del iframe del editor (/panel → 🎨 Editor de la web), el panel
+  // manda por postMessage los cambios en curso y aquí se aplican con los MISMOS aplicadores que usa
+  // /api/sitio, sin guardar nada. Para un visitante normal (sin panel padre) queda totalmente inerte.
+  function enEditor() { try { return !!(window.parent && window.parent !== window); } catch (e) { return false; } }
+  function manejarPreview(tipo, v) {
+    if (tipo === 'fondos') aplicarFondos(v || {});
+    else if (tipo === 'colores') aplicarColores(v || {});
+    else if (tipo === 'beneficios') aplicarBeneficios(v || []);
+    else if (tipo === 'tipo') aplicarTipografia(v || {});
+    else if (tipo === 'logos') aplicarLogos(v || {});
+    else if (tipo === 'sitio') {
+      var m = {}, k; for (k in SITIO_DEF) m[k] = SITIO_DEF[k];
+      if (v && typeof v === 'object') for (k in v) if (v[k]) m[k] = v[k];
+      aplicarSitio(m);
+    } else if (tipo === 'carrito') {
+      aplicarCarrito(v || {});
+      if (!document.querySelector('#carrito-modal-fondo.abierto')) abrirCarrito();
+    } else if (tipo === 'popup') {
+      pintarPopup(v || {}, true);
+    } else if (tipo === 'cerrarPopup') {
+      var fp = document.getElementById('fp-popup'); if (fp) fp.classList.remove('abierto');
+    } else if (tipo === 'cerrarCarrito') {
+      var cm = document.getElementById('carrito-modal-fondo'); if (cm) cm.classList.remove('abierto');
+    } else if (tipo === 'scroll' && v) {
+      try { var el = document.querySelector(v); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    }
+  }
+  function initEditorPreview() {
+    if (!enEditor()) return;
+    document.documentElement.classList.add('en-editor'); // por si el CSS quiere afinar algo en modo edición
+    window.addEventListener('message', function (e) {
+      var d = e.data;
+      if (!d || d.__arakakiPreview !== true) return; // solo mensajes del editor
+      try { manejarPreview(d.tipo, d.valor); } catch (err) {}
+    });
+    try { window.parent.postMessage({ __arakakiPreviewReady: true, pagina: location.pathname }, '*'); } catch (e) {}
   }
 
   // ---------- Apariencia editable del carrito "Tu pedido" ----------
@@ -594,16 +784,19 @@
     if (desde && hasta) return desde <= hasta ? (hoy >= desde && hoy <= hasta) : (hoy >= desde || hoy <= hasta);
     return desde ? hoy >= desde : hoy <= hasta;
   }
-  function pintarPopup(p) {
-    if (popupHecho) return;
-    if (!/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
-    popupHecho = true;
+  // forzar = vista previa del editor del panel: ignora "ya se mostró hoy", el rango de fechas y el
+  // interruptor on/off para que el dueño SIEMPRE vea cómo queda mientras lo edita (no altera al visitante).
+  function pintarPopup(p, forzar) {
+    if (!forzar && popupHecho) return;
+    if (!forzar && !/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
+    if (forzar) { var viejoFP = document.getElementById('fp-popup'); if (viejoFP) viejoFP.parentNode.removeChild(viejoFP); }
+    if (!forzar) popupHecho = true;
     var cfg = {}, k;
     for (k in POPUP_DEF) cfg[k] = POPUP_DEF[k];
     if (p && typeof p === 'object') for (k in p) if (p[k] != null && p[k] !== '') cfg[k] = p[k];
-    if (cfg.on === '0') return;
-    if (!popupEnFechas(cfg)) return;
-    if (cfg.frec !== 'siempre') {
+    if (!forzar && cfg.on === '0') return;
+    if (!forzar && !popupEnFechas(cfg)) return;
+    if (!forzar && cfg.frec !== 'siempre') {
       var hoy = fechaLima().toISOString().slice(0, 10);
       try {
         if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
@@ -665,7 +858,7 @@
       f.classList.add('abierto');
       var v = f.querySelector('video');
       if (v) v.play().catch(function () {});
-    }, 1200);
+    }, forzar ? 30 : 1200);
   }
 
   function armarBase() {
@@ -814,9 +1007,12 @@
     }
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
+    aplicarColores(coloresCache()); // colores de marca del dueño desde la visita anterior (sin parpadeo)
+    aplicarBeneficios(benefCache()); // láminas de beneficios (arma y monta el carrusel del inicio)
     aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
     aplicarLogos(logosCache());   // favicon del dueño desde la visita anterior
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
+    initEditorPreview();          // puente de vista previa en vivo (solo activo dentro del iframe del panel)
 
     // Carrito flotante + modal
     var btn = document.createElement('button');
