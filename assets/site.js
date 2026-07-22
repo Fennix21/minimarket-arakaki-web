@@ -303,6 +303,43 @@
     }).catch(function () { pintarPopup(popupCache()); }); // sin backend: popup con lo último conocido/los defaults
   }
 
+  // ---------- Puente de vista previa en vivo (editor de la web del panel) ----------
+  // Cuando el sitio se abre DENTRO del iframe del editor (/panel → 🎨 Editor de la web), el panel
+  // manda por postMessage los cambios en curso y aquí se aplican con los MISMOS aplicadores que usa
+  // /api/sitio, sin guardar nada. Para un visitante normal (sin panel padre) queda totalmente inerte.
+  function enEditor() { try { return !!(window.parent && window.parent !== window); } catch (e) { return false; } }
+  function manejarPreview(tipo, v) {
+    if (tipo === 'fondos') aplicarFondos(v || {});
+    else if (tipo === 'tipo') aplicarTipografia(v || {});
+    else if (tipo === 'logos') aplicarLogos(v || {});
+    else if (tipo === 'sitio') {
+      var m = {}, k; for (k in SITIO_DEF) m[k] = SITIO_DEF[k];
+      if (v && typeof v === 'object') for (k in v) if (v[k]) m[k] = v[k];
+      aplicarSitio(m);
+    } else if (tipo === 'carrito') {
+      aplicarCarrito(v || {});
+      if (!document.querySelector('#carrito-modal-fondo.abierto')) abrirCarrito();
+    } else if (tipo === 'popup') {
+      pintarPopup(v || {}, true);
+    } else if (tipo === 'cerrarPopup') {
+      var fp = document.getElementById('fp-popup'); if (fp) fp.classList.remove('abierto');
+    } else if (tipo === 'cerrarCarrito') {
+      var cm = document.getElementById('carrito-modal-fondo'); if (cm) cm.classList.remove('abierto');
+    } else if (tipo === 'scroll' && v) {
+      try { var el = document.querySelector(v); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    }
+  }
+  function initEditorPreview() {
+    if (!enEditor()) return;
+    document.documentElement.classList.add('en-editor'); // por si el CSS quiere afinar algo en modo edición
+    window.addEventListener('message', function (e) {
+      var d = e.data;
+      if (!d || d.__arakakiPreview !== true) return; // solo mensajes del editor
+      try { manejarPreview(d.tipo, d.valor); } catch (err) {}
+    });
+    try { window.parent.postMessage({ __arakakiPreviewReady: true, pagina: location.pathname }, '*'); } catch (e) {}
+  }
+
   // ---------- Apariencia editable del carrito "Tu pedido" ----------
   // El dueño la edita en /panel → 📝 Sitio → 🛒 Carrito (config:carrito). /api/sitio la trae en `k` y aquí
   // se pisan las variables CSS del modal (tamaños, colores, fondo dorado), los textos y los efectos
@@ -594,16 +631,19 @@
     if (desde && hasta) return desde <= hasta ? (hoy >= desde && hoy <= hasta) : (hoy >= desde || hoy <= hasta);
     return desde ? hoy >= desde : hoy <= hasta;
   }
-  function pintarPopup(p) {
-    if (popupHecho) return;
-    if (!/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
-    popupHecho = true;
+  // forzar = vista previa del editor del panel: ignora "ya se mostró hoy", el rango de fechas y el
+  // interruptor on/off para que el dueño SIEMPRE vea cómo queda mientras lo edita (no altera al visitante).
+  function pintarPopup(p, forzar) {
+    if (!forzar && popupHecho) return;
+    if (!forzar && !/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
+    if (forzar) { var viejoFP = document.getElementById('fp-popup'); if (viejoFP) viejoFP.parentNode.removeChild(viejoFP); }
+    if (!forzar) popupHecho = true;
     var cfg = {}, k;
     for (k in POPUP_DEF) cfg[k] = POPUP_DEF[k];
     if (p && typeof p === 'object') for (k in p) if (p[k] != null && p[k] !== '') cfg[k] = p[k];
-    if (cfg.on === '0') return;
-    if (!popupEnFechas(cfg)) return;
-    if (cfg.frec !== 'siempre') {
+    if (!forzar && cfg.on === '0') return;
+    if (!forzar && !popupEnFechas(cfg)) return;
+    if (!forzar && cfg.frec !== 'siempre') {
       var hoy = fechaLima().toISOString().slice(0, 10);
       try {
         if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
@@ -665,7 +705,7 @@
       f.classList.add('abierto');
       var v = f.querySelector('video');
       if (v) v.play().catch(function () {});
-    }, 1200);
+    }, forzar ? 30 : 1200);
   }
 
   function armarBase() {
@@ -817,6 +857,7 @@
     aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
     aplicarLogos(logosCache());   // favicon del dueño desde la visita anterior
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
+    initEditorPreview();          // puente de vista previa en vivo (solo activo dentro del iframe del panel)
 
     // Carrito flotante + modal
     var btn = document.createElement('button');

@@ -584,6 +584,39 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 .tema-toggle button:hover { color:var(--texto); }
 .tema-toggle button.on { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 65%,#a87f22); color:#221a05; box-shadow:0 2px 9px rgba(212,175,55,.28); }
 #tema-mini { font-size:17px !important; }
+
+/* ---------- 🎨 Editor de la web: dock con la vista previa EN VIVO del sitio real ---------- */
+#ed-dock { display:none; }
+#ed-fab { display:none; }
+body.modo-editor #ed-dock { display:flex; flex-direction:column; }
+.ed-dock-bar { display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--borde); flex-wrap:wrap; background:var(--panel); }
+.ed-dock-title { font-size:12px; font-weight:800; color:var(--dorado2); margin-right:auto; letter-spacing:.3px; }
+.ed-dock-tools { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.ed-dock-tools select { background:var(--campo); color:var(--texto); border:1px solid var(--borde); border-radius:8px; font-size:12px; padding:5px 6px; }
+.ed-dev { display:inline-flex; border:1px solid var(--borde); border-radius:8px; overflow:hidden; }
+.ed-dev button { background:var(--campo); border:none; color:var(--sub); font-size:14px; padding:5px 9px; cursor:pointer; }
+.ed-dev button.activa { background:rgba(212,175,55,.22); color:var(--dorado2); }
+.ed-ico { background:var(--campo); border:1px solid var(--borde); color:var(--sub); border-radius:8px; font-size:14px; padding:5px 9px; cursor:pointer; line-height:1; }
+.ed-ico:hover { color:var(--texto); border-color:var(--dorado); }
+.ed-cerrar-dock { display:none; }
+.ed-dock-cuerpo { flex:1; overflow:hidden; display:flex; justify-content:center; align-items:stretch; padding:12px; background:#15120f; }
+.ed-marco { position:relative; height:100%; width:100%; background:#000; border:1px solid #2c2620; border-radius:10px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.4); transition:width .2s ease; }
+.ed-marco.movil { width:392px; max-width:100%; border-radius:24px; padding:9px 8px; background:#0c0a08; box-shadow:0 12px 34px rgba(0,0,0,.5); }
+.ed-marco iframe { width:100%; height:100%; border:0; display:block; background:#fff; }
+.ed-marco.movil iframe { border-radius:16px; }
+.ed-pie { font-size:11px; color:var(--sub); padding:7px 12px; border-top:1px solid var(--borde); text-align:center; background:var(--panel); }
+/* Escritorio ancho: el dock queda fijo a la derecha y el contenido se corre para dejarle sitio */
+@media (min-width:1080px){
+  #ed-dock { position:fixed; top:0; right:0; bottom:0; width:min(46vw,560px); background:var(--panel); border-left:1px solid var(--borde); z-index:45; box-shadow:-10px 0 26px rgba(0,0,0,.22); }
+  body.modo-editor main#contenido { padding-right:calc(min(46vw,560px) + 26px); }
+}
+/* Pantallas medianas y celular: cajón deslizante por encima, se abre con el botón flotante 👁️ */
+@media (max-width:1079px){
+  #ed-dock { position:fixed; top:0; right:0; bottom:0; width:min(94vw,460px); background:var(--panel); border-left:1px solid var(--borde); z-index:110; transform:translateX(101%); transition:transform .26s ease; box-shadow:-12px 0 34px rgba(0,0,0,.5); }
+  #ed-dock.abierto { transform:none; }
+  .ed-cerrar-dock { display:inline-block; }
+  body.modo-editor #ed-fab { display:inline-flex; align-items:center; gap:6px; position:fixed; right:14px; bottom:80px; bottom:calc(80px + env(safe-area-inset-bottom)); z-index:108; background:linear-gradient(135deg,var(--dorado2),var(--dorado) 65%,#a87f22); color:#221a05; border:none; font-weight:800; font-size:13px; padding:11px 16px; border-radius:999px; box-shadow:0 7px 22px rgba(0,0,0,.4); cursor:pointer; }
+}
 </style>
 </head>
 <body>
@@ -633,7 +666,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="tab" data-v="precios"><span class="ico">💰</span><span class="eti">Precios</span></button>
       <button class="tab" data-v="club"><span class="ico">👥</span><span class="eti">Club</span></button>
       <button class="tab" data-v="stats"><span class="ico">📊</span><span class="eti">Analíticas</span></button>
-      <button class="tab" data-v="sitio"><span class="ico">📝</span><span class="eti">Sitio</span></button>
+      <button class="tab" data-v="sitio"><span class="ico">🎨</span><span class="eti">Editor</span></button>
       <button class="tab" data-v="bot"><span class="ico">⚙️</span><span class="eti">Bot</span></button>
       <button class="tab" id="tab-mas" onclick="toggleMas()"><span class="ico">⋯</span><span class="eti">Más</span><span class="badge" id="badge-mas" style="display:none">0</span></button>
     </nav>
@@ -654,7 +687,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="mas-item" data-v="consultas"><span class="ico">❓</span>Consultas<span class="badge" id="badge-consultas-m" style="display:none">0</span></button>
       <button class="mas-item" data-v="club"><span class="ico">👥</span>Club</button>
       <button class="mas-item" data-v="stats"><span class="ico">📊</span>Analíticas</button>
-      <button class="mas-item" data-v="sitio"><span class="ico">📝</span>Sitio</button>
+      <button class="mas-item" data-v="sitio"><span class="ico">🎨</span>Editor</button>
       <button class="mas-item" data-v="bot"><span class="ico">⚙️</span>Bot</button>
     </div>
   </div>
@@ -1337,8 +1370,8 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 
   <!-- SITIO: textos editables del header y del footer -->
   <div class="vista" id="v-sitio">
-    <h2 class="tit-vista">📝 Sitio</h2>
-    <p class="sub-vista">Todo lo que ven tus clientes en la web, sin tocar código. Toca una pestaña para editar esa parte: cada una tiene su propio botón 💾 Guardar y los cambios se ven en la web en ~1 minuto.</p>
+    <h2 class="tit-vista">🎨 Editor de la web</h2>
+    <p class="sub-vista">Diseña tu web sin tocar código. Elige una pestaña, edita, y mira cómo queda <b>al instante</b> en la vista previa de la derecha (en el celular toca <b>👁️ Ver mi web</b>). Cada bloque tiene su propio 💾 Guardar; lo guardado se publica en tu web real en ~1 minuto.</p>
 
     <div class="subtabs iconos" id="sitio-subtabs">
       <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
@@ -1802,6 +1835,34 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   </div>
 
   </main>
+
+  <!-- 🎨 Editor de la web: dock con la VISTA PREVIA EN VIVO del sitio real. Solo aparece en la
+       sección 📝 Sitio (body.modo-editor). El iframe carga la web real; site.js detecta que está
+       dentro del panel y aplica los cambios en curso por postMessage, sin guardar nada. -->
+  <div id="ed-dock" aria-label="Vista previa de tu web">
+    <div class="ed-dock-bar">
+      <span class="ed-dock-title">👁️ Tu web en vivo</span>
+      <div class="ed-dock-tools">
+        <select id="ed-pagina" onchange="edCambiarPagina(this.value)" data-sin-seguro title="¿Qué página quieres ver?">
+          <option value="/">🏠 Inicio</option>
+          <option value="/pisco">🍶 Una categoría</option>
+          <option value="/mi-cuenta">👤 Mi cuenta</option>
+        </select>
+        <div class="ed-dev" role="group" aria-label="Tamaño de pantalla">
+          <button type="button" data-dev="movil" class="activa" onclick="edDispositivo('movil')" title="Ver como celular" data-sin-seguro>📱</button>
+          <button type="button" data-dev="escr" onclick="edDispositivo('escr')" title="Ver como computadora" data-sin-seguro>💻</button>
+        </div>
+        <button type="button" class="ed-ico" onclick="edRefrescar()" title="Recargar la vista" data-sin-seguro>↻</button>
+        <button type="button" class="ed-ico" onclick="edAbrirPestana()" title="Abrir en una pestaña nueva" data-sin-seguro>↗</button>
+        <button type="button" class="ed-ico ed-cerrar-dock" onclick="edToggleDock(false)" title="Ocultar la vista" data-sin-seguro>✕</button>
+      </div>
+    </div>
+    <div class="ed-dock-cuerpo">
+      <div class="ed-marco movil" id="ed-marco"><iframe id="ed-frame" title="Vista previa de tu web"></iframe></div>
+    </div>
+    <div class="ed-pie">Los cambios se ven aquí al instante. Toca 💾 en cada bloque para publicarlos en tu web real.</div>
+  </div>
+  <button type="button" id="ed-fab" onclick="edToggleDock(true)" data-sin-seguro>👁️ Ver mi web</button>
 </div>
 
 <!-- Popup central: pregunta antes de borrar/guardar y confirma cuando el cambio ya quedó -->
@@ -2100,6 +2161,9 @@ function verVista(v) {
   if (v === 'stats') cargarStats();
   if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
   if (v === 'bot') cargarBot();
+  // 🎨 Editor de la web: enciende el dock de vista previa en vivo solo en la sección Sitio
+  document.body.classList.toggle('modo-editor', v === 'sitio');
+  if (v === 'sitio') edAsegurarFrame(); else edToggleDock(false);
 }
 
 // Sub-pestañas dentro de ⚙️ Bot
@@ -2124,7 +2188,141 @@ function verSitioSub(sub) {
   for (var i = 0; i < sitioSubtabs.length; i++) sitioSubtabs[i].classList.toggle('activa', sitioSubtabs[i].getAttribute('data-ssub') === sub);
   var paneles = document.querySelectorAll('#v-sitio .subpanel');
   for (var j = 0; j < paneles.length; j++) paneles[j].classList.toggle('activa', paneles[j].id === 'ss-' + sub);
+  // Al cambiar de bloque: cierra los modales de vista previa y refresca lo que corresponda mostrar
+  edEnviar('cerrarCarrito'); edEnviar('cerrarPopup');
+  edPreviewActivo(false);
 }
+
+// ---------- 🎨 Editor de la web: vista previa EN VIVO (dock con iframe del sitio real) ----------
+// Regla de oro: esto NO toca ninguna función de guardado. Solo LEE los mismos campos que ya usan
+// los guardar* y manda los cambios en curso al iframe por postMessage; site.js los aplica con sus
+// aplicadores (aplicarFondos/aplicarTipografia/aplicarSitio/aplicarCarrito/pintarPopup) sin persistir.
+var EDFRAME_LISTO = false;                 // el iframe ya registró su escucha de vista previa
+var ED_PAGINA = '/';                        // página cargada en el iframe
+var edTimer = null;
+var ED_GRUPO = { textos: 'sitio', letras: 'tipo', fondos: 'fondos', carrito: 'carrito', popup: 'popup', logos: 'logos' };
+var ED_PAG_GRUPO = { popup: '/', videos: '/pisco', comple: '/pisco' }; // página que conviene mostrar por bloque
+function edFrame() { return document.getElementById('ed-frame'); }
+function edEnviar(tipo, valor) {
+  if (!EDFRAME_LISTO) return;              // aún no está lista la escucha: se reenvía en cuanto avise (edEnviarSucios)
+  var f = edFrame();
+  if (!f || !f.contentWindow) return;
+  try { f.contentWindow.postMessage({ __arakakiPreview: true, tipo: tipo, valor: valor }, '*'); } catch (e) {}
+}
+function edGrupoActivo() {
+  var b = document.querySelector('#sitio-subtabs .subtab.activa');
+  return b ? b.getAttribute('data-ssub') : 'textos';
+}
+// El modelo de cada bloque, armado IGUAL que su guardar* pero para previsualizar (sin guardar).
+function edModelo(gr) {
+  if (gr === 'sitio') {
+    var extra = {};
+    for (var k in SITIO_CAMPOS) { var el = document.getElementById(SITIO_CAMPOS[k]); extra[k] = el ? el.value : ''; }
+    return { tipo: 'sitio', valor: extra };
+  }
+  if (gr === 'tipo') {
+    return { tipo: 'tipo', valor: {
+      titulos: tipoVal('tipo-titulos'), cuerpo: tipoVal('tipo-cuerpo'),
+      escala: tipoVal('tipo-escala'), pesoTit: tipoVal('tipo-peso'),
+      interlineado: tipoVal('tipo-lh'), espaciado: tipoVal('tipo-ls')
+    } };
+  }
+  if (gr === 'fondos') {
+    var f = {};
+    FONDO_ZONAS.forEach(function (z) { var css = fondoCSS(FONDOS[z.k]); if (css) f[z.k] = css; });
+    return { tipo: 'fondos', valor: f };
+  }
+  if (gr === 'carrito') {
+    if (!CARED) return null;
+    var txt = {}; CAR_TXT_CAMPOS.forEach(function (c) { var el = document.getElementById('car-t-' + c); var v = (el && el.value || '').trim(); if (v) txt[c] = v; });
+    var tam = {}; CAR_TAM_CAMPOS.forEach(function (c) { tam[c] = CARED.tam[c] || 1; });
+    return { tipo: 'carrito', valor: {
+      txt: txt, tam: tam,
+      toqueBg: fondoCSS(CARED.toqueBg), btnSumar: fondoCSS(CARED.btnSumar),
+      toqueTitCol: CARED.toqueTitCol || '', btnSumarTxt: CARED.btnSumarTxt || '',
+      fx: { typing: !!CARED.fx.typing, brillo: !!CARED.fx.brillo, brilloSeg: CARED.fx.brilloSeg || 5, brilloCol: CARED.fx.brilloCol || '' }
+    } };
+  }
+  if (gr === 'popup') {
+    var val = function (id) { var e2 = document.getElementById(id); return e2 ? e2.value.trim() : ''; };
+    var botones = [];
+    for (var n = 1; n <= 3; n++) { var t2 = val('popup-b' + n + 't'), u2 = val('popup-b' + n + 'u'); if (t2 && u2) botones.push({ txt: t2, url: u2, estilo: val('popup-b' + n + 'e') }); }
+    return { tipo: 'popup', valor: {
+      on: val('popup-on'), frec: val('popup-frec'), titulo: val('popup-titulo'), sub: val('popup-sub'),
+      video: val('popup-video-url') || val('popup-video'), fecha: val('popup-fecha'), falta: val('popup-falta'),
+      despues: val('popup-despues'), barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'), botones: botones
+    } };
+  }
+  if (gr === 'logos') {
+    var logos = {};
+    LOGO_SLOTS.forEach(function (s) { var inp = document.getElementById('lg-u-' + s.k); if (inp && inp.value.trim()) logos[s.k] = inp.value.trim(); });
+    return { tipo: 'logos', valor: logos };
+  }
+  return null;
+}
+// Muestra en la vista previa el bloque activo. force=true cuando el dueño está editando; si no,
+// solo empuja los bloques con cambios sin guardar y los que necesitan un modal (popup/carrito) para verse.
+function edPreviewActivo(force) {
+  if (!document.body.classList.contains('modo-editor')) return;
+  var sub = edGrupoActivo();
+  var pagPref = ED_PAG_GRUPO[sub];
+  if (pagPref && ED_PAGINA !== pagPref) { edCargarPagina(pagPref); return; } // al recargar, onReady reenvía
+  var gr = ED_GRUPO[sub];
+  if (!gr) return; // videos/combos: sin superposición en vivo (se ven al guardar; aquí solo se muestra su página)
+  if (!(force || SUCIO[gr] || gr === 'popup' || gr === 'carrito')) return;
+  var m = edModelo(gr);
+  if (m) edEnviar(m.tipo, m.valor);
+}
+// Reenvía TODOS los bloques con cambios sin guardar (al recargar el iframe se pierden las superposiciones)
+function edEnviarSucios() {
+  var vistos = {};
+  for (var sub in ED_GRUPO) {
+    var gr = ED_GRUPO[sub];
+    if (vistos[gr]) continue; vistos[gr] = 1;
+    if (SUCIO[gr]) { var m = edModelo(gr); if (m) edEnviar(m.tipo, m.valor); }
+  }
+}
+function edPreviewDebounce() {
+  if (!document.body.classList.contains('modo-editor')) return;
+  clearTimeout(edTimer);
+  edTimer = setTimeout(function () { edPreviewActivo(true); }, 160);
+}
+function edCargarPagina(url) {
+  ED_PAGINA = url;
+  EDFRAME_LISTO = false;
+  var f = edFrame(); if (f) f.src = url;
+  var sel = document.getElementById('ed-pagina');
+  if (sel) { var hay = false; for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === url) hay = true; if (hay) sel.value = url; }
+}
+function edCambiarPagina(url) { edCargarPagina(url); }
+function edRefrescar() { EDFRAME_LISTO = false; var f = edFrame(); if (f) f.src = ED_PAGINA; }
+function edAbrirPestana() { window.open(ED_PAGINA, '_blank'); }
+function edDispositivo(d) {
+  var marco = document.getElementById('ed-marco'); if (marco) marco.classList.toggle('movil', d === 'movil');
+  var btns = document.querySelectorAll('.ed-dev button');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('activa', btns[i].getAttribute('data-dev') === d);
+}
+function edToggleDock(abrir) { var d = document.getElementById('ed-dock'); if (d) d.classList.toggle('abierto', !!abrir); }
+function edAsegurarFrame() {
+  var f = edFrame();
+  if (f && !f.getAttribute('src')) { EDFRAME_LISTO = false; f.src = ED_PAGINA; }
+}
+// El iframe avisa cuando ya puede recibir cambios → reenviamos los bloques con edición en curso
+window.addEventListener('message', function (e) {
+  var d = e.data;
+  if (!d || d.__arakakiPreviewReady !== true) return;
+  EDFRAME_LISTO = true;
+  if (d.pagina) ED_PAGINA = d.pagina;
+  edEnviarSucios();
+  edPreviewActivo(false);
+});
+// Escucha delegada: cualquier cambio en un campo del editor → refresca la vista previa (no toca el guardado)
+(function () {
+  var v = document.getElementById('v-sitio');
+  if (!v) return;
+  v.addEventListener('input', edPreviewDebounce);
+  v.addEventListener('change', edPreviewDebounce);
+})();
 
 // Sub-pestañas GENÉRICAS (❓ Consultas, 💰 Precios, 👥 Club): el contenedor .subtabs lleva
 // data-pref y cada botón data-t; se muestra el .subpanel con id <pref>-<t> de esa sección.
