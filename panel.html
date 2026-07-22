@@ -1378,6 +1378,7 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
 
     <div class="subtabs iconos" id="sitio-subtabs">
       <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
+      <button class="subtab" data-ssub="inicio" data-gr="sitio"><span class="ico">🏠</span><span class="eti">Inicio</span></button>
       <button class="subtab" data-ssub="letras" data-gr="tipo"><span class="ico">🔤</span><span class="eti">Letras</span></button>
       <button class="subtab" data-ssub="fondos" data-gr="fondos"><span class="ico">🎨</span><span class="eti">Fondos</span></button>
       <button class="subtab" data-ssub="colores" data-gr="colores"><span class="ico">🌈</span><span class="eti">Colores</span></button>
@@ -1505,6 +1506,43 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
     <div class="aviso" id="sitio-aviso"></div>
     <div class="fila-conf">
       <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar textos del sitio</button>
+    </div>
+    </div>
+
+    <!-- 🏠 INICIO (grupo "sitio"): encabezado de la portada + cinta. Se guarda JUNTO con los Textos
+         (mismo config:sitio, misma función guardarSitio); por eso comparte el grupo del seguro. -->
+    <div class="subpanel" id="ss-inicio">
+    <p class="sub-vista">El encabezado de tu página de inicio: tu dirección, el botón del mapa y la cinta de mensajes que se desliza arriba. Todo se ve <b>al instante</b> en la vista previa. Deja un campo vacío para volver a su texto de siempre.</p>
+
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>📍 Portada (dónde estás)</h3>
+      <div class="campo-bloque">
+        <label>Dirección</label>
+        <div class="hint">Aparece en la portada (debajo de “Visítanos en:”) y también dentro del popup del mapa.</div>
+        <input type="text" id="sitio-portadadir" maxlength="120" placeholder="Av. Belén 265, San Isidro" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Referencia</label>
+        <div class="hint">Una pista para ubicarte fácil. Deja vacío para no mostrar ninguna.</div>
+        <input type="text" id="sitio-portadaref" maxlength="120" placeholder="(A solo 2 cuadras del Golf)" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Texto del botón del mapa</label>
+        <input type="text" id="sitio-mapabtn" maxlength="40" placeholder="Ver Ubicación en Mapa" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>🎞️ Cinta de mensajes (la que se desliza arriba)</h3>
+      <div class="campo-bloque">
+        <label>Mensajes</label>
+        <div class="hint">Un mensaje por línea. Se repiten en bucle sin parar. Puedes usar emojis. Vacío = los mensajes de siempre.</div>
+        <textarea id="sitio-cinta" maxlength="400" style="min-height:118px" placeholder="📲 Pide por WhatsApp&#10;🛵 Delivery disponible&#10;🕗 Lun – Sáb 7:00 am – 9:00 pm&#10;🕗 Domingos 8:00 am – 8:00 pm&#10;🎉 Atendemos feriados"></textarea>
+      </div>
+    </div>
+
+    <div class="fila-conf">
+      <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar inicio</button>
     </div>
     </div>
 
@@ -2223,8 +2261,8 @@ function verSitioSub(sub) {
 var EDFRAME_LISTO = false;                 // el iframe ya registró su escucha de vista previa
 var ED_PAGINA = '/';                        // página cargada en el iframe
 var edTimer = null;
-var ED_GRUPO = { textos: 'sitio', letras: 'tipo', fondos: 'fondos', colores: 'colores', carrito: 'carrito', popup: 'popup', logos: 'logos' };
-var ED_PAG_GRUPO = { popup: '/', videos: '/pisco', comple: '/pisco' }; // página que conviene mostrar por bloque
+var ED_GRUPO = { textos: 'sitio', inicio: 'sitio', letras: 'tipo', fondos: 'fondos', colores: 'colores', carrito: 'carrito', popup: 'popup', logos: 'logos' };
+var ED_PAG_GRUPO = { inicio: '/', popup: '/', videos: '/pisco', comple: '/pisco' }; // página que conviene mostrar por bloque
 function edFrame() { return document.getElementById('ed-frame'); }
 function edEnviar(tipo, valor) {
   if (!EDFRAME_LISTO) return;              // aún no está lista la escucha: se reenvía en cuanto avise (edEnviarSucios)
@@ -3915,6 +3953,7 @@ var SITIO_CAMPOS = {
   compChat: 'sitio-compchat', compOg: 'sitio-compog', compLema: 'sitio-complema',
   compCintillo: 'sitio-compcintillo', compCta: 'sitio-compcta', compSinPrecio: 'sitio-compsinprecio',
   compBrilloSeg: 'sitio-compbrillo', portadaVideo: 'sitio-portadavid',
+  portadaDir: 'sitio-portadadir', portadaRef: 'sitio-portadaref', mapaBtn: 'sitio-mapabtn', cinta: 'sitio-cinta',
 };
 // 🏠 Video de la portada: default (nada guardado) = logo animado. El repertorio sale de VIDEOS_REPO.
 var PORTADA_DEF = '/img/videos/logo-animado.mp4';

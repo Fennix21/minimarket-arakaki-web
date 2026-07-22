@@ -463,9 +463,8 @@
     })(fondos[i]);
   }
 
-  // Duplicar la cinta para que el marquee sea continuo
-  var rod = document.getElementById('cinta-rodillo');
-  rod.innerHTML += rod.innerHTML;
+  // La cinta (marquee) la arma y duplica assets/site.js (aplicarCinta), para que sus mensajes
+  // sean editables desde el panel → 🎨 Editor de la web → 🏠 Inicio. Aquí ya no se toca.
 
   // Los carruseles de categoría se migraron al inicio de cada página de categoría
   // (debajo del video del hero): assets/site.js → renderCategoria / carruselCatHTML.

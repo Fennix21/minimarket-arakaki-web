@@ -795,6 +795,9 @@ module.exports = async (req, res) => {
         // El footer ya no lleva dirección ni teléfonos (jul 2026): esos campos se retiraron.
         lema: 80, horarioTit: 40, horario: 300, redesTit: 60, copy: 200,
         carGeoNota: 220, carDirFalta: 200,
+        // Encabezado del inicio (portada + cinta): dirección/referencia (también en el popup del mapa),
+        // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea)
+        portadaDir: 120, portadaRef: 120, mapaBtn: 40, cinta: 400,
         // Copys de compartir producto (mensaje de chat, preview OG e imagen del estado)
         compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,
       };

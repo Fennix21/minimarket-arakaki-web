@@ -109,6 +109,12 @@
     // Video del círculo de la portada (home). El dueño lo cambia en panel → 📝 Sitio → 🎬 Videos.
     // Default = logo animado; "🐱 bienvenida.mp4" queda como el oficial de siempre para volver a él.
     portadaVideo: '/img/videos/logo-animado.mp4',
+    // Encabezado del inicio (home): dirección + referencia (se reflejan también en el popup del mapa),
+    // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea).
+    portadaDir: 'Av. Belén 265, San Isidro',
+    portadaRef: '(A solo 2 cuadras del Golf)',
+    mapaBtn: 'Ver Ubicación en Mapa',
+    cinta: '📲 Pide por WhatsApp\n🛵 Delivery disponible\n🕗 Lun – Sáb 7:00 am – 9:00 pm\n🕗 Domingos 8:00 am – 8:00 pm\n🎉 Atendemos feriados',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -147,7 +153,34 @@
     var geoNota = document.getElementById('car-geo-nota');
     if (geoNota) geoNota.textContent = cfg.carGeoNota || '';
     aplicarPortadaVideo(cfg.portadaVideo || SITIO_DEF.portadaVideo); // video del círculo (solo home)
+    aplicarCinta(cfg);    // mensajes de la cinta (marquee) — en el home y en las categorías
+    aplicarPortada(cfg);  // dirección/referencia/botón del mapa (solo existen en la portada)
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
+  }
+  // Mensajes de la cinta (marquee), uno por línea. El rodillo se duplica para el desplazamiento
+  // continuo (esta función es la ÚNICA que arma la cinta: el home ya no la duplica por su cuenta).
+  function aplicarCinta(cfg) {
+    var rod = document.querySelector('.cinta .cinta-rodillo');
+    if (!rod) return;
+    var items = lineas(cfg.cinta);
+    if (!items.length) items = lineas(SITIO_DEF.cinta);
+    var html = items.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('');
+    rod.innerHTML = html + html;
+  }
+  // Dirección + referencia + texto del botón del mapa de la portada (y del popup del mapa).
+  // Solo existen en el home; en otras páginas los guardas simplemente no encuentran los elementos.
+  function aplicarPortada(cfg) {
+    var dir = cfg.portadaDir || SITIO_DEF.portadaDir;
+    var ref = cfg.portadaRef || SITIO_DEF.portadaRef;
+    var h1 = document.querySelector('.portada-texto h1');
+    if (h1) h1.innerHTML = 'Visítanos en:<br>' + esc(dir) + (ref ? '<br><span class="golf">' + esc(ref) + '</span>' : '');
+    var btnMapa = document.getElementById('btn-mapa');
+    if (btnMapa) btnMapa.textContent = cfg.mapaBtn || SITIO_DEF.mapaBtn;
+    var mp = document.getElementById('mapa-popup');
+    if (mp) {
+      var mpDir = mp.querySelector('.dir'); if (mpDir) mpDir.textContent = dir;
+      var mpRef = mp.querySelector('.ref'); if (mpRef) mpRef.textContent = ref;
+    }
   }
   // Cambia el video del círculo de la portada (solo existe en el home). Se salta si el src ya es
   // ese para no reiniciar la reproducción en cada aplicarSitio (default → override del dueño).
