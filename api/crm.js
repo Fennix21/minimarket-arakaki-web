@@ -865,6 +865,33 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, co: out });
     }
 
+    // --- 🖼️ Beneficios del inicio: config:beneficios (los sirve /api/sitio como bn) ---
+    // Array ≤12 de láminas {img,titulo,texto} del carrusel "Atención Personalizada". La foto es
+    // /ruta del repo, /api/push?img=<id> (subida con imgup) o https. Vacío = láminas de siempre.
+    if (b.action === 'getbeneficios') {
+      const raw = await redis(['GET', 'config:beneficios']);
+      let bn = [];
+      if (raw) { try { const a = JSON.parse(raw); if (Array.isArray(a)) bn = a; } catch (e) {} }
+      return res.status(200).json({ bn });
+    }
+    if (b.action === 'setbeneficios') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const src = Array.isArray(b.beneficios) ? b.beneficios : [];
+      const out = [];
+      src.forEach((s) => {
+        if (!s || typeof s !== 'object' || out.length >= 12) return;
+        const img = txt(s.img, 300);
+        const imgOk = img && (img.startsWith('/') || /^https:\/\//i.test(img)) ? img : '';
+        const titulo = txt(s.titulo, 60);
+        const texto = txt(s.texto, 160);
+        if (imgOk || titulo || texto) out.push({ img: imgOk, titulo, texto });
+      });
+      // Sin láminas = las de siempre (no se guarda nada de más)
+      if (out.length) await redis(['SET', 'config:beneficios', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:beneficios']);
+      return res.status(200).json({ ok: true, bn: out });
+    }
+
     // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---
     // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, botones[≤3] }.
     // Campo ausente = default de site.js (POPUP_DEF = campaña de Fiestas Patrias).

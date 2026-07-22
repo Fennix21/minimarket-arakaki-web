@@ -469,42 +469,9 @@
   // Los carruseles de categoría se migraron al inicio de cada página de categoría
   // (debajo del video del hero): assets/site.js → renderCategoria / carruselCatHTML.
 
-  // ----- Carrusel de beneficios (láminas con texto + dots + deslizar con el dedo) -----
-  var benef = document.getElementById('benef');
-  var bSlides = benef.querySelectorAll('.benef-slide');
-  var bDots = document.getElementById('benef-dots');
-  var bIdx = 0, bTimer = null;
-  var dotsHtml = '';
-  for (var d = 0; d < bSlides.length; d++) {
-    dotsHtml += '<button type="button" class="benef-dot' + (d === 0 ? ' on' : '') + '" data-i="' + d + '" aria-label="Beneficio ' + (d + 1) + '"></button>';
-  }
-  bDots.innerHTML = dotsHtml;
-  var bBtns = bDots.querySelectorAll('.benef-dot');
-  function verBenef(i) {
-    bSlides[bIdx].classList.remove('activa');
-    bBtns[bIdx].classList.remove('on');
-    bIdx = (i + bSlides.length) % bSlides.length;
-    bSlides[bIdx].classList.add('activa');
-    bBtns[bIdx].classList.add('on');
-  }
-  function benefAuto() { // reinicia el reloj tras cada toque para no "saltarse" la lámina elegida
-    if (bTimer) clearInterval(bTimer);
-    bTimer = setInterval(function () { verBenef(bIdx + 1); }, 5000);
-  }
-  benef.querySelector('.benef-izq').onclick = function () { verBenef(bIdx - 1); benefAuto(); };
-  benef.querySelector('.benef-der').onclick = function () { verBenef(bIdx + 1); benefAuto(); };
-  for (var b = 0; b < bBtns.length; b++) {
-    bBtns[b].onclick = function () { verBenef(Number(this.getAttribute('data-i'))); benefAuto(); };
-  }
-  var bX0 = null;
-  benef.addEventListener('touchstart', function (e) { bX0 = e.touches[0].clientX; }, { passive: true });
-  benef.addEventListener('touchend', function (e) {
-    if (bX0 == null) return;
-    var dx = e.changedTouches[0].clientX - bX0;
-    bX0 = null;
-    if (Math.abs(dx) > 40) { verBenef(bIdx + (dx < 0 ? 1 : -1)); benefAuto(); }
-  }, { passive: true });
-  benefAuto();
+  // El carrusel de beneficios (láminas foto+texto + dots + flechas + deslizar) lo arma y monta
+  // assets/site.js (aplicarBeneficios), para que sus láminas sean editables desde el panel →
+  // 🎨 Editor de la web → 🖼️ Beneficios. Las <figure> de arriba son solo el respaldo estático.
 
   // ----- Club Arakaki: el botón abre el popup VIP (el registro vive en /mi-cuenta#crear) -----
   document.getElementById('vip-abrir').onclick = function () {

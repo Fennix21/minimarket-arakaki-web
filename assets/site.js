@@ -181,6 +181,78 @@
     var cta = document.getElementById('vip-abrir'); if (cta) cta.textContent = cfg.vipCta || SITIO_DEF.vipCta;
     var nota = sec.querySelector('.vip-nota'); if (nota) nota.textContent = cfg.vipNota || SITIO_DEF.vipNota;
   }
+
+  // ---------- Beneficios (carrusel "Atención Personalizada" del inicio) ----------
+  // Editables (foto + título + texto) desde panel → 🎨 Editor de la web → 🖼️ Beneficios (config:beneficios,
+  // /api/sitio los trae como `bn`). Esta función es la ÚNICA que arma las láminas Y monta el carrusel
+  // (antes lo hacía index.html): así se puede reconstruir cuando el dueño edita, sin referencias colgadas.
+  var BENEF_DEF = [
+    { img: '/img/beneficios/aniversario.webp', titulo: 'Desde 1994 a tu servicio', texto: 'Más de 30 años atendiendo con cariño a las familias de San Isidro.' },
+    { img: '/img/beneficios/pet-friendly.webp', titulo: 'Somos Pet Friendly', texto: 'Ven con tu engreído: aquí también es bienvenido.' },
+    { img: '/img/beneficios/elevador.webp', titulo: 'Tenemos elevador', texto: 'Acceso cómodo para todos los que nos visitan.' },
+  ];
+  function benefCache() { try { return JSON.parse(localStorage.getItem('arakaki_beneficios') || 'null'); } catch (e) { return null; } }
+  function benefLimpia(bn) {
+    if (!bn || !bn.length) return BENEF_DEF;
+    var out = [];
+    for (var i = 0; i < bn.length && out.length < 12; i++) {
+      var s = bn[i];
+      if (s && (s.titulo || s.texto || s.img)) out.push({ img: String(s.img || ''), titulo: String(s.titulo || ''), texto: String(s.texto || '') });
+    }
+    return out.length ? out : BENEF_DEF;
+  }
+  var benefTimer = null, benefIdx = 0, benefTouchBound = false;
+  function benefSlidesNow() { var b = document.getElementById('benef'); return b ? b.querySelectorAll('.benef-slide') : []; }
+  function benefDotsNow() { var b = document.getElementById('benef'); return b ? b.querySelectorAll('.benef-dot') : []; }
+  // ver/auto consultan el DOM EN VIVO: así el touch (enlazado una vez) sigue funcionando tras reconstruir.
+  function benefVer(i) {
+    var slides = benefSlidesNow(), btns = benefDotsNow(), n = slides.length;
+    if (!n) return;
+    if (slides[benefIdx]) slides[benefIdx].classList.remove('activa');
+    if (btns[benefIdx]) btns[benefIdx].classList.remove('on');
+    benefIdx = (i + n) % n;
+    if (slides[benefIdx]) slides[benefIdx].classList.add('activa');
+    if (btns[benefIdx]) btns[benefIdx].classList.add('on');
+  }
+  function benefAuto() {
+    if (benefTimer) clearInterval(benefTimer);
+    if (benefSlidesNow().length > 1) benefTimer = setInterval(function () { benefVer(benefIdx + 1); }, 5000);
+  }
+  function aplicarBeneficios(bn) {
+    var benef = document.getElementById('benef');
+    if (!benef) return; // solo existe en el home
+    var visor = benef.querySelector('.benef-visor'), dots = document.getElementById('benef-dots');
+    if (!visor || !dots) return;
+    var slides = benefLimpia(bn);
+    visor.innerHTML = slides.map(function (s, i) {
+      return '<figure class="benef-slide' + (i === 0 ? ' activa' : '') + '">' +
+        '<img src="' + esc(s.img || BENEF_DEF[0].img) + '" alt="' + esc(s.titulo) + '"' + (i === 0 ? '' : ' loading="lazy"') + '>' +
+        '<figcaption><b>' + esc(s.titulo) + '</b><span>' + esc(s.texto) + '</span></figcaption>' +
+      '</figure>';
+    }).join('') +
+      '<button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>' +
+      '<button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>';
+    dots.innerHTML = slides.map(function (s, i) {
+      return '<button type="button" class="benef-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Beneficio ' + (i + 1) + '"></button>';
+    }).join('');
+    if (benefIdx >= slides.length) benefIdx = 0;
+    var izq = benef.querySelector('.benef-izq'), der = benef.querySelector('.benef-der');
+    if (izq) izq.onclick = function () { benefVer(benefIdx - 1); benefAuto(); };
+    if (der) der.onclick = function () { benefVer(benefIdx + 1); benefAuto(); };
+    var btns = benef.querySelectorAll('.benef-dot');
+    for (var b = 0; b < btns.length; b++) btns[b].onclick = function () { benefVer(Number(this.getAttribute('data-i'))); benefAuto(); };
+    if (!benefTouchBound) { // el contenedor #benef es estable entre reconstrucciones: se enlaza una sola vez
+      benefTouchBound = true;
+      var x0 = null;
+      benef.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      benef.addEventListener('touchend', function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0; x0 = null;
+        if (Math.abs(dx) > 40 && benefSlidesNow().length > 1) { benefVer(benefIdx + (dx < 0 ? 1 : -1)); benefAuto(); }
+      }, { passive: true });
+    }
+    benefAuto();
+  }
   // Mensajes de la cinta (marquee), uno por línea. El rodillo se duplica para el desplazamiento
   // continuo (esta función es la ÚNICA que arma la cinta: el home ya no la duplica por su cuenta).
   function aplicarCinta(cfg) {
@@ -362,6 +434,9 @@
       // Colores de marca (co puede venir vacío = paleta por defecto; se cachea igual para no parpadear)
       aplicarColores(j.co);
       try { localStorage.setItem('arakaki_colores', JSON.stringify(j.co || {})); } catch (e) {}
+      // Beneficios del inicio (bn = array; vacío = las láminas por defecto). Se cachea para no parpadear.
+      aplicarBeneficios(j.bn);
+      try { localStorage.setItem('arakaki_beneficios', JSON.stringify(j.bn || [])); } catch (e) {}
       if (j.k && typeof j.k === 'object') {
         aplicarCarrito(j.k);
         try { localStorage.setItem('arakaki_carrito_cfg', JSON.stringify(j.k)); } catch (e) {}
@@ -387,6 +462,7 @@
   function manejarPreview(tipo, v) {
     if (tipo === 'fondos') aplicarFondos(v || {});
     else if (tipo === 'colores') aplicarColores(v || {});
+    else if (tipo === 'beneficios') aplicarBeneficios(v || []);
     else if (tipo === 'tipo') aplicarTipografia(v || {});
     else if (tipo === 'logos') aplicarLogos(v || {});
     else if (tipo === 'sitio') {
@@ -932,6 +1008,7 @@
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
     aplicarColores(coloresCache()); // colores de marca del dueño desde la visita anterior (sin parpadeo)
+    aplicarBeneficios(benefCache()); // láminas de beneficios (arma y monta el carrusel del inicio)
     aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
     aplicarLogos(logosCache());   // favicon del dueño desde la visita anterior
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
