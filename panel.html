@@ -1541,6 +1541,36 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
       </div>
     </div>
 
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>👑 Invitación al Club (portada)</h3>
+      <div class="desc">La sección “Únete al Club Arakaki” del inicio. (El registro completo vive en la página Mi cuenta; aquí solo editas la invitación.)</div>
+      <div class="campo-bloque">
+        <label>Etiqueta de arriba</label>
+        <input type="text" id="sitio-vipeyebrow" maxlength="60" placeholder="👑 Solo para miembros" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="sitio-viptitulo" maxlength="60" placeholder="Únete al Club Arakaki" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Subtítulo</label>
+        <textarea id="sitio-vipsub" maxlength="200" style="min-height:64px" placeholder="Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos."></textarea>
+      </div>
+      <div class="campo-bloque">
+        <label>Beneficios (chips)</label>
+        <div class="hint">Uno por línea. Cada línea sale como una etiqueta. Puedes usar emojis.</div>
+        <textarea id="sitio-vipchips" maxlength="300" style="min-height:100px" placeholder="🪙 Puntos por compra&#10;🎫 Cupones VIP&#10;🎁 Sorteos exclusivos&#10;⭐ Tus favoritos"></textarea>
+      </div>
+      <div class="campo-bloque">
+        <label>Texto del botón</label>
+        <input type="text" id="sitio-vipcta" maxlength="60" placeholder="👑 Quiero mi cuenta VIP" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Nota bajo el botón</label>
+        <input type="text" id="sitio-vipnota" maxlength="120" placeholder="Gratis para siempre · solo necesitas tu celular" style="width:100%">
+      </div>
+    </div>
+
     <div class="fila-conf">
       <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar inicio</button>
     </div>
@@ -3954,6 +3984,8 @@ var SITIO_CAMPOS = {
   compCintillo: 'sitio-compcintillo', compCta: 'sitio-compcta', compSinPrecio: 'sitio-compsinprecio',
   compBrilloSeg: 'sitio-compbrillo', portadaVideo: 'sitio-portadavid',
   portadaDir: 'sitio-portadadir', portadaRef: 'sitio-portadaref', mapaBtn: 'sitio-mapabtn', cinta: 'sitio-cinta',
+  vipEyebrow: 'sitio-vipeyebrow', vipTitulo: 'sitio-viptitulo', vipSub: 'sitio-vipsub',
+  vipChips: 'sitio-vipchips', vipCta: 'sitio-vipcta', vipNota: 'sitio-vipnota',
 };
 // 🏠 Video de la portada: default (nada guardado) = logo animado. El repertorio sale de VIDEOS_REPO.
 var PORTADA_DEF = '/img/videos/logo-animado.mp4';

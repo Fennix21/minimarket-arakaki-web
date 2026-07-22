@@ -798,6 +798,8 @@ module.exports = async (req, res) => {
         // Encabezado del inicio (portada + cinta): dirección/referencia (también en el popup del mapa),
         // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea)
         portadaDir: 120, portadaRef: 120, mapaBtn: 40, cinta: 400,
+        // Sección "Únete al Club" de la portada (chips = uno por línea)
+        vipEyebrow: 60, vipTitulo: 60, vipSub: 200, vipChips: 300, vipCta: 60, vipNota: 120,
         // Copys de compartir producto (mensaje de chat, preview OG e imagen del estado)
         compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,
       };

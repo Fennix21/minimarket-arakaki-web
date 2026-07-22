@@ -115,6 +115,13 @@
     portadaRef: '(A solo 2 cuadras del Golf)',
     mapaBtn: 'Ver Ubicación en Mapa',
     cinta: '📲 Pide por WhatsApp\n🛵 Delivery disponible\n🕗 Lun – Sáb 7:00 am – 9:00 pm\n🕗 Domingos 8:00 am – 8:00 pm\n🎉 Atendemos feriados',
+    // Sección "Únete al Club" de la portada (invitación a la cuenta VIP; el registro vive en /mi-cuenta)
+    vipEyebrow: '👑 Solo para miembros',
+    vipTitulo: 'Únete al Club Arakaki',
+    vipSub: 'Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos.',
+    vipChips: '🪙 Puntos por compra\n🎫 Cupones VIP\n🎁 Sorteos exclusivos\n⭐ Tus favoritos',
+    vipCta: '👑 Quiero mi cuenta VIP',
+    vipNota: 'Gratis para siempre · solo necesitas tu celular',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -155,7 +162,24 @@
     aplicarPortadaVideo(cfg.portadaVideo || SITIO_DEF.portadaVideo); // video del círculo (solo home)
     aplicarCinta(cfg);    // mensajes de la cinta (marquee) — en el home y en las categorías
     aplicarPortada(cfg);  // dirección/referencia/botón del mapa (solo existen en la portada)
+    aplicarClubVip(cfg);  // sección "Únete al Club" de la portada (solo existe en el home)
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
+  }
+  // Sección "Únete al Club Arakaki" de la portada (invitación a la cuenta VIP). Solo existe en el home;
+  // el botón conserva su id/data-ev (solo se cambia el texto, no se re-enlaza su click de index.html).
+  function aplicarClubVip(cfg) {
+    var sec = document.querySelector('.club-vip');
+    if (!sec) return;
+    var eb = sec.querySelector('.sec-eyebrow'); if (eb) eb.textContent = cfg.vipEyebrow || SITIO_DEF.vipEyebrow;
+    var ti = sec.querySelector('.titulo-seccion'); if (ti) ti.textContent = cfg.vipTitulo || SITIO_DEF.vipTitulo;
+    var su = sec.querySelector('.sub-seccion'); if (su) su.textContent = cfg.vipSub || SITIO_DEF.vipSub;
+    var minis = sec.querySelector('.vip-minis');
+    if (minis) {
+      var chips = lineas(cfg.vipChips); if (!chips.length) chips = lineas(SITIO_DEF.vipChips);
+      minis.innerHTML = chips.map(function (c) { return '<span class="vip-mini">' + esc(c) + '</span>'; }).join('');
+    }
+    var cta = document.getElementById('vip-abrir'); if (cta) cta.textContent = cfg.vipCta || SITIO_DEF.vipCta;
+    var nota = sec.querySelector('.vip-nota'); if (nota) nota.textContent = cfg.vipNota || SITIO_DEF.vipNota;
   }
   // Mensajes de la cinta (marquee), uno por línea. El rodillo se duplica para el desplazamiento
   // continuo (esta función es la ÚNICA que arma la cinta: el home ya no la duplica por su cuenta).
