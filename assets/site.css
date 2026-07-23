@@ -804,16 +804,6 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 /* Tablet / móvil grande: 1 categoría por fila para que el poster respire */
 @media (max-width: 820px) { .grilla-cats { grid-template-columns: 1fr; } }
 
-/* Escritorio: carrusel coverflow de la categoría ~30% más chico para que entre de un
-   vistazo sin hacer scroll. Solo >600px: el layout de poster grande del móvil (≤600px) queda igual.
-   El max-width manda el ancho del escenario y, por su aspect-ratio, también su alto → encoge en proporción. */
-@media (min-width: 601px) {
-  .cc-intro .interior { max-width: 364px; }                 /* 520 × 0.7: escenario y posters un 30% más chicos */
-  .cat-carrusel { padding: 20px 8px 14px; }                 /* padding proporcional al nuevo tamaño */
-  .cc-nombre { margin-top: 11px; font-size: clamp(14px, 1.5vw, 18px); }
-  .cc-dots { margin-top: 10px; }
-}
-
 /* ---------- Club Arakaki VIP (invitación en el inicio; el registro vive en /mi-cuenta) ---------- */
 .club-vip { text-align: center; }
 .vip-minis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 22px; }
