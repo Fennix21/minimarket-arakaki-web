@@ -815,23 +815,27 @@
     var md = ddmmAMd(cfg.fecha); // 'MM-DD' del countdown ('' = sin reloj)
     var f = document.createElement('div');
     f.className = 'modal-fondo'; f.id = 'fp-popup';
-    f.innerHTML = '<div class="modal-caja" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
+    // Estructura en 2 bloques (.fp-media + .fp-cuerpo): en móvil se apilan (vertical) y en
+    // escritorio CON video el CSS los pone lado a lado (horizontal, todo a una sola vista).
+    f.innerHTML = '<div class="modal-caja' + (conVideo ? ' fp-con-media' : '') + '" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
       '<button class="modal-cerrar" aria-label="Cerrar">✕</button>' +
-      (conVideo ? '<video src="' + esc(video) + '" muted loop playsinline></video>' : '') +
-      '<h2>' + esc(cfg.titulo) + '</h2>' +
-      (cfg.sub ? '<p class="fp-sub">' + esc(cfg.sub) + '</p>' : '') +
-      (md ?
-        '<div id="fp-antes"><p class="fp-falta">' + esc(cfg.falta) + '</p>' +
-        '<div class="fp-reloj">' +
-          '<div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>' +
-          '<div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>' +
-          '<div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>' +
-          '<div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>' +
-        '</div></div>' +
-        '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
-      : '') +
-      (cfg.barra ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
-      (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '') +
+      (conVideo ? '<div class="fp-media"><video src="' + esc(video) + '" muted loop playsinline></video></div>' : '') +
+      '<div class="fp-cuerpo">' +
+        '<h2>' + esc(cfg.titulo) + '</h2>' +
+        (cfg.sub ? '<p class="fp-sub">' + esc(cfg.sub) + '</p>' : '') +
+        (md ?
+          '<div id="fp-antes"><p class="fp-falta">' + esc(cfg.falta) + '</p>' +
+          '<div class="fp-reloj">' +
+            '<div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>' +
+            '<div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>' +
+            '<div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>' +
+            '<div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>' +
+          '</div></div>' +
+          '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
+        : '') +
+        (cfg.barra ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
+        (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '') +
+      '</div>' +
     '</div>';
     document.body.appendChild(f);
     function cerrarFP() { f.classList.remove('abierto'); }
