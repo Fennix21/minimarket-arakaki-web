@@ -749,8 +749,9 @@
   // ---------- Popup principal del inicio (editable: panel → 📝 Sitio → 🎉 Popup) ----------
   // config:popup llega por /api/sitio como `p`. Sin backend (o sin cambios del dueño) se usa
   // POPUP_DEF = la campaña de Fiestas Patrias de siempre. Solo sale en la portada, respeta el
-  // rango de fechas (hora Lima, con vuelta de fin de año) y la frecuencia 1 vez/día por cliente
-  // (localStorage arakaki_fp_dia, la clave histórica).
+  // rango de fechas (hora Lima, con vuelta de fin de año) y el tope de apariciones por día por
+  // cliente (cfg.veces, default 1; 'siempre' = sin tope). El conteo del día vive en localStorage
+  // arakaki_fp_dia como {d:'YYYY-MM-DD', n:<vistas de hoy>} (antes guardaba solo la fecha).
   var POPUP_DEF = {
     on: '1',
     titulo: '¡Felices Fiestas Patrias!',
@@ -798,9 +799,13 @@
     if (!forzar && !popupEnFechas(cfg)) return;
     if (!forzar && cfg.frec !== 'siempre') {
       var hoy = fechaLima().toISOString().slice(0, 10);
+      var maxVeces = Math.max(1, Math.min(20, parseInt(cfg.veces, 10) || 1)); // tope de apariciones/día
       try {
-        if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
-        localStorage.setItem('arakaki_fp_dia', hoy);
+        var reg = null;
+        try { reg = JSON.parse(localStorage.getItem('arakaki_fp_dia') || 'null'); } catch (e2) { reg = null; }
+        var vistasHoy = (reg && reg.d === hoy) ? (Number(reg.n) || 0) : 0;
+        if (vistasHoy >= maxVeces) return; // ya alcanzó el tope de hoy
+        localStorage.setItem('arakaki_fp_dia', JSON.stringify({ d: hoy, n: vistasHoy + 1 }));
       } catch (e) {}
     }
     var botones = [];
@@ -839,7 +844,7 @@
           '</div></div>' +
           '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
         : '') +
-        (cfg.barra ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
+        (cfg.barra && !banPop.length ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
         (banPop.length
           ? '<div class="fp-carru">' + carruselHtml(banPop) + '</div>'
           : (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '')) +
