@@ -59,6 +59,14 @@ http.createServer((req, res) => {
         toqueBg: 'linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)',
         btnSumar: 'linear-gradient(180deg, #f7dc8f 0%, #d4a941 60%, #b8912f 100%)',
       },
+      // `p` = popup del inicio con publicidad de MUESTRA (2 banners) para ver el carrusel en local
+      // (en producción viene de config:popup; imagen ideal 1000×400). Sin `banners`, salen los botones.
+      p: {
+        banners: [
+          { id: 'demo1', titulo: '🍷 Semana del Vino', texto: '20% en toda la vinoteca', imagen: '/img/beneficios/aniversario.webp', url: '/vinos' },
+          { id: 'demo2', titulo: '🚚 Delivery gratis', texto: 'En pedidos desde S/ 50', imagen: '/img/beneficios/delivery-gratis.webp', url: '/pisco' },
+        ],
+      },
     }));
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');

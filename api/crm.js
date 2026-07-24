@@ -931,6 +931,18 @@ module.exports = async (req, res) => {
           return { txt: t, url: u, estilo: bt.estilo === 'blanco' ? 'blanco' : 'rojo' };
         }).filter(Boolean);
       if (botones.length) p.botones = botones;
+      // Publicidad del popup (carrusel de banners): si el dueño sube avisos, reemplazan a los
+      // botones. imagen = /api/push?img=<id> (subida con imgup) | /img/ | https; enlace /ruta o
+      // https; título/frase/fecha límite opcionales. Máx 8. Misma validación que los del Club.
+      const urlImg = (v) => { const s = txt(v, 200); return /^(\/api\/push\?img=[a-z0-9]+|\/img\/|https?:\/\/)/i.test(s) ? s : ''; };
+      const urlDest = (v) => { const s = txt(v, 200); return /^(\/[a-z0-9?=&_./-]*|https?:\/\/\S+)$/i.test(s) ? s : ''; };
+      const nuevoId = (pre) => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const banners = (Array.isArray(b.banners) ? b.banners : []).map((bn) => ({
+        id: txt(bn.id, 20).replace(/[^a-z0-9]/gi, '') || nuevoId('pb'),
+        titulo: txt(bn.titulo, 80), texto: txt(bn.texto, 160), imagen: urlImg(bn.imagen),
+        url: urlDest(bn.url), hasta: Number(bn.hasta) || null,
+      })).filter((bn) => bn.titulo || bn.imagen).slice(0, 8);
+      if (banners.length) p.banners = banners;
       // Todo vacío = vuelve a la campaña por defecto de site.js
       if (Object.keys(p).length) await redis(['SET', 'config:popup', JSON.stringify(p)]);
       else await redis(['DEL', 'config:popup']);

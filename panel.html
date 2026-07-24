@@ -1922,7 +1922,15 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
         <textarea id="popup-barra" maxlength="200" style="min-height:60px" placeholder="Celebra las Fiestas Patrias con lo mejor de la barra: Pisco, Vino o Whisky."></textarea>
       </div>
       <div class="cared-sub">
-        <b>🔘 Botones (hasta 3; con texto Y enlace, si no no sale)</b>
+        <b>📣 Publicidad (carrusel)</b>
+        <p class="desc" style="margin:2px 0 10px">Reemplaza a los botones de abajo: sube tus avisos y el popup los muestra en un <b>carrusel que rota solo</b> (igual que el de la cuenta del cliente). Medida ideal <b>1000×400 px (2.5:1)</b> — con esa proporción entra exacta y completa en el espacio de los botones; otras proporciones también se ven enteras, sin cortes. El título y la frase son opcionales (salen debajo de la imagen). Ponle un enlace si quieres que al tocarlo el cliente vaya a una página (ej. <b>/pisco</b>). La fecha límite es opcional: vencido, el aviso se oculta solo. Sin avisos aquí, el popup muestra los botones de respaldo.</p>
+        <div id="popup-banners"></div>
+        <div class="fila-conf">
+          <button class="btn gris" type="button" onclick="agregarBannerPopup()">+ Añadir aviso</button>
+        </div>
+      </div>
+      <div class="cared-sub">
+        <b>🔘 Botones de respaldo (hasta 3; solo salen si no hay publicidad en el carrusel)</b>
         <div class="popup-btn-fila"><input type="text" id="popup-b1t" maxlength="60" placeholder="🍸 Ver opciones de Pisco"><input type="text" id="popup-b1u" maxlength="200" placeholder="/pisco"><select id="popup-b1e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
         <div class="popup-btn-fila"><input type="text" id="popup-b2t" maxlength="60" placeholder="🍷 Ver Vinos"><input type="text" id="popup-b2u" maxlength="200" placeholder="/vinos"><select id="popup-b2e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
         <div class="popup-btn-fila"><input type="text" id="popup-b3t" maxlength="60" placeholder="🥃 Ver opciones de Whisky"><input type="text" id="popup-b3u" maxlength="200" placeholder="/whisky"><select id="popup-b3e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
@@ -2370,7 +2378,8 @@ function edModelo(gr) {
     return { tipo: 'popup', valor: {
       on: val('popup-on'), frec: val('popup-frec'), titulo: val('popup-titulo'), sub: val('popup-sub'),
       video: val('popup-video-url') || val('popup-video'), fecha: val('popup-fecha'), falta: val('popup-falta'),
-      despues: val('popup-despues'), barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'), botones: botones
+      despues: val('popup-despues'), barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'),
+      botones: botones, banners: leerBannersPopupDOM()
     } };
   }
   if (gr === 'logos') {
@@ -4215,6 +4224,8 @@ function cargarPopup() {
       document.getElementById('popup-b' + n + 'u').value = bt.url || '';
       document.getElementById('popup-b' + n + 'e').value = bt.estilo === 'blanco' ? 'blanco' : 'rojo';
     }
+    POPUP_BANNERS = Array.isArray(p.banners) ? p.banners.slice() : [];
+    pintarBannersPopup();
   }).catch(function () {});
 }
 function guardarPopup() {
@@ -4224,17 +4235,115 @@ function guardarPopup() {
     var t = val('popup-b' + n + 't'), u = val('popup-b' + n + 'u');
     if (t && u) botones.push({ txt: t, url: u, estilo: val('popup-b' + n + 'e') });
   }
+  var banners = leerBannersPopupDOM().filter(function (b) { return b.titulo || b.imagen; });
   api('setpopup', {
     on: val('popup-on'), frec: val('popup-frec'),
     titulo: val('popup-titulo'), sub: val('popup-sub'),
     video: val('popup-video-url') || val('popup-video'),
     fecha: val('popup-fecha'), falta: val('popup-falta'), despues: val('popup-despues'),
     barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'),
-    botones: botones
+    botones: botones, banners: banners
   }).then(function () {
     okGuardado('popup', 'Popup guardado. Se ve en la web en ~1 minuto.');
     cargarPopup();
   }).catch(function (e) { errGuardado('popup', e); });
+}
+
+// --- 📣 Publicidad del popup: banners del carrusel (config:popup.banners) ---
+// Reusa el MISMO carrusel del Club en la web (assets/site.js carruselHtml). La imagen se sube
+// con imgup (igual que los banners del Club y los cupones) → /api/push?img=<id>.
+var POPUP_BANNERS = [];
+function avisoPopup(t, mal) {
+  var a = document.getElementById('popup-aviso');
+  if (!a) return;
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function pintarBannersPopup() {
+  var bs = POPUP_BANNERS || [];
+  var cont = document.getElementById('popup-banners');
+  if (!cont) return;
+  cont.innerHTML = bs.map(function (b, i) {
+    var img = b.imagen || '';
+    var foto = img
+      ? '<img src="' + esc(img) + '" alt="Aviso" style="width:150px;height:60px">'
+      : '<div class="cci-nofoto" style="width:150px;height:60px">Sin<br>imagen</div>';
+    return '<div class="club-item" data-id="' + esc(b.id || '') + '" data-img="' + esc(img) + '">' +
+      '<div class="cci-foto">' + foto +
+        '<label class="btn gris" style="cursor:pointer">📷 ' + (img ? 'Cambiar imagen' : 'Subir imagen') +
+          '<input type="file" accept="image/*" style="display:none" onchange="subirImgBannerPopup(this,' + i + ')"></label></div>' +
+      '<input type="text" class="cbi-tit" value="' + esc(b.titulo || '') + '" maxlength="80" placeholder="Título (opcional, sale debajo de la imagen)">' +
+      '<input type="text" class="cbi-txt" value="' + esc(b.texto || '') + '" maxlength="160" placeholder="Frase corta (opcional)">' +
+      '<input type="text" class="cbi-url" value="' + esc(b.url || '') + '" maxlength="200" placeholder="Enlace al tocarlo (opcional, ej. /pisco)">' +
+      '<div class="fila-conf"><label style="font-size:12px">Hasta: <input type="date" class="cbi-hasta" value="' + fechaCorta(b.hasta) + '"></label>' +
+      '<button class="btn gris" type="button" onclick="quitarBannerPopup(' + i + ')">🗑️ Quitar</button></div></div>';
+  }).join('') || '<span class="hint" style="font-size:12px;color:var(--sub)">Sin avisos todavía: toca "+ Añadir aviso". Mientras no haya, el popup muestra los botones de respaldo.</span>';
+}
+function leerBannersPopupDOM() {
+  var out = [];
+  var items = document.querySelectorAll('#popup-banners .club-item');
+  for (var i = 0; i < items.length; i++) {
+    out.push({
+      id: items[i].getAttribute('data-id') || '',
+      titulo: items[i].querySelector('.cbi-tit').value.trim(),
+      texto: items[i].querySelector('.cbi-txt').value.trim(),
+      url: items[i].querySelector('.cbi-url').value.trim(),
+      imagen: items[i].getAttribute('data-img') || '',
+      hasta: fechaMs(items[i].querySelector('.cbi-hasta').value),
+    });
+  }
+  return out;
+}
+function agregarBannerPopup() {
+  POPUP_BANNERS = leerBannersPopupDOM();
+  if (POPUP_BANNERS.length >= 8) return avisoPopup('Máximo 8 avisos: quita uno para añadir otro.', true);
+  POPUP_BANNERS.push({ id: '', titulo: '', texto: '', url: '', imagen: '', hasta: null });
+  pintarBannersPopup();
+  marcarSucio('popup');
+}
+function quitarBannerPopup(i) {
+  var b = leerBannersPopupDOM()[i];
+  confirmar({
+    titulo: '¿Quitar este aviso?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (b && b.titulo ? '"' + b.titulo + '"\n\n' : '') + 'Se va de la lista. Recién desaparece de la web cuando toques 💾 Guardar popup.'
+  }, function () {
+    POPUP_BANNERS = leerBannersPopupDOM();
+    POPUP_BANNERS.splice(i, 1);
+    pintarBannersPopup();
+    marcarSucio('popup');
+  });
+}
+// Igual que la imagen del banner del Club: se comprime EN el navegador y se sube vía imgup.
+function subirImgBannerPopup(inp, i) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoPopup('Ese archivo no es una imagen.', true);
+  POPUP_BANNERS = leerBannersPopupDOM(); // conserva lo tipeado antes de subir
+  avisoPopup('⏳ Procesando la imagen del aviso…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var escala = Math.min(1, 1200 / img.naturalWidth, 1200 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * escala)), h = Math.max(1, Math.round(img.naturalHeight * escala));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) return avisoPopup('La imagen pesa demasiado incluso comprimida: prueba con otra más liviana.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      if (POPUP_BANNERS[i]) POPUP_BANNERS[i].imagen = j.url;
+      pintarBannersPopup();
+      marcarSucio('popup');
+      avisoPopup('🖼️ Imagen del aviso subida. No olvides "💾 Guardar popup".');
+    }).catch(function (e) { avisoPopup(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoPopup('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
 }
 
 // --- 🔤 Letras (tipografía global): config:tipo (la sirve /api/sitio como t, la aplica site.js) ---
