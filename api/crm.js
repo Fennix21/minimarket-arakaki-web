@@ -893,7 +893,7 @@ module.exports = async (req, res) => {
     }
 
     // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---
-    // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, botones[≤3] }.
+    // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, veces, banners[≤8], botones[≤3] }.
     // Campo ausente = default de site.js (POPUP_DEF = campaña de Fiestas Patrias).
     if (b.action === 'getpopup') {
       const raw = await redis(['GET', 'config:popup']);
@@ -922,6 +922,9 @@ module.exports = async (req, res) => {
         const v = ddmm(b[k]); if (v) p[k] = v;
       });
       if (b.frec === 'siempre') p.frec = 'siempre';
+      // Tope de apariciones por día por cliente (1–20; 1 = default, no se guarda)
+      const veces = Math.max(1, Math.min(20, parseInt(b.veces, 10) || 1));
+      if (veces > 1) p.veces = veces;
       const botones = (Array.isArray(b.botones) ? b.botones : []).slice(0, 3)
         .map((bt) => {
           if (!bt || typeof bt !== 'object') return null;

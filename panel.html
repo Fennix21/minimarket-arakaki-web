@@ -1865,9 +1865,14 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
         <div class="campo-bloque">
           <label>Frecuencia</label>
           <select id="popup-frec">
-            <option value="">1 vez al día por cliente (recomendado)</option>
-            <option value="siempre">En cada visita</option>
+            <option value="">Un número de veces al día</option>
+            <option value="siempre">En cada visita (sin tope)</option>
           </select>
+        </div>
+        <div class="campo-bloque">
+          <label>¿Cuántas veces al día por cliente?</label>
+          <div class="hint">Solo si arriba eliges “Un número de veces al día”. 1 = una sola vez (lo de antes). Máximo 20.</div>
+          <input type="number" id="popup-veces" min="1" max="20" step="1" value="1">
         </div>
         <div class="campo-bloque">
           <label>Sale desde (dd/mm)</label>
@@ -1923,7 +1928,7 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
       </div>
       <div class="cared-sub">
         <b>📣 Publicidad (carrusel)</b>
-        <p class="desc" style="margin:2px 0 10px">Reemplaza a los botones de abajo: sube tus avisos y el popup los muestra en un <b>carrusel que rota solo</b> (igual que el de la cuenta del cliente). Medida ideal <b>1000×400 px (2.5:1)</b> — con esa proporción entra exacta y completa en el espacio de los botones; otras proporciones también se ven enteras, sin cortes. El título y la frase son opcionales (salen debajo de la imagen). Ponle un enlace si quieres que al tocarlo el cliente vaya a una página (ej. <b>/pisco</b>). La fecha límite es opcional: vencido, el aviso se oculta solo. Sin avisos aquí, el popup muestra los botones de respaldo.</p>
+        <p class="desc" style="margin:2px 0 10px">Reemplaza a los botones de abajo: sube tus avisos y el popup los muestra en un <b>carrusel que rota solo</b> (igual que el de la cuenta del cliente). Medida ideal <b>1000×700 px (10:7)</b> — con esa proporción entra exacta y completa; otras proporciones también se ven enteras, sin cortes. El título y la frase son opcionales (salen debajo de la imagen). Ponle un enlace si quieres que al tocarlo el cliente vaya a una página (ej. <b>/pisco</b>). La fecha límite es opcional: vencido, el aviso se oculta solo. Sin avisos aquí, el popup muestra los botones de respaldo.</p>
         <div id="popup-banners"></div>
         <div class="fila-conf">
           <button class="btn gris" type="button" onclick="agregarBannerPopup()">+ Añadir aviso</button>
@@ -2376,7 +2381,7 @@ function edModelo(gr) {
     var botones = [];
     for (var n = 1; n <= 3; n++) { var t2 = val('popup-b' + n + 't'), u2 = val('popup-b' + n + 'u'); if (t2 && u2) botones.push({ txt: t2, url: u2, estilo: val('popup-b' + n + 'e') }); }
     return { tipo: 'popup', valor: {
-      on: val('popup-on'), frec: val('popup-frec'), titulo: val('popup-titulo'), sub: val('popup-sub'),
+      on: val('popup-on'), frec: val('popup-frec'), veces: val('popup-veces'), titulo: val('popup-titulo'), sub: val('popup-sub'),
       video: val('popup-video-url') || val('popup-video'), fecha: val('popup-fecha'), falta: val('popup-falta'),
       despues: val('popup-despues'), barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'),
       botones: botones, banners: leerBannersPopupDOM()
@@ -4207,6 +4212,7 @@ function cargarPopup() {
     var p = j.p || {};
     document.getElementById('popup-on').value = p.on === '0' ? '0' : '1';
     document.getElementById('popup-frec').value = p.frec === 'siempre' ? 'siempre' : '';
+    document.getElementById('popup-veces').value = Math.max(1, Math.min(20, parseInt(p.veces, 10) || 1));
     ['titulo', 'sub', 'fecha', 'falta', 'despues', 'barra', 'desde', 'hasta'].forEach(function (k) {
       var el = document.getElementById('popup-' + k);
       if (el) el.value = p[k] || '';
@@ -4237,7 +4243,7 @@ function guardarPopup() {
   }
   var banners = leerBannersPopupDOM().filter(function (b) { return b.titulo || b.imagen; });
   api('setpopup', {
-    on: val('popup-on'), frec: val('popup-frec'),
+    on: val('popup-on'), frec: val('popup-frec'), veces: val('popup-veces'),
     titulo: val('popup-titulo'), sub: val('popup-sub'),
     video: val('popup-video-url') || val('popup-video'),
     fecha: val('popup-fecha'), falta: val('popup-falta'), despues: val('popup-despues'),
