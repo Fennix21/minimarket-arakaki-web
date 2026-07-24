@@ -413,6 +413,18 @@ body.menu-abierto #menu-panel .menu-dest .dest {
 #fp-popup .fp-botones a.fp-blanco { background: rgba(212, 175, 55, 0.08); color: #f2d894; border: 1.5px solid rgba(212, 175, 55, 0.55); }
 #fp-popup .fp-botones a::after { content: '›'; font-size: 18px; opacity: 0.9; }
 
+/* Publicidad del popup: carrusel de banners (reusa .club-carru/.ccl-*), en marco 2.5:1 (ideal
+   1000×400) para encajar en el espacio que dejaban los botones. Se afina al tema dark-gold. */
+#fp-popup .fp-carru { margin: 16px 20px 0; }
+#fp-popup .fp-carru .club-carru { margin-bottom: 0; }
+#fp-popup .fp-carru .ccl-slide { background: rgba(212, 175, 55, 0.06); border-color: rgba(212, 175, 55, 0.5); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45); }
+#fp-popup .fp-carru .ccl-media { aspect-ratio: 5 / 2; background: linear-gradient(160deg, #26221d, #0b0a08); }
+#fp-popup .fp-carru .ccl-media.con-foto { background: linear-gradient(180deg, #211d19, #100e0c); }
+#fp-popup .fp-carru .ccl-card { padding: 9px 14px 11px; }
+#fp-popup .fp-carru .ccl-tit { color: #f2d894; font-size: 15.5px; }
+#fp-popup .fp-carru .ccl-txt { color: #d8cdb0; font-size: 12.5px; }
+#fp-popup .fp-carru .ccl-dots { margin-top: 9px; }
+
 /* Escritorio: con video la tarjeta se vuelve HORIZONTAL — video a la izquierda ocupando toda la
    altura y a la derecha el contenido centrado verticalmente. Todo entra a una sola vista sin scroll;
    la columna de contenido solo hace scroll interno como red de seguridad si la oferta es muy larga. */
@@ -432,6 +444,7 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   #fp-popup .fp-con-media .fp-cuerpo h2 { margin-top: 0; font-size: clamp(26px, 2.4vw, 34px); }
   #fp-popup .fp-con-media .fp-reloj { justify-content: flex-start; }
   #fp-popup .fp-con-media .fp-botones { margin: 20px 0 0; }
+  #fp-popup .fp-con-media .fp-carru { margin: 18px 0 0; }
 }
 
 /* ---------- Cinta marquee ---------- */

@@ -810,6 +810,12 @@
       if (!/^\//.test(url) && !/^https?:\/\//i.test(url)) return;
       botones.push('<a class="' + (bt.estilo === 'blanco' ? 'fp-blanco' : 'fp-rojo') + '" href="' + esc(url) + '">' + esc(bt.txt) + '</a>');
     });
+    // Publicidad del popup (panel → 📝 Sitio → 🎉 Popup → 📣 Publicidad): si el dueño subió
+    // banners, un carrusel los muestra EN LUGAR de los botones (se descartan los vencidos).
+    var ahoraPop = Date.now();
+    var banPop = (cfg.banners || []).filter(function (b) {
+      return b && (b.titulo || b.imagen) && (!b.hasta || Number(b.hasta) >= ahoraPop);
+    });
     var video = String(cfg.video || '');
     var conVideo = video && video !== 'no' && (/^\//.test(video) || /^https?:\/\//i.test(video));
     var md = ddmmAMd(cfg.fecha); // 'MM-DD' del countdown ('' = sin reloj)
@@ -834,10 +840,13 @@
           '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
         : '') +
         (cfg.barra ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
-        (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '') +
+        (banPop.length
+          ? '<div class="fp-carru">' + carruselHtml(banPop) + '</div>'
+          : (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '')) +
       '</div>' +
     '</div>';
     document.body.appendChild(f);
+    if (banPop.length) montarCarrusel(f); // rota solo + swipe + toque = ir al enlace del banner
     function cerrarFP() { f.classList.remove('abierto'); }
     f.onclick = function (e) { if (e.target === f) cerrarFP(); };
     f.querySelector('.modal-cerrar').onclick = cerrarFP;
@@ -2198,8 +2207,10 @@
     if (!bs.length) bs = [{ titulo: '🎁 Club Arakaki', texto: 'Promos, puntos y sorteos exclusivos para ti 💛', imagen: '', url: '' }];
     return bs;
   }
-  function carruselHtml() {
-    var bs = bannersDelClub();
+  // bs = lista de banners a pintar. Sin argumento usa los del Club (/api/cuenta); el popup del
+  // inicio le pasa los suyos (config:popup.banners) para reusar el MISMO carrusel.
+  function carruselHtml(bs) {
+    if (!bs) bs = bannersDelClub();
     var slides = bs.map(function (b, i) {
       // La imagen (ideal 1000×500) va COMPLETA en un marco 2:1 negro premium (object-fit
       // contain: nunca se corta ni deforma) y el título + frase van DEBAJO en su card.
