@@ -146,7 +146,7 @@ http.createServer((req, res) => {
       }
       const conToken = (req.url || '').indexOf('token=') >= 0;
       // ui = apariencia editable de /mi-cuenta (config:clubui). Vacío = look por defecto (crema/vino/pie apagado).
-      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true, banners, ui: {} }));
+      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, vip: true, correo: true, banners, ui: {} }));
     }
     // Stub del CRM del panel: datos de MUESTRA para ver /panel en local con cualquier contraseña
     // (el CRM real corre en Vercel con Redis). Cubre las vistas con datos: pedidos, consultas,
@@ -188,7 +188,7 @@ http.createServer((req, res) => {
             { id: '51988888888', telefono: '51988888888', nombre: 'Juan Pérez', creado: Date.now() - 10 * 86400000, pedidos: 1, puntos: 0, gastoTotal: 105, ultimoPedido: Date.now() - 86400000, tienePin: false },
           ] },
           getclub: {
-            club: { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 },
+            club: { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, vip: true, puntosPorSol: 1 },
             promos: [{ id: 'pr1', titulo: '🍦 2x1 en helados para el Club', texto: 'Muestra tu cuenta en caja', hasta: null }],
             cupones: [],
             sorteos: [{ id: 'so1', titulo: '🎆 Sorteo Fiestas Patrias', premio: 'Canasta Arakaki', hasta: null, activo: true, participantes: 11 }],

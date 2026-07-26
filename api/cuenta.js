@@ -68,7 +68,7 @@ async function getExtras() {
 }
 
 // Interruptores del Club (panel → 👥 Club). Sin config guardada, todo prendido.
-const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, vip: true, puntosPorSol: 1 };
 
 // ----- Listas de favoritos (el cliente organiza sus favoritos en categorías propias) -----
 // El cliente marca la ⭐ de un producto y elige en qué lista(s) guardarlo ("Desayuno",
@@ -389,12 +389,14 @@ module.exports = async (req, res) => {
       const club = await getClub();
       if (!club.login) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
-        return res.status(200).json({ on: false });
+        // vip = sección "Únete al Club" de la portada; tiene su propio interruptor,
+        // independiente del login, para que site.js decida mostrarla aunque el Club esté en pausa.
+        return res.status(200).json({ on: false, vip: club.vip !== false });
       }
       if (!token) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
         // correo:true = hay sistema de correos (Resend) → la recuperación usa código al correo
-        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO, banners: await getBanners(), ui: await getClubUi() });
+        return res.status(200).json({ on: true, funciones: funcionesDe(club), vip: club.vip !== false, correo: HAS_CORREO, banners: await getBanners(), ui: await getClubUi() });
       }
       res.setHeader('cache-control', 'no-store');
       const tel = await telDeSesion(token);
