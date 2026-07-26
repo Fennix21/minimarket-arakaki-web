@@ -1050,14 +1050,22 @@
       else { input.type = 'text'; input.removeAttribute('inputmode'); input.placeholder = 'Tu nombre'; input.maxLength = 60; }
       form.style.display = 'flex';
       limpiarQuick();
-      if (paso.opcional === '1') botonQuick('Omitir ›', function () { ocultarForm(); marcarRespuesta(); avanzar(paso); }, 'vb-omitir');
-      setTimeout(function () { try { input.focus(); } catch (e) {} }, 60);
+      if (paso.opcional === '1') botonQuick('Omitir ›', function () { try { input.blur(); } catch (e) {} ocultarForm(); marcarRespuesta(); avanzar(paso); }, 'vb-omitir');
+      // En escritorio enfocamos el campo (abre el cursor); en móvil NO, para que el teclado
+      // solo salga cuando el cliente toca el campo y no tape las burbujas del bot.
+      if (window.innerWidth > 600) setTimeout(function () { try { input.focus(); } catch (e) {} }, 60);
+      else bajar();
     }
 
     function avanzar(paso) { if (paso.sig && pasos[paso.sig]) irPaso(paso.sig); else setTimeout(cerrar, 500); }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      // Al enviar cerramos el teclado del móvil (blur): así el teclado deja de tapar las
+      // burbujas y siempre se ve la última respuesta del bot. Re-anclamos el scroll abajo
+      // cuando el teclado termina de bajar (el viewport crece).
+      try { input.blur(); } catch (e2) {}
+      setTimeout(bajar, 350);
       if (!campoActual) return;
       var paso = campoActual;
       var r = validar(paso.campo, input.value);
