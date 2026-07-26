@@ -887,6 +887,7 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
       <div class="toggle-fila"><div class="tf-txt"><b>🎁 Promos exclusivas</b><span>Solo las ven los clientes con sesión iniciada</span></div><label class="switch"><input type="checkbox" id="club-promos-sw"><span class="pista"></span></label></div>
       <div class="toggle-fila"><div class="tf-txt"><b>🎟️ Sorteos</b><span>Participan con un toque desde su cuenta</span></div><label class="switch"><input type="checkbox" id="club-sorteos-sw"><span class="pista"></span></label></div>
       <div class="toggle-fila"><div class="tf-txt"><b>🎫 Cupones exclusivos</b><span>Cupón con imagen y código, solo para clientes logueados</span></div><label class="switch"><input type="checkbox" id="club-cupones-sw"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>👑 Invitación en la portada</b><span>La sección «Únete al Club Arakaki» que sale antes del pie de página del inicio</span></div><label class="switch"><input type="checkbox" id="club-vip-sw"><span class="pista"></span></label></div>
       <div class="fila-conf">
         <label style="font-size:13px">🪙 Puntos por cada sol de compra: <input type="text" id="club-pps" inputmode="decimal" placeholder="1" style="width:70px"></label>
         <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar funciones</button>
@@ -3059,6 +3060,7 @@ function pintarClubCfg() {
   document.getElementById('club-promos-sw').checked = c.promos !== false;
   document.getElementById('club-sorteos-sw').checked = c.sorteos !== false;
   document.getElementById('club-cupones-sw').checked = c.cupones !== false;
+  document.getElementById('club-vip-sw').checked = c.vip !== false;
   document.getElementById('club-pps').value = c.puntosPorSol || 1;
   pintarPromosClub();
   pintarCuponesClub();
@@ -3435,6 +3437,7 @@ function guardarClub(clave) {
     promos: document.getElementById('club-promos-sw').checked,
     sorteos: document.getElementById('club-sorteos-sw').checked,
     cupones: document.getElementById('club-cupones-sw').checked,
+    vip: document.getElementById('club-vip-sw').checked,
     puntosPorSol: parseFloat((document.getElementById('club-pps').value || '1').replace(',', '.')) || 1,
   };
   var promos = leerPromosClubDOM().filter(function (p) { return p.titulo; });

@@ -1450,15 +1450,24 @@
     if (cuentaFlags) { cb(cuentaFlags); return; }
     try {
       var c = JSON.parse(sessionStorage.getItem('arakaki_club_flags') || 'null');
-      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; if (c.d.ui) aplicarClubUi(c.d.ui); cb(c.d); return; }
+      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; if (c.d.ui) aplicarClubUi(c.d.ui); aplicarVipHome(); cb(c.d); return; }
     } catch (e) {}
     fetch('/api/cuenta').then(function (r) { return r.json(); }).then(function (j) {
+      var vip = j && j.vip;   // interruptor propio de la sección "Únete al Club" del inicio (independiente de on)
       if (!j || j.on !== true) j = { on: false };
+      j.vip = vip;
       cuentaFlags = j;
       try { sessionStorage.setItem('arakaki_club_flags', JSON.stringify({ ts: Date.now(), d: j })); } catch (e) {}
       if (j.ui) { aplicarClubUi(j.ui); try { localStorage.setItem('arakaki_clubui', JSON.stringify(j.ui)); } catch (e) {} }
+      aplicarVipHome();
       cb(j);
     }).catch(function () { cb({ on: false }); });
+  }
+  // La sección "Únete al Club Arakaki" de la portada (.club-vip) tiene su propio interruptor
+  // en el panel (👥 Club → ⚙️ Funciones): se oculta solo si el dueño lo apaga (vip === false).
+  function aplicarVipHome() {
+    var sec = document.querySelector('.club-vip');
+    if (sec) sec.style.display = (cuentaFlags && cuentaFlags.vip === false) ? 'none' : '';
   }
   function fnClub(nombre) { // ¿esta función del Club está prendida?
     return !!(cuentaFlags && cuentaFlags.on && cuentaFlags.funciones && cuentaFlags.funciones[nombre]);

@@ -141,7 +141,7 @@ function normPrecio(raw) {
 }
 
 // Interruptores del Club (config:club; los lee también /api/cuenta). Sin config, todo prendido.
-const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, vip: true, puntosPorSol: 1 };
 async function getClubCfg() {
   let c = {};
   const raw = await redis(['GET', 'config:club']);
@@ -499,7 +499,7 @@ module.exports = async (req, res) => {
       const nuevoId = (pre) => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
       const cIn = b.club || {};
       const club = {};
-      ['login', 'favoritos', 'puntos', 'promos', 'sorteos', 'cupones'].forEach((k) => { club[k] = cIn[k] !== false; });
+      ['login', 'favoritos', 'puntos', 'promos', 'sorteos', 'cupones', 'vip'].forEach((k) => { club[k] = cIn[k] !== false; });
       const pps = Number(cIn.puntosPorSol);
       club.puntosPorSol = (isFinite(pps) && pps > 0 && pps <= 100) ? pps : 1;
       await redis(['SET', 'config:club', JSON.stringify(club)]);
