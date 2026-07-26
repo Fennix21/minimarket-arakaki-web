@@ -6,6 +6,7 @@
 //   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, historial, promos,
 //                                                            sorteos, email, foto, direcciones y preguntas con respuesta)
 //   POST { action: 'crear'|'entrar'|'salir'|'recuperar'|'reccode'|'cambiotel'    (sin sesión)
+//                 |'vip'                                                         (capta interesado del pop-up VIP)
 //                 |'fav'|'sorteo'|'visita'                                       (beneficios)
 //                 |'perfil'|'foto'|'dirs'|'pin'|'pregunta', ... }                (editar mi cuenta)
 //   Recuperación: con Resend (RESEND_API_KEY) 'recuperar' manda un código al correo y 'reccode'
@@ -453,6 +454,39 @@ module.exports = async (req, res) => {
       perfil.on = true;
       perfil.funciones = funcionesDe(club);
       return res.status(200).json({ ok: true, token: nuevoToken, perfil });
+    }
+
+    // ----- Captación desde el pop-up conversacional VIP del inicio -----
+    // NO crea PIN: solo guarda los datos del interesado en la MISMA base del Club (cliente:<key>/
+    // clientes), igual que registrar_suscriptor del chat. La clave = WhatsApp (51+num) o 'e:<correo>'.
+    // Luego el pop-up ofrece un botón para "activar la cuenta" (poner su clave en /mi-cuenta#crear).
+    if (b.action === 'vip') {
+      const nombre = limpio(b.nombre, 60);
+      const tel = normTel(b.telefono || b.whatsapp);
+      let email = limpio(b.email, 80).toLowerCase();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) email = '';
+      const direccion = limpio(b.direccion, 160);
+      if (!tel && !email) return res.status(400).json({ error: 'Déjanos tu WhatsApp o tu correo.' });
+      const key = tel || ('e:' + email.replace(/[^a-z0-9]/g, '').slice(0, 60));
+      let cli = await cargarCliente(key);
+      const eraCliente = !!(cli && (cli.pedidos || cli.pinHash));
+      if (!cli) cli = { id: key, creado: Date.now() };
+      cli.id = key;
+      if (nombre) cli.nombre = nombre;
+      if (tel) cli.telefono = tel;
+      if (email) cli.email = email;
+      if (direccion) cli.direccion = direccion;
+      cli.club = true;
+      cli.origen = cli.origen || 'popup-vip';
+      await guardarCliente(key, cli); // SET cliente:<key> + ZADD clientes
+      // Enlaza este dispositivo al cliente para reconocerlo al volver (saludo + prefill del carrito)
+      if (tel && uid) { try { await redis(['SET', 'uid:' + uid, tel, 'EX', String(400 * 24 * 3600)]); } catch (e) {} }
+      await stat('vipbot_lead');
+      await notifyOwner('👑 *Nuevo interesado en cuenta VIP (pop-up del inicio)*\n👤 ' + (nombre || '(sin nombre)') +
+        (tel ? '\n📱 +' + tel : '') + (email ? '\n✉️ ' + email : '') + (direccion ? '\n📍 ' + direccion : '') +
+        (eraCliente ? '\n♻️ Ya era un cliente registrado.' : '') +
+        '\n\nMíralo en el panel 👉 /panel (👥 Club)');
+      return res.status(200).json({ ok: true, guardado: true, tiene_whatsapp: !!tel, tiene_correo: !!email });
     }
 
     // ----- Iniciar sesión -----
