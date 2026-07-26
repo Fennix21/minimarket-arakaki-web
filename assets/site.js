@@ -423,10 +423,13 @@
   }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
-      if (!j) { pintarPopup(popupCache()); return; }
+      if (!j) { pintarPopup(popupCache()); pintarVipBot(vipbotCache()); return; }
       // Popup del inicio: se pinta con la config del dueño (o los defaults si no hay)
       pintarPopup(j.p);
       try { localStorage.setItem('arakaki_popup', JSON.stringify(j.p || {})); } catch (e) {}
+      // Pop-up conversacional VIP del inicio (bot que ofrece abrir la cuenta gratis)
+      pintarVipBot(j.vb);
+      try { localStorage.setItem('arakaki_vipbot', JSON.stringify(j.vb || {})); } catch (e) {}
       if (j.f && typeof j.f === 'object') {
         aplicarFondos(j.f);
         try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
@@ -451,7 +454,7 @@
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
       aplicarSitio(m);
-    }).catch(function () { pintarPopup(popupCache()); }); // sin backend: popup con lo último conocido/los defaults
+    }).catch(function () { pintarPopup(popupCache()); pintarVipBot(vipbotCache()); }); // sin backend: lo último conocido/los defaults
   }
 
   // ---------- Puente de vista previa en vivo (editor de la web del panel) ----------
@@ -879,6 +882,254 @@
     }, forzar ? 30 : 1200);
   }
 
+  // ---------- Pop-up conversacional VIP del inicio (panel → ⚙️ Bot → 🤖 Pop-up VIP) ----------
+  // Bot de automatización: un árbol de "pasos" con burbujas estilo messenger, botones de respuesta
+  // y captura de datos (nombre/WhatsApp/correo/dirección) que se guardan en la base del Club
+  // (cliente:<key>, POST /api/cuenta action:vip) y avisan al dueño. config:vipbot llega por /api/sitio
+  // como `vb`; sin config se usa VIPBOT_DEF (ofrece abrir la cuenta VIP gratis). Solo en la portada,
+  // con su propia programación (fechas + frecuencia + tope diario en localStorage arakaki_vipbot_dia).
+  // Para verlo al configurar: abrir la portada con ?vipbot=1 o #probar-vipbot.
+  var VIPBOT_DEF = {
+    on: '1',
+    titulo: 'Club Arakaki 👑',
+    subtitulo: 'En línea ahora',
+    delay: 8,
+    pasos: [
+      { id: 'inicio', msgs: '¡Hola! 👋 Soy tu asistente del Club Arakaki.\n\n¿Te gustaría abrir una cuenta *gratuita* y volverte cliente VIP con beneficios exclusivos? 🎁',
+        opciones: [{ txt: 'Sí, quiero ✨', ir: 'nombre' }, { txt: '¿De qué trata?', ir: 'info' }, { txt: 'Después', ir: 'chau' }] },
+      { id: 'info', msgs: 'Con tu cuenta VIP tienes:\n\n🪙 Puntos por cada compra\n🎁 Promos solo para socios\n🎟️ Cupones de descuento\n🎉 Sorteos exclusivos\n⭐ Tus listas de favoritos guardadas\n\n¡Y es totalmente gratis! 😍',
+        opciones: [{ txt: '¡Me apunto! ✨', ir: 'nombre' }, { txt: 'Ahora no', ir: 'chau' }] },
+      { id: 'nombre', msgs: '¡Genial! 🙌 Para crear tu cuenta, ¿cómo te llamas?', campo: 'nombre', sig: 'tel' },
+      { id: 'tel', msgs: 'Un gusto, {nombre} 😊\n\n¿Cuál es tu WhatsApp? Te avisamos de las ofertas por ahí. 📲', campo: 'whatsapp', sig: 'correo' },
+      { id: 'correo', msgs: '¿Y tu correo? Nos sirve para recuperar tu cuenta y enviarte promos.', campo: 'email', opcional: '1', sig: 'dir' },
+      { id: 'dir', msgs: '¿A qué dirección te llevamos tus pedidos? 📍', campo: 'direccion', opcional: '1', sig: 'listo' },
+      { id: 'listo', msgs: '¡Listo, {nombre}! 🎉 Ya eres parte del Club Arakaki.\n\nAhora crea tu clave secreta para entrar a tu cuenta cuando quieras 👇', guardar: '1',
+        opciones: [{ txt: '🔐 Activar mi cuenta', ir: 'cuenta' }, { txt: 'Seguir viendo la tienda', ir: 'cerrar' }] },
+      { id: 'chau', msgs: '¡Sin problema! 😊 Cuando quieras, tu cuenta VIP te espera aquí. 👑',
+        opciones: [{ txt: 'Entendido', ir: 'cerrar' }] },
+    ],
+  };
+  var vipbotHecho = false;
+  function vipbotCache() { try { return JSON.parse(localStorage.getItem('arakaki_vipbot') || 'null'); } catch (e) { return null; } }
+  function vbTrack(ev) { try { if (window.arkTrack) window.arkTrack(ev); } catch (e) {} }
+
+  function pintarVipBot(vb, forzar) {
+    // Modo prueba: el dueño abre la portada con ?vipbot=1 o #probar-vipbot para ver cómo quedó
+    var probar = /[?&]vipbot=1(?:&|$)/.test(location.search) || location.hash === '#probar-vipbot';
+    if (probar) forzar = true;
+    if (!forzar && vipbotHecho) return;
+    if (!forzar && !/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
+    var viejo = document.getElementById('vipbot-pop');
+    if (viejo) { if (forzar) viejo.parentNode.removeChild(viejo); else return; }
+    var cfg = {}, k;
+    for (k in VIPBOT_DEF) cfg[k] = VIPBOT_DEF[k];
+    if (vb && typeof vb === 'object') for (k in vb) if (vb[k] != null && vb[k] !== '') cfg[k] = vb[k];
+    if (!forzar && cfg.on === '0') return;
+    // No competir con el popup principal (Fiestas Patrias / publicidad): si ese ya salió, hoy no aparece
+    if (!forzar && document.getElementById('fp-popup')) return;
+    // El dueño puede pedir mostrarlo solo a quien AÚN no tiene sesión del Club
+    if (!forzar && cfg.soloNuevos === '1' && leerSesion()) return;
+    if (!forzar && !popupEnFechas(cfg)) return; // reusa el rango de fechas del popup (desde/hasta)
+    var maxV = Math.max(1, Math.min(20, parseInt(cfg.veces, 10) || 1));
+    var hoy = fechaLima().toISOString().slice(0, 10);
+    if (!forzar && cfg.frec !== 'siempre') {
+      try {
+        var reg = JSON.parse(localStorage.getItem('arakaki_vipbot_dia') || 'null');
+        var vistas = (reg && reg.d === hoy) ? (Number(reg.n) || 0) : 0;
+        if (vistas >= maxV) return; // ya alcanzó el tope de hoy
+      } catch (e) {}
+    }
+    var pasos = {};
+    (cfg.pasos || []).forEach(function (p) { if (p && p.id) pasos[p.id] = p; });
+    var primero = (cfg.pasos && cfg.pasos[0]) ? cfg.pasos[0].id : '';
+    if (!primero || !pasos[primero]) return; // flujo vacío = nada que mostrar
+    if (!forzar) vipbotHecho = true;
+
+    var avatar = cfg.avatar || '/img/asistente-arakaki.png';
+    var datos = { nombre: '', whatsapp: '', email: '', direccion: '' };
+    var leadGuardado = false, respondio = false;
+
+    var f = document.createElement('div');
+    f.className = 'modal-fondo vb-fondo';
+    f.id = 'vipbot-pop';
+    f.innerHTML =
+      '<div class="vb-caja" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
+        '<div class="vb-cab">' +
+          '<img class="vb-avatar" src="' + esc(avatar) + '" alt="">' +
+          '<div class="vb-tit"><b>' + esc(cfg.titulo) + '</b><small>' + esc(cfg.subtitulo || '') + '</small></div>' +
+          '<button class="vb-cerrar" aria-label="Cerrar">✕</button>' +
+        '</div>' +
+        '<div class="vb-msgs" id="vb-msgs"></div>' +
+        '<div class="vb-quick" id="vb-quick"></div>' +
+        '<form class="vb-form" id="vb-form" autocomplete="off" style="display:none">' +
+          '<input class="vb-in" id="vb-in" maxlength="160">' +
+          '<button type="submit" class="vb-enviar" aria-label="Enviar">➤</button>' +
+        '</form>' +
+      '</div>';
+    document.body.appendChild(f);
+
+    var msgs = f.querySelector('#vb-msgs');
+    var quick = f.querySelector('#vb-quick');
+    var form = f.querySelector('#vb-form');
+    var input = f.querySelector('#vb-in');
+    var campoActual = null; // el paso de captura en curso (si lo hay)
+
+    function bajar() { msgs.scrollTop = msgs.scrollHeight; }
+    function fila(html) { var d = document.createElement('div'); d.innerHTML = html; var el = d.firstChild; msgs.appendChild(el); bajar(); return el; }
+    function burbujaBot(t) { fila('<div class="vb-fila bot"><img class="vb-mini" src="' + esc(avatar) + '" alt=""><div class="vb-msg bot">' + chatHtml(t) + '</div></div>'); }
+    function burbujaYo(t) { fila('<div class="vb-fila yo"><div class="vb-msg yo">' + esc(t) + '</div></div>'); }
+    function burbujaImg(src) { fila('<div class="vb-fila bot"><img class="vb-mini" src="' + esc(avatar) + '" alt=""><div class="vb-msg bot vb-foto"><img src="' + esc(src) + '" alt=""></div></div>'); }
+    function verEscribiendo() { fila('<div class="vb-fila bot" id="vb-typing"><img class="vb-mini" src="' + esc(avatar) + '" alt=""><div class="vb-msg bot vb-escribiendo"><span></span><span></span><span></span></div></div>'); }
+    function quitarEscribiendo() { var t = f.querySelector('#vb-typing'); if (t) t.parentNode.removeChild(t); }
+
+    function limpiarQuick() { quick.innerHTML = ''; }
+    function ocultarForm() { form.style.display = 'none'; campoActual = null; }
+    function marcarRespuesta() { if (!respondio) { respondio = true; vbTrack('vipbot_responde'); } }
+
+    function botonQuick(txt, cb, clase) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'vb-opt' + (clase ? ' ' + clase : '');
+      b.textContent = txt;
+      b.onclick = cb;
+      quick.appendChild(b);
+      return b;
+    }
+
+    function guardarLead() {
+      if (leadGuardado) return;
+      if (!datos.whatsapp && !datos.email) return; // sin al menos un contacto no hay nada que guardar
+      leadGuardado = true;
+      try { if (datos.whatsapp) localStorage.setItem('arakaki_club_tel', datos.whatsapp.replace(/\D/g, '')); } catch (e) {}
+      var payload = { action: 'vip', nombre: datos.nombre, whatsapp: datos.whatsapp, telefono: datos.whatsapp, email: datos.email, direccion: datos.direccion, uid: miUid() };
+      try { fetch('/api/cuenta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), keepalive: true }).catch(function () {}); } catch (e) {}
+      vbTrack('vipbot_lead');
+    }
+
+    function cerrar() { f.classList.remove('abierto'); setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 400); }
+
+    function resolver(ir) {
+      marcarRespuesta();
+      if (ir === 'cerrar') { setTimeout(cerrar, 350); return; }
+      if (ir === 'wa') {
+        var msj = '¡Hola! Quiero abrir mi cuenta VIP del Club Arakaki 👑';
+        try { window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msj), '_blank'); } catch (e) {}
+        setTimeout(cerrar, 350); return;
+      }
+      if (ir === 'cuenta') {
+        guardarLead();
+        vbTrack('vipbot_cuenta');
+        setTimeout(function () { location.href = '/mi-cuenta#crear'; }, 300);
+        return;
+      }
+      irPaso(ir);
+    }
+
+    // Validación de cada dato que pedimos (mensaje suave si algo no cuadra)
+    function validar(campo, valor) {
+      var v = String(valor || '').trim();
+      if (campo === 'nombre') return v.length >= 2 ? v : { err: 'Escríbeme tu nombre 🙂 (al menos 2 letras).' };
+      if (campo === 'whatsapp') {
+        var d = v.replace(/\D/g, '');
+        if (d.length === 9) return d;
+        if (d.length >= 11 && d.length <= 13) return d;
+        return { err: 'Revisa tu número: son 9 dígitos 📱 (ej. 977 737 199).' };
+      }
+      if (campo === 'email') return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? v.toLowerCase() : { err: 'Ese correo parece incompleto ✉️ (revisa que tenga @ y punto).' };
+      if (campo === 'direccion') return v.length >= 5 ? v : { err: 'Cuéntame la dirección con un poquito más de detalle 📍' };
+      return v;
+    }
+
+    function pedirDato(paso) {
+      campoActual = paso;
+      var campo = paso.campo;
+      input.value = '';
+      if (campo === 'whatsapp') { input.type = 'tel'; input.setAttribute('inputmode', 'numeric'); input.placeholder = 'Tu WhatsApp (9 dígitos)'; input.maxLength = 15; }
+      else if (campo === 'email') { input.type = 'email'; input.removeAttribute('inputmode'); input.placeholder = 'tucorreo@ejemplo.com'; input.maxLength = 80; }
+      else if (campo === 'direccion') { input.type = 'text'; input.removeAttribute('inputmode'); input.placeholder = 'Calle, número, distrito y referencia'; input.maxLength = 160; }
+      else { input.type = 'text'; input.removeAttribute('inputmode'); input.placeholder = 'Tu nombre'; input.maxLength = 60; }
+      form.style.display = 'flex';
+      limpiarQuick();
+      if (paso.opcional === '1') botonQuick('Omitir ›', function () { ocultarForm(); marcarRespuesta(); avanzar(paso); }, 'vb-omitir');
+      setTimeout(function () { try { input.focus(); } catch (e) {} }, 60);
+    }
+
+    function avanzar(paso) { if (paso.sig && pasos[paso.sig]) irPaso(paso.sig); else setTimeout(cerrar, 500); }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!campoActual) return;
+      var paso = campoActual;
+      var r = validar(paso.campo, input.value);
+      if (r && typeof r === 'object' && r.err) { burbujaBot(r.err); return; }
+      marcarRespuesta();
+      burbujaYo(input.value.trim());
+      datos[paso.campo] = r;
+      if (paso.campo === 'whatsapp') vbTrack('vipbot_wa');
+      else if (paso.campo === 'email') vbTrack('vipbot_correo');
+      else if (paso.campo === 'direccion') vbTrack('vipbot_dir');
+      ocultarForm();
+      avanzar(paso);
+    });
+
+    // Pinta un paso: burbujas del bot una a una (con "escribiendo…"), luego imagen y respuesta
+    function irPaso(id) {
+      var paso = pasos[id];
+      if (!paso) { setTimeout(cerrar, 400); return; }
+      limpiarQuick(); ocultarForm();
+      if (paso.guardar === '1') guardarLead();
+      var textos = String(paso.msgs || '').split(/\n\n+/).map(function (s) { return s.replace(/\{nombre\}/g, datos.nombre || 'crack'); }).filter(function (s) { return s.trim(); });
+      var i = 0;
+      function siguiente() {
+        if (i < textos.length) {
+          verEscribiendo();
+          var largo = textos[i].length;
+          setTimeout(function () {
+            quitarEscribiendo();
+            burbujaBot(textos[i]);
+            i++;
+            setTimeout(siguiente, 260);
+          }, Math.min(1300, 420 + largo * 16));
+        } else {
+          if (paso.img) burbujaImg(paso.img);
+          setTimeout(function () {
+            if (paso.campo) { pedirDato(paso); return; }
+            var ops = paso.opciones || [];
+            if (!ops.length) { setTimeout(cerrar, 900); return; } // paso terminal sin botones
+            ops.forEach(function (op) { botonQuick(op.txt, function () { burbujaYo(op.txt); limpiarQuick(); resolver(op.ir); }); });
+          }, paso.img ? 400 : 180);
+        }
+      }
+      siguiente();
+    }
+
+    f.addEventListener('click', function (e) { if (e.target === f) cerrar(); });
+    f.querySelector('.vb-cerrar').onclick = cerrar;
+
+    // Aparición: tras el delay configurado (o por intención de salida si el dueño lo activó).
+    function revelar() {
+      if (f.classList.contains('abierto')) return;
+      if (!forzar && cfg.frec !== 'siempre') {
+        try {
+          var reg = JSON.parse(localStorage.getItem('arakaki_vipbot_dia') || 'null');
+          var vistas = (reg && reg.d === hoy) ? (Number(reg.n) || 0) : 0;
+          localStorage.setItem('arakaki_vipbot_dia', JSON.stringify({ d: hoy, n: vistas + 1 }));
+        } catch (e) {}
+      }
+      f.classList.add('abierto');
+      vbTrack('vipbot_abrir');
+      irPaso(primero);
+    }
+    var delayMs = forzar ? 30 : Math.max(0, Math.min(120, parseInt(cfg.delay, 10) || 8)) * 1000;
+    var tmr = setTimeout(revelar, delayMs);
+    if (!forzar && cfg.salida === '1') {
+      var onSalida = function (e) {
+        if (e.clientY != null && e.clientY <= 0) { document.removeEventListener('mouseout', onSalida); clearTimeout(tmr); revelar(); }
+      };
+      document.addEventListener('mouseout', onSalida);
+    }
+  }
+
   function armarBase() {
     // /mi-cuenta es vista "app": sin header (lo esconde body.pagina-club en el CSS),
     // sin cinta marquee y sin chat web, para ver los accesos de un solo vistazo.
@@ -1075,6 +1326,26 @@
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
     if (!esCuenta) iniciarChat(); // el chat web no va en /mi-cuenta (vista app)
+    latidoPresencia();  // "esta persona está en vivo" → monitor del panel (👀 En vivo)
+  }
+
+  // ---------- Latido de presencia (monitor "en vivo" del panel) ----------
+  // Cada ~40s avisa que este visitante sigue navegando. El backend (api/track.js) lo marca en un
+  // ZSET con TTL corto y el panel lo lee (crm.js envivo) para mostrar cuántos están ahora en la web
+  // y reconocer a los que ya son clientes (por su uid → teléfono). No guarda datos personales.
+  function latidoPresencia() {
+    function latir() {
+      if (document.hidden) return;
+      var data = { ev: 'presencia', uid: miUid(), p: location.pathname };
+      try {
+        var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        if (navigator.sendBeacon && navigator.sendBeacon('/api/track', blob)) return;
+      } catch (e) {}
+      try { fetch('/api/track', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), keepalive: true }).catch(function () {}); } catch (e) {}
+    }
+    latir();
+    setInterval(latir, 40000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) latir(); });
   }
 
   // ---------- Carrito (localStorage) ----------

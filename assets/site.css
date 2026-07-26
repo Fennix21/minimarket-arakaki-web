@@ -1200,6 +1200,72 @@ body.menu-abierto #menu-panel .menu-dest .dest {
   #chat-in { font-size: 16px; }
 }
 
+/* ---------- Pop-up conversacional VIP del inicio (lo pinta site.js: pintarVipBot) ----------
+   Un chat estilo mensajería DENTRO de un popup centrado (usa el backdrop .modal-fondo). Comparte
+   el look dark-gold del chat de la web y reusa sus keyframes (chat-entra / chat-punto). */
+.vb-fondo { z-index: 965; }
+.vb-caja {
+  display: flex; flex-direction: column; overflow: hidden; text-align: left;
+  width: min(400px, calc(100vw - 32px)); height: min(600px, calc(100dvh - 70px));
+  background: #fdfaf2; border: 1.5px solid #d9c288; border-radius: 20px;
+  box-shadow: 0 22px 60px rgba(0,0,0,0.45), 0 0 26px rgba(217,194,136,0.3);
+  animation: vb-entra 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vb-entra { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+.vb-cab {
+  display: flex; align-items: center; gap: 11px; flex: none;
+  padding: 12px 14px; background: linear-gradient(180deg, #4a4336 0%, #332d24 100%);
+  border-bottom: 1.5px solid #d9c288;
+}
+.vb-avatar { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #dcc28a; flex: none; object-fit: cover; }
+.vb-tit { flex: 1; min-width: 0; }
+.vb-tit b { display: block; color: #f3e7c6; font-family: var(--tipo-titulos); font-size: 17px; letter-spacing: 0.4px; }
+.vb-tit small { display: flex; align-items: center; gap: 5px; color: rgba(255,246,224,0.85); font-size: 12.5px; }
+.vb-tit small::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #37d67a; box-shadow: 0 0 5px #37d67a; flex: none; }
+.vb-cerrar { background: none; border: none; color: #f3e7c6; font-size: 22px; cursor: pointer; padding: 6px 10px; border-radius: 8px; flex: none; }
+.vb-cerrar:hover { background: rgba(255,246,224,0.12); }
+.vb-msgs { flex: 1; overflow-y: auto; padding: 15px 12px 8px; display: flex; flex-direction: column; gap: 9px; }
+.vb-fila { display: flex; align-items: flex-end; gap: 7px; animation: chat-entra 0.35s ease both; }
+.vb-fila.yo { justify-content: flex-end; }
+.vb-mini { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #dcc28a; flex: none; object-fit: cover; }
+.vb-msg { max-width: 82%; padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.55; word-wrap: break-word; }
+.vb-msg.bot { background: #f7f1e4; color: #3f3729; border: 1px solid #e8ddc2; border-bottom-left-radius: 4px; }
+.vb-msg.yo { background: linear-gradient(180deg, #f3e5bd 0%, #e9d5a2 100%); color: #4a3d20; border-bottom-right-radius: 4px; }
+.vb-msg a { color: #8a6510; text-decoration: underline; font-weight: 700; }
+.vb-msg.vb-foto { padding: 4px; }
+.vb-msg.vb-foto img { display: block; max-width: 100%; border-radius: 11px; }
+.vb-msg.vb-escribiendo { display: flex; gap: 5px; padding: 13px 15px; }
+.vb-msg.vb-escribiendo span { width: 7px; height: 7px; border-radius: 50%; background: #c2a765; animation: chat-punto 1.1s ease-in-out infinite; }
+.vb-msg.vb-escribiendo span:nth-child(2) { animation-delay: 0.18s; }
+.vb-msg.vb-escribiendo span:nth-child(3) { animation-delay: 0.36s; }
+.vb-quick { display: flex; flex-wrap: wrap; gap: 7px; padding: 4px 12px 12px; }
+.vb-quick:empty { display: none; }
+.vb-opt {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; text-align: left;
+  background: #fbf5e6; color: #6b5327; border: 1.5px solid #d9c288; border-radius: 12px;
+  padding: 10px 14px; font-family: inherit; font-size: 14px; font-weight: 700;
+  transition: transform 0.12s, background 0.12s, color 0.12s; animation: chat-entra 0.35s ease both;
+}
+.vb-opt:hover { background: linear-gradient(180deg, #f3e5bd 0%, #e9d5a2 100%); color: #4a3d20; transform: translateY(-1px); }
+.vb-opt.vb-omitir { background: transparent; border-style: dashed; color: #9a8355; font-weight: 600; }
+.vb-form { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid #e8ddc2; background: #fffdf8; flex: none; }
+.vb-in {
+  flex: 1; min-width: 0; padding: 11px 14px; border: 1.5px solid #d9c288; border-radius: 14px;
+  font-family: inherit; font-size: 15px; background: #fff; color: #3f3729;
+}
+.vb-in:focus { outline: none; border-color: #b8963f; }
+.vb-enviar {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #c9ad6c; cursor: pointer; flex: none;
+  background: linear-gradient(180deg, #f3e2ae 0%, #e2c887 100%); color: #4a3d20; font-size: 18px; font-weight: 800;
+}
+.vb-opt:focus-visible, .vb-enviar:focus-visible, .vb-cerrar:focus-visible { outline: 2px solid #b8963f; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .vb-caja, .vb-fila, .vb-opt { animation: none; } }
+@media (max-width: 600px) {
+  .vb-fondo { padding: 0; }
+  .vb-caja { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; border: none; }
+  .vb-in { font-size: 16px; } /* anti-zoom iOS */
+}
+
 /* ---------- Ajustes responsive finos (teléfonos) ---------- */
 @media (max-width: 600px) {
   /* Margen lateral cómodo: los textos nunca pegados al borde de la pantalla */

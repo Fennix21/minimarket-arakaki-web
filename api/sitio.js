@@ -4,7 +4,8 @@
 //            f: { pagina, vino, roja, premium, card },   // CSS del fondo → variable --bg-<clave>
 //            k: { txt, tam, fx, toqueBg, toqueTitCol, btnSumar, btnSumarTxt }, // apariencia del carrito
 //            co: { naranja, dorado, doradoClaro, rojo }, // paleta de marca (colores → variables CSS)
-//            bn: [ { img, titulo, texto } ] } // láminas de beneficios del inicio (carrusel)
+//            bn: [ { img, titulo, texto } ], // láminas de beneficios del inicio (carrusel)
+//            vb: { on, desde, hasta, frec, veces, delay, salida, soloNuevos, titulo, subtitulo, avatar, pasos[] } } // pop-up conversacional VIP
 // Sin env vars de Redis (o sin config guardada) devuelve {}: el sitio usa sus defaults.
 
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
@@ -31,9 +32,12 @@ module.exports = async (req, res) => {
   let l = {};
   let co = {};
   let bn = [];
+  let vb = {};
   try {
     if (REDIS_URL && REDIS_TOKEN) {
-      const [raw, rawF, rawK, rawT, rawP, rawL, rawCo, rawBn] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo', 'config:popup', 'config:logos', 'config:colores', 'config:beneficios'])) || [];
+      const [raw, rawF, rawK, rawT, rawP, rawL, rawCo, rawBn, rawVb] = (await redis(['MGET', 'config:sitio', 'config:fondos', 'config:carrito', 'config:tipo', 'config:popup', 'config:logos', 'config:colores', 'config:beneficios', 'config:vipbot'])) || [];
+      // config:vipbot (pop-up conversacional VIP del inicio): validado al guardar (crm.js setvipbot)
+      if (rawVb) { try { vb = JSON.parse(rawVb) || {}; } catch (e) {} }
       // config:colores (paleta de marca): {clave:'#hex'} validado al guardar (crm.js setcolores); site.js re-valida al aplicar
       if (rawCo) { try { co = JSON.parse(rawCo) || {}; } catch (e) {} }
       // config:beneficios (láminas del inicio): array [{img,titulo,texto}] validado al guardar (crm.js setbeneficios)
@@ -62,5 +66,5 @@ module.exports = async (req, res) => {
       }
     }
   } catch (e) { console.error('sitio error', e); }
-  return res.status(200).json({ s, f, k, t, p, l, co, bn });
+  return res.status(200).json({ s, f, k, t, p, l, co, bn, vb });
 };

@@ -30,6 +30,9 @@
 //   vidini / vidchunk / vidfin -> subir un video desde el panel en trozos base64 ≤512KB (vidext:<id>:<i>;
 //                                  el panel lo comprime antes en el navegador; lo sirve /api/precios?vid=<id>)
 //   viddel { id }              -> borra un video subido (chunks + índice config:vidsubidos + overrides que lo usaban)
+//   getvipbot / setvipbot      -> pop-up conversacional VIP del inicio: programación + flujo de mensajes
+//                                  con botones/captura de datos e imágenes (config:vipbot; lo sirve /api/sitio como vb)
+//   envivo                     -> visitantes navegando la web AHORA (heartbeat pres:<uid> + ZSET presencia)
 //   getclub / setclub          -> interruptores + promos exclusivas + sorteos del Club (los lee /api/cuenta)
 //   resetpin { telefono }      -> borra el PIN del cliente y cierra sus sesiones
 //   setpuntos { telefono, puntos } -> ajuste manual de puntos (canjes)
@@ -950,6 +953,110 @@ module.exports = async (req, res) => {
       if (Object.keys(p).length) await redis(['SET', 'config:popup', JSON.stringify(p)]);
       else await redis(['DEL', 'config:popup']);
       return res.status(200).json({ ok: true, p });
+    }
+
+    // --- 🤖 Pop-up conversacional VIP del inicio: config:vipbot (lo sirve /api/sitio como vb) ---
+    // { on, desde, hasta, frec, veces, delay, salida, soloNuevos, titulo, subtitulo, avatar,
+    //   pasos:[ {id, msgs, img?, campo?, opcional?, sig?, guardar?, opciones:[{txt,ir}]} ] }.
+    // Vacío = default de site.js (VIPBOT_DEF: flujo que ofrece abrir la cuenta VIP gratuita).
+    if (b.action === 'getvipbot') {
+      const raw = await redis(['GET', 'config:vipbot']);
+      let vb = {};
+      if (raw) { try { vb = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ vb });
+    }
+    if (b.action === 'setvipbot') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const ddmm = (v) => {
+        const m = /^(\d{1,2})\/(\d{1,2})$/.exec(txt(v, 5));
+        if (!m) return '';
+        const d = +m[1], mes = +m[2];
+        if (d < 1 || d > 31 || mes < 1 || mes > 12) return '';
+        return (d < 10 ? '0' + d : '' + d) + '/' + (mes < 10 ? '0' + mes : '' + mes);
+      };
+      // Imagen: subida con imgup (/api/push?img=<id>), del repo (/img/…) o https
+      const urlImg = (v) => { const s = txt(v, 200); return /^(\/api\/push\?img=[a-z0-9]+|\/img\/|https?:\/\/)/i.test(s) ? s : ''; };
+      const idOk = (v) => txt(v, 30).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
+      const CAMPOS = ['nombre', 'whatsapp', 'email', 'direccion'];
+      const vb = {};
+      if (b.on === '0') vb.on = '0';
+      ['desde', 'hasta'].forEach((k) => {
+        if (txt(b[k], 5).toLowerCase() === 'no') { vb[k] = 'no'; return; }
+        const v = ddmm(b[k]); if (v) vb[k] = v;
+      });
+      if (b.frec === 'siempre') vb.frec = 'siempre';
+      const veces = Math.max(1, Math.min(20, parseInt(b.veces, 10) || 1));
+      if (veces > 1) vb.veces = veces;
+      const delay = Math.max(0, Math.min(120, parseInt(b.delay, 10)));
+      if (delay || delay === 0) { if (delay !== 8) vb.delay = delay; }
+      if (b.salida === '1') vb.salida = '1';
+      if (b.soloNuevos === '1') vb.soloNuevos = '1';
+      const tit = txt(b.titulo, 40); if (tit) vb.titulo = tit;
+      const sub = txt(b.subtitulo, 60); if (sub) vb.subtitulo = sub;
+      const av = urlImg(b.avatar); if (av) vb.avatar = av;
+      // El flujo: cada paso son burbujas del bot + (botones de opción | pedido de un dato).
+      const nuevoId = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const usados = {};
+      const pasos = (Array.isArray(b.pasos) ? b.pasos : []).slice(0, 20).map((ps) => {
+        if (!ps || typeof ps !== 'object') return null;
+        let id = idOk(ps.id);
+        if (!id || usados[id]) id = nuevoId();
+        usados[id] = true;
+        const paso = { id, msgs: txt(ps.msgs, 800) };
+        const img = urlImg(ps.img); if (img) paso.img = img;
+        const campo = CAMPOS.indexOf(ps.campo) >= 0 ? ps.campo : '';
+        if (campo) {
+          paso.campo = campo;
+          if (ps.opcional === '1' || ps.opcional === true) paso.opcional = '1';
+          const sig = txt(ps.sig, 30).toLowerCase().replace(/[^a-z0-9-]/g, '');
+          if (sig) paso.sig = sig; // a qué paso ir tras responder
+        } else {
+          const opciones = (Array.isArray(ps.opciones) ? ps.opciones : []).slice(0, 4).map((op) => {
+            if (!op || typeof op !== 'object') return null;
+            const t = txt(op.txt, 60);
+            // ir = id de otro paso, o acción especial: cerrar | cuenta (activar clave) | wa (WhatsApp)
+            const ir = txt(op.ir, 30).toLowerCase().replace(/[^a-z0-9-]/g, '');
+            if (!t || !ir) return null;
+            return { txt: t, ir };
+          }).filter(Boolean);
+          if (opciones.length) paso.opciones = opciones;
+        }
+        if (ps.guardar === '1' || ps.guardar === true) paso.guardar = '1';
+        return paso;
+      }).filter(Boolean);
+      if (pasos.length) vb.pasos = pasos;
+      // Solo quedan campos por defecto (on:'1' implícito y nada más) = borra el override
+      const soloDefault = !pasos.length && vb.on !== '0' &&
+        !vb.desde && !vb.hasta && !vb.frec && !vb.veces && vb.delay == null &&
+        !vb.salida && !vb.soloNuevos && !vb.titulo && !vb.subtitulo && !vb.avatar;
+      if (Object.keys(vb).length && !soloDefault) await redis(['SET', 'config:vipbot', JSON.stringify(vb)]);
+      else await redis(['DEL', 'config:vipbot']);
+      return res.status(200).json({ ok: true, vb });
+    }
+
+    // --- 👀 Visitantes en vivo ahora (heartbeat de site.js → pres:<uid> + ZSET presencia) ---
+    // Devuelve cuántos navegan la web en este momento y reconoce a los que ya son clientes.
+    if (b.action === 'envivo') {
+      const ahora = Date.now();
+      const corte = ahora - 75000; // se considera "en vivo" si latió en los últimos 75s
+      try { await redis(['ZREMRANGEBYSCORE', 'presencia', '-inf', String(corte)]); } catch (e) {}
+      const uids = (await redis(['ZREVRANGEBYSCORE', 'presencia', '+inf', String(corte)])) || [];
+      const activos = [];
+      let clientes = 0;
+      for (const u of uids.slice(0, 60)) {
+        let page = '/';
+        const raw = await redis(['GET', 'pres:' + u]);
+        if (raw) { try { const o = JSON.parse(raw) || {}; page = o.p || '/'; } catch (e) {} }
+        let nombre = '';
+        const tel = await redis(['GET', 'uid:' + u]);
+        if (tel) {
+          const rc = await redis(['GET', 'cliente:' + tel]);
+          if (rc) { try { nombre = JSON.parse(rc).nombre || ''; } catch (e) {} }
+          if (nombre) clientes++;
+        }
+        activos.push({ p: page, nombre, cliente: !!nombre });
+      }
+      return res.status(200).json({ total: uids.length, clientes, activos });
     }
 
     // --- 🔤 Tipografía global del sitio: config:tipo (la sirve /api/sitio como t) ---

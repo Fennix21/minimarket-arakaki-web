@@ -69,6 +69,9 @@ http.createServer((req, res) => {
           { id: 'demo2', titulo: '🚚 Delivery gratis', texto: 'En pedidos desde S/ 50', imagen: '/img/beneficios/delivery-gratis.webp', url: '/pisco' },
         ],
       },
+      // `vb` = pop-up conversacional VIP. frec:'siempre' + delay corto = sale en cada recarga (para
+      // probar en local); sin `pasos`, site.js usa su flujo por defecto (VIPBOT_DEF).
+      vb: { frec: 'siempre', delay: 2 },
     }));
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
@@ -206,6 +209,13 @@ http.createServer((req, res) => {
             ui: { cremaBg: '', bannerTxt: '', kpCol: '', footerOn: false, footerBg: '', footerLogo: '' },
           },
           getprecios: { p: { 'pisco|Pisco Ocucaje Acholado x 700 ml': '48' }, s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' }, x: [] },
+          getvipbot: { vb: {} }, // vacío = el flujo de ejemplo (el panel carga VIP_DEF_PASOS)
+          envivo: { total: 3, clientes: 1, activos: [
+            { p: '/', nombre: '', cliente: false },
+            { p: '/pisco', nombre: 'Rosa Quispe', cliente: true },
+            { p: '/vinos', nombre: '', cliente: false },
+          ] },
+          setvipbot: { ok: true },
           list: { leads: [{ phone: '51999999999', name: 'Rosa Quispe', status: 'interesado', lastText: '¿Tienen pisco quebranta?', lastRole: 'user', updatedAt: Date.now() - 1800000, lastUserTs: Date.now() - 1800000, tags: [] }] },
           reset: { ok: true, total: 137, detalle: { 'stat:*': 96, 'lead:*': 3, 'cliente:*': 5, 'sorteo:*': 2, listas: 6 } },
         };

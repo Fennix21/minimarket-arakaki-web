@@ -247,6 +247,22 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .popup-btn-fila { display:grid; grid-template-columns:1.6fr 1fr 92px; gap:8px; margin-bottom:8px; }
 .popup-btn-fila input, .popup-btn-fila select { width:100%; min-width:0; }
 @media (max-width:700px){ .popup-btn-fila { grid-template-columns:1fr; } }
+/* 🤖 Pop-up VIP: tarjetas de paso del flujo conversacional */
+.vip-paso { display:block; }
+.vip-paso-cab { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.vip-paso-cab b { color:var(--dorado2); font-size:14px; }
+.vip-paso-acc { display:flex; gap:5px; }
+.vip-paso-acc .btn { padding:5px 9px; font-size:13px; }
+.vip-paso-acc .btn[disabled] { opacity:.35; cursor:default; }
+.vip-paso .vip-tipo { width:100%; margin-top:3px; }
+.vip-paso .vip-botones, .vip-paso .vip-captura { margin-top:8px; padding:10px; border:1px dashed var(--borde); border-radius:10px; background:var(--card); }
+/* 👀 En vivo (analíticas): monitor de visitantes ahora mismo */
+#envivo-caja { border:1px solid rgba(55,214,122,.35); }
+.envivo-badge { display:inline-block; min-width:24px; text-align:center; padding:1px 9px; margin-left:6px; border-radius:999px; background:#37d67a; color:#0b3d20; font-size:14px; font-weight:800; vertical-align:middle; }
+.envivo-resumen { font-size:14px; color:var(--txt); margin-bottom:8px; }
+.envivo-chips { display:flex; flex-wrap:wrap; gap:7px; }
+.envivo-chip { display:inline-flex; align-items:center; gap:5px; font-size:12.5px; padding:5px 10px; border-radius:999px; background:var(--campo); color:var(--txt-soft); border:1px solid var(--borde); }
+.envivo-chip.cliente { background:rgba(55,214,122,.14); border-color:rgba(55,214,122,.5); color:var(--txt); font-weight:700; }
 /* 🖼️ Logos: una fila por logo (preview + dónde se usa + subir/URL) */
 .logo-fila { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--borde); border-radius:14px; padding:14px; margin-bottom:12px; flex-wrap:wrap; }
 .logo-fila img.lg-prev { width:56px; height:56px; object-fit:contain; border-radius:12px; background:var(--campo); border:1px solid var(--borde); flex:none; padding:4px; }
@@ -1047,6 +1063,12 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
       </div>
     </div>
 
+    <div class="stat-caja ancha" id="envivo-caja">
+      <h3>👀 En vivo ahora <span id="envivo-num" class="envivo-badge">–</span></h3>
+      <div id="envivo-lista" class="pie-nota" style="margin-top:6px">Cargando…</div>
+      <p class="pie-nota" style="margin-top:8px;color:var(--txt-soft)">Quién está navegando tu web <b>en este momento</b> (se actualiza solo). Reconoce por su nombre a los que ya son clientes.</p>
+    </div>
+
     <div class="kpi-grid" id="st-kpis"></div>
 
     <div class="stats-grid">
@@ -1088,6 +1110,7 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
     <div class="subtabs">
       <button class="subtab activa" data-sub="wa">🤖 WhatsApp</button>
       <button class="subtab" data-sub="web">💬 Chat web</button>
+      <button class="subtab" data-sub="vip" data-gr="vipbot">🤖 Pop-up VIP</button>
       <button class="subtab" data-sub="avisos">🔔 Avisos</button>
     </div>
 
@@ -1376,6 +1399,86 @@ body.modo-editor #ed-dock { display:flex; flex-direction:column; }
         <label class="check-fila"><input type="checkbox" id="conf-notify"> Avisarme de nuevos clientes y pedidos</label>
         <div class="fila-conf">
           <button class="btn" data-guardar="notify" onclick="pedirGuardar('notify')">💾 Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Sub-panel: pop-up conversacional VIP del inicio ===== -->
+    <div class="subpanel" id="sp-vip">
+      <div class="caja-bot" data-grupo="vipbot">
+        <h3>🤖 Pop-up VIP (chat automático del inicio)</h3>
+        <p class="desc">Un pop-up con un chat estilo mensajería que aparece en tu portada y le ofrece al visitante abrir su <b>cuenta VIP gratis</b>. Tú armas la conversación: mensajes, botones e imágenes. Los datos que deje (WhatsApp, correo, dirección) entran a tu base de clientes.</p>
+        <div class="aviso" id="vip-aviso"></div>
+
+        <details class="ayuda">
+          <summary>💡 Cómo funciona</summary>
+          <div class="cuerpo">La conversación es una lista de <b>pasos</b>. El <b>primero</b> es el que ve el cliente al abrir. Cada paso muestra tus mensajes y luego <b>botones</b> (que llevan a otro paso o cierran) o <b>pide un dato</b> (nombre, WhatsApp, correo o dirección). Marca “guardar los datos” en el paso final para registrar al cliente. Para ver cómo queda, abre tu portada con <b>?vipbot=1</b> al final de la dirección.</div>
+        </details>
+
+        <!-- Programación -->
+        <div class="tipo-grid" style="margin-top:8px">
+          <div class="campo-bloque">
+            <label>¿Mostrar el pop-up?</label>
+            <select id="vip-on"><option value="1">Sí, activo</option><option value="0">No (apagado)</option></select>
+          </div>
+          <div class="campo-bloque">
+            <label>¿Cada cuánto aparece?</label>
+            <select id="vip-frec"><option value="dia">Según el tope de abajo</option><option value="siempre">En cada visita</option></select>
+          </div>
+          <div class="campo-bloque">
+            <label>Veces por día (por persona)</label>
+            <input type="number" id="vip-veces" min="1" max="20" step="1" value="1">
+          </div>
+          <div class="campo-bloque">
+            <label>Aparece a los… (segundos)</label>
+            <input type="number" id="vip-delay" min="0" max="120" step="1" value="8">
+          </div>
+          <div class="campo-bloque">
+            <label>Desde (dd/mm, opcional)</label>
+            <input type="text" id="vip-desde" maxlength="5" placeholder="siempre">
+          </div>
+          <div class="campo-bloque">
+            <label>Hasta (dd/mm, opcional)</label>
+            <input type="text" id="vip-hasta" maxlength="5" placeholder="siempre">
+          </div>
+        </div>
+        <label class="check-fila"><input type="checkbox" id="vip-salida"> Mostrarlo también cuando la persona va a irse (mueve el mouse hacia arriba)</label>
+        <label class="check-fila"><input type="checkbox" id="vip-solonuevos"> Mostrarlo solo a quien todavía NO tiene su cuenta iniciada</label>
+
+        <!-- Apariencia de la cabecera -->
+        <h4 style="margin:16px 0 6px">🎨 Cabecera del chat</h4>
+        <div class="tipo-grid">
+          <div class="campo-bloque">
+            <label>Nombre (arriba del chat)</label>
+            <input type="text" id="vip-titulo" maxlength="40" placeholder="Club Arakaki 👑">
+          </div>
+          <div class="campo-bloque">
+            <label>Frase (estado)</label>
+            <input type="text" id="vip-subtitulo" maxlength="60" placeholder="En línea ahora">
+          </div>
+        </div>
+        <div class="campo-bloque">
+          <label>Foto del asistente (opcional)</label>
+          <div class="club-item" id="vip-avatar-item" data-img="" style="max-width:340px">
+            <div class="cci-foto"><span id="vip-avatar-prev"></span>
+              <label class="btn gris" style="cursor:pointer">📷 Subir foto<input type="file" accept="image/*" style="display:none" onchange="subirAvatarVip(this)"></label>
+            </div>
+            <button class="btn gris" type="button" onclick="quitarAvatarVip()">🗑️ Quitar (usar la del gato)</button>
+          </div>
+        </div>
+
+        <!-- Flujo de la conversación -->
+        <h4 style="margin:18px 0 6px">💬 La conversación (pasos)</h4>
+        <p class="hint" style="font-size:12px;color:var(--sub);margin-top:0">El <b>primer</b> paso es el que ve el cliente al abrir. Arrastra el orden con los botones ▲▼.</p>
+        <div id="vip-pasos"></div>
+        <div class="fila-conf">
+          <button class="btn gris" type="button" onclick="agregarPasoVip()">➕ Añadir paso</button>
+          <button class="btn gris" type="button" onclick="restaurarFlujoVip()">↩️ Usar el flujo de ejemplo</button>
+        </div>
+
+        <div class="fila-conf" style="margin-top:12px">
+          <button class="btn" data-guardar="vipbot" onclick="pedirGuardar('vipbot')">💾 Guardar pop-up VIP</button>
+          <a class="btn gris" href="/?vipbot=1" target="_blank" rel="noopener" data-sin-seguro>👁️ Ver cómo queda</a>
         </div>
       </div>
     </div>
@@ -2093,6 +2196,7 @@ var GRUPOS = {
   popup:   { nombre: 'del popup del inicio',        vista: 'sitio', aviso: 'popup-aviso',  fn: 'guardarPopup',   nota: 'Se ve en la web en ~1 minuto.' },
   logos:   { nombre: 'de los logos',                vista: 'sitio', aviso: 'logos-aviso',  fn: 'guardarLogos',   nota: 'Se ve en la web en ~1 minuto.' },
   webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
+  vipbot:  { nombre: 'del pop-up VIP',              vista: 'bot',   aviso: 'vip-aviso',    fn: 'guardarVipbot',  nota: 'Se ve en la web en ~1 minuto.' },
   prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
   tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
   notify:  { nombre: 'de los números autorizados',  vista: 'bot',   aviso: 'avisos-aviso', fn: 'guardarNotify',  nota: '' }
@@ -2292,7 +2396,8 @@ function verVista(v) {
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
   if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarColores(); cargarBeneficios(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
-  if (v === 'bot') cargarBot();
+  if (v === 'bot') { cargarBot(); cargarVipbot(); }
+  if (v !== 'stats' && ENVIVO_TIMER) { clearInterval(ENVIVO_TIMER); ENVIVO_TIMER = null; } // deja de sondear "en vivo" al salir
   // 🎨 Editor de la web: enciende el dock de vista previa en vivo solo en la sección Sitio
   document.body.classList.toggle('modo-editor', v === 'sitio');
   if (v === 'sitio') edAsegurarFrame(); else edToggleDock(false);
@@ -3650,6 +3755,7 @@ var EV_GRUPOS = [
   { tit: '💬 Chat de la web', evs: [['chatweb_abierto', 'Veces que abrieron el chat'], ['chatweb_msg', 'Mensajes conversados'], ['chatweb_suscriptor', 'Suscriptores captados'], ['chatweb_consulta', 'Preguntas que el bot no supo']] },
   { tit: '📤 Compartir productos', evs: [['compartir_chat', 'Compartidos por chat de WhatsApp'], ['compartir_estado', 'Imágenes para estados creadas'], ['compartir_link', 'Enlaces copiados']] },
   { tit: '👥 Club', evs: [['vip_abrir', 'Popup VIP abierto en el inicio'], ['vip_crear', 'Toques en "Crear mi cuenta VIP"'], ['club_cuenta', 'Cuentas creadas'], ['club_login', 'Inicios de sesión'], ['club_sorteo', 'Participaciones en sorteos'], ['club_pregunta', 'Preguntas al negocio'], ['club_recupero', 'PIN recuperados']] },
+  { tit: '🤖 Pop-up VIP (chat automático)', evs: [['vipbot_abrir', 'Veces que apareció el pop-up'], ['vipbot_responde', 'Personas que respondieron'], ['vipbot_wa', 'WhatsApp dejados'], ['vipbot_correo', 'Correos dejados'], ['vipbot_dir', 'Direcciones dejadas'], ['vipbot_lead', 'Interesados registrados'], ['vipbot_cuenta', 'Toques en "Activar mi cuenta"']] },
   { tit: '🧩 Combos (venta cruzada)', evs: [['comple_elegir', 'Complemento elegido en la página'], ['comple_carrito', 'Toque final añadido en el carrito']] },
   { tit: '🔔 Avisos', evs: [['push_enviados', 'Notificaciones push enviadas'], ['push_click', 'Notificaciones abiertas'], ['correo_enviados', 'Correos de promo enviados']] },
 ];
@@ -3679,6 +3785,10 @@ function cargarStats(dias) {
   for (var i = 0; i < botones.length; i++) botones[i].classList.toggle('activa', parseInt(botones[i].textContent, 10) === STATS_DIAS);
   api('stats', { dias: STATS_DIAS }).then(pintarStats)
     .catch(function (e) { document.getElementById('st-kpis').innerHTML = '<p style="color:var(--sub);font-size:13px">' + esc(e.message) + '</p>'; });
+  // Monitor "en vivo": lo refresca solo mientras la sección Analíticas esté abierta
+  cargarEnvivo();
+  if (ENVIVO_TIMER) clearInterval(ENVIVO_TIMER);
+  ENVIVO_TIMER = setInterval(cargarEnvivo, 15000);
 }
 function pintarStats(j) {
   var s = j.series || {}, prev = j.prev || {};
@@ -4353,6 +4463,278 @@ function subirImgBannerPopup(inp, i) {
   };
   img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoPopup('No se pudo leer esa imagen.', true); };
   img.src = urlTmp;
+}
+
+// --- 🤖 Pop-up conversacional VIP: config:vipbot (lo sirve /api/sitio como vb, lo pinta site.js) ---
+// El flujo es una lista de "pasos" (mismo modelo que VIPBOT_DEF de site.js). El primer paso es el
+// que ve el cliente al abrir. Los destinos de los botones/captura se eligen con un desplegable.
+var VIP_DEF_PASOS = [
+  { id: 'inicio', msgs: '¡Hola! 👋 Soy tu asistente del Club Arakaki.\n\n¿Te gustaría abrir una cuenta *gratuita* y volverte cliente VIP con beneficios exclusivos? 🎁',
+    opciones: [{ txt: 'Sí, quiero ✨', ir: 'nombre' }, { txt: '¿De qué trata?', ir: 'info' }, { txt: 'Después', ir: 'chau' }] },
+  { id: 'info', msgs: 'Con tu cuenta VIP tienes:\n\n🪙 Puntos por cada compra\n🎁 Promos solo para socios\n🎟️ Cupones de descuento\n🎉 Sorteos exclusivos\n⭐ Tus listas de favoritos guardadas\n\n¡Y es totalmente gratis! 😍',
+    opciones: [{ txt: '¡Me apunto! ✨', ir: 'nombre' }, { txt: 'Ahora no', ir: 'chau' }] },
+  { id: 'nombre', msgs: '¡Genial! 🙌 Para crear tu cuenta, ¿cómo te llamas?', campo: 'nombre', sig: 'tel' },
+  { id: 'tel', msgs: 'Un gusto, {nombre} 😊\n\n¿Cuál es tu WhatsApp? Te avisamos de las ofertas por ahí. 📲', campo: 'whatsapp', sig: 'correo' },
+  { id: 'correo', msgs: '¿Y tu correo? Nos sirve para recuperar tu cuenta y enviarte promos.', campo: 'email', opcional: '1', sig: 'dir' },
+  { id: 'dir', msgs: '¿A qué dirección te llevamos tus pedidos? 📍', campo: 'direccion', opcional: '1', sig: 'listo' },
+  { id: 'listo', msgs: '¡Listo, {nombre}! 🎉 Ya eres parte del Club Arakaki.\n\nAhora crea tu clave secreta para entrar a tu cuenta cuando quieras 👇', guardar: '1',
+    opciones: [{ txt: '🔐 Activar mi cuenta', ir: 'cuenta' }, { txt: 'Seguir viendo la tienda', ir: 'cerrar' }] },
+  { id: 'chau', msgs: '¡Sin problema! 😊 Cuando quieras, tu cuenta VIP te espera aquí. 👑',
+    opciones: [{ txt: 'Entendido', ir: 'cerrar' }] },
+];
+var VIP_PASOS = [];
+var VIP_CAMPOS = [['nombre', '🙂 Nombre'], ['whatsapp', '📱 WhatsApp'], ['email', '✉️ Correo'], ['direccion', '📍 Dirección de envío']];
+function avisoVip(t, mal) {
+  var a = document.getElementById('vip-aviso'); if (!a) return;
+  a.textContent = t; a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function vipNuevoId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+function vipPreview(p) { var m = String(p.msgs || '').replace(/\s+/g, ' ').trim(); return m ? (m.length > 26 ? m.slice(0, 26) + '…' : m) : '(sin mensaje)'; }
+// Desplegable de destinos: cada paso (por su nombre-preview) + acciones especiales
+function vipDestinoHtml(sel) {
+  var h = '';
+  VIP_PASOS.forEach(function (p, idx) { h += '<option value="' + esc(p.id) + '"' + (sel === p.id ? ' selected' : '') + '>➡️ Paso ' + (idx + 1) + ': ' + esc(vipPreview(p)) + '</option>'; });
+  h += '<option value="cuenta"' + (sel === 'cuenta' ? ' selected' : '') + '>🔐 Ir a activar la cuenta (poner clave)</option>';
+  h += '<option value="wa"' + (sel === 'wa' ? ' selected' : '') + '>💬 Abrir WhatsApp</option>';
+  h += '<option value="cerrar"' + (sel === 'cerrar' ? ' selected' : '') + '>❌ Cerrar el pop-up</option>';
+  return h;
+}
+function vipAvatarImg() { return (document.getElementById('vip-avatar-item') || {}).getAttribute ? document.getElementById('vip-avatar-item').getAttribute('data-img') : ''; }
+function pintarAvatarVip() {
+  var it = document.getElementById('vip-avatar-item'); if (!it) return;
+  var img = it.getAttribute('data-img') || '';
+  var prev = document.getElementById('vip-avatar-prev');
+  prev.innerHTML = img ? '<img src="' + esc(img) + '" alt="Asistente">' : '<div class="cci-nofoto">Gato<br>oficial</div>';
+}
+function pintarPasosVip() {
+  var cont = document.getElementById('vip-pasos'); if (!cont) return;
+  cont.innerHTML = VIP_PASOS.map(function (p, i) {
+    var esCaptura = !!p.campo;
+    var img = p.img || '';
+    var foto = img
+      ? '<img src="' + esc(img) + '" alt="Imagen" style="width:90px;height:90px">'
+      : '<div class="cci-nofoto">Sin<br>imagen</div>';
+    var ops = (p.opciones && p.opciones.length) ? p.opciones : [{ txt: '', ir: 'cerrar' }];
+    var opsHtml = ops.map(function (op, j) {
+      return '<div class="popup-btn-fila vip-op">' +
+        '<input type="text" class="vip-op-txt" value="' + esc(op.txt || '') + '" maxlength="60" placeholder="Texto del botón (ej. Sí ✨)">' +
+        '<select class="vip-op-ir">' + vipDestinoHtml(op.ir) + '</select>' +
+        '<button class="btn gris" type="button" onclick="quitarOpVip(' + i + ',' + j + ')" title="Quitar botón">🗑️</button></div>';
+    }).join('');
+    var campoOpts = VIP_CAMPOS.map(function (c) { return '<option value="' + c[0] + '"' + (p.campo === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('');
+    return '<div class="vip-paso club-item" data-id="' + esc(p.id) + '" data-img="' + esc(img) + '">' +
+      '<div class="vip-paso-cab"><b>Paso ' + (i + 1) + (i === 0 ? ' · Inicio 🟢' : '') + '</b>' +
+        '<span class="vip-paso-acc">' +
+          '<button class="btn gris" type="button" onclick="moverPasoVip(' + i + ',-1)" title="Subir"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+          '<button class="btn gris" type="button" onclick="moverPasoVip(' + i + ',1)" title="Bajar"' + (i === VIP_PASOS.length - 1 ? ' disabled' : '') + '>▼</button>' +
+          '<button class="btn gris" type="button" onclick="quitarPasoVip(' + i + ')" title="Quitar paso">🗑️</button>' +
+        '</span></div>' +
+      '<label>Mensajes del bot <small style="color:var(--sub)">(deja una línea en blanco para separar en varias burbujas · usa {nombre} para saludar)</small></label>' +
+      '<textarea class="vip-msgs" maxlength="800" style="min-height:70px;width:100%">' + esc(p.msgs || '') + '</textarea>' +
+      '<div class="cci-foto" style="margin-top:8px">' + foto +
+        '<label class="btn gris" style="cursor:pointer">📷 ' + (img ? 'Cambiar imagen' : 'Añadir imagen') +
+          '<input type="file" accept="image/*" style="display:none" onchange="subirImgPasoVip(this,' + i + ')"></label>' +
+        (img ? '<button class="btn gris" type="button" onclick="quitarImgPasoVip(' + i + ')">🗑️ Quitar</button>' : '') + '</div>' +
+      '<label style="margin-top:8px">Después de los mensajes…</label>' +
+      '<select class="vip-tipo" onchange="cambiarTipoVip(' + i + ')">' +
+        '<option value="botones"' + (esCaptura ? '' : ' selected') + '>Mostrar botones de opción</option>' +
+        '<option value="captura"' + (esCaptura ? ' selected' : '') + '>Pedir un dato al cliente</option></select>' +
+      '<div class="vip-botones"' + (esCaptura ? ' style="display:none"' : '') + '>' +
+        opsHtml +
+        '<button class="btn gris" type="button" onclick="agregarOpVip(' + i + ')" style="margin-top:4px">➕ Añadir botón</button></div>' +
+      '<div class="vip-captura"' + (esCaptura ? '' : ' style="display:none"') + '>' +
+        '<div class="tipo-grid">' +
+          '<div class="campo-bloque"><label>¿Qué dato pides?</label><select class="vip-campo">' + campoOpts + '</select></div>' +
+          '<div class="campo-bloque"><label>Luego ir a…</label><select class="vip-sig">' + vipDestinoHtml(p.sig) + '</select></div>' +
+        '</div>' +
+        '<label class="check-fila"><input type="checkbox" class="vip-opcional"' + (p.opcional === '1' ? ' checked' : '') + '> El cliente puede omitir este dato</label>' +
+      '</div>' +
+      '<label class="check-fila" style="margin-top:6px"><input type="checkbox" class="vip-guardar"' + (p.guardar === '1' ? ' checked' : '') + '> ✅ Al llegar aquí, guardar los datos del cliente en mi base</label>' +
+    '</div>';
+  }).join('') || '<p class="hint" style="font-size:12px;color:var(--sub)">Sin pasos todavía. Toca “➕ Añadir paso” o “↩️ Usar el flujo de ejemplo”.</p>';
+}
+// Lee lo que hay en pantalla → array (para no perder lo tipeado al re-pintar)
+function leerPasosVipDOM() {
+  var out = [];
+  var cards = document.querySelectorAll('#vip-pasos .vip-paso');
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i];
+    var tipo = c.querySelector('.vip-tipo').value;
+    var paso = {
+      id: c.getAttribute('data-id') || vipNuevoId(),
+      msgs: c.querySelector('.vip-msgs').value.trim(),
+      img: c.getAttribute('data-img') || '',
+      campo: '', opcional: '', sig: '',
+      guardar: c.querySelector('.vip-guardar').checked ? '1' : '',
+      opciones: [],
+    };
+    if (tipo === 'captura') {
+      paso.campo = c.querySelector('.vip-campo').value;
+      paso.opcional = c.querySelector('.vip-opcional').checked ? '1' : '';
+      paso.sig = c.querySelector('.vip-sig').value;
+    } else {
+      var ops = c.querySelectorAll('.vip-op');
+      for (var j = 0; j < ops.length; j++) {
+        var t = ops[j].querySelector('.vip-op-txt').value.trim();
+        var ir = ops[j].querySelector('.vip-op-ir').value;
+        if (t && ir) paso.opciones.push({ txt: t, ir: ir });
+      }
+    }
+    out.push(paso);
+  }
+  return out;
+}
+function refrescarPasosVip() { VIP_PASOS = leerPasosVipDOM(); pintarPasosVip(); }
+function cambiarTipoVip(i) { // solo alterna qué bloque se ve (no re-pinta todo, para no perder foco)
+  var c = document.querySelectorAll('#vip-pasos .vip-paso')[i]; if (!c) return;
+  var cap = c.querySelector('.vip-tipo').value === 'captura';
+  c.querySelector('.vip-botones').style.display = cap ? 'none' : '';
+  c.querySelector('.vip-captura').style.display = cap ? '' : 'none';
+  marcarSucio('vipbot');
+}
+function agregarPasoVip() {
+  VIP_PASOS = leerPasosVipDOM();
+  if (VIP_PASOS.length >= 20) return avisoVip('Máximo 20 pasos.', true);
+  VIP_PASOS.push({ id: vipNuevoId(), msgs: '', campo: '', opciones: [{ txt: '', ir: 'cerrar' }], guardar: '' });
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function quitarPasoVip(i) {
+  var arr = leerPasosVipDOM();
+  var p = arr[i];
+  confirmar({
+    titulo: '¿Quitar este paso?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (p ? '"' + vipPreview(p) + '"\n\n' : '') + 'Se va del flujo. Revisa que ningún botón lo tuviera como destino. Recién se aplica al tocar 💾 Guardar.'
+  }, function () { arr.splice(i, 1); VIP_PASOS = arr; pintarPasosVip(); marcarSucio('vipbot'); });
+}
+function moverPasoVip(i, dir) {
+  var arr = leerPasosVipDOM();
+  var j = i + dir;
+  if (j < 0 || j >= arr.length) return;
+  var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  VIP_PASOS = arr; pintarPasosVip(); marcarSucio('vipbot');
+}
+function agregarOpVip(i) {
+  VIP_PASOS = leerPasosVipDOM();
+  var p = VIP_PASOS[i]; if (!p) return;
+  p.opciones = p.opciones || [];
+  if (p.opciones.length >= 4) return avisoVip('Máximo 4 botones por paso.', true);
+  p.opciones.push({ txt: '', ir: 'cerrar' });
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function quitarOpVip(i, j) {
+  VIP_PASOS = leerPasosVipDOM();
+  var p = VIP_PASOS[i]; if (!p || !p.opciones) return;
+  p.opciones.splice(j, 1);
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function restaurarFlujoVip() {
+  confirmar({
+    titulo: '¿Usar el flujo de ejemplo?', ok: 'Sí, cargarlo', no: 'Cancelar', tipo: '',
+    texto: 'Reemplaza la conversación actual por el ejemplo que ofrece abrir la cuenta VIP y pide nombre, WhatsApp, correo y dirección. Recién se aplica al tocar 💾 Guardar.'
+  }, function () { VIP_PASOS = JSON.parse(JSON.stringify(VIP_DEF_PASOS)); pintarPasosVip(); marcarSucio('vipbot'); });
+}
+// Sube la imagen de un paso (se comprime en el navegador y va por imgup, como los banners)
+function comprimirYSubirVip(f, cb) {
+  if (!/^image\//.test(f.type)) return avisoVip('Ese archivo no es una imagen.', true);
+  avisoVip('⏳ Procesando la imagen…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var escala = Math.min(1, 1000 / img.naturalWidth, 1000 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * escala)), h = Math.max(1, Math.round(img.naturalHeight * escala));
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) return avisoVip('La imagen pesa demasiado incluso comprimida: prueba con otra.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      cb(j.url);
+    }).catch(function (e) { avisoVip(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoVip('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
+}
+function subirImgPasoVip(inp, i) {
+  var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+  VIP_PASOS = leerPasosVipDOM(); // conserva lo tipeado
+  comprimirYSubirVip(f, function (url) {
+    if (VIP_PASOS[i]) VIP_PASOS[i].img = url;
+    pintarPasosVip(); marcarSucio('vipbot');
+    avisoVip('🖼️ Imagen añadida. No olvides 💾 Guardar.');
+  });
+}
+function quitarImgPasoVip(i) {
+  VIP_PASOS = leerPasosVipDOM();
+  if (VIP_PASOS[i]) VIP_PASOS[i].img = '';
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function subirAvatarVip(inp) {
+  var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+  comprimirYSubirVip(f, function (url) {
+    var it = document.getElementById('vip-avatar-item'); it.setAttribute('data-img', url);
+    pintarAvatarVip(); marcarSucio('vipbot');
+    avisoVip('🖼️ Foto del asistente lista. No olvides 💾 Guardar.');
+  });
+}
+function quitarAvatarVip() {
+  var it = document.getElementById('vip-avatar-item'); it.setAttribute('data-img', '');
+  pintarAvatarVip(); marcarSucio('vipbot');
+}
+function cargarVipbot() {
+  api('getvipbot').then(function (j) {
+    var vb = j.vb || {};
+    document.getElementById('vip-on').value = vb.on === '0' ? '0' : '1';
+    document.getElementById('vip-frec').value = vb.frec === 'siempre' ? 'siempre' : 'dia';
+    document.getElementById('vip-veces').value = Math.max(1, Math.min(20, parseInt(vb.veces, 10) || 1));
+    document.getElementById('vip-delay').value = (vb.delay == null ? 8 : Math.max(0, Math.min(120, parseInt(vb.delay, 10) || 0)));
+    document.getElementById('vip-desde').value = vb.desde || '';
+    document.getElementById('vip-hasta').value = vb.hasta || '';
+    document.getElementById('vip-salida').checked = vb.salida === '1';
+    document.getElementById('vip-solonuevos').checked = vb.soloNuevos === '1';
+    document.getElementById('vip-titulo').value = vb.titulo || '';
+    document.getElementById('vip-subtitulo').value = vb.subtitulo || '';
+    document.getElementById('vip-avatar-item').setAttribute('data-img', vb.avatar || '');
+    pintarAvatarVip();
+    VIP_PASOS = (Array.isArray(vb.pasos) && vb.pasos.length) ? JSON.parse(JSON.stringify(vb.pasos)) : JSON.parse(JSON.stringify(VIP_DEF_PASOS));
+    pintarPasosVip();
+  }).catch(function () {});
+}
+function guardarVipbot() {
+  var val = function (id) { return document.getElementById(id).value.trim(); };
+  api('setvipbot', {
+    on: val('vip-on'), frec: val('vip-frec'), veces: val('vip-veces'), delay: val('vip-delay'),
+    desde: val('vip-desde'), hasta: val('vip-hasta'),
+    salida: document.getElementById('vip-salida').checked ? '1' : '',
+    soloNuevos: document.getElementById('vip-solonuevos').checked ? '1' : '',
+    titulo: val('vip-titulo'), subtitulo: val('vip-subtitulo'),
+    avatar: document.getElementById('vip-avatar-item').getAttribute('data-img') || '',
+    pasos: leerPasosVipDOM(),
+  }).then(function () {
+    okGuardado('vipbot', 'Pop-up VIP guardado. Se ve en la web en ~1 minuto.');
+    cargarVipbot();
+  }).catch(function (e) { errGuardado('vipbot', e); });
+}
+
+// --- 👀 Visitantes en vivo (panel → 📊 Analíticas): heartbeat de site.js → crm.js envivo ---
+var ENVIVO_TIMER = null;
+function cargarEnvivo() {
+  api('envivo').then(function (j) {
+    var n = j.total || 0;
+    var badge = document.getElementById('envivo-num'); if (badge) badge.textContent = n;
+    var cont = document.getElementById('envivo-lista'); if (!cont) return;
+    if (!n) { cont.innerHTML = 'Nadie navegando en este momento. Aquí verás <b>en tiempo real</b> quién está en tu web.'; return; }
+    var cli = j.clientes || 0;
+    var chips = (j.activos || []).map(function (a) {
+      return '<span class="envivo-chip' + (a.cliente ? ' cliente' : '') + '">' +
+        (a.cliente ? '👤 ' + esc(a.nombre) : '👁️ Visitante') + ' · ' + esc(nombrePagina(a.p)) + '</span>';
+    }).join('');
+    cont.innerHTML = '<div class="envivo-resumen"><b>' + n + '</b> ' + (n === 1 ? 'persona' : 'personas') + ' navegando ahora' +
+      (cli ? ' · <b>' + cli + '</b> ' + (cli === 1 ? 'cliente reconocido' : 'clientes reconocidos') : '') + '</div>' +
+      '<div class="envivo-chips">' + chips + '</div>';
+  }).catch(function () {});
 }
 
 // --- 🔤 Letras (tipografía global): config:tipo (la sirve /api/sitio como t, la aplica site.js) ---
