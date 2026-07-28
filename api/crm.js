@@ -30,6 +30,9 @@
 //   vidini / vidchunk / vidfin -> subir un video desde el panel en trozos base64 ≤512KB (vidext:<id>:<i>;
 //                                  el panel lo comprime antes en el navegador; lo sirve /api/precios?vid=<id>)
 //   viddel { id }              -> borra un video subido (chunks + índice config:vidsubidos + overrides que lo usaban)
+//   getvipbot / setvipbot      -> pop-up conversacional VIP del inicio: programación + flujo de mensajes
+//                                  con botones/captura de datos e imágenes (config:vipbot; lo sirve /api/sitio como vb)
+//   envivo                     -> visitantes navegando la web AHORA (heartbeat pres:<uid> + ZSET presencia)
 //   getclub / setclub          -> interruptores + promos exclusivas + sorteos del Club (los lee /api/cuenta)
 //   resetpin { telefono }      -> borra el PIN del cliente y cierra sus sesiones
 //   setpuntos { telefono, puntos } -> ajuste manual de puntos (canjes)
@@ -141,7 +144,7 @@ function normPrecio(raw) {
 }
 
 // Interruptores del Club (config:club; los lee también /api/cuenta). Sin config, todo prendido.
-const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, vip: true, puntosPorSol: 1 };
 async function getClubCfg() {
   let c = {};
   const raw = await redis(['GET', 'config:club']);
@@ -499,7 +502,7 @@ module.exports = async (req, res) => {
       const nuevoId = (pre) => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
       const cIn = b.club || {};
       const club = {};
-      ['login', 'favoritos', 'puntos', 'promos', 'sorteos', 'cupones'].forEach((k) => { club[k] = cIn[k] !== false; });
+      ['login', 'favoritos', 'puntos', 'promos', 'sorteos', 'cupones', 'vip'].forEach((k) => { club[k] = cIn[k] !== false; });
       const pps = Number(cIn.puntosPorSol);
       club.puntosPorSol = (isFinite(pps) && pps > 0 && pps <= 100) ? pps : 1;
       await redis(['SET', 'config:club', JSON.stringify(club)]);
@@ -795,6 +798,11 @@ module.exports = async (req, res) => {
         // El footer ya no lleva dirección ni teléfonos (jul 2026): esos campos se retiraron.
         lema: 80, horarioTit: 40, horario: 300, redesTit: 60, copy: 200,
         carGeoNota: 220, carDirFalta: 200,
+        // Encabezado del inicio (portada + cinta): dirección/referencia (también en el popup del mapa),
+        // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea)
+        portadaDir: 120, portadaRef: 120, mapaBtn: 40, cinta: 400,
+        // Sección "Únete al Club" de la portada (chips = uno por línea)
+        vipEyebrow: 60, vipTitulo: 60, vipSub: 200, vipChips: 300, vipCta: 60, vipNota: 120,
         // Copys de compartir producto (mensaje de chat, preview OG e imagen del estado)
         compChat: 160, compOg: 200, compLema: 60, compCintillo: 90, compCta: 60, compSinPrecio: 80,
       };
@@ -837,8 +845,58 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, l: out });
     }
 
+    // --- 🎨 Colores de marca: config:colores (los sirve /api/sitio como co) ---
+    // Paleta editable {naranja, dorado, doradoClaro, rojo} → variables CSS del sitio (site.js
+    // aplicarColores). Solo #rrggbb / #rgb; clave vacía = color de siempre. Seguro por construcción.
+    if (b.action === 'getcolores') {
+      const raw = await redis(['GET', 'config:colores']);
+      let co = {};
+      if (raw) { try { co = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ co });
+    }
+    if (b.action === 'setcolores') {
+      const CLAVES = ['naranja', 'dorado', 'doradoClaro', 'rojo'];
+      const src = b.colores && typeof b.colores === 'object' ? b.colores : {};
+      const out = {};
+      CLAVES.forEach((k) => {
+        const v = (src[k] == null ? '' : String(src[k])).trim().toLowerCase();
+        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/.test(v)) out[k] = v;
+      });
+      // Sin colores válidos = paleta de siempre (no se guarda nada de más)
+      if (Object.keys(out).length) await redis(['SET', 'config:colores', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:colores']);
+      return res.status(200).json({ ok: true, co: out });
+    }
+
+    // --- 🖼️ Beneficios del inicio: config:beneficios (los sirve /api/sitio como bn) ---
+    // Array ≤12 de láminas {img,titulo,texto} del carrusel "Atención Personalizada". La foto es
+    // /ruta del repo, /api/push?img=<id> (subida con imgup) o https. Vacío = láminas de siempre.
+    if (b.action === 'getbeneficios') {
+      const raw = await redis(['GET', 'config:beneficios']);
+      let bn = [];
+      if (raw) { try { const a = JSON.parse(raw); if (Array.isArray(a)) bn = a; } catch (e) {} }
+      return res.status(200).json({ bn });
+    }
+    if (b.action === 'setbeneficios') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const src = Array.isArray(b.beneficios) ? b.beneficios : [];
+      const out = [];
+      src.forEach((s) => {
+        if (!s || typeof s !== 'object' || out.length >= 12) return;
+        const img = txt(s.img, 300);
+        const imgOk = img && (img.startsWith('/') || /^https:\/\//i.test(img)) ? img : '';
+        const titulo = txt(s.titulo, 60);
+        const texto = txt(s.texto, 160);
+        if (imgOk || titulo || texto) out.push({ img: imgOk, titulo, texto });
+      });
+      // Sin láminas = las de siempre (no se guarda nada de más)
+      if (out.length) await redis(['SET', 'config:beneficios', JSON.stringify(out)]);
+      else await redis(['DEL', 'config:beneficios']);
+      return res.status(200).json({ ok: true, bn: out });
+    }
+
     // --- 🎉 Popup principal del inicio: config:popup (lo sirve /api/sitio como p) ---
-    // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, botones[≤3] }.
+    // { on, titulo, sub, video, fecha, falta, despues, barra, desde, hasta, frec, veces, banners[≤8], botones[≤3] }.
     // Campo ausente = default de site.js (POPUP_DEF = campaña de Fiestas Patrias).
     if (b.action === 'getpopup') {
       const raw = await redis(['GET', 'config:popup']);
@@ -867,6 +925,9 @@ module.exports = async (req, res) => {
         const v = ddmm(b[k]); if (v) p[k] = v;
       });
       if (b.frec === 'siempre') p.frec = 'siempre';
+      // Tope de apariciones por día por cliente (1–20; 1 = default, no se guarda)
+      const veces = Math.max(1, Math.min(20, parseInt(b.veces, 10) || 1));
+      if (veces > 1) p.veces = veces;
       const botones = (Array.isArray(b.botones) ? b.botones : []).slice(0, 3)
         .map((bt) => {
           if (!bt || typeof bt !== 'object') return null;
@@ -876,10 +937,126 @@ module.exports = async (req, res) => {
           return { txt: t, url: u, estilo: bt.estilo === 'blanco' ? 'blanco' : 'rojo' };
         }).filter(Boolean);
       if (botones.length) p.botones = botones;
+      // Publicidad del popup (carrusel de banners): si el dueño sube avisos, reemplazan a los
+      // botones. imagen = /api/push?img=<id> (subida con imgup) | /img/ | https; enlace /ruta o
+      // https; título/frase/fecha límite opcionales. Máx 8. Misma validación que los del Club.
+      const urlImg = (v) => { const s = txt(v, 200); return /^(\/api\/push\?img=[a-z0-9]+|\/img\/|https?:\/\/)/i.test(s) ? s : ''; };
+      const urlDest = (v) => { const s = txt(v, 200); return /^(\/[a-z0-9?=&_./-]*|https?:\/\/\S+)$/i.test(s) ? s : ''; };
+      const nuevoId = (pre) => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const banners = (Array.isArray(b.banners) ? b.banners : []).map((bn) => ({
+        id: txt(bn.id, 20).replace(/[^a-z0-9]/gi, '') || nuevoId('pb'),
+        titulo: txt(bn.titulo, 80), texto: txt(bn.texto, 160), imagen: urlImg(bn.imagen),
+        url: urlDest(bn.url), hasta: Number(bn.hasta) || null,
+      })).filter((bn) => bn.titulo || bn.imagen).slice(0, 8);
+      if (banners.length) p.banners = banners;
       // Todo vacío = vuelve a la campaña por defecto de site.js
       if (Object.keys(p).length) await redis(['SET', 'config:popup', JSON.stringify(p)]);
       else await redis(['DEL', 'config:popup']);
       return res.status(200).json({ ok: true, p });
+    }
+
+    // --- 🤖 Pop-up conversacional VIP del inicio: config:vipbot (lo sirve /api/sitio como vb) ---
+    // { on, desde, hasta, frec, veces, delay, salida, soloNuevos, titulo, subtitulo, avatar,
+    //   pasos:[ {id, msgs, img?, campo?, opcional?, sig?, guardar?, opciones:[{txt,ir}]} ] }.
+    // Vacío = default de site.js (VIPBOT_DEF: flujo que ofrece abrir la cuenta VIP gratuita).
+    if (b.action === 'getvipbot') {
+      const raw = await redis(['GET', 'config:vipbot']);
+      let vb = {};
+      if (raw) { try { vb = JSON.parse(raw) || {}; } catch (e) {} }
+      return res.status(200).json({ vb });
+    }
+    if (b.action === 'setvipbot') {
+      const txt = (v, n) => (v == null ? '' : String(v)).trim().slice(0, n);
+      const ddmm = (v) => {
+        const m = /^(\d{1,2})\/(\d{1,2})$/.exec(txt(v, 5));
+        if (!m) return '';
+        const d = +m[1], mes = +m[2];
+        if (d < 1 || d > 31 || mes < 1 || mes > 12) return '';
+        return (d < 10 ? '0' + d : '' + d) + '/' + (mes < 10 ? '0' + mes : '' + mes);
+      };
+      // Imagen: subida con imgup (/api/push?img=<id>), del repo (/img/…) o https
+      const urlImg = (v) => { const s = txt(v, 200); return /^(\/api\/push\?img=[a-z0-9]+|\/img\/|https?:\/\/)/i.test(s) ? s : ''; };
+      const idOk = (v) => txt(v, 30).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
+      const CAMPOS = ['nombre', 'whatsapp', 'email', 'direccion'];
+      const vb = {};
+      if (b.on === '0') vb.on = '0';
+      ['desde', 'hasta'].forEach((k) => {
+        if (txt(b[k], 5).toLowerCase() === 'no') { vb[k] = 'no'; return; }
+        const v = ddmm(b[k]); if (v) vb[k] = v;
+      });
+      if (b.frec === 'siempre') vb.frec = 'siempre';
+      const veces = Math.max(1, Math.min(20, parseInt(b.veces, 10) || 1));
+      if (veces > 1) vb.veces = veces;
+      const delay = Math.max(0, Math.min(120, parseInt(b.delay, 10)));
+      if (delay || delay === 0) { if (delay !== 8) vb.delay = delay; }
+      if (b.salida === '1') vb.salida = '1';
+      if (b.soloNuevos === '1') vb.soloNuevos = '1';
+      const tit = txt(b.titulo, 40); if (tit) vb.titulo = tit;
+      const sub = txt(b.subtitulo, 60); if (sub) vb.subtitulo = sub;
+      const av = urlImg(b.avatar); if (av) vb.avatar = av;
+      // El flujo: cada paso son burbujas del bot + (botones de opción | pedido de un dato).
+      const nuevoId = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const usados = {};
+      const pasos = (Array.isArray(b.pasos) ? b.pasos : []).slice(0, 20).map((ps) => {
+        if (!ps || typeof ps !== 'object') return null;
+        let id = idOk(ps.id);
+        if (!id || usados[id]) id = nuevoId();
+        usados[id] = true;
+        const paso = { id, msgs: txt(ps.msgs, 800) };
+        const img = urlImg(ps.img); if (img) paso.img = img;
+        const campo = CAMPOS.indexOf(ps.campo) >= 0 ? ps.campo : '';
+        if (campo) {
+          paso.campo = campo;
+          if (ps.opcional === '1' || ps.opcional === true) paso.opcional = '1';
+          const sig = txt(ps.sig, 30).toLowerCase().replace(/[^a-z0-9-]/g, '');
+          if (sig) paso.sig = sig; // a qué paso ir tras responder
+        } else {
+          const opciones = (Array.isArray(ps.opciones) ? ps.opciones : []).slice(0, 4).map((op) => {
+            if (!op || typeof op !== 'object') return null;
+            const t = txt(op.txt, 60);
+            // ir = id de otro paso, o acción especial: cerrar | cuenta (activar clave) | wa (WhatsApp)
+            const ir = txt(op.ir, 30).toLowerCase().replace(/[^a-z0-9-]/g, '');
+            if (!t || !ir) return null;
+            return { txt: t, ir };
+          }).filter(Boolean);
+          if (opciones.length) paso.opciones = opciones;
+        }
+        if (ps.guardar === '1' || ps.guardar === true) paso.guardar = '1';
+        return paso;
+      }).filter(Boolean);
+      if (pasos.length) vb.pasos = pasos;
+      // Solo quedan campos por defecto (on:'1' implícito y nada más) = borra el override
+      const soloDefault = !pasos.length && vb.on !== '0' &&
+        !vb.desde && !vb.hasta && !vb.frec && !vb.veces && vb.delay == null &&
+        !vb.salida && !vb.soloNuevos && !vb.titulo && !vb.subtitulo && !vb.avatar;
+      if (Object.keys(vb).length && !soloDefault) await redis(['SET', 'config:vipbot', JSON.stringify(vb)]);
+      else await redis(['DEL', 'config:vipbot']);
+      return res.status(200).json({ ok: true, vb });
+    }
+
+    // --- 👀 Visitantes en vivo ahora (heartbeat de site.js → pres:<uid> + ZSET presencia) ---
+    // Devuelve cuántos navegan la web en este momento y reconoce a los que ya son clientes.
+    if (b.action === 'envivo') {
+      const ahora = Date.now();
+      const corte = ahora - 75000; // se considera "en vivo" si latió en los últimos 75s
+      try { await redis(['ZREMRANGEBYSCORE', 'presencia', '-inf', String(corte)]); } catch (e) {}
+      const uids = (await redis(['ZREVRANGEBYSCORE', 'presencia', '+inf', String(corte)])) || [];
+      const activos = [];
+      let clientes = 0;
+      for (const u of uids.slice(0, 60)) {
+        let page = '/';
+        const raw = await redis(['GET', 'pres:' + u]);
+        if (raw) { try { const o = JSON.parse(raw) || {}; page = o.p || '/'; } catch (e) {} }
+        let nombre = '';
+        const tel = await redis(['GET', 'uid:' + u]);
+        if (tel) {
+          const rc = await redis(['GET', 'cliente:' + tel]);
+          if (rc) { try { nombre = JSON.parse(rc).nombre || ''; } catch (e) {} }
+          if (nombre) clientes++;
+        }
+        activos.push({ p: page, nombre, cliente: !!nombre });
+      }
+      return res.status(200).json({ total: uids.length, clientes, activos });
     }
 
     // --- 🔤 Tipografía global del sitio: config:tipo (la sirve /api/sitio como t) ---

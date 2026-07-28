@@ -109,6 +109,19 @@
     // Video del círculo de la portada (home). El dueño lo cambia en panel → 📝 Sitio → 🎬 Videos.
     // Default = logo animado; "🐱 bienvenida.mp4" queda como el oficial de siempre para volver a él.
     portadaVideo: '/img/videos/logo-animado.mp4',
+    // Encabezado del inicio (home): dirección + referencia (se reflejan también en el popup del mapa),
+    // texto del botón del mapa y los mensajes de la cinta (marquee, uno por línea).
+    portadaDir: 'Av. Belén 265, San Isidro',
+    portadaRef: '(A solo 2 cuadras del Golf)',
+    mapaBtn: 'Ver Ubicación en Mapa',
+    cinta: '📲 Pide por WhatsApp\n🛵 Delivery disponible\n🕗 Lun – Sáb 7:00 am – 9:00 pm\n🕗 Domingos 8:00 am – 8:00 pm\n🎉 Atendemos feriados',
+    // Sección "Únete al Club" de la portada (invitación a la cuenta VIP; el registro vive en /mi-cuenta)
+    vipEyebrow: '👑 Solo para miembros',
+    vipTitulo: 'Únete al Club Arakaki',
+    vipSub: 'Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos.',
+    vipChips: '🪙 Puntos por compra\n🎫 Cupones VIP\n🎁 Sorteos exclusivos\n⭐ Tus favoritos',
+    vipCta: '👑 Quiero mi cuenta VIP',
+    vipNota: 'Gratis para siempre · solo necesitas tu celular',
   };
   function lineas(t) {
     return String(t == null ? '' : t).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -147,7 +160,123 @@
     var geoNota = document.getElementById('car-geo-nota');
     if (geoNota) geoNota.textContent = cfg.carGeoNota || '';
     aplicarPortadaVideo(cfg.portadaVideo || SITIO_DEF.portadaVideo); // video del círculo (solo home)
+    aplicarCinta(cfg);    // mensajes de la cinta (marquee) — en el home y en las categorías
+    aplicarPortada(cfg);  // dirección/referencia/botón del mapa (solo existen en la portada)
+    aplicarClubVip(cfg);  // sección "Únete al Club" de la portada (solo existe en el home)
     pushPintarBtn(); // el innerHTML recrea el botón: repintar su estado
+  }
+  // Sección "Únete al Club Arakaki" de la portada (invitación a la cuenta VIP). Solo existe en el home;
+  // el botón conserva su id/data-ev (solo se cambia el texto, no se re-enlaza su click de index.html).
+  function aplicarClubVip(cfg) {
+    var sec = document.querySelector('.club-vip');
+    if (!sec) return;
+    var eb = sec.querySelector('.sec-eyebrow'); if (eb) eb.textContent = cfg.vipEyebrow || SITIO_DEF.vipEyebrow;
+    var ti = sec.querySelector('.titulo-seccion'); if (ti) ti.textContent = cfg.vipTitulo || SITIO_DEF.vipTitulo;
+    var su = sec.querySelector('.sub-seccion'); if (su) su.textContent = cfg.vipSub || SITIO_DEF.vipSub;
+    var minis = sec.querySelector('.vip-minis');
+    if (minis) {
+      var chips = lineas(cfg.vipChips); if (!chips.length) chips = lineas(SITIO_DEF.vipChips);
+      minis.innerHTML = chips.map(function (c) { return '<span class="vip-mini">' + esc(c) + '</span>'; }).join('');
+    }
+    var cta = document.getElementById('vip-abrir'); if (cta) cta.textContent = cfg.vipCta || SITIO_DEF.vipCta;
+    var nota = sec.querySelector('.vip-nota'); if (nota) nota.textContent = cfg.vipNota || SITIO_DEF.vipNota;
+  }
+
+  // ---------- Beneficios (carrusel "Atención Personalizada" del inicio) ----------
+  // Editables (foto + título + texto) desde panel → 🎨 Editor de la web → 🖼️ Beneficios (config:beneficios,
+  // /api/sitio los trae como `bn`). Esta función es la ÚNICA que arma las láminas Y monta el carrusel
+  // (antes lo hacía index.html): así se puede reconstruir cuando el dueño edita, sin referencias colgadas.
+  var BENEF_DEF = [
+    { img: '/img/beneficios/aniversario.webp', titulo: 'Desde 1994 a tu servicio', texto: 'Más de 30 años atendiendo con cariño a las familias de San Isidro.' },
+    { img: '/img/beneficios/pet-friendly.webp', titulo: 'Somos Pet Friendly', texto: 'Ven con tu engreído: aquí también es bienvenido.' },
+    { img: '/img/beneficios/elevador.webp', titulo: 'Tenemos elevador', texto: 'Acceso cómodo para todos los que nos visitan.' },
+  ];
+  function benefCache() { try { return JSON.parse(localStorage.getItem('arakaki_beneficios') || 'null'); } catch (e) { return null; } }
+  function benefLimpia(bn) {
+    if (!bn || !bn.length) return BENEF_DEF;
+    var out = [];
+    for (var i = 0; i < bn.length && out.length < 12; i++) {
+      var s = bn[i];
+      if (s && (s.titulo || s.texto || s.img)) out.push({ img: String(s.img || ''), titulo: String(s.titulo || ''), texto: String(s.texto || '') });
+    }
+    return out.length ? out : BENEF_DEF;
+  }
+  var benefTimer = null, benefIdx = 0, benefTouchBound = false;
+  function benefSlidesNow() { var b = document.getElementById('benef'); return b ? b.querySelectorAll('.benef-slide') : []; }
+  function benefDotsNow() { var b = document.getElementById('benef'); return b ? b.querySelectorAll('.benef-dot') : []; }
+  // ver/auto consultan el DOM EN VIVO: así el touch (enlazado una vez) sigue funcionando tras reconstruir.
+  function benefVer(i) {
+    var slides = benefSlidesNow(), btns = benefDotsNow(), n = slides.length;
+    if (!n) return;
+    if (slides[benefIdx]) slides[benefIdx].classList.remove('activa');
+    if (btns[benefIdx]) btns[benefIdx].classList.remove('on');
+    benefIdx = (i + n) % n;
+    if (slides[benefIdx]) slides[benefIdx].classList.add('activa');
+    if (btns[benefIdx]) btns[benefIdx].classList.add('on');
+  }
+  function benefAuto() {
+    if (benefTimer) clearInterval(benefTimer);
+    if (benefSlidesNow().length > 1) benefTimer = setInterval(function () { benefVer(benefIdx + 1); }, 5000);
+  }
+  function aplicarBeneficios(bn) {
+    var benef = document.getElementById('benef');
+    if (!benef) return; // solo existe en el home
+    var visor = benef.querySelector('.benef-visor'), dots = document.getElementById('benef-dots');
+    if (!visor || !dots) return;
+    var slides = benefLimpia(bn);
+    visor.innerHTML = slides.map(function (s, i) {
+      return '<figure class="benef-slide' + (i === 0 ? ' activa' : '') + '">' +
+        '<img src="' + esc(s.img || BENEF_DEF[0].img) + '" alt="' + esc(s.titulo) + '"' + (i === 0 ? '' : ' loading="lazy"') + '>' +
+        '<figcaption><b>' + esc(s.titulo) + '</b><span>' + esc(s.texto) + '</span></figcaption>' +
+      '</figure>';
+    }).join('') +
+      '<button class="benef-flecha benef-izq" aria-label="Anterior">❮</button>' +
+      '<button class="benef-flecha benef-der" aria-label="Siguiente">❯</button>';
+    dots.innerHTML = slides.map(function (s, i) {
+      return '<button type="button" class="benef-dot' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" aria-label="Beneficio ' + (i + 1) + '"></button>';
+    }).join('');
+    if (benefIdx >= slides.length) benefIdx = 0;
+    var izq = benef.querySelector('.benef-izq'), der = benef.querySelector('.benef-der');
+    if (izq) izq.onclick = function () { benefVer(benefIdx - 1); benefAuto(); };
+    if (der) der.onclick = function () { benefVer(benefIdx + 1); benefAuto(); };
+    var btns = benef.querySelectorAll('.benef-dot');
+    for (var b = 0; b < btns.length; b++) btns[b].onclick = function () { benefVer(Number(this.getAttribute('data-i'))); benefAuto(); };
+    if (!benefTouchBound) { // el contenedor #benef es estable entre reconstrucciones: se enlaza una sola vez
+      benefTouchBound = true;
+      var x0 = null;
+      benef.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      benef.addEventListener('touchend', function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0; x0 = null;
+        if (Math.abs(dx) > 40 && benefSlidesNow().length > 1) { benefVer(benefIdx + (dx < 0 ? 1 : -1)); benefAuto(); }
+      }, { passive: true });
+    }
+    benefAuto();
+  }
+  // Mensajes de la cinta (marquee), uno por línea. El rodillo se duplica para el desplazamiento
+  // continuo (esta función es la ÚNICA que arma la cinta: el home ya no la duplica por su cuenta).
+  function aplicarCinta(cfg) {
+    var rod = document.querySelector('.cinta .cinta-rodillo');
+    if (!rod) return;
+    var items = lineas(cfg.cinta);
+    if (!items.length) items = lineas(SITIO_DEF.cinta);
+    var html = items.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('');
+    rod.innerHTML = html + html;
+  }
+  // Dirección + referencia + texto del botón del mapa de la portada (y del popup del mapa).
+  // Solo existen en el home; en otras páginas los guardas simplemente no encuentran los elementos.
+  function aplicarPortada(cfg) {
+    var dir = cfg.portadaDir || SITIO_DEF.portadaDir;
+    var ref = cfg.portadaRef || SITIO_DEF.portadaRef;
+    var h1 = document.querySelector('.portada-texto h1');
+    if (h1) h1.innerHTML = 'Visítanos en:<br>' + esc(dir) + (ref ? '<br><span class="golf">' + esc(ref) + '</span>' : '');
+    var btnMapa = document.getElementById('btn-mapa');
+    if (btnMapa) btnMapa.textContent = cfg.mapaBtn || SITIO_DEF.mapaBtn;
+    var mp = document.getElementById('mapa-popup');
+    if (mp) {
+      var mpDir = mp.querySelector('.dir'); if (mpDir) mpDir.textContent = dir;
+      var mpRef = mp.querySelector('.ref'); if (mpRef) mpRef.textContent = ref;
+    }
   }
   // Cambia el video del círculo de la portada (solo existe en el home). Se salta si el src ya es
   // ese para no reiniciar la reproducción en cada aplicarSitio (default → override del dueño).
@@ -276,16 +405,41 @@
   function fondosCache() {
     try { return JSON.parse(localStorage.getItem('arakaki_fondos') || '{}'); } catch (e) { return {}; }
   }
+
+  // ---------- Colores de marca editables (panel → 🎨 Editor de la web → 🌈 Colores) ----------
+  // config:colores llega por /api/sitio como `co`. Aquí se pisan las variables de color de site.css
+  // (barra superior, dorados, rojo vino). Solo #rrggbb/#rgb; clave ausente = color de la marca por
+  // defecto. Se cachea en localStorage y se aplica al arrancar para no parpadear (igual que los fondos).
+  var COLOR_VARS = { naranja: '--naranja', dorado: '--dorado', doradoClaro: '--dorado-claro', rojo: '--rojo' };
+  function colorHexOk(v) { return typeof v === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v); }
+  function coloresCache() { try { return JSON.parse(localStorage.getItem('arakaki_colores') || '{}'); } catch (e) { return {}; } }
+  function aplicarColores(co) {
+    var raiz = document.documentElement;
+    for (var k in COLOR_VARS) {
+      var v = co && co[k];
+      if (colorHexOk(v)) raiz.style.setProperty(COLOR_VARS[k], v);
+      else raiz.style.removeProperty(COLOR_VARS[k]);
+    }
+  }
   function cargarSitio() {
     fetch('/api/sitio').then(function (r) { return r.json(); }).then(function (j) {
-      if (!j) { pintarPopup(popupCache()); return; }
+      if (!j) { pintarPopup(popupCache()); pintarVipBot(vipbotCache()); return; }
       // Popup del inicio: se pinta con la config del dueño (o los defaults si no hay)
       pintarPopup(j.p);
       try { localStorage.setItem('arakaki_popup', JSON.stringify(j.p || {})); } catch (e) {}
+      // Pop-up conversacional VIP del inicio (bot que ofrece abrir la cuenta gratis)
+      pintarVipBot(j.vb);
+      try { localStorage.setItem('arakaki_vipbot', JSON.stringify(j.vb || {})); } catch (e) {}
       if (j.f && typeof j.f === 'object') {
         aplicarFondos(j.f);
         try { localStorage.setItem('arakaki_fondos', JSON.stringify(j.f)); } catch (e) {}
       }
+      // Colores de marca (co puede venir vacío = paleta por defecto; se cachea igual para no parpadear)
+      aplicarColores(j.co);
+      try { localStorage.setItem('arakaki_colores', JSON.stringify(j.co || {})); } catch (e) {}
+      // Beneficios del inicio (bn = array; vacío = las láminas por defecto). Se cachea para no parpadear.
+      aplicarBeneficios(j.bn);
+      try { localStorage.setItem('arakaki_beneficios', JSON.stringify(j.bn || [])); } catch (e) {}
       if (j.k && typeof j.k === 'object') {
         aplicarCarrito(j.k);
         try { localStorage.setItem('arakaki_carrito_cfg', JSON.stringify(j.k)); } catch (e) {}
@@ -300,7 +454,46 @@
       var m = {}; for (var k in SITIO_DEF) m[k] = SITIO_DEF[k];
       for (var k2 in j.s) if (j.s[k2]) m[k2] = j.s[k2];
       aplicarSitio(m);
-    }).catch(function () { pintarPopup(popupCache()); }); // sin backend: popup con lo último conocido/los defaults
+    }).catch(function () { pintarPopup(popupCache()); pintarVipBot(vipbotCache()); }); // sin backend: lo último conocido/los defaults
+  }
+
+  // ---------- Puente de vista previa en vivo (editor de la web del panel) ----------
+  // Cuando el sitio se abre DENTRO del iframe del editor (/panel → 🎨 Editor de la web), el panel
+  // manda por postMessage los cambios en curso y aquí se aplican con los MISMOS aplicadores que usa
+  // /api/sitio, sin guardar nada. Para un visitante normal (sin panel padre) queda totalmente inerte.
+  function enEditor() { try { return !!(window.parent && window.parent !== window); } catch (e) { return false; } }
+  function manejarPreview(tipo, v) {
+    if (tipo === 'fondos') aplicarFondos(v || {});
+    else if (tipo === 'colores') aplicarColores(v || {});
+    else if (tipo === 'beneficios') aplicarBeneficios(v || []);
+    else if (tipo === 'tipo') aplicarTipografia(v || {});
+    else if (tipo === 'logos') aplicarLogos(v || {});
+    else if (tipo === 'sitio') {
+      var m = {}, k; for (k in SITIO_DEF) m[k] = SITIO_DEF[k];
+      if (v && typeof v === 'object') for (k in v) if (v[k]) m[k] = v[k];
+      aplicarSitio(m);
+    } else if (tipo === 'carrito') {
+      aplicarCarrito(v || {});
+      if (!document.querySelector('#carrito-modal-fondo.abierto')) abrirCarrito();
+    } else if (tipo === 'popup') {
+      pintarPopup(v || {}, true);
+    } else if (tipo === 'cerrarPopup') {
+      var fp = document.getElementById('fp-popup'); if (fp) fp.classList.remove('abierto');
+    } else if (tipo === 'cerrarCarrito') {
+      var cm = document.getElementById('carrito-modal-fondo'); if (cm) cm.classList.remove('abierto');
+    } else if (tipo === 'scroll' && v) {
+      try { var el = document.querySelector(v); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    }
+  }
+  function initEditorPreview() {
+    if (!enEditor()) return;
+    document.documentElement.classList.add('en-editor'); // por si el CSS quiere afinar algo en modo edición
+    window.addEventListener('message', function (e) {
+      var d = e.data;
+      if (!d || d.__arakakiPreview !== true) return; // solo mensajes del editor
+      try { manejarPreview(d.tipo, d.valor); } catch (err) {}
+    });
+    try { window.parent.postMessage({ __arakakiPreviewReady: true, pagina: location.pathname }, '*'); } catch (e) {}
   }
 
   // ---------- Apariencia editable del carrito "Tu pedido" ----------
@@ -559,8 +752,9 @@
   // ---------- Popup principal del inicio (editable: panel → 📝 Sitio → 🎉 Popup) ----------
   // config:popup llega por /api/sitio como `p`. Sin backend (o sin cambios del dueño) se usa
   // POPUP_DEF = la campaña de Fiestas Patrias de siempre. Solo sale en la portada, respeta el
-  // rango de fechas (hora Lima, con vuelta de fin de año) y la frecuencia 1 vez/día por cliente
-  // (localStorage arakaki_fp_dia, la clave histórica).
+  // rango de fechas (hora Lima, con vuelta de fin de año) y el tope de apariciones por día por
+  // cliente (cfg.veces, default 1; 'siempre' = sin tope). El conteo del día vive en localStorage
+  // arakaki_fp_dia como {d:'YYYY-MM-DD', n:<vistas de hoy>} (antes guardaba solo la fecha).
   var POPUP_DEF = {
     on: '1',
     titulo: '¡Felices Fiestas Patrias!',
@@ -594,20 +788,27 @@
     if (desde && hasta) return desde <= hasta ? (hoy >= desde && hoy <= hasta) : (hoy >= desde || hoy <= hasta);
     return desde ? hoy >= desde : hoy <= hasta;
   }
-  function pintarPopup(p) {
-    if (popupHecho) return;
-    if (!/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
-    popupHecho = true;
+  // forzar = vista previa del editor del panel: ignora "ya se mostró hoy", el rango de fechas y el
+  // interruptor on/off para que el dueño SIEMPRE vea cómo queda mientras lo edita (no altera al visitante).
+  function pintarPopup(p, forzar) {
+    if (!forzar && popupHecho) return;
+    if (!forzar && !/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
+    if (forzar) { var viejoFP = document.getElementById('fp-popup'); if (viejoFP) viejoFP.parentNode.removeChild(viejoFP); }
+    if (!forzar) popupHecho = true;
     var cfg = {}, k;
     for (k in POPUP_DEF) cfg[k] = POPUP_DEF[k];
     if (p && typeof p === 'object') for (k in p) if (p[k] != null && p[k] !== '') cfg[k] = p[k];
-    if (cfg.on === '0') return;
-    if (!popupEnFechas(cfg)) return;
-    if (cfg.frec !== 'siempre') {
+    if (!forzar && cfg.on === '0') return;
+    if (!forzar && !popupEnFechas(cfg)) return;
+    if (!forzar && cfg.frec !== 'siempre') {
       var hoy = fechaLima().toISOString().slice(0, 10);
+      var maxVeces = Math.max(1, Math.min(20, parseInt(cfg.veces, 10) || 1)); // tope de apariciones/día
       try {
-        if (localStorage.getItem('arakaki_fp_dia') === hoy) return; // ya se mostró hoy
-        localStorage.setItem('arakaki_fp_dia', hoy);
+        var reg = null;
+        try { reg = JSON.parse(localStorage.getItem('arakaki_fp_dia') || 'null'); } catch (e2) { reg = null; }
+        var vistasHoy = (reg && reg.d === hoy) ? (Number(reg.n) || 0) : 0;
+        if (vistasHoy >= maxVeces) return; // ya alcanzó el tope de hoy
+        localStorage.setItem('arakaki_fp_dia', JSON.stringify({ d: hoy, n: vistasHoy + 1 }));
       } catch (e) {}
     }
     var botones = [];
@@ -617,30 +818,43 @@
       if (!/^\//.test(url) && !/^https?:\/\//i.test(url)) return;
       botones.push('<a class="' + (bt.estilo === 'blanco' ? 'fp-blanco' : 'fp-rojo') + '" href="' + esc(url) + '">' + esc(bt.txt) + '</a>');
     });
+    // Publicidad del popup (panel → 📝 Sitio → 🎉 Popup → 📣 Publicidad): si el dueño subió
+    // banners, un carrusel los muestra EN LUGAR de los botones (se descartan los vencidos).
+    var ahoraPop = Date.now();
+    var banPop = (cfg.banners || []).filter(function (b) {
+      return b && (b.titulo || b.imagen) && (!b.hasta || Number(b.hasta) >= ahoraPop);
+    });
     var video = String(cfg.video || '');
     var conVideo = video && video !== 'no' && (/^\//.test(video) || /^https?:\/\//i.test(video));
     var md = ddmmAMd(cfg.fecha); // 'MM-DD' del countdown ('' = sin reloj)
     var f = document.createElement('div');
     f.className = 'modal-fondo'; f.id = 'fp-popup';
-    f.innerHTML = '<div class="modal-caja" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
+    // Estructura en 2 bloques (.fp-media + .fp-cuerpo): en móvil se apilan (vertical) y en
+    // escritorio CON video el CSS los pone lado a lado (horizontal, todo a una sola vista).
+    f.innerHTML = '<div class="modal-caja' + (conVideo ? ' fp-con-media' : '') + '" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
       '<button class="modal-cerrar" aria-label="Cerrar">✕</button>' +
-      (conVideo ? '<video src="' + esc(video) + '" muted loop playsinline></video>' : '') +
-      '<h2>' + esc(cfg.titulo) + '</h2>' +
-      (cfg.sub ? '<p class="fp-sub">' + esc(cfg.sub) + '</p>' : '') +
-      (md ?
-        '<div id="fp-antes"><p class="fp-falta">' + esc(cfg.falta) + '</p>' +
-        '<div class="fp-reloj">' +
-          '<div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>' +
-          '<div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>' +
-          '<div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>' +
-          '<div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>' +
-        '</div></div>' +
-        '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
-      : '') +
-      (cfg.barra ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
-      (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '') +
+      (conVideo ? '<div class="fp-media"><video src="' + esc(video) + '" muted loop playsinline></video></div>' : '') +
+      '<div class="fp-cuerpo">' +
+        '<h2>' + esc(cfg.titulo) + '</h2>' +
+        (cfg.sub ? '<p class="fp-sub">' + esc(cfg.sub) + '</p>' : '') +
+        (md ?
+          '<div id="fp-antes"><p class="fp-falta">' + esc(cfg.falta) + '</p>' +
+          '<div class="fp-reloj">' +
+            '<div class="fp-caja"><b id="fp-d">--</b><span>días</span></div>' +
+            '<div class="fp-caja"><b id="fp-h">--</b><span>horas</span></div>' +
+            '<div class="fp-caja"><b id="fp-m">--</b><span>minutos</span></div>' +
+            '<div class="fp-caja"><b id="fp-s">--</b><span>segundos</span></div>' +
+          '</div></div>' +
+          '<div id="fp-despues" style="display:none"><p class="fp-falta">' + esc(cfg.despues) + '</p></div>'
+        : '') +
+        (cfg.barra && !banPop.length ? '<p class="fp-barra">' + esc(cfg.barra) + '</p>' : '') +
+        (banPop.length
+          ? '<div class="fp-carru">' + carruselHtml(banPop) + '</div>'
+          : (botones.length ? '<div class="fp-botones">' + botones.join('') + '</div>' : '')) +
+      '</div>' +
     '</div>';
     document.body.appendChild(f);
+    if (banPop.length) montarCarrusel(f); // rota solo + swipe + toque = ir al enlace del banner
     function cerrarFP() { f.classList.remove('abierto'); }
     f.onclick = function (e) { if (e.target === f) cerrarFP(); };
     f.querySelector('.modal-cerrar').onclick = cerrarFP;
@@ -665,7 +879,263 @@
       f.classList.add('abierto');
       var v = f.querySelector('video');
       if (v) v.play().catch(function () {});
-    }, 1200);
+    }, forzar ? 30 : 1200);
+  }
+
+  // ---------- Pop-up conversacional VIP del inicio (panel → ⚙️ Bot → 🤖 Pop-up VIP) ----------
+  // Bot de automatización: un árbol de "pasos" con burbujas estilo messenger, botones de respuesta
+  // y captura de datos (nombre/WhatsApp/correo/dirección) que se guardan en la base del Club
+  // (cliente:<key>, POST /api/cuenta action:vip) y avisan al dueño. config:vipbot llega por /api/sitio
+  // como `vb`; sin config se usa VIPBOT_DEF (ofrece abrir la cuenta VIP gratis). Solo en la portada,
+  // con su propia programación (fechas + frecuencia + tope diario en localStorage arakaki_vipbot_dia).
+  // Para verlo al configurar: abrir la portada con ?vipbot=1 o #probar-vipbot.
+  var VIPBOT_DEF = {
+    on: '1',
+    titulo: 'Club Arakaki 👑',
+    subtitulo: 'En línea ahora',
+    delay: 8,
+    pasos: [
+      { id: 'inicio', msgs: '¡Hola! 👋 Soy tu asistente del Club Arakaki.\n\n¿Te gustaría abrir una cuenta *gratuita* y volverte cliente VIP con beneficios exclusivos? 🎁',
+        opciones: [{ txt: 'Sí, quiero ✨', ir: 'nombre' }, { txt: '¿De qué trata?', ir: 'info' }, { txt: 'Después', ir: 'chau' }] },
+      { id: 'info', msgs: 'Con tu cuenta VIP tienes:\n\n🪙 Puntos por cada compra\n🎁 Promos solo para socios\n🎟️ Cupones de descuento\n🎉 Sorteos exclusivos\n⭐ Tus listas de favoritos guardadas\n\n¡Y es totalmente gratis! 😍',
+        opciones: [{ txt: '¡Me apunto! ✨', ir: 'nombre' }, { txt: 'Ahora no', ir: 'chau' }] },
+      { id: 'nombre', msgs: '¡Genial! 🙌 Para crear tu cuenta, ¿cómo te llamas?', campo: 'nombre', sig: 'tel' },
+      { id: 'tel', msgs: 'Un gusto, {nombre} 😊\n\n¿Cuál es tu WhatsApp? Te avisamos de las ofertas por ahí. 📲', campo: 'whatsapp', sig: 'correo' },
+      { id: 'correo', msgs: '¿Y tu correo? Nos sirve para recuperar tu cuenta y enviarte promos.', campo: 'email', opcional: '1', sig: 'dir' },
+      { id: 'dir', msgs: '¿A qué dirección te llevamos tus pedidos? 📍', campo: 'direccion', opcional: '1', sig: 'listo' },
+      { id: 'listo', msgs: '¡Listo, {nombre}! 🎉 Ya eres parte del Club Arakaki.\n\nAhora crea tu clave secreta para entrar a tu cuenta cuando quieras 👇', guardar: '1',
+        opciones: [{ txt: '🔐 Activar mi cuenta', ir: 'cuenta' }, { txt: 'Seguir viendo la tienda', ir: 'cerrar' }] },
+      { id: 'chau', msgs: '¡Sin problema! 😊 Cuando quieras, tu cuenta VIP te espera aquí. 👑',
+        opciones: [{ txt: 'Entendido', ir: 'cerrar' }] },
+    ],
+  };
+  var vipbotHecho = false;
+  function vipbotCache() { try { return JSON.parse(localStorage.getItem('arakaki_vipbot') || 'null'); } catch (e) { return null; } }
+  function vbTrack(ev) { try { if (window.arkTrack) window.arkTrack(ev); } catch (e) {} }
+
+  function pintarVipBot(vb, forzar) {
+    // Modo prueba: el dueño abre la portada con ?vipbot=1 o #probar-vipbot para ver cómo quedó
+    var probar = /[?&]vipbot=1(?:&|$)/.test(location.search) || location.hash === '#probar-vipbot';
+    if (probar) forzar = true;
+    if (!forzar && vipbotHecho) return;
+    if (!forzar && !/^\/(index\.html)?$/.test(location.pathname)) return; // solo en la portada
+    var viejo = document.getElementById('vipbot-pop');
+    if (viejo) { if (forzar) viejo.parentNode.removeChild(viejo); else return; }
+    var cfg = {}, k;
+    for (k in VIPBOT_DEF) cfg[k] = VIPBOT_DEF[k];
+    if (vb && typeof vb === 'object') for (k in vb) if (vb[k] != null && vb[k] !== '') cfg[k] = vb[k];
+    if (!forzar && cfg.on === '0') return;
+    // No competir con el popup principal (Fiestas Patrias / publicidad): si ese ya salió, hoy no aparece
+    if (!forzar && document.getElementById('fp-popup')) return;
+    // El dueño puede pedir mostrarlo solo a quien AÚN no tiene sesión del Club
+    if (!forzar && cfg.soloNuevos === '1' && leerSesion()) return;
+    if (!forzar && !popupEnFechas(cfg)) return; // reusa el rango de fechas del popup (desde/hasta)
+    var maxV = Math.max(1, Math.min(20, parseInt(cfg.veces, 10) || 1));
+    var hoy = fechaLima().toISOString().slice(0, 10);
+    if (!forzar && cfg.frec !== 'siempre') {
+      try {
+        var reg = JSON.parse(localStorage.getItem('arakaki_vipbot_dia') || 'null');
+        var vistas = (reg && reg.d === hoy) ? (Number(reg.n) || 0) : 0;
+        if (vistas >= maxV) return; // ya alcanzó el tope de hoy
+      } catch (e) {}
+    }
+    var pasos = {};
+    (cfg.pasos || []).forEach(function (p) { if (p && p.id) pasos[p.id] = p; });
+    var primero = (cfg.pasos && cfg.pasos[0]) ? cfg.pasos[0].id : '';
+    if (!primero || !pasos[primero]) return; // flujo vacío = nada que mostrar
+    if (!forzar) vipbotHecho = true;
+
+    var avatar = cfg.avatar || '/img/asistente-arakaki.png';
+    var datos = { nombre: '', whatsapp: '', email: '', direccion: '' };
+    var leadGuardado = false, respondio = false;
+
+    var f = document.createElement('div');
+    f.className = 'modal-fondo vb-fondo';
+    f.id = 'vipbot-pop';
+    f.innerHTML =
+      '<div class="vb-caja" role="dialog" aria-label="' + esc(cfg.titulo) + '">' +
+        '<div class="vb-cab">' +
+          '<img class="vb-avatar" src="' + esc(avatar) + '" alt="">' +
+          '<div class="vb-tit"><b>' + esc(cfg.titulo) + '</b><small>' + esc(cfg.subtitulo || '') + '</small></div>' +
+          '<button class="vb-cerrar" aria-label="Cerrar">✕</button>' +
+        '</div>' +
+        '<div class="vb-msgs" id="vb-msgs"></div>' +
+        '<div class="vb-quick" id="vb-quick"></div>' +
+        '<form class="vb-form" id="vb-form" autocomplete="off" style="display:none">' +
+          '<input class="vb-in" id="vb-in" maxlength="160">' +
+          '<button type="submit" class="vb-enviar" aria-label="Enviar">➤</button>' +
+        '</form>' +
+      '</div>';
+    document.body.appendChild(f);
+
+    var msgs = f.querySelector('#vb-msgs');
+    var quick = f.querySelector('#vb-quick');
+    var form = f.querySelector('#vb-form');
+    var input = f.querySelector('#vb-in');
+    var campoActual = null; // el paso de captura en curso (si lo hay)
+
+    function bajar() { msgs.scrollTop = msgs.scrollHeight; }
+    function fila(html) { var d = document.createElement('div'); d.innerHTML = html; var el = d.firstChild; msgs.appendChild(el); bajar(); return el; }
+    function burbujaBot(t) { fila('<div class="vb-fila bot"><img class="vb-mini" src="' + esc(avatar) + '" alt=""><div class="vb-msg bot">' + chatHtml(t) + '</div></div>'); }
+    function burbujaYo(t) { fila('<div class="vb-fila yo"><div class="vb-msg yo">' + esc(t) + '</div></div>'); }
+    function burbujaImg(src) { fila('<div class="vb-fila bot"><img class="vb-mini" src="' + esc(avatar) + '" alt=""><div class="vb-msg bot vb-foto"><img src="' + esc(src) + '" alt=""></div></div>'); }
+    function verEscribiendo() { fila('<div class="vb-fila bot" id="vb-typing"><img class="vb-mini" src="' + esc(avatar) + '" alt=""><div class="vb-msg bot vb-escribiendo"><span></span><span></span><span></span></div></div>'); }
+    function quitarEscribiendo() { var t = f.querySelector('#vb-typing'); if (t) t.parentNode.removeChild(t); }
+
+    function limpiarQuick() { quick.innerHTML = ''; }
+    function ocultarForm() { form.style.display = 'none'; campoActual = null; }
+    function marcarRespuesta() { if (!respondio) { respondio = true; vbTrack('vipbot_responde'); } }
+
+    function botonQuick(txt, cb, clase) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'vb-opt' + (clase ? ' ' + clase : '');
+      b.textContent = txt;
+      b.onclick = cb;
+      quick.appendChild(b);
+      return b;
+    }
+
+    function guardarLead() {
+      if (leadGuardado) return;
+      if (!datos.whatsapp && !datos.email) return; // sin al menos un contacto no hay nada que guardar
+      leadGuardado = true;
+      try { if (datos.whatsapp) localStorage.setItem('arakaki_club_tel', datos.whatsapp.replace(/\D/g, '')); } catch (e) {}
+      var payload = { action: 'vip', nombre: datos.nombre, whatsapp: datos.whatsapp, telefono: datos.whatsapp, email: datos.email, direccion: datos.direccion, uid: miUid() };
+      try { fetch('/api/cuenta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), keepalive: true }).catch(function () {}); } catch (e) {}
+      vbTrack('vipbot_lead');
+    }
+
+    function cerrar() { f.classList.remove('abierto'); setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 400); }
+
+    function resolver(ir) {
+      marcarRespuesta();
+      if (ir === 'cerrar') { setTimeout(cerrar, 350); return; }
+      if (ir === 'wa') {
+        var msj = '¡Hola! Quiero abrir mi cuenta VIP del Club Arakaki 👑';
+        try { window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msj), '_blank'); } catch (e) {}
+        setTimeout(cerrar, 350); return;
+      }
+      if (ir === 'cuenta') {
+        guardarLead();
+        vbTrack('vipbot_cuenta');
+        setTimeout(function () { location.href = '/mi-cuenta#crear'; }, 300);
+        return;
+      }
+      irPaso(ir);
+    }
+
+    // Validación de cada dato que pedimos (mensaje suave si algo no cuadra)
+    function validar(campo, valor) {
+      var v = String(valor || '').trim();
+      if (campo === 'nombre') return v.length >= 2 ? v : { err: 'Escríbeme tu nombre 🙂 (al menos 2 letras).' };
+      if (campo === 'whatsapp') {
+        var d = v.replace(/\D/g, '');
+        if (d.length === 9) return d;
+        if (d.length >= 11 && d.length <= 13) return d;
+        return { err: 'Revisa tu número: son 9 dígitos 📱 (ej. 977 737 199).' };
+      }
+      if (campo === 'email') return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? v.toLowerCase() : { err: 'Ese correo parece incompleto ✉️ (revisa que tenga @ y punto).' };
+      if (campo === 'direccion') return v.length >= 5 ? v : { err: 'Cuéntame la dirección con un poquito más de detalle 📍' };
+      return v;
+    }
+
+    function pedirDato(paso) {
+      campoActual = paso;
+      var campo = paso.campo;
+      input.value = '';
+      if (campo === 'whatsapp') { input.type = 'tel'; input.setAttribute('inputmode', 'numeric'); input.placeholder = 'Tu WhatsApp (9 dígitos)'; input.maxLength = 15; }
+      else if (campo === 'email') { input.type = 'email'; input.removeAttribute('inputmode'); input.placeholder = 'tucorreo@ejemplo.com'; input.maxLength = 80; }
+      else if (campo === 'direccion') { input.type = 'text'; input.removeAttribute('inputmode'); input.placeholder = 'Calle, número, distrito y referencia'; input.maxLength = 160; }
+      else { input.type = 'text'; input.removeAttribute('inputmode'); input.placeholder = 'Tu nombre'; input.maxLength = 60; }
+      form.style.display = 'flex';
+      limpiarQuick();
+      if (paso.opcional === '1') botonQuick('Omitir ›', function () { try { input.blur(); } catch (e) {} ocultarForm(); marcarRespuesta(); avanzar(paso); }, 'vb-omitir');
+      // En escritorio enfocamos el campo (abre el cursor); en móvil NO, para que el teclado
+      // solo salga cuando el cliente toca el campo y no tape las burbujas del bot.
+      if (window.innerWidth > 600) setTimeout(function () { try { input.focus(); } catch (e) {} }, 60);
+      else bajar();
+    }
+
+    function avanzar(paso) { if (paso.sig && pasos[paso.sig]) irPaso(paso.sig); else setTimeout(cerrar, 500); }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      // Al enviar cerramos el teclado del móvil (blur): así el teclado deja de tapar las
+      // burbujas y siempre se ve la última respuesta del bot. Re-anclamos el scroll abajo
+      // cuando el teclado termina de bajar (el viewport crece).
+      try { input.blur(); } catch (e2) {}
+      setTimeout(bajar, 350);
+      if (!campoActual) return;
+      var paso = campoActual;
+      var r = validar(paso.campo, input.value);
+      if (r && typeof r === 'object' && r.err) { burbujaBot(r.err); return; }
+      marcarRespuesta();
+      burbujaYo(input.value.trim());
+      datos[paso.campo] = r;
+      if (paso.campo === 'whatsapp') vbTrack('vipbot_wa');
+      else if (paso.campo === 'email') vbTrack('vipbot_correo');
+      else if (paso.campo === 'direccion') vbTrack('vipbot_dir');
+      ocultarForm();
+      avanzar(paso);
+    });
+
+    // Pinta un paso: burbujas del bot una a una (con "escribiendo…"), luego imagen y respuesta
+    function irPaso(id) {
+      var paso = pasos[id];
+      if (!paso) { setTimeout(cerrar, 400); return; }
+      limpiarQuick(); ocultarForm();
+      if (paso.guardar === '1') guardarLead();
+      var textos = String(paso.msgs || '').split(/\n\n+/).map(function (s) { return s.replace(/\{nombre\}/g, datos.nombre || 'crack'); }).filter(function (s) { return s.trim(); });
+      var i = 0;
+      function siguiente() {
+        if (i < textos.length) {
+          verEscribiendo();
+          var largo = textos[i].length;
+          setTimeout(function () {
+            quitarEscribiendo();
+            burbujaBot(textos[i]);
+            i++;
+            setTimeout(siguiente, 260);
+          }, Math.min(1300, 420 + largo * 16));
+        } else {
+          if (paso.img) burbujaImg(paso.img);
+          setTimeout(function () {
+            if (paso.campo) { pedirDato(paso); return; }
+            var ops = paso.opciones || [];
+            if (!ops.length) { setTimeout(cerrar, 900); return; } // paso terminal sin botones
+            ops.forEach(function (op) { botonQuick(op.txt, function () { burbujaYo(op.txt); limpiarQuick(); resolver(op.ir); }); });
+          }, paso.img ? 400 : 180);
+        }
+      }
+      siguiente();
+    }
+
+    f.addEventListener('click', function (e) { if (e.target === f) cerrar(); });
+    f.querySelector('.vb-cerrar').onclick = cerrar;
+
+    // Aparición: tras el delay configurado (o por intención de salida si el dueño lo activó).
+    function revelar() {
+      if (f.classList.contains('abierto')) return;
+      if (!forzar && cfg.frec !== 'siempre') {
+        try {
+          var reg = JSON.parse(localStorage.getItem('arakaki_vipbot_dia') || 'null');
+          var vistas = (reg && reg.d === hoy) ? (Number(reg.n) || 0) : 0;
+          localStorage.setItem('arakaki_vipbot_dia', JSON.stringify({ d: hoy, n: vistas + 1 }));
+        } catch (e) {}
+      }
+      f.classList.add('abierto');
+      vbTrack('vipbot_abrir');
+      irPaso(primero);
+    }
+    var delayMs = forzar ? 30 : Math.max(0, Math.min(120, parseInt(cfg.delay, 10) || 8)) * 1000;
+    var tmr = setTimeout(revelar, delayMs);
+    if (!forzar && cfg.salida === '1') {
+      var onSalida = function (e) {
+        if (e.clientY != null && e.clientY <= 0) { document.removeEventListener('mouseout', onSalida); clearTimeout(tmr); revelar(); }
+      };
+      document.addEventListener('mouseout', onSalida);
+    }
   }
 
   function armarBase() {
@@ -814,9 +1284,12 @@
     }
     aplicarSitio(SITIO_DEF);      // render inmediato con los textos por defecto (el lema; y el pie si es home)
     aplicarFondos(fondosCache()); // fondos de la visita anterior: evita el parpadeo al fondo viejo
+    aplicarColores(coloresCache()); // colores de marca del dueño desde la visita anterior (sin parpadeo)
+    aplicarBeneficios(benefCache()); // láminas de beneficios (arma y monta el carrusel del inicio)
     aplicarTipografia(tipoCache()); // tipografía del dueño desde la visita anterior (sin parpadeo)
     aplicarLogos(logosCache());   // favicon del dueño desde la visita anterior
     cargarSitio();                // y luego los textos y fondos del panel, si el dueño los editó
+    initEditorPreview();          // puente de vista previa en vivo (solo activo dentro del iframe del panel)
 
     // Carrito flotante + modal
     var btn = document.createElement('button');
@@ -861,6 +1334,26 @@
     reconocerCliente(); // reconoce al cliente por su token de dispositivo (prefill + "lo de siempre")
     cuentaIniciar();    // Club Arakaki: ítem "Mi cuenta" en el menú + estrellas ⭐ si hay sesión
     if (!esCuenta) iniciarChat(); // el chat web no va en /mi-cuenta (vista app)
+    latidoPresencia();  // "esta persona está en vivo" → monitor del panel (👀 En vivo)
+  }
+
+  // ---------- Latido de presencia (monitor "en vivo" del panel) ----------
+  // Cada ~40s avisa que este visitante sigue navegando. El backend (api/track.js) lo marca en un
+  // ZSET con TTL corto y el panel lo lee (crm.js envivo) para mostrar cuántos están ahora en la web
+  // y reconocer a los que ya son clientes (por su uid → teléfono). No guarda datos personales.
+  function latidoPresencia() {
+    function latir() {
+      if (document.hidden) return;
+      var data = { ev: 'presencia', uid: miUid(), p: location.pathname };
+      try {
+        var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        if (navigator.sendBeacon && navigator.sendBeacon('/api/track', blob)) return;
+      } catch (e) {}
+      try { fetch('/api/track', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), keepalive: true }).catch(function () {}); } catch (e) {}
+    }
+    latir();
+    setInterval(latir, 40000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) latir(); });
   }
 
   // ---------- Carrito (localStorage) ----------
@@ -1236,15 +1729,24 @@
     if (cuentaFlags) { cb(cuentaFlags); return; }
     try {
       var c = JSON.parse(sessionStorage.getItem('arakaki_club_flags') || 'null');
-      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; if (c.d.ui) aplicarClubUi(c.d.ui); cb(c.d); return; }
+      if (c && c.ts && Date.now() - c.ts < 5 * 60000 && c.d) { cuentaFlags = c.d; if (c.d.ui) aplicarClubUi(c.d.ui); aplicarVipHome(); cb(c.d); return; }
     } catch (e) {}
     fetch('/api/cuenta').then(function (r) { return r.json(); }).then(function (j) {
+      var vip = j && j.vip;   // interruptor propio de la sección "Únete al Club" del inicio (independiente de on)
       if (!j || j.on !== true) j = { on: false };
+      j.vip = vip;
       cuentaFlags = j;
       try { sessionStorage.setItem('arakaki_club_flags', JSON.stringify({ ts: Date.now(), d: j })); } catch (e) {}
       if (j.ui) { aplicarClubUi(j.ui); try { localStorage.setItem('arakaki_clubui', JSON.stringify(j.ui)); } catch (e) {} }
+      aplicarVipHome();
       cb(j);
     }).catch(function () { cb({ on: false }); });
+  }
+  // La sección "Únete al Club Arakaki" de la portada (.club-vip) tiene su propio interruptor
+  // en el panel (👥 Club → ⚙️ Funciones): se oculta solo si el dueño lo apaga (vip === false).
+  function aplicarVipHome() {
+    var sec = document.querySelector('.club-vip');
+    if (sec) sec.style.display = (cuentaFlags && cuentaFlags.vip === false) ? 'none' : '';
   }
   function fnClub(nombre) { // ¿esta función del Club está prendida?
     return !!(cuentaFlags && cuentaFlags.on && cuentaFlags.funciones && cuentaFlags.funciones[nombre]);
@@ -2001,8 +2503,10 @@
     if (!bs.length) bs = [{ titulo: '🎁 Club Arakaki', texto: 'Promos, puntos y sorteos exclusivos para ti 💛', imagen: '', url: '' }];
     return bs;
   }
-  function carruselHtml() {
-    var bs = bannersDelClub();
+  // bs = lista de banners a pintar. Sin argumento usa los del Club (/api/cuenta); el popup del
+  // inicio le pasa los suyos (config:popup.banners) para reusar el MISMO carrusel.
+  function carruselHtml(bs) {
+    if (!bs) bs = bannersDelClub();
     var slides = bs.map(function (b, i) {
       // La imagen (ideal 1000×500) va COMPLETA en un marco 2:1 negro premium (object-fit
       // contain: nunca se corta ni deforma) y el título + frase van DEBAJO en su card.
@@ -3814,6 +4318,15 @@
     'Para tu día a día': { emoji: '🛒', sub: 'Lo esencial de tu casa, siempre a la mano.' }
   };
 
+  // Frases que se escriben en bucle DETRÁS del nombre de cada familia del directorio (el
+  // nombre queda fijo; la cola en color de acento). Cada familia lleva frases que leen bien
+  // tras su título. Familia sin entrada aquí = título estático + su subtítulo de CAT_FAM.
+  var FAM_FRASES = {
+    'Licores':           ['para celebrar', 'para compartir', 'para sorprender', 'para regalar', 'para una cena romántica', 'para un brindis especial'],
+    'Para engreírte':    ['sin culpa', 'porque sí', 'hoy mismo', 'un ratito'],
+    'Para tu día a día': ['resuelto', 'al toque', 'completo', 'sin salir']
+  };
+
   // Emoji + foto de portada + conteo base de una categoría del catálogo estático.
   function catInfoDir(slug) {
     var c = (window.ARAKAKI_CATALOG && window.ARAKAKI_CATALOG.categories[slug]) || null;
@@ -3822,6 +4335,33 @@
       (s.products || []).forEach(function (p) { n++; if (!img && p.img) img = p.img; });
     });
     return { emoji: (c && c.emoji) || '🛍️', img: img, n: n };
+  }
+
+  // Títulos animados del directorio: el nombre de la familia queda FIJO y su continuación
+  // se escribe/borra EN BUCLE con las frases de FAM_FRASES (cola en color de acento),
+  // volviendo siempre desde el título. Respeta prefers-reduced-motion.
+  function montarTitulosDir(cont) {
+    if (!cont) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var tails = cont.querySelectorAll('.cdf-tail');
+    tails.forEach(function (tail) {
+      var frases = FAM_FRASES[tail.getAttribute('data-fam')];
+      if (!frases || !frases.length) return;
+      if (reduce) { tail.textContent = frases[0]; return; }
+      var pi = 0, ci = 0, borrando = false;
+      function tic() {
+        if (!tail.isConnected) return; // se re-renderizó el directorio: paramos el bucle
+        tail.textContent = frases[pi].substring(0, ci);
+        if (!borrando) {
+          if (ci < frases[pi].length) { ci++; setTimeout(tic, 80); }
+          else { borrando = true; setTimeout(tic, 1500); } // pausa con la frase completa
+        } else {
+          if (ci > 0) { ci--; setTimeout(tic, 40); }
+          else { borrando = false; pi = (pi + 1) % frases.length; setTimeout(tic, 400); }
+        }
+      }
+      tic();
+    });
   }
 
   window.renderCatalogo = function () {
@@ -3890,10 +4430,22 @@
 
     familias.forEach(function (f) {
       var meta = CAT_FAM[f.nombre] || { emoji: '🛍️', sub: '' };
+      var frasesFam = FAM_FRASES[f.nombre];
+      var tituloHtml, subHtml;
+      if (frasesFam) {
+        // El nombre de la familia queda FIJO y su continuación se escribe/borra EN BUCLE.
+        // Sin subtítulo: el movimiento del propio título hace de gancho.
+        tituloHtml = '<h2 class="cdf-tit cdf-tit-anim">' + esc(f.nombre) + ' ' +
+          '<span class="cdf-tail" data-fam="' + esc(f.nombre) + '" aria-hidden="true"></span>' +
+          '<span class="cdf-tcursor" aria-hidden="true"></span></h2>';
+        subHtml = '';
+      } else {
+        tituloHtml = '<h2 class="cdf-tit">' + esc(f.nombre) + '</h2>';
+        subHtml = (meta.sub ? '<p class="cdf-sub">' + esc(meta.sub) + '</p>' : '');
+      }
       html += '<section class="cat-dir-familia">' +
         '<div class="cdf-cab"><span class="cdf-emoji" aria-hidden="true">' + meta.emoji + '</span>' +
-          '<div><h2 class="cdf-tit">' + esc(f.nombre) + '</h2>' +
-          (meta.sub ? '<p class="cdf-sub">' + esc(meta.sub) + '</p>' : '') + '</div>' +
+          '<div>' + tituloHtml + subHtml + '</div>' +
           '<span class="cdf-num">' + f.items.length + ' cat.</span>' +
         '</div>' +
         '<div class="cat-dir-grid">' + f.items.map(tileHTML).join('') + '</div>' +
@@ -3910,6 +4462,7 @@
     '</div></section>';
 
     cont.innerHTML = html;
+    montarTitulosDir(cont); // los títulos de familia continúan escribiéndose en bucle
 
     // ----- Buscador (categorías + productos) -----
     var input = document.getElementById('cat-dir-q');

@@ -247,6 +247,22 @@ td a.wa { color:var(--verde); text-decoration:none; }
 .popup-btn-fila { display:grid; grid-template-columns:1.6fr 1fr 92px; gap:8px; margin-bottom:8px; }
 .popup-btn-fila input, .popup-btn-fila select { width:100%; min-width:0; }
 @media (max-width:700px){ .popup-btn-fila { grid-template-columns:1fr; } }
+/* 🤖 Pop-up VIP: tarjetas de paso del flujo conversacional */
+.vip-paso { display:block; }
+.vip-paso-cab { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.vip-paso-cab b { color:var(--dorado2); font-size:14px; }
+.vip-paso-acc { display:flex; gap:5px; }
+.vip-paso-acc .btn { padding:5px 9px; font-size:13px; }
+.vip-paso-acc .btn[disabled] { opacity:.35; cursor:default; }
+.vip-paso .vip-tipo { width:100%; margin-top:3px; }
+.vip-paso .vip-botones, .vip-paso .vip-captura { margin-top:8px; padding:10px; border:1px dashed var(--borde); border-radius:10px; background:var(--card); }
+/* 👀 En vivo (analíticas): monitor de visitantes ahora mismo */
+#envivo-caja { border:1px solid rgba(55,214,122,.35); }
+.envivo-badge { display:inline-block; min-width:24px; text-align:center; padding:1px 9px; margin-left:6px; border-radius:999px; background:#37d67a; color:#0b3d20; font-size:14px; font-weight:800; vertical-align:middle; }
+.envivo-resumen { font-size:14px; color:var(--txt); margin-bottom:8px; }
+.envivo-chips { display:flex; flex-wrap:wrap; gap:7px; }
+.envivo-chip { display:inline-flex; align-items:center; gap:5px; font-size:12.5px; padding:5px 10px; border-radius:999px; background:var(--campo); color:var(--txt-soft); border:1px solid var(--borde); }
+.envivo-chip.cliente { background:rgba(55,214,122,.14); border-color:rgba(55,214,122,.5); color:var(--txt); font-weight:700; }
 /* 🖼️ Logos: una fila por logo (preview + dónde se usa + subir/URL) */
 .logo-fila { display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--borde); border-radius:14px; padding:14px; margin-bottom:12px; flex-wrap:wrap; }
 .logo-fila img.lg-prev { width:56px; height:56px; object-fit:contain; border-radius:12px; background:var(--campo); border:1px solid var(--borde); flex:none; padding:4px; }
@@ -584,6 +600,51 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
 .tema-toggle button:hover { color:var(--texto); }
 .tema-toggle button.on { background:linear-gradient(135deg,var(--dorado2),var(--dorado) 65%,#a87f22); color:#221a05; box-shadow:0 2px 9px rgba(212,175,55,.28); }
 #tema-mini { font-size:17px !important; }
+
+/* ---------- 🎨 Editor de la web: dock con la vista previa EN VIVO del sitio real ---------- */
+#ed-dock { display:none; }
+#ed-fab { display:none; }
+body.modo-editor #ed-dock { display:flex; flex-direction:column; }
+.ed-dock-bar { display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--borde); flex-wrap:wrap; background:var(--panel); }
+.ed-dock-title { font-size:12px; font-weight:800; color:var(--dorado2); margin-right:auto; letter-spacing:.3px; }
+.ed-dock-tools { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.ed-dock-tools select { background:var(--campo); color:var(--texto); border:1px solid var(--borde); border-radius:8px; font-size:12px; padding:5px 6px; }
+.ed-dev { display:inline-flex; border:1px solid var(--borde); border-radius:8px; overflow:hidden; }
+.ed-dev button { background:var(--campo); border:none; color:var(--sub); font-size:14px; padding:5px 9px; cursor:pointer; }
+.ed-dev button.activa { background:rgba(212,175,55,.22); color:var(--dorado2); }
+.ed-ico { background:var(--campo); border:1px solid var(--borde); color:var(--sub); border-radius:8px; font-size:14px; padding:5px 9px; cursor:pointer; line-height:1; }
+.ed-ico:hover { color:var(--texto); border-color:var(--dorado); }
+.ed-cerrar-dock { display:none; }
+.ed-dock-cuerpo { flex:1; overflow:hidden; display:flex; justify-content:center; align-items:stretch; padding:12px; background:#15120f; }
+.ed-marco { position:relative; height:100%; width:100%; background:#000; border:1px solid #2c2620; border-radius:10px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.4); transition:width .2s ease; }
+.ed-marco.movil { width:392px; max-width:100%; border-radius:24px; padding:9px 8px; background:#0c0a08; box-shadow:0 12px 34px rgba(0,0,0,.5); }
+.ed-marco iframe { width:100%; height:100%; border:0; display:block; background:#fff; }
+.ed-marco.movil iframe { border-radius:16px; }
+.ed-pie { font-size:11px; color:var(--sub); padding:7px 12px; border-top:1px solid var(--borde); text-align:center; background:var(--panel); }
+/* 🌈 Colores de marca: reusa .logo-fila; el selector de color va grande y con la muestra visible */
+#colores-lista .col-input { width:56px; height:44px; padding:2px; border:1px solid var(--borde); border-radius:10px; background:var(--campo); cursor:pointer; flex:none; }
+#colores-lista .col-swatch { width:34px; height:34px; border-radius:8px; border:1px solid var(--borde); flex:none; }
+/* 🖼️ Beneficios: filas foto + campos + acciones */
+#benef-lista .benef-fila { display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px solid var(--borde); border-radius:12px; margin-bottom:10px; background:var(--card); }
+#benef-lista .benef-prev { width:74px; height:74px; object-fit:cover; border-radius:10px; border:1px solid var(--borde); flex:none; background:var(--campo); }
+#benef-lista .benef-campos { flex:1; display:flex; flex-direction:column; gap:7px; min-width:0; }
+#benef-lista .benef-campos input, #benef-lista .benef-campos textarea { width:100%; }
+#benef-lista .benef-campos textarea { min-height:52px; }
+#benef-lista .benef-acc { display:flex; gap:6px; flex-wrap:wrap; }
+#benef-lista .benef-acc .btn { padding:6px 10px; font-size:12px; }
+#benef-lista .benef-vacio { color:var(--sub); font-size:13px; padding:10px 2px; }
+/* Escritorio ancho: el dock queda fijo a la derecha y el contenido se corre para dejarle sitio */
+@media (min-width:1080px){
+  #ed-dock { position:fixed; top:0; right:0; bottom:0; width:min(46vw,560px); background:var(--panel); border-left:1px solid var(--borde); z-index:45; box-shadow:-10px 0 26px rgba(0,0,0,.22); }
+  body.modo-editor main#contenido { padding-right:calc(min(46vw,560px) + 26px); }
+}
+/* Pantallas medianas y celular: cajón deslizante por encima, se abre con el botón flotante 👁️ */
+@media (max-width:1079px){
+  #ed-dock { position:fixed; top:0; right:0; bottom:0; width:min(94vw,460px); background:var(--panel); border-left:1px solid var(--borde); z-index:110; transform:translateX(101%); transition:transform .26s ease; box-shadow:-12px 0 34px rgba(0,0,0,.5); }
+  #ed-dock.abierto { transform:none; }
+  .ed-cerrar-dock { display:inline-block; }
+  body.modo-editor #ed-fab { display:inline-flex; align-items:center; gap:6px; position:fixed; right:14px; bottom:80px; bottom:calc(80px + env(safe-area-inset-bottom)); z-index:108; background:linear-gradient(135deg,var(--dorado2),var(--dorado) 65%,#a87f22); color:#221a05; border:none; font-weight:800; font-size:13px; padding:11px 16px; border-radius:999px; box-shadow:0 7px 22px rgba(0,0,0,.4); cursor:pointer; }
+}
 </style>
 </head>
 <body>
@@ -633,7 +694,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="tab" data-v="precios"><span class="ico">💰</span><span class="eti">Precios</span></button>
       <button class="tab" data-v="club"><span class="ico">👥</span><span class="eti">Club</span></button>
       <button class="tab" data-v="stats"><span class="ico">📊</span><span class="eti">Analíticas</span></button>
-      <button class="tab" data-v="sitio"><span class="ico">📝</span><span class="eti">Sitio</span></button>
+      <button class="tab" data-v="sitio"><span class="ico">🎨</span><span class="eti">Editor</span></button>
       <button class="tab" data-v="bot"><span class="ico">⚙️</span><span class="eti">Bot</span></button>
       <button class="tab" id="tab-mas" onclick="toggleMas()"><span class="ico">⋯</span><span class="eti">Más</span><span class="badge" id="badge-mas" style="display:none">0</span></button>
     </nav>
@@ -654,7 +715,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <button class="mas-item" data-v="consultas"><span class="ico">❓</span>Consultas<span class="badge" id="badge-consultas-m" style="display:none">0</span></button>
       <button class="mas-item" data-v="club"><span class="ico">👥</span>Club</button>
       <button class="mas-item" data-v="stats"><span class="ico">📊</span>Analíticas</button>
-      <button class="mas-item" data-v="sitio"><span class="ico">📝</span>Sitio</button>
+      <button class="mas-item" data-v="sitio"><span class="ico">🎨</span>Editor</button>
       <button class="mas-item" data-v="bot"><span class="ico">⚙️</span>Bot</button>
     </div>
   </div>
@@ -842,6 +903,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="toggle-fila"><div class="tf-txt"><b>🎁 Promos exclusivas</b><span>Solo las ven los clientes con sesión iniciada</span></div><label class="switch"><input type="checkbox" id="club-promos-sw"><span class="pista"></span></label></div>
       <div class="toggle-fila"><div class="tf-txt"><b>🎟️ Sorteos</b><span>Participan con un toque desde su cuenta</span></div><label class="switch"><input type="checkbox" id="club-sorteos-sw"><span class="pista"></span></label></div>
       <div class="toggle-fila"><div class="tf-txt"><b>🎫 Cupones exclusivos</b><span>Cupón con imagen y código, solo para clientes logueados</span></div><label class="switch"><input type="checkbox" id="club-cupones-sw"><span class="pista"></span></label></div>
+      <div class="toggle-fila"><div class="tf-txt"><b>👑 Invitación en la portada</b><span>La sección «Únete al Club Arakaki» que sale antes del pie de página del inicio</span></div><label class="switch"><input type="checkbox" id="club-vip-sw"><span class="pista"></span></label></div>
       <div class="fila-conf">
         <label style="font-size:13px">🪙 Puntos por cada sol de compra: <input type="text" id="club-pps" inputmode="decimal" placeholder="1" style="width:70px"></label>
         <button class="btn" data-guardar="club" onclick="pedirGuardar('club')">💾 Guardar funciones</button>
@@ -1001,6 +1063,12 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       </div>
     </div>
 
+    <div class="stat-caja ancha" id="envivo-caja">
+      <h3>👀 En vivo ahora <span id="envivo-num" class="envivo-badge">–</span></h3>
+      <div id="envivo-lista" class="pie-nota" style="margin-top:6px">Cargando…</div>
+      <p class="pie-nota" style="margin-top:8px;color:var(--txt-soft)">Quién está navegando tu web <b>en este momento</b> (se actualiza solo). Reconoce por su nombre a los que ya son clientes.</p>
+    </div>
+
     <div class="kpi-grid" id="st-kpis"></div>
 
     <div class="stats-grid">
@@ -1042,6 +1110,7 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     <div class="subtabs">
       <button class="subtab activa" data-sub="wa">🤖 WhatsApp</button>
       <button class="subtab" data-sub="web">💬 Chat web</button>
+      <button class="subtab" data-sub="vip" data-gr="vipbot">🤖 Pop-up VIP</button>
       <button class="subtab" data-sub="avisos">🔔 Avisos</button>
     </div>
 
@@ -1333,17 +1402,100 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         </div>
       </div>
     </div>
+
+    <!-- ===== Sub-panel: pop-up conversacional VIP del inicio ===== -->
+    <div class="subpanel" id="sp-vip">
+      <div class="caja-bot" data-grupo="vipbot">
+        <h3>🤖 Pop-up VIP (chat automático del inicio)</h3>
+        <p class="desc">Un pop-up con un chat estilo mensajería que aparece en tu portada y le ofrece al visitante abrir su <b>cuenta VIP gratis</b>. Tú armas la conversación: mensajes, botones e imágenes. Los datos que deje (WhatsApp, correo, dirección) entran a tu base de clientes.</p>
+        <div class="aviso" id="vip-aviso"></div>
+
+        <details class="ayuda">
+          <summary>💡 Cómo funciona</summary>
+          <div class="cuerpo">La conversación es una lista de <b>pasos</b>. El <b>primero</b> es el que ve el cliente al abrir. Cada paso muestra tus mensajes y luego <b>botones</b> (que llevan a otro paso o cierran) o <b>pide un dato</b> (nombre, WhatsApp, correo o dirección). Marca “guardar los datos” en el paso final para registrar al cliente. Para ver cómo queda, abre tu portada con <b>?vipbot=1</b> al final de la dirección.</div>
+        </details>
+
+        <!-- Programación -->
+        <div class="tipo-grid" style="margin-top:8px">
+          <div class="campo-bloque">
+            <label>¿Mostrar el pop-up?</label>
+            <select id="vip-on"><option value="1">Sí, activo</option><option value="0">No (apagado)</option></select>
+          </div>
+          <div class="campo-bloque">
+            <label>¿Cada cuánto aparece?</label>
+            <select id="vip-frec"><option value="dia">Según el tope de abajo</option><option value="siempre">En cada visita</option></select>
+          </div>
+          <div class="campo-bloque">
+            <label>Veces por día (por persona)</label>
+            <input type="number" id="vip-veces" min="1" max="20" step="1" value="1">
+          </div>
+          <div class="campo-bloque">
+            <label>Aparece a los… (segundos)</label>
+            <input type="number" id="vip-delay" min="0" max="120" step="1" value="8">
+          </div>
+          <div class="campo-bloque">
+            <label>Desde (dd/mm, opcional)</label>
+            <input type="text" id="vip-desde" maxlength="5" placeholder="siempre">
+          </div>
+          <div class="campo-bloque">
+            <label>Hasta (dd/mm, opcional)</label>
+            <input type="text" id="vip-hasta" maxlength="5" placeholder="siempre">
+          </div>
+        </div>
+        <label class="check-fila"><input type="checkbox" id="vip-salida"> Mostrarlo también cuando la persona va a irse (mueve el mouse hacia arriba)</label>
+        <label class="check-fila"><input type="checkbox" id="vip-solonuevos"> Mostrarlo solo a quien todavía NO tiene su cuenta iniciada</label>
+
+        <!-- Apariencia de la cabecera -->
+        <h4 style="margin:16px 0 6px">🎨 Cabecera del chat</h4>
+        <div class="tipo-grid">
+          <div class="campo-bloque">
+            <label>Nombre (arriba del chat)</label>
+            <input type="text" id="vip-titulo" maxlength="40" placeholder="Club Arakaki 👑">
+          </div>
+          <div class="campo-bloque">
+            <label>Frase (estado)</label>
+            <input type="text" id="vip-subtitulo" maxlength="60" placeholder="En línea ahora">
+          </div>
+        </div>
+        <div class="campo-bloque">
+          <label>Foto del asistente (opcional)</label>
+          <div class="club-item" id="vip-avatar-item" data-img="" style="max-width:340px">
+            <div class="cci-foto"><span id="vip-avatar-prev"></span>
+              <label class="btn gris" style="cursor:pointer">📷 Subir foto<input type="file" accept="image/*" style="display:none" onchange="subirAvatarVip(this)"></label>
+            </div>
+            <button class="btn gris" type="button" onclick="quitarAvatarVip()">🗑️ Quitar (usar la del gato)</button>
+          </div>
+        </div>
+
+        <!-- Flujo de la conversación -->
+        <h4 style="margin:18px 0 6px">💬 La conversación (pasos)</h4>
+        <p class="hint" style="font-size:12px;color:var(--sub);margin-top:0">El <b>primer</b> paso es el que ve el cliente al abrir. Arrastra el orden con los botones ▲▼.</p>
+        <div id="vip-pasos"></div>
+        <div class="fila-conf">
+          <button class="btn gris" type="button" onclick="agregarPasoVip()">➕ Añadir paso</button>
+          <button class="btn gris" type="button" onclick="restaurarFlujoVip()">↩️ Usar el flujo de ejemplo</button>
+        </div>
+
+        <div class="fila-conf" style="margin-top:12px">
+          <button class="btn" data-guardar="vipbot" onclick="pedirGuardar('vipbot')">💾 Guardar pop-up VIP</button>
+          <a class="btn gris" href="/?vipbot=1" target="_blank" rel="noopener" data-sin-seguro>👁️ Ver cómo queda</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- SITIO: textos editables del header y del footer -->
   <div class="vista" id="v-sitio">
-    <h2 class="tit-vista">📝 Sitio</h2>
-    <p class="sub-vista">Todo lo que ven tus clientes en la web, sin tocar código. Toca una pestaña para editar esa parte: cada una tiene su propio botón 💾 Guardar y los cambios se ven en la web en ~1 minuto.</p>
+    <h2 class="tit-vista">🎨 Editor de la web</h2>
+    <p class="sub-vista">Diseña tu web sin tocar código. Elige una pestaña, edita, y mira cómo queda <b>al instante</b> en la vista previa de la derecha (en el celular toca <b>👁️ Ver mi web</b>). Cada bloque tiene su propio 💾 Guardar; lo guardado se publica en tu web real en ~1 minuto.</p>
 
     <div class="subtabs iconos" id="sitio-subtabs">
       <button class="subtab activa" data-ssub="textos" data-gr="sitio"><span class="ico">✍️</span><span class="eti">Textos</span></button>
+      <button class="subtab" data-ssub="inicio" data-gr="sitio"><span class="ico">🏠</span><span class="eti">Inicio</span></button>
       <button class="subtab" data-ssub="letras" data-gr="tipo"><span class="ico">🔤</span><span class="eti">Letras</span></button>
       <button class="subtab" data-ssub="fondos" data-gr="fondos"><span class="ico">🎨</span><span class="eti">Fondos</span></button>
+      <button class="subtab" data-ssub="colores" data-gr="colores"><span class="ico">🌈</span><span class="eti">Colores</span></button>
+      <button class="subtab" data-ssub="beneficios" data-gr="beneficios"><span class="ico">🖼️</span><span class="eti">Beneficios</span></button>
       <button class="subtab" data-ssub="videos" data-gr="videos"><span class="ico">🎬</span><span class="eti">Videos</span></button>
       <button class="subtab" data-ssub="comple" data-gr="comple"><span class="ico">🧩</span><span class="eti">Combos</span></button>
       <button class="subtab" data-ssub="carrito" data-gr="carrito"><span class="ico">🛒</span><span class="eti">Carrito</span></button>
@@ -1471,6 +1623,73 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
     </div>
     </div>
 
+    <!-- 🏠 INICIO (grupo "sitio"): encabezado de la portada + cinta. Se guarda JUNTO con los Textos
+         (mismo config:sitio, misma función guardarSitio); por eso comparte el grupo del seguro. -->
+    <div class="subpanel" id="ss-inicio">
+    <p class="sub-vista">El encabezado de tu página de inicio: tu dirección, el botón del mapa y la cinta de mensajes que se desliza arriba. Todo se ve <b>al instante</b> en la vista previa. Deja un campo vacío para volver a su texto de siempre.</p>
+
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>📍 Portada (dónde estás)</h3>
+      <div class="campo-bloque">
+        <label>Dirección</label>
+        <div class="hint">Aparece en la portada (debajo de “Visítanos en:”) y también dentro del popup del mapa.</div>
+        <input type="text" id="sitio-portadadir" maxlength="120" placeholder="Av. Belén 265, San Isidro" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Referencia</label>
+        <div class="hint">Una pista para ubicarte fácil. Deja vacío para no mostrar ninguna.</div>
+        <input type="text" id="sitio-portadaref" maxlength="120" placeholder="(A solo 2 cuadras del Golf)" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Texto del botón del mapa</label>
+        <input type="text" id="sitio-mapabtn" maxlength="40" placeholder="Ver Ubicación en Mapa" style="width:100%">
+      </div>
+    </div>
+
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>🎞️ Cinta de mensajes (la que se desliza arriba)</h3>
+      <div class="campo-bloque">
+        <label>Mensajes</label>
+        <div class="hint">Un mensaje por línea. Se repiten en bucle sin parar. Puedes usar emojis. Vacío = los mensajes de siempre.</div>
+        <textarea id="sitio-cinta" maxlength="400" style="min-height:118px" placeholder="📲 Pide por WhatsApp&#10;🛵 Delivery disponible&#10;🕗 Lun – Sáb 7:00 am – 9:00 pm&#10;🕗 Domingos 8:00 am – 8:00 pm&#10;🎉 Atendemos feriados"></textarea>
+      </div>
+    </div>
+
+    <div class="caja-bot" data-grupo="sitio">
+      <h3>👑 Invitación al Club (portada)</h3>
+      <div class="desc">La sección “Únete al Club Arakaki” del inicio. (El registro completo vive en la página Mi cuenta; aquí solo editas la invitación.)</div>
+      <div class="campo-bloque">
+        <label>Etiqueta de arriba</label>
+        <input type="text" id="sitio-vipeyebrow" maxlength="60" placeholder="👑 Solo para miembros" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Título</label>
+        <input type="text" id="sitio-viptitulo" maxlength="60" placeholder="Únete al Club Arakaki" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Subtítulo</label>
+        <textarea id="sitio-vipsub" maxlength="200" style="min-height:64px" placeholder="Tu cuenta VIP es gratis: acumula puntos con cada compra y desbloquea beneficios exclusivos."></textarea>
+      </div>
+      <div class="campo-bloque">
+        <label>Beneficios (chips)</label>
+        <div class="hint">Uno por línea. Cada línea sale como una etiqueta. Puedes usar emojis.</div>
+        <textarea id="sitio-vipchips" maxlength="300" style="min-height:100px" placeholder="🪙 Puntos por compra&#10;🎫 Cupones VIP&#10;🎁 Sorteos exclusivos&#10;⭐ Tus favoritos"></textarea>
+      </div>
+      <div class="campo-bloque">
+        <label>Texto del botón</label>
+        <input type="text" id="sitio-vipcta" maxlength="60" placeholder="👑 Quiero mi cuenta VIP" style="width:100%">
+      </div>
+      <div class="campo-bloque">
+        <label>Nota bajo el botón</label>
+        <input type="text" id="sitio-vipnota" maxlength="120" placeholder="Gratis para siempre · solo necesitas tu celular" style="width:100%">
+      </div>
+    </div>
+
+    <div class="fila-conf">
+      <button class="btn" data-guardar="sitio" onclick="pedirGuardar('sitio')">💾 Guardar inicio</button>
+    </div>
+    </div>
+
     <!-- 🎨 FONDOS (grupo "fondos") -->
     <!-- 🔤 LETRAS (grupo "tipo"): tipografía global del sitio -->
     <div class="subpanel" id="ss-letras">
@@ -1562,6 +1781,40 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
       <div class="aviso" id="fondo-aviso"></div>
       <div class="fila-conf">
         <button class="btn" data-guardar="fondos" onclick="pedirGuardar('fondos')">💾 Guardar fondos</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- 🌈 COLORES DE MARCA (grupo "colores"): pisa las variables de color de site.css (config:colores) -->
+    <div class="subpanel" id="ss-colores">
+    <div class="caja-bot" data-grupo="colores">
+      <h3>🌈 Colores de tu marca</h3>
+      <div class="campo-bloque">
+        <div class="hint">Los colores base de toda tu web. Cámbialos y míralos <b>al instante</b> en la vista previa: afectan la barra superior, los botones, los precios y los detalles dorados de todo el sitio. <b>El de siempre</b> = vuelve al color original de la marca. Consejo: cambia de a poco y revisa que el texto se siga leyendo bien.</div>
+      </div>
+      <div id="colores-lista"></div>
+      <div class="fila-conf" style="margin-top:6px">
+        <button type="button" class="btn gris" onclick="colorResetAll()" data-sin-seguro>↩️ Volver a los colores de siempre</button>
+      </div>
+      <div class="aviso" id="colores-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="colores" onclick="pedirGuardar('colores')">💾 Guardar colores</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- 🖼️ BENEFICIOS (grupo "beneficios"): láminas del carrusel "Atención Personalizada" (config:beneficios) -->
+    <div class="subpanel" id="ss-beneficios">
+    <div class="caja-bot" data-grupo="beneficios">
+      <h3>🖼️ Beneficios del inicio</h3>
+      <div class="hint">Las láminas del carrusel “Atención Personalizada” de tu portada: cada una con su <b>foto</b>, un <b>título</b> y una <b>descripción corta</b>. Cámbialas, agrégalas o quítalas y míralas <b>al instante</b> en la vista previa. Súbelas de a poco: 2 a 5 láminas se ven mejor.</div>
+      <div id="benef-lista"></div>
+      <div class="fila-conf" style="margin-top:4px">
+        <button type="button" class="btn gris" onclick="benefAdd()" data-sin-seguro>➕ Agregar beneficio</button>
+      </div>
+      <div class="aviso" id="benef-aviso"></div>
+      <div class="fila-conf">
+        <button class="btn" data-guardar="beneficios" onclick="pedirGuardar('beneficios')">💾 Guardar beneficios</button>
       </div>
     </div>
     </div>
@@ -1716,9 +1969,14 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <div class="campo-bloque">
           <label>Frecuencia</label>
           <select id="popup-frec">
-            <option value="">1 vez al día por cliente (recomendado)</option>
-            <option value="siempre">En cada visita</option>
+            <option value="">Un número de veces al día</option>
+            <option value="siempre">En cada visita (sin tope)</option>
           </select>
+        </div>
+        <div class="campo-bloque">
+          <label>¿Cuántas veces al día por cliente?</label>
+          <div class="hint">Solo si arriba eliges “Un número de veces al día”. 1 = una sola vez (lo de antes). Máximo 20.</div>
+          <input type="number" id="popup-veces" min="1" max="20" step="1" value="1">
         </div>
         <div class="campo-bloque">
           <label>Sale desde (dd/mm)</label>
@@ -1773,7 +2031,15 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
         <textarea id="popup-barra" maxlength="200" style="min-height:60px" placeholder="Celebra las Fiestas Patrias con lo mejor de la barra: Pisco, Vino o Whisky."></textarea>
       </div>
       <div class="cared-sub">
-        <b>🔘 Botones (hasta 3; con texto Y enlace, si no no sale)</b>
+        <b>📣 Publicidad (carrusel)</b>
+        <p class="desc" style="margin:2px 0 10px">Reemplaza a los botones de abajo: sube tus avisos y el popup los muestra en un <b>carrusel que rota solo</b> (igual que el de la cuenta del cliente). Medida ideal <b>1000×700 px (10:7)</b> — con esa proporción entra exacta y completa; otras proporciones también se ven enteras, sin cortes. El título y la frase son opcionales (salen debajo de la imagen). Ponle un enlace si quieres que al tocarlo el cliente vaya a una página (ej. <b>/pisco</b>). La fecha límite es opcional: vencido, el aviso se oculta solo. Sin avisos aquí, el popup muestra los botones de respaldo.</p>
+        <div id="popup-banners"></div>
+        <div class="fila-conf">
+          <button class="btn gris" type="button" onclick="agregarBannerPopup()">+ Añadir aviso</button>
+        </div>
+      </div>
+      <div class="cared-sub">
+        <b>🔘 Botones de respaldo (hasta 3; solo salen si no hay publicidad en el carrusel)</b>
         <div class="popup-btn-fila"><input type="text" id="popup-b1t" maxlength="60" placeholder="🍸 Ver opciones de Pisco"><input type="text" id="popup-b1u" maxlength="200" placeholder="/pisco"><select id="popup-b1e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
         <div class="popup-btn-fila"><input type="text" id="popup-b2t" maxlength="60" placeholder="🍷 Ver Vinos"><input type="text" id="popup-b2u" maxlength="200" placeholder="/vinos"><select id="popup-b2e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
         <div class="popup-btn-fila"><input type="text" id="popup-b3t" maxlength="60" placeholder="🥃 Ver opciones de Whisky"><input type="text" id="popup-b3u" maxlength="200" placeholder="/whisky"><select id="popup-b3e"><option value="rojo">Vino</option><option value="blanco">Crema</option></select></div>
@@ -1802,6 +2068,34 @@ body, #menu, #topbar, .caja, .caja-bot, .tarjeta, .stat-caja, table, th, td,
   </div>
 
   </main>
+
+  <!-- 🎨 Editor de la web: dock con la VISTA PREVIA EN VIVO del sitio real. Solo aparece en la
+       sección 📝 Sitio (body.modo-editor). El iframe carga la web real; site.js detecta que está
+       dentro del panel y aplica los cambios en curso por postMessage, sin guardar nada. -->
+  <div id="ed-dock" aria-label="Vista previa de tu web">
+    <div class="ed-dock-bar">
+      <span class="ed-dock-title">👁️ Tu web en vivo</span>
+      <div class="ed-dock-tools">
+        <select id="ed-pagina" onchange="edCambiarPagina(this.value)" data-sin-seguro title="¿Qué página quieres ver?">
+          <option value="/">🏠 Inicio</option>
+          <option value="/pisco">🍶 Una categoría</option>
+          <option value="/mi-cuenta">👤 Mi cuenta</option>
+        </select>
+        <div class="ed-dev" role="group" aria-label="Tamaño de pantalla">
+          <button type="button" data-dev="movil" class="activa" onclick="edDispositivo('movil')" title="Ver como celular" data-sin-seguro>📱</button>
+          <button type="button" data-dev="escr" onclick="edDispositivo('escr')" title="Ver como computadora" data-sin-seguro>💻</button>
+        </div>
+        <button type="button" class="ed-ico" onclick="edRefrescar()" title="Recargar la vista" data-sin-seguro>↻</button>
+        <button type="button" class="ed-ico" onclick="edAbrirPestana()" title="Abrir en una pestaña nueva" data-sin-seguro>↗</button>
+        <button type="button" class="ed-ico ed-cerrar-dock" onclick="edToggleDock(false)" title="Ocultar la vista" data-sin-seguro>✕</button>
+      </div>
+    </div>
+    <div class="ed-dock-cuerpo">
+      <div class="ed-marco movil" id="ed-marco"><iframe id="ed-frame" title="Vista previa de tu web"></iframe></div>
+    </div>
+    <div class="ed-pie">Los cambios se ven aquí al instante. Toca 💾 en cada bloque para publicarlos en tu web real.</div>
+  </div>
+  <button type="button" id="ed-fab" onclick="edToggleDock(true)" data-sin-seguro>👁️ Ver mi web</button>
 </div>
 
 <!-- Popup central: pregunta antes de borrar/guardar y confirma cuando el cambio ya quedó -->
@@ -1894,12 +2188,15 @@ var GRUPOS = {
   sitio:   { nombre: 'de los textos del sitio',     vista: 'sitio', aviso: 'sitio-aviso',  fn: 'guardarSitio',   nota: 'Se ve en la web en ~1 minuto.' },
   tipo:    { nombre: 'de las letras del sitio',     vista: 'sitio', aviso: 'tipo-aviso',   fn: 'guardarTipo',    nota: 'Se ve en la web en ~1 minuto.' },
   fondos:  { nombre: 'de los fondos',               vista: 'sitio', aviso: 'fondo-aviso',  fn: 'guardarFondos',  nota: 'Se ve en la web en ~1 minuto.' },
+  colores: { nombre: 'de los colores de marca',     vista: 'sitio', aviso: 'colores-aviso', fn: 'guardarColores', nota: 'Se ve en la web en ~1 minuto.' },
+  beneficios: { nombre: 'de los beneficios del inicio', vista: 'sitio', aviso: 'benef-aviso', fn: 'guardarBeneficios', nota: 'Se ve en la web en ~1 minuto.' },
   videos:  { nombre: 'de los videos',               vista: 'sitio', aviso: 'vid-aviso',    fn: 'guardarVideos',  nota: 'Se ve en la web en ~1 minuto.' },
   comple:  { nombre: 'de los combos',               vista: 'sitio', aviso: 'comple-aviso', fn: 'guardarComple',  nota: 'Se ve en la web en ~1 minuto.' },
   carrito: { nombre: 'de la apariencia del carrito', vista: 'sitio', aviso: 'carrito-aviso', fn: 'guardarCarEd',  nota: 'Se ve en la web en ~1 minuto.' },
   popup:   { nombre: 'del popup del inicio',        vista: 'sitio', aviso: 'popup-aviso',  fn: 'guardarPopup',   nota: 'Se ve en la web en ~1 minuto.' },
   logos:   { nombre: 'de los logos',                vista: 'sitio', aviso: 'logos-aviso',  fn: 'guardarLogos',   nota: 'Se ve en la web en ~1 minuto.' },
   webchat: { nombre: 'del chat de la web',          vista: 'bot',   aviso: 'web-aviso',    fn: 'guardarWebchat', nota: 'El chat responde con lo nuevo en ~1 minuto.' },
+  vipbot:  { nombre: 'del pop-up VIP',              vista: 'bot',   aviso: 'vip-aviso',    fn: 'guardarVipbot',  nota: 'Se ve en la web en ~1 minuto.' },
   prompt:  { nombre: 'del cerebro del bot',         vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarPrompt',  nota: 'El bot de WhatsApp responde con lo nuevo al instante.' },
   tpls:    { nombre: 'de las respuestas rápidas',   vista: 'bot',   aviso: 'bot-aviso',    fn: 'guardarTpls',    nota: '' },
   notify:  { nombre: 'de los números autorizados',  vista: 'bot',   aviso: 'avisos-aviso', fn: 'guardarNotify',  nota: '' }
@@ -2098,8 +2395,12 @@ function verVista(v) {
   if (v === 'precios') cargarPrecios();
   if (v === 'club') cargarClub();
   if (v === 'stats') cargarStats();
-  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
-  if (v === 'bot') cargarBot();
+  if (v === 'sitio') { cargarSitio(); cargarTipo(); cargarFondos(); cargarColores(); cargarBeneficios(); cargarVideos(); cargarComple(); cargarCarEd(); cargarPopup(); cargarLogos(); }
+  if (v === 'bot') { cargarBot(); cargarVipbot(); }
+  if (v !== 'stats' && ENVIVO_TIMER) { clearInterval(ENVIVO_TIMER); ENVIVO_TIMER = null; } // deja de sondear "en vivo" al salir
+  // 🎨 Editor de la web: enciende el dock de vista previa en vivo solo en la sección Sitio
+  document.body.classList.toggle('modo-editor', v === 'sitio');
+  if (v === 'sitio') edAsegurarFrame(); else edToggleDock(false);
 }
 
 // Sub-pestañas dentro de ⚙️ Bot
@@ -2124,7 +2425,144 @@ function verSitioSub(sub) {
   for (var i = 0; i < sitioSubtabs.length; i++) sitioSubtabs[i].classList.toggle('activa', sitioSubtabs[i].getAttribute('data-ssub') === sub);
   var paneles = document.querySelectorAll('#v-sitio .subpanel');
   for (var j = 0; j < paneles.length; j++) paneles[j].classList.toggle('activa', paneles[j].id === 'ss-' + sub);
+  // Al cambiar de bloque: cierra los modales de vista previa y refresca lo que corresponda mostrar
+  edEnviar('cerrarCarrito'); edEnviar('cerrarPopup');
+  edPreviewActivo(false);
 }
+
+// ---------- 🎨 Editor de la web: vista previa EN VIVO (dock con iframe del sitio real) ----------
+// Regla de oro: esto NO toca ninguna función de guardado. Solo LEE los mismos campos que ya usan
+// los guardar* y manda los cambios en curso al iframe por postMessage; site.js los aplica con sus
+// aplicadores (aplicarFondos/aplicarTipografia/aplicarSitio/aplicarCarrito/pintarPopup) sin persistir.
+var EDFRAME_LISTO = false;                 // el iframe ya registró su escucha de vista previa
+var ED_PAGINA = '/';                        // página cargada en el iframe
+var edTimer = null;
+var ED_GRUPO = { textos: 'sitio', inicio: 'sitio', letras: 'tipo', fondos: 'fondos', colores: 'colores', beneficios: 'beneficios', carrito: 'carrito', popup: 'popup', logos: 'logos' };
+var ED_PAG_GRUPO = { inicio: '/', beneficios: '/', popup: '/', videos: '/pisco', comple: '/pisco' }; // página que conviene mostrar por bloque
+function edFrame() { return document.getElementById('ed-frame'); }
+function edEnviar(tipo, valor) {
+  if (!EDFRAME_LISTO) return;              // aún no está lista la escucha: se reenvía en cuanto avise (edEnviarSucios)
+  var f = edFrame();
+  if (!f || !f.contentWindow) return;
+  try { f.contentWindow.postMessage({ __arakakiPreview: true, tipo: tipo, valor: valor }, '*'); } catch (e) {}
+}
+function edGrupoActivo() {
+  var b = document.querySelector('#sitio-subtabs .subtab.activa');
+  return b ? b.getAttribute('data-ssub') : 'textos';
+}
+// El modelo de cada bloque, armado IGUAL que su guardar* pero para previsualizar (sin guardar).
+function edModelo(gr) {
+  if (gr === 'sitio') {
+    var extra = {};
+    for (var k in SITIO_CAMPOS) { var el = document.getElementById(SITIO_CAMPOS[k]); extra[k] = el ? el.value : ''; }
+    return { tipo: 'sitio', valor: extra };
+  }
+  if (gr === 'tipo') {
+    return { tipo: 'tipo', valor: {
+      titulos: tipoVal('tipo-titulos'), cuerpo: tipoVal('tipo-cuerpo'),
+      escala: tipoVal('tipo-escala'), pesoTit: tipoVal('tipo-peso'),
+      interlineado: tipoVal('tipo-lh'), espaciado: tipoVal('tipo-ls')
+    } };
+  }
+  if (gr === 'fondos') {
+    var f = {};
+    FONDO_ZONAS.forEach(function (z) { var css = fondoCSS(FONDOS[z.k]); if (css) f[z.k] = css; });
+    return { tipo: 'fondos', valor: f };
+  }
+  if (gr === 'colores') { return { tipo: 'colores', valor: COLORES_CFG || {} }; }
+  if (gr === 'beneficios') { return { tipo: 'beneficios', valor: BENEFS || [] }; }
+  if (gr === 'carrito') {
+    if (!CARED) return null;
+    var txt = {}; CAR_TXT_CAMPOS.forEach(function (c) { var el = document.getElementById('car-t-' + c); var v = (el && el.value || '').trim(); if (v) txt[c] = v; });
+    var tam = {}; CAR_TAM_CAMPOS.forEach(function (c) { tam[c] = CARED.tam[c] || 1; });
+    return { tipo: 'carrito', valor: {
+      txt: txt, tam: tam,
+      toqueBg: fondoCSS(CARED.toqueBg), btnSumar: fondoCSS(CARED.btnSumar),
+      toqueTitCol: CARED.toqueTitCol || '', btnSumarTxt: CARED.btnSumarTxt || '',
+      fx: { typing: !!CARED.fx.typing, brillo: !!CARED.fx.brillo, brilloSeg: CARED.fx.brilloSeg || 5, brilloCol: CARED.fx.brilloCol || '' }
+    } };
+  }
+  if (gr === 'popup') {
+    var val = function (id) { var e2 = document.getElementById(id); return e2 ? e2.value.trim() : ''; };
+    var botones = [];
+    for (var n = 1; n <= 3; n++) { var t2 = val('popup-b' + n + 't'), u2 = val('popup-b' + n + 'u'); if (t2 && u2) botones.push({ txt: t2, url: u2, estilo: val('popup-b' + n + 'e') }); }
+    return { tipo: 'popup', valor: {
+      on: val('popup-on'), frec: val('popup-frec'), veces: val('popup-veces'), titulo: val('popup-titulo'), sub: val('popup-sub'),
+      video: val('popup-video-url') || val('popup-video'), fecha: val('popup-fecha'), falta: val('popup-falta'),
+      despues: val('popup-despues'), barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'),
+      botones: botones, banners: leerBannersPopupDOM()
+    } };
+  }
+  if (gr === 'logos') {
+    var logos = {};
+    LOGO_SLOTS.forEach(function (s) { var inp = document.getElementById('lg-u-' + s.k); if (inp && inp.value.trim()) logos[s.k] = inp.value.trim(); });
+    return { tipo: 'logos', valor: logos };
+  }
+  return null;
+}
+// Muestra en la vista previa el bloque activo. force=true cuando el dueño está editando; si no,
+// solo empuja los bloques con cambios sin guardar y los que necesitan un modal (popup/carrito) para verse.
+function edPreviewActivo(force) {
+  if (!document.body.classList.contains('modo-editor')) return;
+  var sub = edGrupoActivo();
+  var pagPref = ED_PAG_GRUPO[sub];
+  if (pagPref && ED_PAGINA !== pagPref) { edCargarPagina(pagPref); return; } // al recargar, onReady reenvía
+  var gr = ED_GRUPO[sub];
+  if (!gr) return; // videos/combos: sin superposición en vivo (se ven al guardar; aquí solo se muestra su página)
+  if (!(force || SUCIO[gr] || gr === 'popup' || gr === 'carrito')) return;
+  var m = edModelo(gr);
+  if (m) edEnviar(m.tipo, m.valor);
+}
+// Reenvía TODOS los bloques con cambios sin guardar (al recargar el iframe se pierden las superposiciones)
+function edEnviarSucios() {
+  var vistos = {};
+  for (var sub in ED_GRUPO) {
+    var gr = ED_GRUPO[sub];
+    if (vistos[gr]) continue; vistos[gr] = 1;
+    if (SUCIO[gr]) { var m = edModelo(gr); if (m) edEnviar(m.tipo, m.valor); }
+  }
+}
+function edPreviewDebounce() {
+  if (!document.body.classList.contains('modo-editor')) return;
+  clearTimeout(edTimer);
+  edTimer = setTimeout(function () { edPreviewActivo(true); }, 160);
+}
+function edCargarPagina(url) {
+  ED_PAGINA = url;
+  EDFRAME_LISTO = false;
+  var f = edFrame(); if (f) f.src = url;
+  var sel = document.getElementById('ed-pagina');
+  if (sel) { var hay = false; for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === url) hay = true; if (hay) sel.value = url; }
+}
+function edCambiarPagina(url) { edCargarPagina(url); }
+function edRefrescar() { EDFRAME_LISTO = false; var f = edFrame(); if (f) f.src = ED_PAGINA; }
+function edAbrirPestana() { window.open(ED_PAGINA, '_blank'); }
+function edDispositivo(d) {
+  var marco = document.getElementById('ed-marco'); if (marco) marco.classList.toggle('movil', d === 'movil');
+  var btns = document.querySelectorAll('.ed-dev button');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('activa', btns[i].getAttribute('data-dev') === d);
+}
+function edToggleDock(abrir) { var d = document.getElementById('ed-dock'); if (d) d.classList.toggle('abierto', !!abrir); }
+function edAsegurarFrame() {
+  var f = edFrame();
+  if (f && !f.getAttribute('src')) { EDFRAME_LISTO = false; f.src = ED_PAGINA; }
+}
+// El iframe avisa cuando ya puede recibir cambios → reenviamos los bloques con edición en curso
+window.addEventListener('message', function (e) {
+  var d = e.data;
+  if (!d || d.__arakakiPreviewReady !== true) return;
+  EDFRAME_LISTO = true;
+  if (d.pagina) ED_PAGINA = d.pagina;
+  edEnviarSucios();
+  edPreviewActivo(false);
+});
+// Escucha delegada: cualquier cambio en un campo del editor → refresca la vista previa (no toca el guardado)
+(function () {
+  var v = document.getElementById('v-sitio');
+  if (!v) return;
+  v.addEventListener('input', edPreviewDebounce);
+  v.addEventListener('change', edPreviewDebounce);
+})();
 
 // Sub-pestañas GENÉRICAS (❓ Consultas, 💰 Precios, 👥 Club): el contenedor .subtabs lleva
 // data-pref y cada botón data-t; se muestra el .subpanel con id <pref>-<t> de esa sección.
@@ -2727,6 +3165,7 @@ function pintarClubCfg() {
   document.getElementById('club-promos-sw').checked = c.promos !== false;
   document.getElementById('club-sorteos-sw').checked = c.sorteos !== false;
   document.getElementById('club-cupones-sw').checked = c.cupones !== false;
+  document.getElementById('club-vip-sw').checked = c.vip !== false;
   document.getElementById('club-pps').value = c.puntosPorSol || 1;
   pintarPromosClub();
   pintarCuponesClub();
@@ -3103,6 +3542,7 @@ function guardarClub(clave) {
     promos: document.getElementById('club-promos-sw').checked,
     sorteos: document.getElementById('club-sorteos-sw').checked,
     cupones: document.getElementById('club-cupones-sw').checked,
+    vip: document.getElementById('club-vip-sw').checked,
     puntosPorSol: parseFloat((document.getElementById('club-pps').value || '1').replace(',', '.')) || 1,
   };
   var promos = leerPromosClubDOM().filter(function (p) { return p.titulo; });
@@ -3315,6 +3755,7 @@ var EV_GRUPOS = [
   { tit: '💬 Chat de la web', evs: [['chatweb_abierto', 'Veces que abrieron el chat'], ['chatweb_msg', 'Mensajes conversados'], ['chatweb_suscriptor', 'Suscriptores captados'], ['chatweb_consulta', 'Preguntas que el bot no supo']] },
   { tit: '📤 Compartir productos', evs: [['compartir_chat', 'Compartidos por chat de WhatsApp'], ['compartir_estado', 'Imágenes para estados creadas'], ['compartir_link', 'Enlaces copiados']] },
   { tit: '👥 Club', evs: [['vip_abrir', 'Popup VIP abierto en el inicio'], ['vip_crear', 'Toques en "Crear mi cuenta VIP"'], ['club_cuenta', 'Cuentas creadas'], ['club_login', 'Inicios de sesión'], ['club_sorteo', 'Participaciones en sorteos'], ['club_pregunta', 'Preguntas al negocio'], ['club_recupero', 'PIN recuperados']] },
+  { tit: '🤖 Pop-up VIP (chat automático)', evs: [['vipbot_abrir', 'Veces que apareció el pop-up'], ['vipbot_responde', 'Personas que respondieron'], ['vipbot_wa', 'WhatsApp dejados'], ['vipbot_correo', 'Correos dejados'], ['vipbot_dir', 'Direcciones dejadas'], ['vipbot_lead', 'Interesados registrados'], ['vipbot_cuenta', 'Toques en "Activar mi cuenta"']] },
   { tit: '🧩 Combos (venta cruzada)', evs: [['comple_elegir', 'Complemento elegido en la página'], ['comple_carrito', 'Toque final añadido en el carrito']] },
   { tit: '🔔 Avisos', evs: [['push_enviados', 'Notificaciones push enviadas'], ['push_click', 'Notificaciones abiertas'], ['correo_enviados', 'Correos de promo enviados']] },
 ];
@@ -3344,6 +3785,10 @@ function cargarStats(dias) {
   for (var i = 0; i < botones.length; i++) botones[i].classList.toggle('activa', parseInt(botones[i].textContent, 10) === STATS_DIAS);
   api('stats', { dias: STATS_DIAS }).then(pintarStats)
     .catch(function (e) { document.getElementById('st-kpis').innerHTML = '<p style="color:var(--sub);font-size:13px">' + esc(e.message) + '</p>'; });
+  // Monitor "en vivo": lo refresca solo mientras la sección Analíticas esté abierta
+  cargarEnvivo();
+  if (ENVIVO_TIMER) clearInterval(ENVIVO_TIMER);
+  ENVIVO_TIMER = setInterval(cargarEnvivo, 15000);
 }
 function pintarStats(j) {
   var s = j.series || {}, prev = j.prev || {};
@@ -3693,6 +4138,9 @@ var SITIO_CAMPOS = {
   compChat: 'sitio-compchat', compOg: 'sitio-compog', compLema: 'sitio-complema',
   compCintillo: 'sitio-compcintillo', compCta: 'sitio-compcta', compSinPrecio: 'sitio-compsinprecio',
   compBrilloSeg: 'sitio-compbrillo', portadaVideo: 'sitio-portadavid',
+  portadaDir: 'sitio-portadadir', portadaRef: 'sitio-portadaref', mapaBtn: 'sitio-mapabtn', cinta: 'sitio-cinta',
+  vipEyebrow: 'sitio-vipeyebrow', vipTitulo: 'sitio-viptitulo', vipSub: 'sitio-vipsub',
+  vipChips: 'sitio-vipchips', vipCta: 'sitio-vipcta', vipNota: 'sitio-vipnota',
 };
 // 🏠 Video de la portada: default (nada guardado) = logo animado. El repertorio sale de VIDEOS_REPO.
 var PORTADA_DEF = '/img/videos/logo-animado.mp4';
@@ -3877,6 +4325,7 @@ function cargarPopup() {
     var p = j.p || {};
     document.getElementById('popup-on').value = p.on === '0' ? '0' : '1';
     document.getElementById('popup-frec').value = p.frec === 'siempre' ? 'siempre' : '';
+    document.getElementById('popup-veces').value = Math.max(1, Math.min(20, parseInt(p.veces, 10) || 1));
     ['titulo', 'sub', 'fecha', 'falta', 'despues', 'barra', 'desde', 'hasta'].forEach(function (k) {
       var el = document.getElementById('popup-' + k);
       if (el) el.value = p[k] || '';
@@ -3894,6 +4343,8 @@ function cargarPopup() {
       document.getElementById('popup-b' + n + 'u').value = bt.url || '';
       document.getElementById('popup-b' + n + 'e').value = bt.estilo === 'blanco' ? 'blanco' : 'rojo';
     }
+    POPUP_BANNERS = Array.isArray(p.banners) ? p.banners.slice() : [];
+    pintarBannersPopup();
   }).catch(function () {});
 }
 function guardarPopup() {
@@ -3903,17 +4354,387 @@ function guardarPopup() {
     var t = val('popup-b' + n + 't'), u = val('popup-b' + n + 'u');
     if (t && u) botones.push({ txt: t, url: u, estilo: val('popup-b' + n + 'e') });
   }
+  var banners = leerBannersPopupDOM().filter(function (b) { return b.titulo || b.imagen; });
   api('setpopup', {
-    on: val('popup-on'), frec: val('popup-frec'),
+    on: val('popup-on'), frec: val('popup-frec'), veces: val('popup-veces'),
     titulo: val('popup-titulo'), sub: val('popup-sub'),
     video: val('popup-video-url') || val('popup-video'),
     fecha: val('popup-fecha'), falta: val('popup-falta'), despues: val('popup-despues'),
     barra: val('popup-barra'), desde: val('popup-desde'), hasta: val('popup-hasta'),
-    botones: botones
+    botones: botones, banners: banners
   }).then(function () {
     okGuardado('popup', 'Popup guardado. Se ve en la web en ~1 minuto.');
     cargarPopup();
   }).catch(function (e) { errGuardado('popup', e); });
+}
+
+// --- 📣 Publicidad del popup: banners del carrusel (config:popup.banners) ---
+// Reusa el MISMO carrusel del Club en la web (assets/site.js carruselHtml). La imagen se sube
+// con imgup (igual que los banners del Club y los cupones) → /api/push?img=<id>.
+var POPUP_BANNERS = [];
+function avisoPopup(t, mal) {
+  var a = document.getElementById('popup-aviso');
+  if (!a) return;
+  a.textContent = t;
+  a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function pintarBannersPopup() {
+  var bs = POPUP_BANNERS || [];
+  var cont = document.getElementById('popup-banners');
+  if (!cont) return;
+  cont.innerHTML = bs.map(function (b, i) {
+    var img = b.imagen || '';
+    var foto = img
+      ? '<img src="' + esc(img) + '" alt="Aviso" style="width:150px;height:60px">'
+      : '<div class="cci-nofoto" style="width:150px;height:60px">Sin<br>imagen</div>';
+    return '<div class="club-item" data-id="' + esc(b.id || '') + '" data-img="' + esc(img) + '">' +
+      '<div class="cci-foto">' + foto +
+        '<label class="btn gris" style="cursor:pointer">📷 ' + (img ? 'Cambiar imagen' : 'Subir imagen') +
+          '<input type="file" accept="image/*" style="display:none" onchange="subirImgBannerPopup(this,' + i + ')"></label></div>' +
+      '<input type="text" class="cbi-tit" value="' + esc(b.titulo || '') + '" maxlength="80" placeholder="Título (opcional, sale debajo de la imagen)">' +
+      '<input type="text" class="cbi-txt" value="' + esc(b.texto || '') + '" maxlength="160" placeholder="Frase corta (opcional)">' +
+      '<input type="text" class="cbi-url" value="' + esc(b.url || '') + '" maxlength="200" placeholder="Enlace al tocarlo (opcional, ej. /pisco)">' +
+      '<div class="fila-conf"><label style="font-size:12px">Hasta: <input type="date" class="cbi-hasta" value="' + fechaCorta(b.hasta) + '"></label>' +
+      '<button class="btn gris" type="button" onclick="quitarBannerPopup(' + i + ')">🗑️ Quitar</button></div></div>';
+  }).join('') || '<span class="hint" style="font-size:12px;color:var(--sub)">Sin avisos todavía: toca "+ Añadir aviso". Mientras no haya, el popup muestra los botones de respaldo.</span>';
+}
+function leerBannersPopupDOM() {
+  var out = [];
+  var items = document.querySelectorAll('#popup-banners .club-item');
+  for (var i = 0; i < items.length; i++) {
+    out.push({
+      id: items[i].getAttribute('data-id') || '',
+      titulo: items[i].querySelector('.cbi-tit').value.trim(),
+      texto: items[i].querySelector('.cbi-txt').value.trim(),
+      url: items[i].querySelector('.cbi-url').value.trim(),
+      imagen: items[i].getAttribute('data-img') || '',
+      hasta: fechaMs(items[i].querySelector('.cbi-hasta').value),
+    });
+  }
+  return out;
+}
+function agregarBannerPopup() {
+  POPUP_BANNERS = leerBannersPopupDOM();
+  if (POPUP_BANNERS.length >= 8) return avisoPopup('Máximo 8 avisos: quita uno para añadir otro.', true);
+  POPUP_BANNERS.push({ id: '', titulo: '', texto: '', url: '', imagen: '', hasta: null });
+  pintarBannersPopup();
+  marcarSucio('popup');
+}
+function quitarBannerPopup(i) {
+  var b = leerBannersPopupDOM()[i];
+  confirmar({
+    titulo: '¿Quitar este aviso?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (b && b.titulo ? '"' + b.titulo + '"\n\n' : '') + 'Se va de la lista. Recién desaparece de la web cuando toques 💾 Guardar popup.'
+  }, function () {
+    POPUP_BANNERS = leerBannersPopupDOM();
+    POPUP_BANNERS.splice(i, 1);
+    pintarBannersPopup();
+    marcarSucio('popup');
+  });
+}
+// Igual que la imagen del banner del Club: se comprime EN el navegador y se sube vía imgup.
+function subirImgBannerPopup(inp, i) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) return avisoPopup('Ese archivo no es una imagen.', true);
+  POPUP_BANNERS = leerBannersPopupDOM(); // conserva lo tipeado antes de subir
+  avisoPopup('⏳ Procesando la imagen del aviso…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var escala = Math.min(1, 1200 / img.naturalWidth, 1200 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * escala)), h = Math.max(1, Math.round(img.naturalHeight * escala));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) return avisoPopup('La imagen pesa demasiado incluso comprimida: prueba con otra más liviana.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      if (POPUP_BANNERS[i]) POPUP_BANNERS[i].imagen = j.url;
+      pintarBannersPopup();
+      marcarSucio('popup');
+      avisoPopup('🖼️ Imagen del aviso subida. No olvides "💾 Guardar popup".');
+    }).catch(function (e) { avisoPopup(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoPopup('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
+}
+
+// --- 🤖 Pop-up conversacional VIP: config:vipbot (lo sirve /api/sitio como vb, lo pinta site.js) ---
+// El flujo es una lista de "pasos" (mismo modelo que VIPBOT_DEF de site.js). El primer paso es el
+// que ve el cliente al abrir. Los destinos de los botones/captura se eligen con un desplegable.
+var VIP_DEF_PASOS = [
+  { id: 'inicio', msgs: '¡Hola! 👋 Soy tu asistente del Club Arakaki.\n\n¿Te gustaría abrir una cuenta *gratuita* y volverte cliente VIP con beneficios exclusivos? 🎁',
+    opciones: [{ txt: 'Sí, quiero ✨', ir: 'nombre' }, { txt: '¿De qué trata?', ir: 'info' }, { txt: 'Después', ir: 'chau' }] },
+  { id: 'info', msgs: 'Con tu cuenta VIP tienes:\n\n🪙 Puntos por cada compra\n🎁 Promos solo para socios\n🎟️ Cupones de descuento\n🎉 Sorteos exclusivos\n⭐ Tus listas de favoritos guardadas\n\n¡Y es totalmente gratis! 😍',
+    opciones: [{ txt: '¡Me apunto! ✨', ir: 'nombre' }, { txt: 'Ahora no', ir: 'chau' }] },
+  { id: 'nombre', msgs: '¡Genial! 🙌 Para crear tu cuenta, ¿cómo te llamas?', campo: 'nombre', sig: 'tel' },
+  { id: 'tel', msgs: 'Un gusto, {nombre} 😊\n\n¿Cuál es tu WhatsApp? Te avisamos de las ofertas por ahí. 📲', campo: 'whatsapp', sig: 'correo' },
+  { id: 'correo', msgs: '¿Y tu correo? Nos sirve para recuperar tu cuenta y enviarte promos.', campo: 'email', opcional: '1', sig: 'dir' },
+  { id: 'dir', msgs: '¿A qué dirección te llevamos tus pedidos? 📍', campo: 'direccion', opcional: '1', sig: 'listo' },
+  { id: 'listo', msgs: '¡Listo, {nombre}! 🎉 Ya eres parte del Club Arakaki.\n\nAhora crea tu clave secreta para entrar a tu cuenta cuando quieras 👇', guardar: '1',
+    opciones: [{ txt: '🔐 Activar mi cuenta', ir: 'cuenta' }, { txt: 'Seguir viendo la tienda', ir: 'cerrar' }] },
+  { id: 'chau', msgs: '¡Sin problema! 😊 Cuando quieras, tu cuenta VIP te espera aquí. 👑',
+    opciones: [{ txt: 'Entendido', ir: 'cerrar' }] },
+];
+var VIP_PASOS = [];
+var VIP_CAMPOS = [['nombre', '🙂 Nombre'], ['whatsapp', '📱 WhatsApp'], ['email', '✉️ Correo'], ['direccion', '📍 Dirección de envío']];
+function avisoVip(t, mal) {
+  var a = document.getElementById('vip-aviso'); if (!a) return;
+  a.textContent = t; a.className = 'aviso ' + (mal ? 'mal' : 'ok');
+  setTimeout(function () { a.className = 'aviso'; }, 4000);
+}
+function vipNuevoId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+function vipPreview(p) { var m = String(p.msgs || '').replace(/\s+/g, ' ').trim(); return m ? (m.length > 26 ? m.slice(0, 26) + '…' : m) : '(sin mensaje)'; }
+// Desplegable de destinos: cada paso (por su nombre-preview) + acciones especiales
+function vipDestinoHtml(sel) {
+  var h = '';
+  VIP_PASOS.forEach(function (p, idx) { h += '<option value="' + esc(p.id) + '"' + (sel === p.id ? ' selected' : '') + '>➡️ Paso ' + (idx + 1) + ': ' + esc(vipPreview(p)) + '</option>'; });
+  h += '<option value="cuenta"' + (sel === 'cuenta' ? ' selected' : '') + '>🔐 Ir a activar la cuenta (poner clave)</option>';
+  h += '<option value="wa"' + (sel === 'wa' ? ' selected' : '') + '>💬 Abrir WhatsApp</option>';
+  h += '<option value="cerrar"' + (sel === 'cerrar' ? ' selected' : '') + '>❌ Cerrar el pop-up</option>';
+  return h;
+}
+function vipAvatarImg() { return (document.getElementById('vip-avatar-item') || {}).getAttribute ? document.getElementById('vip-avatar-item').getAttribute('data-img') : ''; }
+function pintarAvatarVip() {
+  var it = document.getElementById('vip-avatar-item'); if (!it) return;
+  var img = it.getAttribute('data-img') || '';
+  var prev = document.getElementById('vip-avatar-prev');
+  prev.innerHTML = img ? '<img src="' + esc(img) + '" alt="Asistente">' : '<div class="cci-nofoto">Gato<br>oficial</div>';
+}
+function pintarPasosVip() {
+  var cont = document.getElementById('vip-pasos'); if (!cont) return;
+  cont.innerHTML = VIP_PASOS.map(function (p, i) {
+    var esCaptura = !!p.campo;
+    var img = p.img || '';
+    var foto = img
+      ? '<img src="' + esc(img) + '" alt="Imagen" style="width:90px;height:90px">'
+      : '<div class="cci-nofoto">Sin<br>imagen</div>';
+    var ops = (p.opciones && p.opciones.length) ? p.opciones : [{ txt: '', ir: 'cerrar' }];
+    var opsHtml = ops.map(function (op, j) {
+      return '<div class="popup-btn-fila vip-op">' +
+        '<input type="text" class="vip-op-txt" value="' + esc(op.txt || '') + '" maxlength="60" placeholder="Texto del botón (ej. Sí ✨)">' +
+        '<select class="vip-op-ir">' + vipDestinoHtml(op.ir) + '</select>' +
+        '<button class="btn gris" type="button" onclick="quitarOpVip(' + i + ',' + j + ')" title="Quitar botón">🗑️</button></div>';
+    }).join('');
+    var campoOpts = VIP_CAMPOS.map(function (c) { return '<option value="' + c[0] + '"' + (p.campo === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('');
+    return '<div class="vip-paso club-item" data-id="' + esc(p.id) + '" data-img="' + esc(img) + '">' +
+      '<div class="vip-paso-cab"><b>Paso ' + (i + 1) + (i === 0 ? ' · Inicio 🟢' : '') + '</b>' +
+        '<span class="vip-paso-acc">' +
+          '<button class="btn gris" type="button" onclick="moverPasoVip(' + i + ',-1)" title="Subir"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+          '<button class="btn gris" type="button" onclick="moverPasoVip(' + i + ',1)" title="Bajar"' + (i === VIP_PASOS.length - 1 ? ' disabled' : '') + '>▼</button>' +
+          '<button class="btn gris" type="button" onclick="quitarPasoVip(' + i + ')" title="Quitar paso">🗑️</button>' +
+        '</span></div>' +
+      '<label>Mensajes del bot <small style="color:var(--sub)">(deja una línea en blanco para separar en varias burbujas · usa {nombre} para saludar)</small></label>' +
+      '<textarea class="vip-msgs" maxlength="800" style="min-height:70px;width:100%">' + esc(p.msgs || '') + '</textarea>' +
+      '<div class="cci-foto" style="margin-top:8px">' + foto +
+        '<label class="btn gris" style="cursor:pointer">📷 ' + (img ? 'Cambiar imagen' : 'Añadir imagen') +
+          '<input type="file" accept="image/*" style="display:none" onchange="subirImgPasoVip(this,' + i + ')"></label>' +
+        (img ? '<button class="btn gris" type="button" onclick="quitarImgPasoVip(' + i + ')">🗑️ Quitar</button>' : '') + '</div>' +
+      '<label style="margin-top:8px">Después de los mensajes…</label>' +
+      '<select class="vip-tipo" onchange="cambiarTipoVip(' + i + ')">' +
+        '<option value="botones"' + (esCaptura ? '' : ' selected') + '>Mostrar botones de opción</option>' +
+        '<option value="captura"' + (esCaptura ? ' selected' : '') + '>Pedir un dato al cliente</option></select>' +
+      '<div class="vip-botones"' + (esCaptura ? ' style="display:none"' : '') + '>' +
+        opsHtml +
+        '<button class="btn gris" type="button" onclick="agregarOpVip(' + i + ')" style="margin-top:4px">➕ Añadir botón</button></div>' +
+      '<div class="vip-captura"' + (esCaptura ? '' : ' style="display:none"') + '>' +
+        '<div class="tipo-grid">' +
+          '<div class="campo-bloque"><label>¿Qué dato pides?</label><select class="vip-campo">' + campoOpts + '</select></div>' +
+          '<div class="campo-bloque"><label>Luego ir a…</label><select class="vip-sig">' + vipDestinoHtml(p.sig) + '</select></div>' +
+        '</div>' +
+        '<label class="check-fila"><input type="checkbox" class="vip-opcional"' + (p.opcional === '1' ? ' checked' : '') + '> El cliente puede omitir este dato</label>' +
+      '</div>' +
+      '<label class="check-fila" style="margin-top:6px"><input type="checkbox" class="vip-guardar"' + (p.guardar === '1' ? ' checked' : '') + '> ✅ Al llegar aquí, guardar los datos del cliente en mi base</label>' +
+    '</div>';
+  }).join('') || '<p class="hint" style="font-size:12px;color:var(--sub)">Sin pasos todavía. Toca “➕ Añadir paso” o “↩️ Usar el flujo de ejemplo”.</p>';
+}
+// Lee lo que hay en pantalla → array (para no perder lo tipeado al re-pintar)
+function leerPasosVipDOM() {
+  var out = [];
+  var cards = document.querySelectorAll('#vip-pasos .vip-paso');
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i];
+    var tipo = c.querySelector('.vip-tipo').value;
+    var paso = {
+      id: c.getAttribute('data-id') || vipNuevoId(),
+      msgs: c.querySelector('.vip-msgs').value.trim(),
+      img: c.getAttribute('data-img') || '',
+      campo: '', opcional: '', sig: '',
+      guardar: c.querySelector('.vip-guardar').checked ? '1' : '',
+      opciones: [],
+    };
+    if (tipo === 'captura') {
+      paso.campo = c.querySelector('.vip-campo').value;
+      paso.opcional = c.querySelector('.vip-opcional').checked ? '1' : '';
+      paso.sig = c.querySelector('.vip-sig').value;
+    } else {
+      var ops = c.querySelectorAll('.vip-op');
+      for (var j = 0; j < ops.length; j++) {
+        var t = ops[j].querySelector('.vip-op-txt').value.trim();
+        var ir = ops[j].querySelector('.vip-op-ir').value;
+        if (t && ir) paso.opciones.push({ txt: t, ir: ir });
+      }
+    }
+    out.push(paso);
+  }
+  return out;
+}
+function refrescarPasosVip() { VIP_PASOS = leerPasosVipDOM(); pintarPasosVip(); }
+function cambiarTipoVip(i) { // solo alterna qué bloque se ve (no re-pinta todo, para no perder foco)
+  var c = document.querySelectorAll('#vip-pasos .vip-paso')[i]; if (!c) return;
+  var cap = c.querySelector('.vip-tipo').value === 'captura';
+  c.querySelector('.vip-botones').style.display = cap ? 'none' : '';
+  c.querySelector('.vip-captura').style.display = cap ? '' : 'none';
+  marcarSucio('vipbot');
+}
+function agregarPasoVip() {
+  VIP_PASOS = leerPasosVipDOM();
+  if (VIP_PASOS.length >= 20) return avisoVip('Máximo 20 pasos.', true);
+  VIP_PASOS.push({ id: vipNuevoId(), msgs: '', campo: '', opciones: [{ txt: '', ir: 'cerrar' }], guardar: '' });
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function quitarPasoVip(i) {
+  var arr = leerPasosVipDOM();
+  var p = arr[i];
+  confirmar({
+    titulo: '¿Quitar este paso?', ok: '🗑️ Sí, quitar', no: 'No, dejarlo',
+    texto: (p ? '"' + vipPreview(p) + '"\n\n' : '') + 'Se va del flujo. Revisa que ningún botón lo tuviera como destino. Recién se aplica al tocar 💾 Guardar.'
+  }, function () { arr.splice(i, 1); VIP_PASOS = arr; pintarPasosVip(); marcarSucio('vipbot'); });
+}
+function moverPasoVip(i, dir) {
+  var arr = leerPasosVipDOM();
+  var j = i + dir;
+  if (j < 0 || j >= arr.length) return;
+  var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  VIP_PASOS = arr; pintarPasosVip(); marcarSucio('vipbot');
+}
+function agregarOpVip(i) {
+  VIP_PASOS = leerPasosVipDOM();
+  var p = VIP_PASOS[i]; if (!p) return;
+  p.opciones = p.opciones || [];
+  if (p.opciones.length >= 4) return avisoVip('Máximo 4 botones por paso.', true);
+  p.opciones.push({ txt: '', ir: 'cerrar' });
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function quitarOpVip(i, j) {
+  VIP_PASOS = leerPasosVipDOM();
+  var p = VIP_PASOS[i]; if (!p || !p.opciones) return;
+  p.opciones.splice(j, 1);
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function restaurarFlujoVip() {
+  confirmar({
+    titulo: '¿Usar el flujo de ejemplo?', ok: 'Sí, cargarlo', no: 'Cancelar', tipo: '',
+    texto: 'Reemplaza la conversación actual por el ejemplo que ofrece abrir la cuenta VIP y pide nombre, WhatsApp, correo y dirección. Recién se aplica al tocar 💾 Guardar.'
+  }, function () { VIP_PASOS = JSON.parse(JSON.stringify(VIP_DEF_PASOS)); pintarPasosVip(); marcarSucio('vipbot'); });
+}
+// Sube la imagen de un paso (se comprime en el navegador y va por imgup, como los banners)
+function comprimirYSubirVip(f, cb) {
+  if (!/^image\//.test(f.type)) return avisoVip('Ese archivo no es una imagen.', true);
+  avisoVip('⏳ Procesando la imagen…');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var escala = Math.min(1, 1000 / img.naturalWidth, 1000 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * escala)), h = Math.max(1, Math.round(img.naturalHeight * escala));
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.6);
+    if (data.length > 470000) return avisoVip('La imagen pesa demasiado incluso comprimida: prueba con otra.', true);
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      cb(j.url);
+    }).catch(function (e) { avisoVip(e.message, true); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoVip('No se pudo leer esa imagen.', true); };
+  img.src = urlTmp;
+}
+function subirImgPasoVip(inp, i) {
+  var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+  VIP_PASOS = leerPasosVipDOM(); // conserva lo tipeado
+  comprimirYSubirVip(f, function (url) {
+    if (VIP_PASOS[i]) VIP_PASOS[i].img = url;
+    pintarPasosVip(); marcarSucio('vipbot');
+    avisoVip('🖼️ Imagen añadida. No olvides 💾 Guardar.');
+  });
+}
+function quitarImgPasoVip(i) {
+  VIP_PASOS = leerPasosVipDOM();
+  if (VIP_PASOS[i]) VIP_PASOS[i].img = '';
+  pintarPasosVip(); marcarSucio('vipbot');
+}
+function subirAvatarVip(inp) {
+  var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+  comprimirYSubirVip(f, function (url) {
+    var it = document.getElementById('vip-avatar-item'); it.setAttribute('data-img', url);
+    pintarAvatarVip(); marcarSucio('vipbot');
+    avisoVip('🖼️ Foto del asistente lista. No olvides 💾 Guardar.');
+  });
+}
+function quitarAvatarVip() {
+  var it = document.getElementById('vip-avatar-item'); it.setAttribute('data-img', '');
+  pintarAvatarVip(); marcarSucio('vipbot');
+}
+function cargarVipbot() {
+  api('getvipbot').then(function (j) {
+    var vb = j.vb || {};
+    document.getElementById('vip-on').value = vb.on === '0' ? '0' : '1';
+    document.getElementById('vip-frec').value = vb.frec === 'siempre' ? 'siempre' : 'dia';
+    document.getElementById('vip-veces').value = Math.max(1, Math.min(20, parseInt(vb.veces, 10) || 1));
+    document.getElementById('vip-delay').value = (vb.delay == null ? 8 : Math.max(0, Math.min(120, parseInt(vb.delay, 10) || 0)));
+    document.getElementById('vip-desde').value = vb.desde || '';
+    document.getElementById('vip-hasta').value = vb.hasta || '';
+    document.getElementById('vip-salida').checked = vb.salida === '1';
+    document.getElementById('vip-solonuevos').checked = vb.soloNuevos === '1';
+    document.getElementById('vip-titulo').value = vb.titulo || '';
+    document.getElementById('vip-subtitulo').value = vb.subtitulo || '';
+    document.getElementById('vip-avatar-item').setAttribute('data-img', vb.avatar || '');
+    pintarAvatarVip();
+    VIP_PASOS = (Array.isArray(vb.pasos) && vb.pasos.length) ? JSON.parse(JSON.stringify(vb.pasos)) : JSON.parse(JSON.stringify(VIP_DEF_PASOS));
+    pintarPasosVip();
+  }).catch(function () {});
+}
+function guardarVipbot() {
+  var val = function (id) { return document.getElementById(id).value.trim(); };
+  api('setvipbot', {
+    on: val('vip-on'), frec: val('vip-frec'), veces: val('vip-veces'), delay: val('vip-delay'),
+    desde: val('vip-desde'), hasta: val('vip-hasta'),
+    salida: document.getElementById('vip-salida').checked ? '1' : '',
+    soloNuevos: document.getElementById('vip-solonuevos').checked ? '1' : '',
+    titulo: val('vip-titulo'), subtitulo: val('vip-subtitulo'),
+    avatar: document.getElementById('vip-avatar-item').getAttribute('data-img') || '',
+    pasos: leerPasosVipDOM(),
+  }).then(function () {
+    okGuardado('vipbot', 'Pop-up VIP guardado. Se ve en la web en ~1 minuto.');
+    cargarVipbot();
+  }).catch(function (e) { errGuardado('vipbot', e); });
+}
+
+// --- 👀 Visitantes en vivo (panel → 📊 Analíticas): heartbeat de site.js → crm.js envivo ---
+var ENVIVO_TIMER = null;
+function cargarEnvivo() {
+  api('envivo').then(function (j) {
+    var n = j.total || 0;
+    var badge = document.getElementById('envivo-num'); if (badge) badge.textContent = n;
+    var cont = document.getElementById('envivo-lista'); if (!cont) return;
+    if (!n) { cont.innerHTML = 'Nadie navegando en este momento. Aquí verás <b>en tiempo real</b> quién está en tu web.'; return; }
+    var cli = j.clientes || 0;
+    var chips = (j.activos || []).map(function (a) {
+      return '<span class="envivo-chip' + (a.cliente ? ' cliente' : '') + '">' +
+        (a.cliente ? '👤 ' + esc(a.nombre) : '👁️ Visitante') + ' · ' + esc(nombrePagina(a.p)) + '</span>';
+    }).join('');
+    cont.innerHTML = '<div class="envivo-resumen"><b>' + n + '</b> ' + (n === 1 ? 'persona' : 'personas') + ' navegando ahora' +
+      (cli ? ' · <b>' + cli + '</b> ' + (cli === 1 ? 'cliente reconocido' : 'clientes reconocidos') : '') + '</div>' +
+      '<div class="envivo-chips">' + chips + '</div>';
+  }).catch(function () {});
 }
 
 // --- 🔤 Letras (tipografía global): config:tipo (la sirve /api/sitio como t, la aplica site.js) ---
@@ -4072,6 +4893,149 @@ function guardarFondos() {
     okGuardado('fondos', 'Fondos guardados. Se ven en la web en ~1 minuto.');
     cargarFondos();
   }).catch(function (e) { errGuardado('fondos', e); });
+}
+
+// --- 🌈 Colores de marca: config:colores (los sirve /api/sitio como co, los aplica site.js) ---
+// Pisan las variables de color de site.css. Solo #hex válidos; vacío = el color de siempre.
+var COLOR_SLOTS = [
+  { k: 'naranja', n: '🔶 Color principal (barra superior)', d: 'La barra de arriba de la web y el círculo del video de la portada. Es el color más visible de tu marca.', def: '#e64831' },
+  { k: 'dorado', n: '✨ Dorado (detalles premium)', d: 'El dorado de los botones, los precios y los acentos elegantes de las tarjetas de producto.', def: '#d4af37' },
+  { k: 'doradoClaro', n: '🌟 Dorado claro', d: 'El dorado más brillante que acompaña al anterior en los brillos y degradados.', def: '#f2c85b' },
+  { k: 'rojo', n: '🍷 Rojo vino', d: 'El rojo vino de sellos, insignias y algunos acentos puntuales.', def: '#8e1b22' },
+];
+var COLORES_CFG = {};
+function pintarColores() {
+  var cont = document.getElementById('colores-lista');
+  if (!cont) return;
+  cont.innerHTML = COLOR_SLOTS.map(function (s) {
+    var v = COLORES_CFG[s.k] || '';
+    return '<div class="logo-fila">' +
+      '<input type="color" class="col-input" id="col-i-' + s.k + '" value="' + esc(v || s.def) + '" oninput="colorInput(\'' + s.k + '\', this.value)">' +
+      '<div class="lg-info"><b>' + s.n + '</b><span>' + s.d + '</span></div>' +
+      '<div class="lg-acciones">' +
+        '<button type="button" class="btn gris" onclick="colorReset(\'' + s.k + '\')">el de siempre</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+function colorInput(k, v) {
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) COLORES_CFG[k] = v; else delete COLORES_CFG[k];
+  marcarSucio('colores');
+}
+function colorReset(k) {
+  delete COLORES_CFG[k];
+  var def = '';
+  COLOR_SLOTS.forEach(function (s) { if (s.k === k) def = s.def; });
+  var inp = document.getElementById('col-i-' + k);
+  if (inp) inp.value = def;
+  marcarSucio('colores');
+  edPreviewActivo(true); // el cambio programático no dispara input: refrescamos la vista previa a mano
+}
+function colorResetAll() {
+  COLORES_CFG = {};
+  pintarColores();
+  marcarSucio('colores');
+  edPreviewActivo(true);
+}
+function cargarColores() {
+  api('getcolores').then(function (j) {
+    COLORES_CFG = j.co || {};
+    pintarColores();
+  }).catch(function () { COLORES_CFG = {}; pintarColores(); });
+}
+function guardarColores() {
+  api('setcolores', { colores: COLORES_CFG }).then(function () {
+    okGuardado('colores', 'Colores de marca guardados. Se ven en la web en ~1 minuto.');
+    cargarColores();
+  }).catch(function (e) { errGuardado('colores', e); });
+}
+
+// --- 🖼️ Beneficios del inicio: config:beneficios (los sirve /api/sitio como bn, los pinta site.js) ---
+// Láminas {img,titulo,texto} del carrusel "Atención Personalizada". Vacío/todo borrado = las de siempre.
+var BENEF_DEF_P = [
+  { img: '/img/beneficios/aniversario.webp', titulo: 'Desde 1994 a tu servicio', texto: 'Más de 30 años atendiendo con cariño a las familias de San Isidro.' },
+  { img: '/img/beneficios/pet-friendly.webp', titulo: 'Somos Pet Friendly', texto: 'Ven con tu engreído: aquí también es bienvenido.' },
+  { img: '/img/beneficios/elevador.webp', titulo: 'Tenemos elevador', texto: 'Acceso cómodo para todos los que nos visitan.' },
+];
+var BENEFS = [];
+function benefImgSrc(s) { return s.img || '/img/beneficios/aniversario.webp'; }
+function pintarBeneficios() {
+  var cont = document.getElementById('benef-lista');
+  if (!cont) return;
+  if (!BENEFS.length) { cont.innerHTML = '<div class="benef-vacio">Sin láminas: la web mostrará las de siempre. Toca “➕ Agregar beneficio” para crear la tuya.</div>'; return; }
+  cont.innerHTML = BENEFS.map(function (s, i) {
+    return '<div class="benef-fila" data-i="' + i + '">' +
+      '<img class="benef-prev" id="benef-prev-' + i + '" src="' + esc(benefImgSrc(s)) + '" alt="">' +
+      '<div class="benef-campos">' +
+        '<input type="text" id="benef-t-' + i + '" maxlength="60" placeholder="Título (ej. Somos Pet Friendly)" value="' + esc(s.titulo || '') + '" oninput="benefInput(' + i + ", 'titulo', this.value)\">" +
+        '<textarea id="benef-x-' + i + '" maxlength="160" placeholder="Descripción corta (una frase que dé confianza)" oninput="benefInput(' + i + ", 'texto', this.value)\">" + esc(s.texto || '') + '</textarea>' +
+        '<div class="benef-acc">' +
+          '<label class="btn gris" style="cursor:pointer">📤 Foto<input type="file" accept="image/*" style="display:none" onchange="subirImgBenef(this,' + i + ')" data-sin-seguro></label>' +
+          '<button type="button" class="btn gris" onclick="benefMove(' + i + ',-1)" title="Subir" data-sin-seguro>↑</button>' +
+          '<button type="button" class="btn gris" onclick="benefMove(' + i + ',1)" title="Bajar" data-sin-seguro>↓</button>' +
+          '<button type="button" class="btn gris" onclick="benefDel(' + i + ')" title="Quitar esta lámina" data-sin-seguro>🗑 Quitar</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+function benefInput(i, campo, val) { if (BENEFS[i]) { BENEFS[i][campo] = val; marcarSucio('beneficios'); } }
+function benefAdd() {
+  if (BENEFS.length >= 12) return avisoSitio('Máximo 12 láminas.', true, 'benef-aviso');
+  BENEFS.push({ img: '', titulo: '', texto: '' });
+  pintarBeneficios(); marcarSucio('beneficios'); edPreviewActivo(true);
+}
+function benefDel(i) {
+  BENEFS.splice(i, 1);
+  pintarBeneficios(); marcarSucio('beneficios'); edPreviewActivo(true);
+}
+function benefMove(i, dir) {
+  var j = i + dir;
+  if (j < 0 || j >= BENEFS.length) return;
+  var t = BENEFS[i]; BENEFS[i] = BENEFS[j]; BENEFS[j] = t;
+  pintarBeneficios(); marcarSucio('beneficios'); edPreviewActivo(true);
+}
+function subirImgBenef(inp, i) {
+  var f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f || !BENEFS[i]) return;
+  if (!/^image\//.test(f.type)) return avisoSitio('Ese archivo no es una imagen.', true, 'benef-aviso');
+  avisoSitio('⏳ Procesando la foto…', false, 'benef-aviso');
+  var urlTmp = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    URL.revokeObjectURL(urlTmp);
+    var e2 = Math.min(1, 640 / img.naturalWidth, 640 / img.naturalHeight);
+    var w = Math.max(1, Math.round(img.naturalWidth * e2)), h = Math.max(1, Math.round(img.naturalHeight * e2));
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
+    var data = cv.toDataURL('image/jpeg', 0.82);
+    if (data.length > 470000) data = cv.toDataURL('image/jpeg', 0.7);
+    if (data.length > 470000) return avisoSitio('La foto pesa demasiado incluso comprimida: prueba con otra.', true, 'benef-aviso');
+    apiPush({ action: 'imgup', data: data }).then(function (j) {
+      if (!j.url) throw new Error('El servidor no devolvió la imagen (en la vista local no se puede subir).');
+      BENEFS[i].img = j.url;
+      var prev = document.getElementById('benef-prev-' + i); if (prev) prev.src = j.url;
+      marcarSucio('beneficios'); edPreviewActivo(true);
+      avisoSitio('🖼️ Foto lista. No olvides “💾 Guardar beneficios”.', false, 'benef-aviso');
+    }).catch(function (e) { avisoSitio(e.message, true, 'benef-aviso'); });
+  };
+  img.onerror = function () { URL.revokeObjectURL(urlTmp); avisoSitio('No se pudo leer esa imagen.', true, 'benef-aviso'); };
+  img.src = urlTmp;
+}
+function cargarBeneficios() {
+  api('getbeneficios').then(function (j) {
+    var bn = (j.bn && j.bn.length) ? j.bn : BENEF_DEF_P;
+    BENEFS = bn.map(function (s) { return { img: s.img || '', titulo: s.titulo || '', texto: s.texto || '' }; });
+    pintarBeneficios();
+  }).catch(function () { BENEFS = BENEF_DEF_P.map(function (s) { return { img: s.img, titulo: s.titulo, texto: s.texto }; }); pintarBeneficios(); });
+}
+function guardarBeneficios() {
+  api('setbeneficios', { beneficios: BENEFS }).then(function () {
+    okGuardado('beneficios', 'Beneficios guardados. Se ven en la web en ~1 minuto.');
+    cargarBeneficios();
+  }).catch(function (e) { errGuardado('beneficios', e); });
 }
 // --- 🎬 Videos del hero por categoría: config:videos (los sirve /api/precios y los pinta site.js) ---
 // Archivos disponibles en img/videos/ del repo (si se sube un video nuevo al repo, añadirlo aquí):

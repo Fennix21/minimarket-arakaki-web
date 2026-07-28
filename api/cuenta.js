@@ -6,6 +6,7 @@
 //   GET  ?token=<sess>  -> { on, conocido, ...perfil }      (no-store: puntos, favs, habitual, historial, promos,
 //                                                            sorteos, email, foto, direcciones y preguntas con respuesta)
 //   POST { action: 'crear'|'entrar'|'salir'|'recuperar'|'reccode'|'cambiotel'    (sin sesión)
+//                 |'vip'                                                         (capta interesado del pop-up VIP)
 //                 |'fav'|'sorteo'|'visita'                                       (beneficios)
 //                 |'perfil'|'foto'|'dirs'|'pin'|'pregunta', ... }                (editar mi cuenta)
 //   Recuperación: con Resend (RESEND_API_KEY) 'recuperar' manda un código al correo y 'reccode'
@@ -68,7 +69,7 @@ async function getExtras() {
 }
 
 // Interruptores del Club (panel → 👥 Club). Sin config guardada, todo prendido.
-const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 };
+const CLUB_DEF = { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, vip: true, puntosPorSol: 1 };
 
 // ----- Listas de favoritos (el cliente organiza sus favoritos en categorías propias) -----
 // El cliente marca la ⭐ de un producto y elige en qué lista(s) guardarlo ("Desayuno",
@@ -389,12 +390,14 @@ module.exports = async (req, res) => {
       const club = await getClub();
       if (!club.login) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
-        return res.status(200).json({ on: false });
+        // vip = sección "Únete al Club" de la portada; tiene su propio interruptor,
+        // independiente del login, para que site.js decida mostrarla aunque el Club esté en pausa.
+        return res.status(200).json({ on: false, vip: club.vip !== false });
       }
       if (!token) {
         res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=300');
         // correo:true = hay sistema de correos (Resend) → la recuperación usa código al correo
-        return res.status(200).json({ on: true, funciones: funcionesDe(club), correo: HAS_CORREO, banners: await getBanners(), ui: await getClubUi() });
+        return res.status(200).json({ on: true, funciones: funcionesDe(club), vip: club.vip !== false, correo: HAS_CORREO, banners: await getBanners(), ui: await getClubUi() });
       }
       res.setHeader('cache-control', 'no-store');
       const tel = await telDeSesion(token);
@@ -451,6 +454,39 @@ module.exports = async (req, res) => {
       perfil.on = true;
       perfil.funciones = funcionesDe(club);
       return res.status(200).json({ ok: true, token: nuevoToken, perfil });
+    }
+
+    // ----- Captación desde el pop-up conversacional VIP del inicio -----
+    // NO crea PIN: solo guarda los datos del interesado en la MISMA base del Club (cliente:<key>/
+    // clientes), igual que registrar_suscriptor del chat. La clave = WhatsApp (51+num) o 'e:<correo>'.
+    // Luego el pop-up ofrece un botón para "activar la cuenta" (poner su clave en /mi-cuenta#crear).
+    if (b.action === 'vip') {
+      const nombre = limpio(b.nombre, 60);
+      const tel = normTel(b.telefono || b.whatsapp);
+      let email = limpio(b.email, 80).toLowerCase();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) email = '';
+      const direccion = limpio(b.direccion, 160);
+      if (!tel && !email) return res.status(400).json({ error: 'Déjanos tu WhatsApp o tu correo.' });
+      const key = tel || ('e:' + email.replace(/[^a-z0-9]/g, '').slice(0, 60));
+      let cli = await cargarCliente(key);
+      const eraCliente = !!(cli && (cli.pedidos || cli.pinHash));
+      if (!cli) cli = { id: key, creado: Date.now() };
+      cli.id = key;
+      if (nombre) cli.nombre = nombre;
+      if (tel) cli.telefono = tel;
+      if (email) cli.email = email;
+      if (direccion) cli.direccion = direccion;
+      cli.club = true;
+      cli.origen = cli.origen || 'popup-vip';
+      await guardarCliente(key, cli); // SET cliente:<key> + ZADD clientes
+      // Enlaza este dispositivo al cliente para reconocerlo al volver (saludo + prefill del carrito)
+      if (tel && uid) { try { await redis(['SET', 'uid:' + uid, tel, 'EX', String(400 * 24 * 3600)]); } catch (e) {} }
+      await stat('vipbot_lead');
+      await notifyOwner('👑 *Nuevo interesado en cuenta VIP (pop-up del inicio)*\n👤 ' + (nombre || '(sin nombre)') +
+        (tel ? '\n📱 +' + tel : '') + (email ? '\n✉️ ' + email : '') + (direccion ? '\n📍 ' + direccion : '') +
+        (eraCliente ? '\n♻️ Ya era un cliente registrado.' : '') +
+        '\n\nMíralo en el panel 👉 /panel (👥 Club)');
+      return res.status(200).json({ ok: true, guardado: true, tiene_whatsapp: !!tel, tiene_correo: !!email });
     }
 
     // ----- Iniciar sesión -----

@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Licores · Laboratorio de animaciones — Minimarket Arakaki</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Página de pruebas: efectos y animaciones premium para el encabezado de la sección Licores.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Poppins:wght@500;700;800&display=swap">
+<style>
+/* =====================================================================
+   LICORES · Laboratorio de animaciones (página autocontenida de pruebas)
+   No usa site.css/site.js. Calca la marca: dark-gold premium, Montserrat
+   (cuerpo) + Poppins (títulos, precios, CTA). Solo para elegir qué efecto
+   llevar luego al hero real de las categorías.
+   ===================================================================== */
+:root{
+  --rojo:#8e1b22; --rojo-osc:#5a0f14; --bordo:#3a0a0d;
+  --dorado:#d4af37; --dorado-claro:#f2c85b; --dorado-blanco:#fff6d8;
+  --negro:#262626; --naranja:#e64831; --blanco:#fdf7ee;
+  --verde-wa:#25d366;
+  --tipo-cuerpo:'Montserrat',system-ui,sans-serif;
+  --tipo-titulos:'Poppins','Montserrat',sans-serif;
+  --bg-premium:radial-gradient(120% 90% at 50% 0%, #2b2723 0%, #1a1715 45%, #0c0b0a 100%);
+  --card:linear-gradient(160deg,#211d19 0%,#141210 100%);
+  --borde-oro:rgba(212,175,55,.28);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--tipo-cuerpo); color:var(--blanco);
+  background:#0c0b0a; -webkit-font-smoothing:antialiased; line-height:1.5;
+}
+h1,h2,h3{font-family:var(--tipo-titulos); margin:0; line-height:1.15}
+a{color:inherit}
+.wrap{max-width:1040px; margin:0 auto; padding:0 18px}
+
+/* ---------- Barra superior (solo contexto de la demo) ---------- */
+.top{
+  background:linear-gradient(90deg,#1a1715,#0c0b0a);
+  border-bottom:1px solid var(--borde-oro);
+  padding:11px 18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+.top .marca{font-family:var(--tipo-titulos); font-weight:800; letter-spacing:.4px; font-size:15px;
+  background:linear-gradient(90deg,#d4af37,#f2c85b); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.top .etq{font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--dorado);
+  border:1px solid var(--borde-oro); border-radius:999px; padding:3px 10px;}
+.top .nota{margin-left:auto; font-size:12px; opacity:.6}
+
+/* ====== Utilidades de sección ====== */
+.seccion{padding:54px 0}
+.eyebrow{display:inline-block; font-family:var(--tipo-titulos); font-weight:700;
+  font-size:12px; letter-spacing:2.6px; text-transform:uppercase; color:var(--dorado);
+  background:rgba(212,175,55,.10); border:1px solid var(--borde-oro);
+  padding:5px 14px; border-radius:999px;}
+.stat{font-size:13.5px; letter-spacing:.3px; color:var(--dorado-claro); opacity:.92}
+.stat b{color:#fff}
+
+/* =====================================================================
+   1) HERO PRINCIPAL — la combinación recomendada (brillo + subtítulo que
+      cambia + partículas/bokeh + burbujas de categoría + tarjeta de ocasión)
+   ===================================================================== */
+.hero{
+  position:relative; overflow:hidden; text-align:center;
+  background:var(--bg-premium);
+  padding:64px 18px 58px; border-bottom:1px solid var(--borde-oro);
+}
+/* luces bokeh que se desplazan lento detrás del título */
+.hero .bokeh{position:absolute; inset:0; pointer-events:none; z-index:0; filter:blur(6px)}
+.hero .bokeh i{position:absolute; border-radius:50%; opacity:.0;
+  background:radial-gradient(circle at 30% 30%, rgba(242,200,91,.55), rgba(212,175,55,0) 70%);
+  animation:bokeh 14s ease-in-out infinite;}
+.hero .bokeh i:nth-child(1){width:220px;height:220px; left:6%;  top:12%;  animation-delay:0s}
+.hero .bokeh i:nth-child(2){width:150px;height:150px; left:78%; top:8%;   animation-delay:-3s}
+.hero .bokeh i:nth-child(3){width:300px;height:300px; left:60%; top:48%;  animation-delay:-6s}
+.hero .bokeh i:nth-child(4){width:120px;height:120px; left:20%; top:60%;  animation-delay:-9s}
+.hero .bokeh i:nth-child(5){width:180px;height:180px; left:42%; top:-6%;  animation-delay:-11s}
+@keyframes bokeh{
+  0%,100%{opacity:.10; transform:translateY(10px) scale(.9)}
+  50%{opacity:.5; transform:translateY(-14px) scale(1.08)}
+}
+/* capa de partículas doradas (las inyecta el JS) */
+.particulas{position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:1}
+.particula{position:absolute; bottom:-12px; width:6px; height:6px; border-radius:50%;
+  background:radial-gradient(circle,#fff6d8,#d4af37 60%,rgba(212,175,55,0) 72%);
+  opacity:0; animation:subirPart linear infinite;}
+@keyframes subirPart{
+  0%{transform:translateY(0) scale(.6); opacity:0}
+  12%{opacity:.9}
+  85%{opacity:.55}
+  100%{transform:translateY(-88vh) scale(1); opacity:0}
+}
+.hero .inner{position:relative; z-index:2}
+
+/* Botellas que se deslizan al entrar (una sola vez) */
+.hero .botella{position:absolute; z-index:1; font-size:clamp(46px,9vw,86px);
+  filter:drop-shadow(0 10px 20px rgba(0,0,0,.5)); opacity:0}
+.hero .botella.izq{left:2%;  top:34%; animation:entraIzq 1.5s .3s cubic-bezier(.2,.9,.25,1) forwards, flota 6s 1.9s ease-in-out infinite}
+.hero .botella.der{right:2%; top:26%; animation:entraDer 1.5s .5s cubic-bezier(.2,.9,.25,1) forwards, flota 7s 2.1s ease-in-out infinite}
+@keyframes entraIzq{from{opacity:0; transform:translateX(-120px) rotate(-14deg)} to{opacity:.9; transform:translateX(0) rotate(-6deg)}}
+@keyframes entraDer{from{opacity:0; transform:translateX(120px) rotate(14deg)}  to{opacity:.9; transform:translateX(0) rotate(6deg)}}
+@keyframes flota{0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-12px) rotate(-2deg)}}
+
+/* Título con brillo de vidrio recorriendo las letras */
+.titulo-brillo{
+  font-weight:800; letter-spacing:1px; margin-top:14px;
+  font-size:clamp(44px,11vw,104px); line-height:.98;
+  background:linear-gradient(100deg,#b78a24 0%,#d4af37 30%,#fff6d8 50%,#d4af37 70%,#b78a24 100%);
+  background-size:250% 100%;
+  -webkit-background-clip:text; background-clip:text;
+  color:transparent; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 3px 10px rgba(212,175,55,.25));
+  animation:brilloVidrio 5s ease-in-out infinite;
+}
+@keyframes brilloVidrio{
+  0%{background-position:190% 0}
+  38%{background-position:-70% 0}
+  100%{background-position:-70% 0}
+}
+
+/* Subtítulo que cambia solo */
+.sub-rota{height:34px; margin-top:10px; position:relative}
+.sub-rota .frase{
+  position:absolute; left:0; right:0; top:0;
+  font-family:var(--tipo-titulos); font-weight:500;
+  font-size:clamp(17px,3.6vw,24px); color:var(--dorado-claro);
+  opacity:0; transform:translateY(10px); transition:opacity .6s, transform .6s;
+}
+.sub-rota .frase.on{opacity:1; transform:translateY(0)}
+
+/* Burbujas de categoría (accesos rápidos flotantes) */
+.burbujas{display:flex; flex-wrap:wrap; justify-content:center; gap:10px 12px; margin:26px auto 0; max-width:760px}
+.burbuja{
+  display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+  font-family:var(--tipo-titulos); font-weight:600; font-size:14.5px;
+  color:var(--blanco);
+  background:linear-gradient(160deg,rgba(212,175,55,.16),rgba(212,175,55,.04));
+  border:1px solid var(--borde-oro); border-radius:999px; padding:9px 16px;
+  transition:transform .25s, box-shadow .25s, border-color .25s, background .25s;
+  animation:flotaBurbuja 5s ease-in-out infinite;
+}
+.burbuja .em{font-size:17px}
+.burbuja:nth-child(2n){animation-duration:6.4s}
+.burbuja:nth-child(3n){animation-duration:5.6s}
+.burbuja:nth-child(4n){animation-delay:-2s}
+@keyframes flotaBurbuja{0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}}
+.burbuja:hover,.burbuja:focus-visible{
+  transform:translateY(-4px) scale(1.06); border-color:var(--dorado);
+  background:linear-gradient(160deg,rgba(212,175,55,.34),rgba(212,175,55,.10));
+  box-shadow:0 10px 24px rgba(0,0,0,.4), 0 0 0 3px rgba(212,175,55,.14); outline:none;
+}
+/* estado cuando la tarjeta de ocasión filtra */
+.burbujas.filtrando .burbuja{opacity:.32; filter:saturate(.6)}
+.burbujas.filtrando .burbuja.resaltada{
+  opacity:1; filter:none; border-color:var(--dorado);
+  box-shadow:0 0 0 3px rgba(212,175,55,.22), 0 8px 22px rgba(0,0,0,.45);
+  transform:translateY(-3px) scale(1.08);
+}
+
+/* Tarjeta "¿Qué ocasión celebras hoy?" (el Sommelier) */
+.sommelier{
+  margin:30px auto 0; max-width:560px; text-align:center;
+  background:var(--card); border:1px solid var(--borde-oro); border-radius:20px;
+  padding:22px 20px 20px; box-shadow:0 20px 46px rgba(0,0,0,.5);
+}
+.sommelier .pregunta{font-family:var(--tipo-titulos); font-weight:700; font-size:18px; color:#fff}
+.sommelier .opciones{display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin-top:16px}
+.op{
+  cursor:pointer; border:1px solid var(--borde-oro); border-radius:12px;
+  background:rgba(255,255,255,.03); color:var(--blanco);
+  font-family:var(--tipo-cuerpo); font-weight:600; font-size:14px;
+  padding:10px 14px; display:inline-flex; align-items:center; gap:7px;
+  transition:transform .2s, border-color .2s, background .2s;
+}
+.op .em{font-size:17px}
+.op:hover{transform:translateY(-2px); border-color:var(--dorado); background:rgba(212,175,55,.12)}
+.op.activa{
+  border-color:var(--dorado); color:#3a0d0a;
+  background:linear-gradient(160deg,#f7dc8f,#d4af37);
+}
+.sommelier .respuesta{
+  margin-top:16px; min-height:22px; font-size:14.5px; color:var(--dorado-claro);
+  opacity:0; transform:translateY(6px); transition:opacity .4s, transform .4s;
+}
+.sommelier .respuesta.on{opacity:1; transform:translateY(0)}
+.sommelier .respuesta b{color:#fff}
+
+/* CTA scroll */
+.scroll-hint{margin-top:30px; font-size:12.5px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--dorado); opacity:.8; display:inline-flex; flex-direction:column; align-items:center; gap:4px}
+.scroll-hint .fl{font-size:20px; animation:rebota 1.8s ease-in-out infinite}
+@keyframes rebota{0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)}}
+
+/* =====================================================================
+   2) GALERÍA — cada efecto por separado para poder elegir
+   ===================================================================== */
+.galeria{background:linear-gradient(180deg,#0c0b0a,#141210)}
+.galeria .cab{text-align:center; max-width:640px; margin:0 auto 34px}
+.galeria .cab h2{font-size:clamp(24px,5vw,34px); margin-top:14px}
+.galeria .cab p{opacity:.72; margin-top:10px; font-size:14.5px}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px}
+.demo{
+  position:relative; overflow:hidden; border-radius:18px;
+  border:1px solid var(--borde-oro); background:var(--card);
+  box-shadow:0 14px 34px rgba(0,0,0,.4); display:flex; flex-direction:column;
+}
+.demo .num{position:absolute; top:12px; left:14px; z-index:3;
+  font-family:var(--tipo-titulos); font-weight:800; font-size:12px; letter-spacing:1px;
+  color:var(--dorado); background:rgba(0,0,0,.4); border:1px solid var(--borde-oro);
+  border-radius:999px; width:26px; height:26px; display:flex; align-items:center; justify-content:center}
+.demo .lienzo{
+  position:relative; min-height:190px; display:flex; align-items:center; justify-content:center;
+  text-align:center; padding:26px 18px;
+  background:var(--bg-premium); overflow:hidden;
+}
+.demo .pie{padding:14px 16px 16px; border-top:1px solid var(--borde-oro)}
+.demo .pie h3{font-size:15.5px}
+.demo .pie p{margin:6px 0 0; font-size:13px; opacity:.68; line-height:1.45}
+
+/* --- efecto: brillo de título aislado --- */
+.mini-brillo{font-family:var(--tipo-titulos); font-weight:800; font-size:clamp(30px,7vw,46px);
+  background:linear-gradient(100deg,#b78a24,#d4af37 30%,#fff6d8 50%,#d4af37 70%,#b78a24);
+  background-size:250% 100%; -webkit-background-clip:text; background-clip:text;
+  color:transparent; -webkit-text-fill-color:transparent; animation:brilloVidrio 4.5s ease-in-out infinite}
+
+/* --- efecto: partículas / bokeh en tarjeta --- */
+.mini-bokeh{position:absolute; inset:0}
+.mini-bokeh i{position:absolute; border-radius:50%; filter:blur(4px);
+  background:radial-gradient(circle,rgba(242,200,91,.5),rgba(212,175,55,0) 70%); animation:bokeh 10s ease-in-out infinite}
+.mini-bokeh i:nth-child(1){width:120px;height:120px;left:10%;top:20%}
+.mini-bokeh i:nth-child(2){width:80px;height:80px;left:64%;top:44%;animation-delay:-4s}
+.mini-bokeh i:nth-child(3){width:60px;height:60px;left:40%;top:8%;animation-delay:-7s}
+.mini-bokeh .rot{position:relative; z-index:2; font-family:var(--tipo-titulos); font-weight:700; color:var(--dorado-claro); font-size:20px}
+
+/* --- efecto: botellas deslizando en tarjeta --- */
+.mini-desliza{position:relative; width:100%; height:100%}
+.mini-desliza .b{position:absolute; top:50%; font-size:40px; filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+.mini-desliza .b1{left:8%;  animation:desl1 4s ease-in-out infinite}
+.mini-desliza .b2{left:44%; animation:desl2 4s ease-in-out .25s infinite}
+.mini-desliza .b3{left:80%; animation:desl3 4s ease-in-out .5s infinite}
+@keyframes desl1{0%{opacity:0;transform:translate(-40px,-50%)}20%,80%{opacity:1;transform:translate(0,-50%)}100%{opacity:0;transform:translate(-40px,-50%)}}
+@keyframes desl2{0%{opacity:0;transform:translate(0,-30%) scale(.7)}25%,80%{opacity:1;transform:translate(0,-50%) scale(1)}100%{opacity:0;transform:translate(0,-30%) scale(.7)}}
+@keyframes desl3{0%{opacity:0;transform:translate(40px,-50%)}30%,80%{opacity:1;transform:translate(0,-50%)}100%{opacity:0;transform:translate(40px,-50%)}}
+
+/* --- efecto: barra de descubrimiento --- */
+.mini-barra{width:100%; max-width:240px}
+.mini-barra .et{font-family:var(--tipo-titulos); font-weight:700; font-size:18px; color:#fff; min-height:24px}
+.mini-barra .track{height:9px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; margin-top:12px}
+.mini-barra .fill{height:100%; width:20%; border-radius:999px;
+  background:linear-gradient(90deg,#d4af37,#f2c85b); transition:width 3s linear}
+
+/* --- efecto: máquina de escribir --- */
+.mini-typ
+{font-family:var(--tipo-titulos); font-weight:600; font-size:clamp(20px,5vw,28px); color:#fff}
+.mini-typ .fijo{color:var(--dorado-claro)}
+.mini-typ .cursor{display:inline-block; width:2px; margin-left:1px; background:var(--dorado);
+  animation:parpadea .9s steps(1) infinite; vertical-align:-2px; height:1em}
+@keyframes parpadea{50%{opacity:0}}
+
+/* --- efecto: escaparate --- */
+.mini-escaparate{perspective:600px}
+.mini-escaparate .prod{display:inline-flex; flex-direction:column; align-items:center; gap:6px;
+  transition:transform .5s, opacity .5s}
+.mini-escaparate .prod.flip{transform:rotateY(90deg); opacity:0}
+.mini-escaparate .em{font-size:52px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+.mini-escaparate .nm{font-family:var(--tipo-titulos); font-weight:700; color:var(--dorado-claro); font-size:16px}
+
+/* --- efecto: estadística --- */
+.mini-stat{max-width:230px}
+.mini-stat .big{font-family:var(--tipo-titulos); font-weight:800; font-size:44px;
+  background:linear-gradient(160deg,#f7dc8f,#d4af37); -webkit-background-clip:text; background-clip:text; color:transparent}
+.mini-stat .tx{font-size:13.5px; color:#e9dfce; opacity:.85; margin-top:4px}
+
+/* --- efecto: mini sommelier --- */
+.mini-somm{width:100%; max-width:260px}
+.mini-somm .q{font-family:var(--tipo-titulos); font-weight:700; font-size:15px; color:#fff}
+.mini-somm .ops{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px}
+.mini-somm .op{font-size:12.5px; padding:7px 10px}
+.mini-somm .r{margin-top:10px; min-height:18px; font-size:12.5px; color:var(--dorado-claro)}
+
+/* Pie de página */
+.foot{text-align:center; padding:34px 18px 48px; opacity:.5; font-size:12.5px}
+
+/* Responsive */
+@media(max-width:560px){
+  .hero .botella{display:none}
+  .top .nota{display:none}
+  .seccion{padding:44px 0}
+}
+
+/* Respeto por quien pide menos movimiento */
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+  .particulas{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Barra de contexto (esto NO va al sitio real; es solo el laboratorio) -->
+<div class="top">
+  <span class="marca">Minimarket Arakaki</span>
+  <span class="etq">Laboratorio de animaciones</span>
+  <span class="nota">Página de pruebas · elige el efecto que más te guste</span>
+</div>
+
+<!-- =================================================================
+     HERO PRINCIPAL — la combinación recomendada, lista para usar
+     ================================================================= -->
+<header class="hero">
+  <div class="bokeh"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="particulas" id="particulas"></div>
+
+  <span class="botella izq">🍾</span>
+  <span class="botella der">🥂</span>
+
+  <div class="inner wrap">
+    <span class="eyebrow">Nuestra selección</span>
+    <h1 class="titulo-brillo">Licores</h1>
+
+    <div class="sub-rota" id="subRota" aria-live="polite"></div>
+
+    <p class="stat" style="margin-top:16px"><b>Más de 120 etiquetas</b> esperando por descubrirse.</p>
+
+    <!-- Burbujas = accesos rápidos a cada categoría real -->
+    <nav class="burbujas" id="burbujas" aria-label="Categorías de licores">
+      <a class="burbuja" data-slug="pisco"            href="/pisco"><span class="em">🍶</span>Pisco</a>
+      <a class="burbuja" data-slug="vinos"            href="/vinos"><span class="em">🍷</span>Vinos</a>
+      <a class="burbuja" data-slug="whisky"           href="/whisky"><span class="em">🥃</span>Whisky</a>
+      <a class="burbuja" data-slug="ron"              href="/ron"><span class="em">🍹</span>Ron</a>
+      <a class="burbuja" data-slug="vodka"            href="/vodka"><span class="em">🍸</span>Vodka</a>
+      <a class="burbuja" data-slug="tequila"          href="/tequila"><span class="em">🌵</span>Tequila</a>
+      <a class="burbuja" data-slug="anisado"          href="/anisado"><span class="em">🥂</span>Espumantes</a>
+      <a class="burbuja" data-slug="licores-variados" href="/licores-variados"><span class="em">🍾</span>Más licores</a>
+    </nav>
+
+    <!-- Tarjeta interactiva: el "Sommelier" -->
+    <div class="sommelier">
+      <div class="pregunta">🍷 ¿Qué ocasión celebras hoy?</div>
+      <div class="opciones" id="opciones">
+        <button class="op" data-oc="romantica"><span class="em">🍷</span>Cena romántica</button>
+        <button class="op" data-oc="amigos"><span class="em">🥃</span>Con amigos</button>
+        <button class="op" data-oc="regalo"><span class="em">🎁</span>Para regalar</button>
+        <button class="op" data-oc="brindis"><span class="em">🥂</span>Brindis especial</button>
+      </div>
+      <div class="respuesta" id="respuesta"></div>
+    </div>
+
+    <div class="scroll-hint">Sigue explorando<span class="fl">⌄</span></div>
+  </div>
+</header>
+
+<!-- =================================================================
+     GALERÍA DE EFECTOS — cada idea por separado para elegir
+     ================================================================= -->
+<section class="seccion galeria">
+  <div class="wrap">
+    <div class="cab">
+      <span class="eyebrow">Menú de efectos</span>
+      <h2>Elige tus favoritos</h2>
+      <p>Cada tarjeta es un efecto por separado. Dime cuáles quieres y los llevo al encabezado real de las categorías (o combino varios como en el ejemplo de arriba).</p>
+    </div>
+
+    <div class="grid">
+
+      <!-- 1 -->
+      <article class="demo">
+        <span class="num">1</span>
+        <div class="lienzo"><span class="mini-brillo">Licores</span></div>
+        <div class="pie"><h3>Brillo de vidrio en el título</h3>
+          <p>Un reflejo dorado recorre las letras cada pocos segundos. Sensación de calidad, sin distraer.</p></div>
+      </article>
+
+      <!-- 2 -->
+      <article class="demo">
+        <span class="num">2</span>
+        <div class="lienzo"><div class="mini-bokeh"><i></i><i></i><i></i></div>
+          <span class="rot" id="miniSub" style="position:relative;z-index:2;font-family:var(--tipo-titulos);font-weight:700;color:var(--dorado-claro);font-size:20px"></span></div>
+        <div class="pie"><h3>Subtítulo que cambia solo</h3>
+          <p>“Para celebrar”, “Para regalar”, “Para compartir”… el cliente espera, sin darse cuenta, la siguiente frase.</p></div>
+      </article>
+
+      <!-- 3 -->
+      <article class="demo">
+        <span class="num">3</span>
+        <div class="lienzo"><div class="mini-bokeh"><i></i><i></i><i></i></div>
+          <span class="rot">Luces & destellos</span></div>
+        <div class="pie"><h3>Fondo con luces y partículas</h3>
+          <p>Bokeh dorado y chispas casi imperceptibles detrás del título. Transmite ambiente premium.</p></div>
+      </article>
+
+      <!-- 4 -->
+      <article class="demo">
+        <span class="num">4</span>
+        <div class="lienzo"><div class="mini-desliza"><span class="b b1">🍾</span><span class="b b2">🥂</span><span class="b b3">🥃</span></div></div>
+        <div class="pie"><h3>Botellas que se deslizan</h3>
+          <p>Al entrar a la sección, una botella y una copa aparecen desde los lados. Cuenta una pequeña historia.</p></div>
+      </article>
+
+      <!-- 5 -->
+      <article class="demo">
+        <span class="num">5</span>
+        <div class="lienzo"><div class="mini-stat"><div class="big" id="contador">0</div>
+          <div class="tx">opciones para descubrir. El vino perfecto está a un solo scroll.</div></div></div>
+        <div class="pie"><h3>Estadística que da curiosidad</h3>
+          <p>Un número que sube solo despierta las ganas de seguir bajando a ver todo lo que hay.</p></div>
+      </article>
+
+      <!-- 6 -->
+      <article class="demo">
+        <span class="num">6</span>
+        <div class="lienzo"><div class="mini-barra"><div class="et" id="barraEt">🍷 Hoy destacan</div>
+          <div class="track"><div class="fill" id="barraFill"></div></div></div></div>
+        <div class="pie"><h3>Barra de descubrimiento</h3>
+          <p>El encabezado “respira”: va cambiando entre Hoy destacan → Recién llegaron → Los más elegidos → Oferta del día.</p></div>
+      </article>
+
+      <!-- 7 -->
+      <article class="demo">
+        <span class="num">7</span>
+        <div class="lienzo"><div class="mini-typ">Licores <span class="fijo" id="typ"></span><span class="cursor"></span></div></div>
+        <div class="pie"><h3>Texto que se escribe solo</h3>
+          <p>“Licores para celebrar… para compartir… para sorprender…”. Muy limpio y elegante.</p></div>
+      </article>
+
+      <!-- 8 -->
+      <article class="demo">
+        <span class="num">8</span>
+        <div class="lienzo"><div class="burbujas" style="margin:0">
+          <span class="burbuja"><span class="em">🥃</span>Whisky</span>
+          <span class="burbuja"><span class="em">🍷</span>Vino</span>
+          <span class="burbuja"><span class="em">🍶</span>Pisco</span>
+          <span class="burbuja"><span class="em">🍸</span>Vodka</span>
+        </div></div>
+        <div class="pie"><h3>Burbujas de categorías</h3>
+          <p>Etiquetas flotantes alrededor del título. Al tocarlas, llevan directo a esa categoría.</p></div>
+      </article>
+
+      <!-- 9 -->
+      <article class="demo">
+        <span class="num">9</span>
+        <div class="lienzo"><div class="mini-escaparate"><div class="prod" id="escaparate">
+          <span class="em">🍷</span><span class="nm">Vinos</span></div></div></div>
+        <div class="pie"><h3>Escaparate que cambia solo</h3>
+          <p>Como la vitrina de una tienda física: cada pocos segundos rota el producto destacado.</p></div>
+      </article>
+
+      <!-- 10 -->
+      <article class="demo">
+        <span class="num">10</span>
+        <div class="lienzo"><div class="mini-somm"><div class="q">¿Dulce, fuerte o para regalar?</div>
+          <div class="ops" id="miniOps">
+            <button class="op" data-r="Te llevo a Vinos y Espumantes 🍷">🍷 Dulce</button>
+            <button class="op" data-r="Whisky, Ron y Pisco te esperan 🥃">🥃 Fuerte</button>
+            <button class="op" data-r="Nuestras etiquetas premium 🎁">🎁 Regalo</button>
+          </div>
+          <div class="r" id="miniR">Toca una opción…</div></div></div>
+        <div class="pie"><h3>El “Sommelier” que guía</h3>
+          <p>En vez de buscar entre decenas de productos, la tienda lo guía según lo que celebra. La estrella del combo.</p></div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<div class="foot">Minimarket Arakaki · página interna de pruebas de animaciones — no indexada</div>
+
+<script>
+/* ===================================================================
+   Todo ES5-ish, sin dependencias. Cada bloque es independiente.
+   =================================================================== */
+(function(){
+  'use strict';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Partículas doradas del hero ---- */
+  (function particulas(){
+    if (reduce) return;
+    var cont = document.getElementById('particulas');
+    if (!cont) return;
+    var N = 20;
+    for (var i=0;i<N;i++){
+      var p = document.createElement('span');
+      p.className = 'particula';
+      var size = 3 + Math.random()*5;
+      p.style.left = (Math.random()*100) + '%';
+      p.style.width = p.style.height = size.toFixed(1) + 'px';
+      p.style.animationDuration = (7 + Math.random()*7).toFixed(1) + 's';
+      p.style.animationDelay = (-Math.random()*10).toFixed(1) + 's';
+      cont.appendChild(p);
+    }
+  })();
+
+  /* ---- Subtítulo rotativo del hero ---- */
+  (function subtituloRota(){
+    var frases = ['Para celebrar 🍷','Para regalar 🎁','Para compartir 🥂','Para una noche especial ✨','Para darte un gusto 🍾'];
+    var host = document.getElementById('subRota');
+    if (!host) return;
+    var els = [];
+    for (var i=0;i<frases.length;i++){
+      var s = document.createElement('span');
+      s.className = 'frase'; s.textContent = frases[i];
+      host.appendChild(s); els.push(s);
+    }
+    var idx = 0;
+    els[0].className = 'frase on';
+    if (reduce) return;
+    setInterval(function(){
+      els[idx].className = 'frase';
+      idx = (idx+1) % els.length;
+      els[idx].className = 'frase on';
+    }, 3200);
+  })();
+
+  /* ---- Tarjeta de ocasión (Sommelier) del hero ---- */
+  (function sommelier(){
+    var mapa = {
+      romantica:{ cats:['vinos','anisado'],           txt:'Una <b>cena romántica</b> pide un buen vino. Mira nuestros <b>Vinos</b> y <b>Espumantes</b> 🍷' },
+      amigos:   { cats:['whisky','ron','pisco'],       txt:'¿Reunión con amigos? El <b>Whisky</b>, el <b>Ron</b> y el <b>Pisco</b> nunca fallan 🥃' },
+      regalo:   { cats:['whisky','vinos','licores-variados'], txt:'Para <b>regalar</b>, nuestras etiquetas premium de <b>Whisky</b> y <b>Vinos</b> lucen elegantes 🎁' },
+      brindis:  { cats:['anisado','vinos'],            txt:'Un <b>brindis especial</b> se merece <b>Espumantes</b> bien fríos 🥂' }
+    };
+    var ops = document.getElementById('opciones');
+    var burbujas = document.getElementById('burbujas');
+    var resp = document.getElementById('respuesta');
+    if (!ops || !burbujas || !resp) return;
+    var chips = burbujas.querySelectorAll('.burbuja');
+    ops.addEventListener('click', function(e){
+      var btn = e.target.closest ? e.target.closest('.op') : null;
+      if (!btn) return;
+      var oc = btn.getAttribute('data-oc');
+      var conf = mapa[oc]; if (!conf) return;
+      // marca el botón activo
+      var todos = ops.querySelectorAll('.op');
+      for (var i=0;i<todos.length;i++) todos[i].className = 'op';
+      btn.className = 'op activa';
+      // resalta las burbujas que combinan
+      burbujas.className = 'burbujas filtrando';
+      for (var j=0;j<chips.length;j++){
+        var slug = chips[j].getAttribute('data-slug');
+        chips[j].className = 'burbuja' + (conf.cats.indexOf(slug) >= 0 ? ' resaltada' : '');
+      }
+      resp.innerHTML = conf.txt;
+      resp.className = 'respuesta on';
+    });
+  })();
+
+  /* ---- Galería #2: subtítulo que cambia ---- */
+  (function miniSub(){
+    var el = document.getElementById('miniSub');
+    if (!el) return;
+    var frases = ['Para celebrar','Para regalar','Para compartir','Para sorprender'];
+    var i = 0; el.textContent = frases[0];
+    if (reduce) return;
+    setInterval(function(){
+      el.style.transition = 'opacity .4s'; el.style.opacity = 0;
+      setTimeout(function(){ i=(i+1)%frases.length; el.textContent=frases[i]; el.style.opacity=1; }, 400);
+    }, 2600);
+  })();
+
+  /* ---- Galería #5: contador que sube ---- */
+  (function contador(){
+    var el = document.getElementById('contador');
+    if (!el) return;
+    var meta = 120, ini = null, dur = 2200;
+    if (reduce){ el.textContent = meta+'+'; return; }
+    function paso(ts){
+      if (!ini) ini = ts;
+      var t = Math.min(1, (ts-ini)/dur);
+      var val = Math.floor((1-Math.pow(1-t,3)) * meta); // ease-out
+      el.textContent = val + (t>=1 ? '+' : '');
+      if (t<1) requestAnimationFrame(paso);
+    }
+    // arranca cuando entra en pantalla
+    var obs = new IntersectionObserver(function(en){
+      if (en[0].isIntersecting){ requestAnimationFrame(paso); obs.disconnect(); }
+    }, {threshold:.4});
+    obs.observe(el);
+  })();
+
+  /* ---- Galería #6: barra de descubrimiento ---- */
+  (function barra(){
+    var et = document.getElementById('barraEt'), fill = document.getElementById('barraFill');
+    if (!et || !fill) return;
+    var pasos = ['🍷 Hoy destacan','🥃 Recién llegaron','🍾 Los más elegidos','🔥 Oferta del día'];
+    var i = 0;
+    function ciclo(){
+      et.textContent = pasos[i];
+      fill.style.transition = 'none'; fill.style.width = '8%';
+      // fuerza reflow para reiniciar la transición
+      void fill.offsetWidth;
+      fill.style.transition = 'width 3s linear'; fill.style.width = '100%';
+      i = (i+1) % pasos.length;
+    }
+    ciclo();
+    if (!reduce) setInterval(ciclo, 3200);
+  })();
+
+  /* ---- Galería #7: máquina de escribir ---- */
+  (function typewriter(){
+    var el = document.getElementById('typ');
+    if (!el) return;
+    var palabras = ['para celebrar.','para compartir.','para sorprender.','para disfrutar.'];
+    if (reduce){ el.textContent = palabras[0]; return; }
+    var pi = 0, ci = 0, borrando = false;
+    function tic(){
+      var w = palabras[pi];
+      el.textContent = w.substring(0, ci);
+      if (!borrando){
+        if (ci < w.length){ ci++; setTimeout(tic, 75); }
+        else { borrando = true; setTimeout(tic, 1400); }
+      } else {
+        if (ci > 0){ ci--; setTimeout(tic, 40); }
+        else { borrando = false; pi = (pi+1)%palabras.length; setTimeout(tic, 350); }
+      }
+    }
+    tic();
+  })();
+
+  /* ---- Galería #9: escaparate ---- */
+  (function escaparate(){
+    var el = document.getElementById('escaparate');
+    if (!el) return;
+    var items = [['🍷','Vinos'],['🥃','Whisky'],['🍸','Gin'],['🍾','Espumante'],['🍹','Ron']];
+    var i = 0;
+    if (reduce) return;
+    setInterval(function(){
+      el.className = 'prod flip';
+      setTimeout(function(){
+        i = (i+1)%items.length;
+        el.innerHTML = '<span class="em">'+items[i][0]+'</span><span class="nm">'+items[i][1]+'</span>';
+        el.className = 'prod';
+      }, 500);
+    }, 2400);
+  })();
+
+  /* ---- Galería #10: mini sommelier ---- */
+  (function miniSomm(){
+    var ops = document.getElementById('miniOps'), r = document.getElementById('miniR');
+    if (!ops || !r) return;
+    ops.addEventListener('click', function(e){
+      var b = e.target.closest ? e.target.closest('.op') : null;
+      if (!b) return;
+      var todos = ops.querySelectorAll('.op');
+      for (var i=0;i<todos.length;i++) todos[i].className = 'op';
+      b.className = 'op activa';
+      r.textContent = b.getAttribute('data-r');
+    });
+  })();
+
+})();
+</script>
+</body>
+</html>

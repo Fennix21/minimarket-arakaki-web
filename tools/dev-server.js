@@ -59,6 +59,19 @@ http.createServer((req, res) => {
         toqueBg: 'linear-gradient(180deg, #fdf8ec 0%, #f6ecd0 100%)',
         btnSumar: 'linear-gradient(180deg, #f7dc8f 0%, #d4a941 60%, #b8912f 100%)',
       },
+      // `p` = popup del inicio con publicidad de MUESTRA (2 banners) para ver el carrusel en local
+      // (en producción viene de config:popup; imagen ideal 1000×700). Sin `banners`, salen los botones.
+      // `frec:'siempre'` = sale en cada recarga en local (ignora el tope diario) para poder probarlo.
+      p: {
+        frec: 'siempre',
+        banners: [
+          { id: 'demo1', titulo: '🍷 Semana del Vino', texto: '20% en toda la vinoteca', imagen: '/img/beneficios/aniversario.webp', url: '/vinos' },
+          { id: 'demo2', titulo: '🚚 Delivery gratis', texto: 'En pedidos desde S/ 50', imagen: '/img/beneficios/delivery-gratis.webp', url: '/pisco' },
+        ],
+      },
+      // `vb` = pop-up conversacional VIP. frec:'siempre' + delay corto = sale en cada recarga (para
+      // probar en local); sin `pasos`, site.js usa su flujo por defecto (VIPBOT_DEF).
+      vb: { frec: 'siempre', delay: 2 },
     }));
     // Stub del push: sin clave VAPID (el botón de ofertas muestra "muy pronto")
     if (url === '/api/push') return res.end(req.method === 'POST' ? '{"ok":true,"stub":true}' : '{"key":null}');
@@ -146,7 +159,7 @@ http.createServer((req, res) => {
       }
       const conToken = (req.url || '').indexOf('token=') >= 0;
       // ui = apariencia editable de /mi-cuenta (config:clubui). Vacío = look por defecto (crema/vino/pie apagado).
-      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, correo: true, banners, ui: {} }));
+      return res.end(conToken ? JSON.stringify(perfil) : JSON.stringify({ on: true, funciones, vip: true, correo: true, banners, ui: {} }));
     }
     // Stub del CRM del panel: datos de MUESTRA para ver /panel en local con cualquier contraseña
     // (el CRM real corre en Vercel con Redis). Cubre las vistas con datos: pedidos, consultas,
@@ -188,7 +201,7 @@ http.createServer((req, res) => {
             { id: '51988888888', telefono: '51988888888', nombre: 'Juan Pérez', creado: Date.now() - 10 * 86400000, pedidos: 1, puntos: 0, gastoTotal: 105, ultimoPedido: Date.now() - 86400000, tienePin: false },
           ] },
           getclub: {
-            club: { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, puntosPorSol: 1 },
+            club: { login: true, favoritos: true, puntos: true, promos: true, sorteos: true, cupones: true, vip: true, puntosPorSol: 1 },
             promos: [{ id: 'pr1', titulo: '🍦 2x1 en helados para el Club', texto: 'Muestra tu cuenta en caja', hasta: null }],
             cupones: [],
             sorteos: [{ id: 'so1', titulo: '🎆 Sorteo Fiestas Patrias', premio: 'Canasta Arakaki', hasta: null, activo: true, participantes: 11 }],
@@ -196,6 +209,13 @@ http.createServer((req, res) => {
             ui: { cremaBg: '', bannerTxt: '', kpCol: '', footerOn: false, footerBg: '', footerLogo: '' },
           },
           getprecios: { p: { 'pisco|Pisco Ocucaje Acholado x 700 ml': '48' }, s: { 'pisco|Pisco Ocucaje Acholado x 700 ml': 'agotado' }, x: [] },
+          getvipbot: { vb: {} }, // vacío = el flujo de ejemplo (el panel carga VIP_DEF_PASOS)
+          envivo: { total: 3, clientes: 1, activos: [
+            { p: '/', nombre: '', cliente: false },
+            { p: '/pisco', nombre: 'Rosa Quispe', cliente: true },
+            { p: '/vinos', nombre: '', cliente: false },
+          ] },
+          setvipbot: { ok: true },
           list: { leads: [{ phone: '51999999999', name: 'Rosa Quispe', status: 'interesado', lastText: '¿Tienen pisco quebranta?', lastRole: 'user', updatedAt: Date.now() - 1800000, lastUserTs: Date.now() - 1800000, tags: [] }] },
           reset: { ok: true, total: 137, detalle: { 'stat:*': 96, 'lead:*': 3, 'cliente:*': 5, 'sorteo:*': 2, listas: 6 } },
         };

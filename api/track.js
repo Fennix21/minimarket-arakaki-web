@@ -29,6 +29,22 @@ module.exports = async (req, res) => {
   const day = new Date().toISOString().slice(0, 10);
   const path = ((b.p || '/').toString().slice(0, 60).replace(/[^a-z0-9/_-]/gi, '')) || '/';
 
+  // Latido de presencia: "esta persona sigue navegando la web ahora". NO suma contadores;
+  // marca al visitante en un ZSET con TTL corto para el monitor "en vivo" del panel (crm.js envivo).
+  if (ev === 'presencia') {
+    const uid = (b.uid || '').toString().replace(/[^a-z0-9]/gi, '').slice(0, 40);
+    if (uid) {
+      try {
+        const ahora = Date.now();
+        await redis(['SET', 'pres:' + uid, JSON.stringify({ p: path, ts: ahora }), 'EX', '90']);
+        await redis(['ZADD', 'presencia', String(ahora), uid]);
+        // Poda ocasional de los que ya no están (evita que el ZSET crezca sin control)
+        if (Math.random() < 0.1) await redis(['ZREMRANGEBYSCORE', 'presencia', '-inf', String(ahora - 90000)]);
+      } catch (e) {}
+    }
+    return res.status(200).end();
+  }
+
   try {
     await redis(['INCR', 'stat:' + ev]);
     await redis(['INCR', 'stat:' + ev + ':' + day]);
