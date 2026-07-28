@@ -1764,7 +1764,9 @@ a.ct-link { color: #3a2708 !important; text-decoration: none; }
 .ct-salir:hover { background: rgba(212, 175, 55, 0.3); color: #fff9ec; border-color: var(--glow, var(--dorado)); box-shadow: 0 0 18px -1px var(--glowsh, rgba(212, 175, 55, 0.4)); }
 /* Confirmación de salida: invita a conservar la sesión para entrar al Club sin fricción. */
 .club-salir-modal {
-  position: fixed; inset: 0; z-index: 1450; padding: 18px;
+  /* z-index POR ENCIMA de .cpn-modal (1460): el botón "Cerrar sesión" vive dentro del popup
+     de Mis Datos, así que su confirmación debe quedar arriba, no escondida detrás. */
+  position: fixed; inset: 0; z-index: 1600; padding: 18px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(5, 4, 3, 0.7); backdrop-filter: blur(4px);
 }
@@ -2352,11 +2354,13 @@ span.ch-foto-vacia {
 .club-panel-modern .cpn-saludo { margin: 0; color: #fffaf0; font-size: clamp(21px, 5.6vw, 25px); line-height: 1.15; text-shadow: none; }
 .club-panel-modern .cpn-sub { margin: 4px 0 0; color: #ddcf94; font-size: 14px; }
 .club-panel-modern .cpm-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; margin: 0 0 13px; }
-.club-panel-modern .cpm-tile { min-height: 100px; gap: 8px; padding: 11px 6px; border: 1px solid var(--cpm-line); border-radius: 12px; background: linear-gradient(145deg, rgba(29, 27, 20, 0.95), rgba(13, 14, 13, 0.94)); box-shadow: inset 0 1px rgba(255, 246, 198, 0.035); transition: transform 0.16s, border-color 0.16s, background 0.16s; }
-.club-panel-modern .cpm-tile .cpm-tile-ico { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: 34px; line-height: 1; }
-.club-panel-modern .cpm-tile:hover .cpm-tile-ico, .club-panel-modern .cpm-tile.activo .cpm-tile-ico { transform: none; border: 0; background: transparent; box-shadow: none; }
-.club-panel-modern .cpm-tile:hover, .club-panel-modern .cpm-tile.activo { transform: translateY(-2px); border-color: rgba(246, 214, 107, 0.9); background: rgba(38, 33, 19, 0.96); }
-.club-panel-modern .cpm-tile .ca-txt { color: #f4f1e8; font-size: 13px; font-weight: 700; line-height: 1.2; }
+/* Accesos = tarjeta premium con MEDALLÓN dorado: el aro dorado unifica los emojis (que son de
+   colores distintos) para que el conjunto se vea profesional y no un montón de íconos sueltos. */
+.club-panel-modern .cpm-tile { min-height: 116px; gap: 11px; padding: 15px 8px; border: 1px solid rgba(213, 173, 57, 0.26); border-radius: 16px; background: linear-gradient(160deg, rgba(35, 31, 21, 0.92), rgba(15, 14, 11, 0.96)); box-shadow: inset 0 1px rgba(255, 246, 198, 0.05), 0 5px 16px rgba(0, 0, 0, 0.3); transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s, background 0.18s; }
+.club-panel-modern .cpm-tile .cpm-tile-ico { display: grid; place-items: center; width: 56px; height: 56px; border: 1px solid rgba(213, 173, 57, 0.5); border-radius: 50%; background: radial-gradient(circle at 40% 32%, rgba(246, 214, 107, 0.26), rgba(26, 22, 13, 0.96) 72%); box-shadow: inset 0 1px rgba(255, 246, 198, 0.18), 0 4px 12px rgba(0, 0, 0, 0.4); font-size: 27px; line-height: 1; transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s; }
+.club-panel-modern .cpm-tile:hover, .club-panel-modern .cpm-tile.activo { transform: translateY(-3px); border-color: rgba(246, 214, 107, 0.85); box-shadow: inset 0 1px rgba(255, 246, 198, 0.08), 0 10px 24px rgba(0, 0, 0, 0.42); background: linear-gradient(160deg, rgba(48, 41, 24, 0.95), rgba(20, 18, 12, 0.97)); }
+.club-panel-modern .cpm-tile:hover .cpm-tile-ico, .club-panel-modern .cpm-tile.activo .cpm-tile-ico { transform: scale(1.06); border-color: rgba(246, 214, 107, 0.95); box-shadow: inset 0 1px rgba(255, 246, 198, 0.28), 0 0 18px rgba(213, 173, 57, 0.4); }
+.club-panel-modern .cpm-tile .ca-txt { color: #efe8d7; font-size: 13px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.22; }
 .club-panel-modern .cpm-banner .club-carru { margin: 0 0 13px; }
 /* Banner: marco 10:7 (imagen ideal 1000×700) y fondo TRANSPARENTE — el título/subtítulo
    toman el color de fondo de la página en vez del vino. Solo queda el borde dorado. */
@@ -2390,8 +2394,10 @@ span.ch-foto-vacia {
 .club-panel-modern .cs-ped-det { margin: -2px 4px 5px; padding: 8px 10px 10px; border-color: rgba(213, 173, 57, 0.34); background: #100f0d; color: #ece5d6; }
 .club-panel-modern .cs-ped-item { color: #ded7c6; font-size: 14.5px; }
 .club-panel-modern .cs-ped-total { color: #f5d66b; }
-.club-panel-modern .cpm-cerrar-sesion { display: block; width: 100%; margin: 18px 0 2px; padding: 10px 12px; border: 1px solid rgba(220, 111, 86, 0.48); border-radius: 10px; background: rgba(116, 33, 25, 0.2); color: #efb0a0; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
-.club-panel-modern .cpm-cerrar-sesion:hover { border-color: rgba(239, 176, 160, 0.78); background: rgba(116, 33, 25, 0.38); }
+.club-panel-modern .cpm-cerrar-sesion { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; margin: 24px 0 4px; padding: 14px 16px; border: 1px solid rgba(222, 128, 104, 0.42); border-radius: 13px; background: linear-gradient(180deg, rgba(122, 42, 31, 0.3), rgba(72, 24, 17, 0.34)); color: #f3c8bb; font: inherit; font-size: 14.5px; font-weight: 800; letter-spacing: 0.3px; cursor: pointer; transition: border-color 0.16s, background 0.16s, transform 0.12s, box-shadow 0.16s; }
+.club-panel-modern .cpm-cerrar-sesion span { font-size: 17px; line-height: 1; }
+.club-panel-modern .cpm-cerrar-sesion:hover { border-color: rgba(243, 184, 168, 0.7); background: linear-gradient(180deg, rgba(146, 50, 37, 0.44), rgba(88, 28, 20, 0.46)); box-shadow: 0 6px 18px rgba(120, 30, 20, 0.3); }
+.club-panel-modern .cpm-cerrar-sesion:active { transform: scale(0.99); }
 /* 🪙 Tarjeta de puntos destacada (bajo el saludo): lo primero que ve el socio al entrar. */
 .cpm-puntos-card {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 13px;
@@ -2407,8 +2413,8 @@ span.ch-foto-vacia {
 .cpm-pts-hint { flex-basis: 100%; margin-top: 4px; color: #bdb082; font-size: 13px; line-height: 1.4; }
 /* Barra inferior FIJA al pie de la pantalla (como una app móvil): siempre visible al hacer
    scroll. Ocupa todo el ancho; en escritorio se oculta (ver @media 861px). */
-.cpm-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 0; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(213, 173, 57, 0.3); background: rgba(9, 10, 9, 0.98); backdrop-filter: blur(12px); box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.42); }
-.cpm-nav a, .cpm-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 50px; padding: 0; border: 0; background: transparent; color: #c6bfb0; font: inherit; font-size: 11.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.cpm-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; gap: 2px; margin: 0; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(213, 173, 57, 0.3); background: rgba(9, 10, 9, 0.98); backdrop-filter: blur(12px); box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.42); }
+.cpm-nav a, .cpm-nav button { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 50px; padding: 0; border: 0; background: transparent; color: #c6bfb0; font: inherit; font-size: 11.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
 .cpm-nav a:first-child { color: #f3ce4e; }
 .cpm-nav a span, .cpm-nav button span { font-size: 23px; line-height: 1; }
 .cpm-nav a:hover, .cpm-nav button:hover { color: #f6d66b; }

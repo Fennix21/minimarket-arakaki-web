@@ -3175,7 +3175,7 @@
       '<label for="cp-nuevo">Tu clave nueva (4 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
       '<p class="ct-error" id="cp-error"></p>' +
       '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button>' +
-      '<button type="button" class="cpm-cerrar-sesion" id="ct-salir">Cerrar sesión</button></div>';
+      '<button type="button" class="cpm-cerrar-sesion" id="ct-salir"><span aria-hidden="true">🚪</span>Cerrar sesión</button></div>';
 
     // ⭐ Mis listas de favoritos: cada lista con sus productos y "comprar toda la lista"
     if (fnClub('favoritos')) {
@@ -3282,15 +3282,14 @@
       '<button type="button" class="cs-fila cs-toca cpm-pedidos-cab" id="cs-ped-btn"><span class="cs-ico">◷</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cpm-ped-accion">Ocultar</span><span class="cs-chev" aria-hidden="true">›</span></button>' +
       '<div id="cs-lista">' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
     '</section>' +
-    // Barra inferior fija: Puntos ocupa el 2º lugar (no repetir Favoritos, que ya está arriba
-    // en los accesos). Toca "Mis Puntos" y sube hasta la tarjeta de puntos del saludo.
+    // Barra inferior fija. "Mis Puntos" aparece SOLO cuando la función Puntos está prendida
+    // (panel → 👥 Club → ⚙️ Funciones). Si está apagada, la barra queda con 3 accesos y NO
+    // repite un acceso que ya está arriba (antes caía a "Preguntas" y se veía duplicado).
     '<nav class="cpm-nav" aria-label="Accesos rápidos de la cuenta">' +
       '<a href="/"><span aria-hidden="true">🏪</span>Tienda</a>' +
       (fnClub('puntos')
         ? '<button type="button" data-cpm-accion="puntos"><span aria-hidden="true">🪙</span>Mis Puntos</button>'
-        : (fnClub('favoritos')
-            ? '<button type="button" data-cpm-accion="favs"><span aria-hidden="true">⭐</span>Favoritos</button>'
-            : '<button type="button" data-cpm-accion="preguntas"><span aria-hidden="true">❓</span>Preguntas</button>')) +
+        : '') +
       '<button type="button" data-cpm-accion="pedidos"><span aria-hidden="true">🕑</span>Pedidos</button>' +
       '<button type="button" data-cpm-accion="datos"><span aria-hidden="true">👤</span>Mi cuenta</button>' +
     '</nav>' +
