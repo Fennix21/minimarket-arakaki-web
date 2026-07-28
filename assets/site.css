@@ -2243,7 +2243,7 @@ span.ch-foto-vacia {
 }
 .cam-atmosfera { position: absolute; z-index: -1; inset: 0; pointer-events: none; opacity: 0.28; background-image: radial-gradient(rgba(255, 255, 255, 0.18) 0.6px, transparent 0.7px); background-size: 8px 8px; mask-image: linear-gradient(to bottom, #000, transparent 78%); }
 .cam-marca { display: flex; align-items: center; gap: 10px; min-height: 34px; font-family: var(--tipo-titulos); font-size: 17px; font-weight: 700; letter-spacing: 0.15px; }
-.cam-marca-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: #09090b; font-family: Georgia, serif; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--cam-gold-light), var(--cam-gold-dark)); box-shadow: 0 3px 12px rgba(201, 168, 76, 0.2); }
+.cam-marca-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: #09090b; font-family: var(--tipo-titulos); font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--cam-gold-light), var(--cam-gold-dark)); box-shadow: 0 3px 12px rgba(201, 168, 76, 0.2); }
 .cam-contenido { padding-top: clamp(28px, 6vh, 52px); }
 .cam-titulo { margin: 0 0 6px; font-family: var(--tipo-titulos); font-size: clamp(26px, 7vw, 31px); line-height: 1.15; color: var(--cam-text); }
 .cam-subtitulo { margin: 0 0 28px; color: var(--cam-muted); font-size: 14px; line-height: 1.45; }
@@ -2297,8 +2297,29 @@ span.ch-foto-vacia {
   .club-acceso-moderno .cam-pin-grupo .kp-visor { min-height: 50px; }
   .club-acceso-moderno .kp-tecla { min-height: 46px; }
 }
+/* Vitrina de beneficios (aside izq) + wrapper del formulario: base móvil.
+   .cam-panel usa display:contents para que en móvil sus hijos sigan siendo hijos
+   directos del contenedor flex (el layout mobile-first no cambia). */
+.cam-showcase { display: none; }
+.cam-panel { display: contents; }
 @media (min-width: 861px) {
-  .club-acceso-moderno { min-height: 710px; margin-top: 12px; }
+  /* Escritorio: dos columnas — vitrina de beneficios (izq) + formulario de acceso (der). */
+  .club-acceso-moderno {
+    width: min(100%, 900px); min-height: 560px; margin: 18px auto 0; padding: 0;
+    display: grid; grid-template-columns: 1.05fr 1fr; overflow: hidden;
+  }
+  .cam-panel { display: flex; flex-direction: column; justify-content: center; padding: 42px 44px calc(30px + env(safe-area-inset-bottom, 0px)); }
+  .cam-panel .cam-marca { display: none; }
+  .cam-panel .cam-contenido { padding-top: 0; }
+  .cam-panel .cam-inferior { margin-top: 24px; padding-top: 0; }
+  .cam-showcase { display: flex; flex-direction: column; padding: 42px 34px; background: linear-gradient(158deg, #1b1810 0%, #0a0a0c 72%); border-right: 1px solid rgba(201, 168, 76, 0.18); }
+  .cam-showcase-marca { display: flex; align-items: center; gap: 10px; font-family: var(--tipo-titulos); font-size: 17px; font-weight: 700; color: var(--cam-text); }
+  .cam-showcase-tit { margin: 26px 0 22px; font-family: var(--tipo-titulos); font-size: 27px; line-height: 1.22; color: #f4ecd6; }
+  .cam-showcase-tit b { color: var(--cam-gold-light); }
+  .cam-showcase-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .cam-showcase-lista li { display: flex; align-items: center; gap: 12px; color: #c9c3b6; font-size: 14px; line-height: 1.3; }
+  .cam-showcase-lista li span { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.22); font-size: 18px; }
+  .cam-showcase-pie { margin: auto 0 0; padding-top: 24px; color: var(--cam-muted); font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .club-acceso-moderno *, .club-acceso-moderno *::before, .club-acceso-moderno *::after { transition-duration: 0.01ms !important; }
@@ -2368,13 +2389,46 @@ span.ch-foto-vacia {
 .club-panel-modern .cs-ped-total { color: #f5d66b; }
 .club-panel-modern .cpm-cerrar-sesion { display: block; width: 100%; margin: 18px 0 2px; padding: 10px 12px; border: 1px solid rgba(220, 111, 86, 0.48); border-radius: 10px; background: rgba(116, 33, 25, 0.2); color: #efb0a0; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .club-panel-modern .cpm-cerrar-sesion:hover { border-color: rgba(239, 176, 160, 0.78); background: rgba(116, 33, 25, 0.38); }
+/* 🪙 Tarjeta de puntos destacada (bajo el saludo): lo primero que ve el socio al entrar. */
+.cpm-puntos-card {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 13px;
+  margin: 0 0 13px; padding: 13px 15px;
+  border: 1px solid rgba(246, 214, 107, 0.5); border-radius: 15px;
+  background: linear-gradient(135deg, rgba(66, 54, 21, 0.96), rgba(26, 23, 12, 0.96));
+  box-shadow: inset 0 1px rgba(255, 246, 198, 0.06), 0 8px 20px rgba(0, 0, 0, 0.34);
+}
+.cpm-pts-ico { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; background: radial-gradient(circle at 38% 30%, #f6d66b, #b98f2b); font-size: 25px; box-shadow: 0 4px 12px rgba(213, 173, 57, 0.35); }
+.cpm-pts-body { display: flex; flex-direction: column; line-height: 1.05; }
+.cpm-pts-num { font-family: var(--tipo-titulos); font-size: 32px; font-weight: 800; color: #ffe487; text-shadow: 0 2px 14px rgba(213, 173, 57, 0.3); }
+.cpm-pts-lbl { margin-top: 2px; color: #e7d49a; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+.cpm-pts-hint { flex-basis: 100%; margin-top: 3px; color: #b0a377; font-size: 11px; line-height: 1.35; }
 .cpm-nav { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 12px -14px -14px; padding: 9px 8px calc(9px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(213, 173, 57, 0.2); background: rgba(9, 10, 9, 0.96); backdrop-filter: blur(12px); }
-.cpm-nav a, .cpm-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 41px; padding: 0; border: 0; background: transparent; color: #969186; font: inherit; font-size: 8.5px; text-decoration: none; cursor: pointer; }
+.cpm-nav a, .cpm-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 44px; padding: 0; border: 0; background: transparent; color: #b7b0a2; font: inherit; font-size: 9.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
 .cpm-nav a:first-child { color: #f3ce4e; }
 .cpm-nav a span, .cpm-nav button span { font-size: 20px; line-height: 1; }
 .cpm-nav a:hover, .cpm-nav button:hover { color: #f6d66b; }
 @media (min-width: 861px) {
-  .club-panel-modern { max-width: 620px; padding: 20px; border-radius: 20px; }
-  .club-panel-modern .cpm-tiles { gap: 13px; }
-  .cpm-nav { margin: 16px -20px -20px; }
+  /* Escritorio: aprovecha el ancho — dos columnas en vez de la columna de móvil.
+     Izquierda: saludo + accesos + publicidad. Derecha: puntos + últimos pedidos.
+     Los popups de cada acceso (.cpn-modal) y el aviso de salir son position:fixed,
+     así que no participan de esta grilla. */
+  .club-panel-modern {
+    max-width: 1060px; padding: 26px; border-radius: 22px;
+    display: grid; align-items: start;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      "cab     puntos"
+      "tiles   pedidos"
+      "banner  pedidos";
+    column-gap: 26px; row-gap: 18px;
+  }
+  .club-panel-modern .cpm-bienvenida { grid-area: cab; margin: 0; align-self: center; }
+  .club-panel-modern .cpm-bienvenida .cpn-tit { flex: 1; }
+  .club-panel-modern .cpm-puntos-card { grid-area: puntos; margin: 0; padding: 17px 18px; }
+  .club-panel-modern .cpm-puntos-card .cpm-pts-num { font-size: 36px; }
+  .club-panel-modern .cpm-tiles { grid-area: tiles; gap: 14px; margin: 0; }
+  .club-panel-modern .cpm-banner { grid-area: banner; }
+  .club-panel-modern .cpm-banner .club-carru { margin: 0; }
+  .club-panel-modern .cpm-pedidos { grid-area: pedidos; align-self: start; }
+  .cpm-nav { display: none; }
 }

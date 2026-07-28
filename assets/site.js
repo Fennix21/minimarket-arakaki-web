@@ -2763,6 +2763,20 @@
     int.innerHTML =
       '<div class="club-acceso-moderno">' +
         '<div class="cam-atmosfera" aria-hidden="true"></div>' +
+        // Panel de marca a la IZQUIERDA en escritorio (oculto en móvil): aprovecha el ancho
+        // grande y muestra los beneficios del Club junto al formulario de acceso.
+        '<aside class="cam-showcase" aria-hidden="true">' +
+          '<div class="cam-showcase-marca"><span class="cam-marca-ico">A</span><span>Club Arakaki</span></div>' +
+          '<h3 class="cam-showcase-tit">Tus beneficios de socio, <b>gratis</b> 💛</h3>' +
+          '<ul class="cam-showcase-lista">' +
+            '<li><span aria-hidden="true">🪙</span> Acumula puntos con cada compra</li>' +
+            '<li><span aria-hidden="true">🎫</span> Cupones y promos solo para socios</li>' +
+            '<li><span aria-hidden="true">🎁</span> Sorteos exclusivos del Club</li>' +
+            '<li><span aria-hidden="true">⭐</span> Guarda tus productos favoritos</li>' +
+          '</ul>' +
+          '<p class="cam-showcase-pie">Minimarket Arakaki · San Isidro</p>' +
+        '</aside>' +
+        '<div class="cam-panel">' +
         '<header class="cam-marca"><span class="cam-marca-ico" aria-hidden="true">A</span><span>Club Arakaki</span></header>' +
         '<main class="cam-contenido">' +
           '<h2 class="cam-titulo">Ingresa tu clave</h2>' +
@@ -2789,6 +2803,7 @@
           '</div>' +
           '<a class="cam-volver" href="/">Volver a la tienda</a>' +
         '</div>' +
+        '</div>' /* /.cam-panel */ +
       '</div>';
     var btn = document.getElementById('ct-enviar');
     var err = document.getElementById('ct-error');
@@ -3126,6 +3141,16 @@
         '</div>' +
         '<a class="ct-salir cpm-salir" href="/" aria-label="Ir a la tienda"' + glowStyle('🏪') + '>🏪 Tienda</a>' +
       '</div>' +
+      // 🪙 Puntos: tarjeta destacada bajo el saludo. Antes era una fila diminuta al pie de la
+      // página (fácil de no ver); ahora es lo primero que el socio ve al entrar.
+      (fnClub('puntos')
+        ? '<div class="cpm-puntos-card">' +
+            '<span class="cpm-pts-ico" aria-hidden="true">🪙</span>' +
+            '<span class="cpm-pts-body"><span class="cpm-pts-num">' + (Number(p.puntos) || 0) + '</span>' +
+            '<span class="cpm-pts-lbl">' + ((Number(p.puntos) || 0) === 1 ? 'punto acumulado' : 'puntos acumulados') + '</span></span>' +
+            '<span class="cpm-pts-hint">Ganas puntos con cada compra y los canjeas por beneficios 🎁</span>' +
+          '</div>'
+        : '') +
       '<div class="club-acciones cpn-tiles cpm-tiles">' + tiles.map(function (t) {
         return '<button type="button" class="club-acc cpm-tile" data-sec="' + t.id + '"><span class="ca-ico cpm-tile-ico"' + glowStyle(t.ico) + '>' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
       }).join('') + '</div>' +
@@ -3254,15 +3279,16 @@
         '</div></div>';
     }).join('');
     html += '<section class="club-tarjeta club-sheet cpm-pedidos">' +
-      (fnClub('puntos')
-        ? '<div class="cs-fila cpm-puntos"><span class="cs-ico">🪙</span><span class="cs-txt">Mis Puntos</span><span class="cs-badge">' + (Number(p.puntos) || 0) + '</span></div>'
-        : '') +
       '<button type="button" class="cs-fila cs-toca cpm-pedidos-cab" id="cs-ped-btn"><span class="cs-ico">◷</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cpm-ped-accion">Ocultar</span><span class="cs-chev" aria-hidden="true">›</span></button>' +
       '<div id="cs-lista">' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
     '</section>' +
-    '<nav class="cpm-nav" aria-label="Navegación de la cuenta">' +
-      '<a href="/"><span>⌂</span>Inicio</a><a href="/"><span>♧</span>Tienda</a>' +
-      '<button type="button" data-cpm-accion="pedidos"><span>□</span>Pedidos</button><button type="button" data-cpm-accion="datos"><span>♙</span>Mi Cuenta</button>' +
+    '<nav class="cpm-nav" aria-label="Accesos rápidos de la cuenta">' +
+      '<a href="/"><span aria-hidden="true">🏪</span>Tienda</a>' +
+      (fnClub('favoritos')
+        ? '<button type="button" data-cpm-accion="favs"><span aria-hidden="true">⭐</span>Favoritos</button>'
+        : '<button type="button" data-cpm-accion="preguntas"><span aria-hidden="true">❓</span>Preguntas</button>') +
+      '<button type="button" data-cpm-accion="pedidos"><span aria-hidden="true">🕑</span>Pedidos</button>' +
+      '<button type="button" data-cpm-accion="datos"><span aria-hidden="true">👤</span>Mi cuenta</button>' +
     '</nav>' +
     '</div>';
 
