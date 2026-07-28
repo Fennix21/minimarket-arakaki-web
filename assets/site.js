@@ -1969,7 +1969,10 @@
     cuentaFlagsCargar(function (f) {
       var int = document.getElementById('cuenta-int');
       if (!int) return;
-      if (!f.on) {
+      // En localhost siempre se muestra la maqueta del acceso para poder revisarla.
+      // Así la vista previa no habilita el Club ni modifica el sitio publicado.
+      var vistaPreviaAcceso = location.hostname === 'localhost';
+      if (!f.on && !vistaPreviaAcceso) {
         int.innerHTML = '<div class="cuenta-card"><h3>🎁 Club Arakaki</h3>' +
           '<p>El Club estará disponible muy pronto. Mientras tanto, escríbenos por WhatsApp y te atendemos al toque 📲</p>' +
           '<a class="ct-enviar ct-link" href="https://wa.me/' + WA + '" target="_blank" rel="noopener">Ir a WhatsApp 💬</a></div>';
@@ -2060,6 +2063,9 @@
   // Los "campos" son botones (no inputs): en el celular NUNCA se abre el teclado del sistema.
   // El valor vive en data-v; el celular se pinta como dígitos y la clave como puntitos secretos.
   // En escritorio también funciona el teclado físico (números, Backspace y Enter).
+  // Reversión rápida del rediseño de acceso: cambia 'nuevo' por 'clasico'.
+  // El diseño clásico se conserva completo en pintarAccesoClasico().
+  var CLUB_ACCESO_ESTILO = 'nuevo';
   var KP_FISICO = null; // handler vivo del teclado físico (se recambia al re-pintar la vista)
   function kpCampoHtml(id, tipo, etiqueta, max) {
     return '<button type="button" class="kp-campo' + (tipo === 'pin' ? ' kp-cpin' : '') + '" id="' + id +
@@ -2169,7 +2175,7 @@
 
   // Pantalla de acceso: publicidad, accesos rápidos (crear cuenta / recuperar / cambio de
   // número) y la tarjeta crema "Ingresa tu clave" con el teclado táctil propio.
-  function pintarAcceso(int) {
+  function pintarAccesoClasico(int) {
     var telGuardado = '';
     try { telGuardado = (localStorage.getItem('arakaki_club_tel') || '').replace(/\D/g, '').slice(-9); } catch (e) {}
     int.innerHTML =
@@ -2197,6 +2203,79 @@
     var err = document.getElementById('ct-error');
     if (telGuardado.length === 9) document.getElementById('kp-tel').setAttribute('data-v', telGuardado);
     montarKeypad(document.getElementById('cl-tarjeta'), function () {
+      err.textContent = '';
+      btn.disabled = !(kpVal('kp-tel').length === 9 && kpVal('kp-pin').length >= 4);
+    });
+    btn.onclick = function () {
+      var tel = kpVal('kp-tel');
+      var pin = kpVal('kp-pin');
+      err.textContent = '';
+      if (tel.length < 9) { err.textContent = 'Revisa tu número de celular (9 dígitos).'; return; }
+      if (!/^\d{4}$/.test(pin)) { err.textContent = 'Tu clave tiene 4 números.'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Un momento…';
+      var recordar = !!(document.getElementById('ct-recordar') && document.getElementById('ct-recordar').checked);
+      cuentaPost({ action: 'entrar', telefono: tel, pin: pin }).then(function (j) {
+        if (j && j.ok && j.token) {
+          try { localStorage.setItem('arakaki_club_tel', tel); } catch (e) {}
+          guardarSesion(j.token, recordar);
+          cuentaPerfil = j.perfil || null;
+          window.renderCuenta();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Entrar a mi cuenta';
+          err.textContent = (j && j.error) || 'No pudimos conectarnos. Prueba de nuevo 🙏';
+        }
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Entrar a mi cuenta';
+        err.textContent = 'No pudimos conectarnos. Prueba de nuevo 🙏';
+      });
+    };
+    document.getElementById('ca-crear').onclick = function () { pintarCrear(int); };
+    document.getElementById('ca-rec').onclick = function () { pintarRecuperar(int); };
+    document.getElementById('ca-tel').onclick = function () { pintarCambioTel(int); };
+  }
+
+  // Acceso mobile-first. Comparte el mismo keypad, validaciones, sesión y API del diseño clásico.
+  function pintarAcceso(int) {
+    if (CLUB_ACCESO_ESTILO !== 'nuevo') { pintarAccesoClasico(int); return; }
+    var telGuardado = '';
+    try { telGuardado = (localStorage.getItem('arakaki_club_tel') || '').replace(/\D/g, '').slice(-9); } catch (e) {}
+    int.innerHTML =
+      '<div class="club-acceso-moderno">' +
+        '<div class="cam-atmosfera" aria-hidden="true"></div>' +
+        '<header class="cam-marca"><span class="cam-marca-ico" aria-hidden="true">A</span><span>Club Arakaki</span></header>' +
+        '<main class="cam-contenido">' +
+          '<h2 class="cam-titulo">Ingresa tu clave</h2>' +
+          '<p class="cam-subtitulo">Accede a tus beneficios exclusivos</p>' +
+          '<div class="cam-campo-grupo">' +
+            '<span class="cam-etiqueta">Tu celular</span>' +
+            kpCampoHtml('kp-tel', 'tel', 'Número de celular', 9) +
+          '</div>' +
+          '<div class="cam-campo-grupo cam-pin-grupo">' +
+            '<span class="cam-etiqueta">Tu clave secreta</span>' +
+            kpCampoHtml('kp-pin', 'pin', 'Clave de 4 números', 4) +
+            '<p class="ct-error cam-error" id="ct-error" role="alert" aria-live="polite"></p>' +
+          '</div>' +
+        '</main>' +
+        '<div class="cam-inferior">' +
+          '<div class="cam-opciones">' +
+            '<button type="button" class="cam-enlace" id="ca-rec">¿Olvidaste tu clave?</button>' +
+            '<label class="cam-recordar"><input type="checkbox" id="ct-recordar" checked><span class="cam-interruptor" aria-hidden="true"></span><span>Mantener sesión</span></label>' +
+          '</div>' +
+          kpTecladoHtml() +
+          '<button type="button" class="ct-enviar clt-enviar cam-enviar" id="ct-enviar" disabled>Entrar a mi cuenta</button>' +
+          '<div class="cam-acciones-secundarias">' +
+            '<button type="button" id="ca-crear">Crear cuenta VIP</button><span aria-hidden="true">·</span><button type="button" id="ca-tel">Cambiar número</button>' +
+          '</div>' +
+          '<a class="cam-volver" href="/">Volver a la tienda</a>' +
+        '</div>' +
+      '</div>';
+    var btn = document.getElementById('ct-enviar');
+    var err = document.getElementById('ct-error');
+    if (telGuardado.length === 9) document.getElementById('kp-tel').setAttribute('data-v', telGuardado);
+    montarKeypad(document.querySelector('.club-acceso-moderno'), function () {
       err.textContent = '';
       btn.disabled = !(kpVal('kp-tel').length === 9 && kpVal('kp-pin').length >= 4);
     });

@@ -2089,3 +2089,103 @@ span.ch-foto-vacia {
   .cdf-tit { font-size: 18px; }
   .cdr-hits { grid-template-columns: 1fr; }
 }
+
+/* ---------- Club Arakaki: acceso mobile-first ----------
+   Está aislado bajo .club-acceso-moderno para no modificar los formularios existentes.
+   La vista clásica se puede recuperar en site.js con CLUB_ACCESO_ESTILO = 'clasico'. */
+.club-acceso-moderno {
+  --cam-bg: #050507;
+  --cam-card: #0c0c10;
+  --cam-input: #111115;
+  --cam-key: #1a1a20;
+  --cam-key-hover: #25252e;
+  --cam-gold: #c9a84c;
+  --cam-gold-light: #e4c96a;
+  --cam-gold-dark: #8a7233;
+  --cam-text: #f0ece2;
+  --cam-muted: #6e6a62;
+  --cam-danger: #e08080;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 430px);
+  min-height: min(760px, calc(100dvh - 82px));
+  margin: 0 auto;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  color: var(--cam-text);
+  background: var(--cam-bg);
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  border-radius: 24px;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+}
+.club-acceso-moderno::before {
+  content: ''; position: absolute; z-index: -1; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at -12% -8%, rgba(201, 168, 76, 0.13), transparent 37%),
+    radial-gradient(circle at 105% 100%, rgba(201, 168, 76, 0.09), transparent 34%);
+}
+.cam-atmosfera { position: absolute; z-index: -1; inset: 0; pointer-events: none; opacity: 0.28; background-image: radial-gradient(rgba(255, 255, 255, 0.18) 0.6px, transparent 0.7px); background-size: 8px 8px; mask-image: linear-gradient(to bottom, #000, transparent 78%); }
+.cam-marca { display: flex; align-items: center; gap: 10px; min-height: 34px; font-family: var(--tipo-titulos); font-size: 17px; font-weight: 700; letter-spacing: 0.15px; }
+.cam-marca-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: #09090b; font-family: Georgia, serif; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--cam-gold-light), var(--cam-gold-dark)); box-shadow: 0 3px 12px rgba(201, 168, 76, 0.2); }
+.cam-contenido { padding-top: clamp(28px, 6vh, 52px); }
+.cam-titulo { margin: 0 0 6px; font-family: var(--tipo-titulos); font-size: clamp(26px, 7vw, 31px); line-height: 1.15; color: var(--cam-text); }
+.cam-subtitulo { margin: 0 0 28px; color: var(--cam-muted); font-size: 14px; line-height: 1.45; }
+.cam-campo-grupo { margin: 0 0 22px; }
+.cam-etiqueta { display: block; margin-bottom: 8px; color: var(--cam-muted); font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+.club-acceso-moderno .kp-campo { min-height: 58px; margin: 0; padding: 9px 14px; border: 1.5px solid rgba(201, 168, 76, 0.12); border-radius: 14px; background: var(--cam-input); text-align: left; box-shadow: none; }
+.club-acceso-moderno .kp-campo.activo { border-color: rgba(201, 168, 76, 0.52); box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12); background: var(--cam-input); }
+.club-acceso-moderno .kp-campo.lleno { border-color: rgba(201, 168, 76, 0.38); background: var(--cam-input); }
+.club-acceso-moderno .kp-eti { display: none; }
+.club-acceso-moderno #kp-tel .kp-visor { justify-content: flex-start; min-height: 38px; color: var(--cam-text); font-family: inherit; font-size: 19px; font-weight: 600; letter-spacing: 1.6px; text-shadow: none; }
+.club-acceso-moderno #kp-tel .kp-visor.vacio { color: #4a4744; font-size: 16px; font-weight: 500; letter-spacing: 0.6px; }
+.club-acceso-moderno .cam-pin-grupo { margin-bottom: 0; }
+.club-acceso-moderno .cam-pin-grupo .kp-campo { min-height: 58px; padding: 0; border: 0; background: transparent; }
+.club-acceso-moderno .cam-pin-grupo .kp-campo.activo { box-shadow: none; }
+.club-acceso-moderno .cam-pin-grupo .kp-visor { justify-content: center; gap: 10px; min-height: 58px; }
+.club-acceso-moderno .cam-pin-grupo .kp-dot { position: relative; width: min(15vw, 54px); height: 58px; border: 1.5px solid rgba(201, 168, 76, 0.14); border-radius: 14px; background: var(--cam-input); transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+.club-acceso-moderno .cam-pin-grupo .kp-dot.on { background: rgba(201, 168, 76, 0.08); border-color: var(--cam-gold-dark); box-shadow: 0 0 16px rgba(201, 168, 76, 0.06); transform: none; }
+.club-acceso-moderno .cam-pin-grupo .kp-dot.on::after { content: ''; position: absolute; inset: 0; margin: auto; width: 12px; height: 12px; border-radius: 50%; background: var(--cam-gold); box-shadow: 0 0 9px rgba(201, 168, 76, 0.3); }
+.cam-error { min-height: 18px; margin: 7px 2px 0; color: var(--cam-danger) !important; font-size: 12px; font-weight: 600; text-align: center; }
+.cam-inferior { margin-top: auto; padding-top: 22px; }
+.cam-opciones { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; margin-bottom: 12px; }
+.cam-enlace, .cam-acciones-secundarias button { padding: 6px 0; border: 0; background: transparent; color: var(--cam-muted); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cam-enlace:hover, .cam-acciones-secundarias button:hover { color: var(--cam-gold-light); }
+.cam-recordar { display: inline-flex; align-items: center; gap: 7px; color: var(--cam-muted); font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cam-recordar input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.cam-interruptor { position: relative; width: 32px; height: 18px; border: 1px solid rgba(201, 168, 76, 0.15); border-radius: 999px; background: var(--cam-key); transition: background 0.2s, border-color 0.2s; }
+.cam-interruptor::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #77716a; transition: transform 0.22s, background 0.22s; }
+.cam-recordar input:checked + .cam-interruptor { border-color: var(--cam-gold); background: var(--cam-gold-dark); }
+.cam-recordar input:checked + .cam-interruptor::after { background: var(--cam-gold-light); transform: translateX(14px); }
+.cam-recordar input:focus-visible + .cam-interruptor { outline: 2px solid var(--cam-gold-light); outline-offset: 3px; }
+.club-acceso-moderno .kp-teclas { gap: 10px; margin: 0 0 16px; }
+.club-acceso-moderno .kp-tecla { min-height: 54px; padding: 0; border: 0; border-radius: 14px; background: var(--cam-key); box-shadow: none; color: var(--cam-text); font-family: inherit; font-size: 23px; font-weight: 600; }
+.club-acceso-moderno .kp-tecla:hover { border: 0; background: var(--cam-key-hover); filter: none; }
+.club-acceso-moderno .kp-tecla:active { background: var(--cam-key-hover); box-shadow: none; transform: scale(0.94); }
+.club-acceso-moderno .kp-borrar { color: var(--cam-muted); background: transparent; box-shadow: none; font-size: 21px; }
+.club-acceso-moderno .kp-borrar:active { color: var(--cam-danger); background: transparent; box-shadow: none; }
+.club-acceso-moderno .kp-hueco { display: block; }
+.club-acceso-moderno .cam-enviar { min-height: 54px; margin: 0; padding: 13px 16px; border: 0; border-radius: 14px; background: linear-gradient(135deg, var(--cam-gold-dark), var(--cam-gold), var(--cam-gold-light)); background-size: 180% 180%; color: #09090b; font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.2px; box-shadow: 0 5px 24px rgba(201, 168, 76, 0.25); transition: transform 0.18s, opacity 0.18s, box-shadow 0.18s; }
+.club-acceso-moderno .cam-enviar:not(:disabled):hover { transform: translateY(-1px); filter: none; box-shadow: 0 8px 28px rgba(201, 168, 76, 0.34); }
+.club-acceso-moderno .cam-enviar:not(:disabled):active { transform: scale(0.98); }
+.club-acceso-moderno .cam-enviar:disabled { opacity: 0.3; box-shadow: none; }
+.cam-acciones-secundarias { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; color: #484540; }
+.cam-volver { display: block; margin-top: 11px; color: #54504b; font-size: 11px; font-weight: 600; text-align: center; text-decoration: none; }
+.cam-volver:hover { color: var(--cam-gold-light); }
+@media (max-height: 680px) {
+  .club-acceso-moderno { min-height: 0; }
+  .cam-contenido { padding-top: 20px; }
+  .cam-subtitulo { margin-bottom: 18px; }
+  .cam-campo-grupo { margin-bottom: 15px; }
+  .club-acceso-moderno .cam-pin-grupo .kp-dot { height: 50px; }
+  .club-acceso-moderno .cam-pin-grupo .kp-visor { min-height: 50px; }
+  .club-acceso-moderno .kp-tecla { min-height: 46px; }
+}
+@media (min-width: 861px) {
+  .club-acceso-moderno { min-height: 710px; margin-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .club-acceso-moderno *, .club-acceso-moderno *::before, .club-acceso-moderno *::after { transition-duration: 0.01ms !important; }
+}
