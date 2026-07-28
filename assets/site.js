@@ -2468,6 +2468,20 @@
     var cont = document.getElementById('contenido-cuenta');
     if (!cont) return;
     cont.innerHTML = '<section class="seccion premium cuenta-zona"><div class="interior cuenta-int" id="cuenta-int"><p class="ct-vacio">Cargando…</p></div></section>';
+    // Maqueta local del panel ya logueado. No se expone en producción ni toca datos reales.
+    if (location.hostname === 'localhost' && /(?:[?&])preview-panel=1(?:&|$)/.test(location.search)) {
+      cuentaFlags = { on: true, funciones: { favoritos: true, puntos: true, promos: true, cupones: true, sorteos: true } };
+      pintarPanelCliente(document.getElementById('cuenta-int'), {
+        nombre: 'Martín', telefono: '999999999', email: 'martin@ejemplo.com', puntos: 180,
+        favs: [], favCols: [], preguntas: [], promociones: [], cupones: [], sorteos: [], direcciones: [],
+        historial: [
+          { ts: Date.now() - 86400000 * 2, estado: 'entregado', total: '48.50', items: [{ name: 'Producto de ejemplo', qty: 2, price: '24.25' }] },
+          { ts: Date.now() - 86400000 * 8, estado: 'entregado', total: '32.00', items: [{ name: 'Producto de ejemplo', qty: 1, price: '32.00' }] },
+          { ts: Date.now() - 86400000 * 14, estado: 'entregado', total: '19.90', items: [{ name: 'Producto de ejemplo', qty: 1, price: '19.90' }] }
+        ]
+      });
+      return;
+    }
     cuentaFlagsCargar(function (f) {
       var int = document.getElementById('cuenta-int');
       if (!int) return;
@@ -3102,19 +3116,18 @@
       { id: 'dirs', ico: '📍', txt: 'Mis Direcciones de Entrega' },
     ].filter(function (t) { return t; });
 
-    // Barra superior tipo app: la foto (se sube desde Mis datos) a la izquierda, el saludo
-    // al centro y el botón Salir a la derecha — así no compite con la grilla de accesos.
-    var html = '<div class="club-panel">' +
-      '<div class="cpn-cab">' +
-        '<span class="cpn-avatar">' + fotoHtml(p) + '</span>' +
+    // Panel mobile-first: marca y salida arriba, saludo y accesos grandes para tocar cómodo.
+    var html = '<div class="club-panel club-panel-modern">' +
+      '<div class="cpn-cab cpm-bienvenida">' +
+        '<span class="cpn-avatar cpm-avatar">' + fotoHtml(p) + '</span>' +
         '<div class="cpn-tit">' +
           '<h2 class="cpn-saludo">' + esc(saludoHora(p.nombre || 'casero')) + '</h2>' +
           '<p class="cpn-sub">Bienvenido/a al Club Arakaki 💛</p>' +
         '</div>' +
-        '<button type="button" class="ct-salir" id="ct-salir" aria-label="Cerrar sesión"' + glowStyle('🚪') + '>🚪 Salir</button>' +
+        '<a class="ct-salir cpm-salir" href="/" aria-label="Ir a la tienda"' + glowStyle('🏪') + '>🏪 Tienda</a>' +
       '</div>' +
-      '<div class="club-acciones cpn-tiles">' + tiles.map(function (t) {
-        return '<button type="button" class="club-acc" data-sec="' + t.id + '"><span class="ca-ico"' + glowStyle(t.ico) + '>' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
+      '<div class="club-acciones cpn-tiles cpm-tiles">' + tiles.map(function (t) {
+        return '<button type="button" class="club-acc cpm-tile" data-sec="' + t.id + '"><span class="ca-ico cpm-tile-ico"' + glowStyle(t.ico) + '>' + t.ico + '</span><span class="ca-txt">' + t.txt + '</span></button>';
       }).join('') + '</div>' +
       // Cada acceso abre su sección como POPUP independiente (overlay), para que NO se mezcle
       // con la publicidad, los puntos ni los últimos pedidos de abajo.
@@ -3136,7 +3149,8 @@
       '<label for="cp-actual">Tu clave actual</label><input id="cp-actual" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
       '<label for="cp-nuevo">Tu clave nueva (4 números)</label><input id="cp-nuevo" type="password" inputmode="numeric" maxlength="4" placeholder="••••">' +
       '<p class="ct-error" id="cp-error"></p>' +
-      '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button></div>';
+      '<button type="button" class="ct-enviar" id="cp-cambiar">Cambiar mi clave</button>' +
+      '<button type="button" class="cpm-cerrar-sesion" id="ct-salir">Cerrar sesión</button></div>';
 
     // ⭐ Mis listas de favoritos: cada lista con sus productos y "comprar toda la lista"
     if (fnClub('favoritos')) {
@@ -3210,7 +3224,7 @@
       '<p class="ct-error" id="cd-dir-error"></p>' +
       '<button type="button" class="ct-enviar" id="cd-dir-add">➕ Guardar dirección</button></div>';
 
-    html += '</div>' /* /.cpn-modal */ + carruselHtml() +
+    html += '</div>' /* /.cpn-modal */ + '<div class="cpm-banner">' + carruselHtml() + '</div>' +
       '<div class="club-salir-modal" id="club-salir-modal" hidden>' +
         '<div class="club-salir-caja" role="dialog" aria-modal="true" aria-labelledby="club-salir-tit">' +
           '<button type="button" class="club-salir-cerrar" aria-label="Seguir con la sesión abierta">✕</button>' +
@@ -3232,23 +3246,24 @@
           (it.price ? '<b>S/ ' + esc(it.price) + '</b>' : '') + '</div>';
       }).join('');
       return '<div class="cs-ped">' +
-        '<button type="button" class="cs-ped-fila" data-i="' + i + '"><span class="cs-ped-ico">🛍️</span><span class="cs-ped-tit">Pedido</span>' +
-        '<span class="cs-ped-fecha">' + fechaPedido(pe.ts) + '</span><span class="cs-punto' + (pe.estado === 'entregado' ? ' ok' : '') + '"></span></button>' +
+        '<button type="button" class="cs-ped-fila" data-i="' + i + '"><span class="cs-ped-ico">🛍️</span><span class="cs-ped-tit">Pedido #' + String(pe.id || pe.n || (12343 + i)).replace(/[^\w-]/g, '') + '<small>' + fechaPedido(pe.ts) + '</small></span>' +
+        '<span class="cs-punto' + (pe.estado === 'entregado' ? ' ok' : '') + '">' + (pe.estado === 'entregado' ? 'Entregado' : 'En camino') + '</span><span class="cpm-ped-flecha" aria-hidden="true">›</span></button>' +
         '<div class="cs-ped-det" hidden>' + det +
           (pe.total ? '<div class="cs-ped-total"><span>Total</span><b>S/ ' + esc(pe.total) + '</b></div>' : '') +
           '<button type="button" class="ct-enviar cs-ped-rep" data-i="' + i + '">🛒 Repetir la compra de este día</button>' +
         '</div></div>';
     }).join('');
-    html += '<div class="club-tarjeta club-sheet">' +
+    html += '<section class="club-tarjeta club-sheet cpm-pedidos">' +
       (fnClub('puntos')
-        ? '<div class="cs-fila"><span class="cs-ico">🪙</span><span class="cs-txt">Mis Puntos</span><span class="cs-badge">' + (Number(p.puntos) || 0) + '</span></div>'
+        ? '<div class="cs-fila cpm-puntos"><span class="cs-ico">🪙</span><span class="cs-txt">Mis Puntos</span><span class="cs-badge">' + (Number(p.puntos) || 0) + '</span></div>'
         : '') +
-      '<button type="button" class="cs-fila cs-toca" id="cs-ped-btn"><span class="cs-ico">🕑</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cs-chev" aria-hidden="true">▼</span></button>' +
-      '<div id="cs-lista" hidden>' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
-      '<div class="cs-botones">' +
-        '<a class="cs-vino cs-brillo" href="/"><span>🛍️</span> Ir a la tienda</a>' +
-      '</div>' +
-    '</div>' +
+      '<button type="button" class="cs-fila cs-toca cpm-pedidos-cab" id="cs-ped-btn"><span class="cs-ico">◷</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cpm-ped-accion">Ocultar</span><span class="cs-chev" aria-hidden="true">›</span></button>' +
+      '<div id="cs-lista">' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
+    '</section>' +
+    '<nav class="cpm-nav" aria-label="Navegación de la cuenta">' +
+      '<a href="/"><span>⌂</span>Inicio</a><a href="/"><span>♧</span>Tienda</a>' +
+      '<button type="button" data-cpm-accion="pedidos"><span>□</span>Pedidos</button><button type="button" data-cpm-accion="datos"><span>♙</span>Mi Cuenta</button>' +
+    '</nav>' +
     '</div>';
 
     int.innerHTML = html;
@@ -3305,6 +3320,15 @@
       pedBtn.classList.toggle('abierto', !pedLista.hidden);
       pedBtn.querySelector('.cs-txt').textContent = pedLista.hidden ? 'Mis Últimos Pedidos' : 'Ocultar Pedidos';
       pedBtn.querySelector('.cs-ico').textContent = pedLista.hidden ? '🕑' : '🙈';
+      var pedAccion = pedBtn.querySelector('.cpm-ped-accion');
+      if (pedAccion) pedAccion.textContent = pedLista.hidden ? 'Ver todos' : 'Ocultar';
+    };
+    // Navegación fija del boceto: conserva las acciones reales del panel.
+    var navAcciones = int.querySelectorAll('[data-cpm-accion]');
+    for (var navI = 0; navI < navAcciones.length; navI++) navAcciones[navI].onclick = function () {
+      var accion = this.getAttribute('data-cpm-accion');
+      if (accion === 'pedidos') { if (pedLista.hidden) pedBtn.click(); pedBtn.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      else abrirSec(accion);
     };
     // Tocar un pedido → su detalle; "Repetir" → esos productos van al carrito
     var filasP = int.querySelectorAll('.cs-ped-fila');
