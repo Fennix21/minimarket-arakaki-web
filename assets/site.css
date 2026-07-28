@@ -2334,7 +2334,8 @@ span.ch-foto-vacia {
   position: relative;
   max-width: 430px;
   margin: 0 auto;
-  padding: 14px;
+  /* Espacio inferior extra para que la barra fija (position:fixed) no tape los pedidos. */
+  padding: 14px 14px calc(84px + env(safe-area-inset-bottom, 0px));
   color: #f4f0e6;
   background:
     radial-gradient(circle at 12% -5%, rgba(213, 173, 57, 0.14), transparent 30%),
@@ -2344,48 +2345,50 @@ span.ch-foto-vacia {
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), inset 0 1px rgba(255, 235, 164, 0.08);
   box-sizing: border-box;
 }
-.club-panel-modern .cpm-salir { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 32px; padding: 7px 11px; border-color: rgba(213, 173, 57, 0.7); background: rgba(25, 22, 13, 0.84); color: #f6d66b; font-size: 12px; text-decoration: none; box-shadow: 0 0 12px -4px rgba(240, 192, 50, 0.7); }
+.club-panel-modern .cpm-salir { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 32px; padding: 7px 11px; border-color: rgba(213, 173, 57, 0.7); background: rgba(25, 22, 13, 0.84); color: #f6d66b; font-size: 13.5px; text-decoration: none; box-shadow: 0 0 12px -4px rgba(240, 192, 50, 0.7); }
 .club-panel-modern .cpm-bienvenida { gap: 10px; margin: 3px 0 17px; }
 .club-panel-modern .cpm-avatar .ch-foto { width: 48px; height: 48px; border: 2px solid #ffe47a; box-shadow: 0 0 0 3px rgba(213, 173, 57, 0.16); }
 .club-panel-modern .cpm-avatar .ch-foto-vacia { display: grid; place-items: center; background: #29251c; font-size: 22px; }
-.club-panel-modern .cpn-saludo { margin: 0; color: #fffaf0; font-size: clamp(17px, 5vw, 20px); line-height: 1.15; text-shadow: none; }
-.club-panel-modern .cpn-sub { margin: 3px 0 0; color: #d7c88d; font-size: 11.5px; }
+.club-panel-modern .cpn-saludo { margin: 0; color: #fffaf0; font-size: clamp(21px, 5.6vw, 25px); line-height: 1.15; text-shadow: none; }
+.club-panel-modern .cpn-sub { margin: 4px 0 0; color: #ddcf94; font-size: 14px; }
 .club-panel-modern .cpm-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; margin: 0 0 13px; }
-.club-panel-modern .cpm-tile { min-height: 83px; gap: 7px; padding: 8px 5px; border: 1px solid var(--cpm-line); border-radius: 12px; background: linear-gradient(145deg, rgba(29, 27, 20, 0.95), rgba(13, 14, 13, 0.94)); box-shadow: inset 0 1px rgba(255, 246, 198, 0.035); transition: transform 0.16s, border-color 0.16s, background 0.16s; }
-.club-panel-modern .cpm-tile .cpm-tile-ico { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: 30px; line-height: 1; }
+.club-panel-modern .cpm-tile { min-height: 100px; gap: 8px; padding: 11px 6px; border: 1px solid var(--cpm-line); border-radius: 12px; background: linear-gradient(145deg, rgba(29, 27, 20, 0.95), rgba(13, 14, 13, 0.94)); box-shadow: inset 0 1px rgba(255, 246, 198, 0.035); transition: transform 0.16s, border-color 0.16s, background 0.16s; }
+.club-panel-modern .cpm-tile .cpm-tile-ico { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: 34px; line-height: 1; }
 .club-panel-modern .cpm-tile:hover .cpm-tile-ico, .club-panel-modern .cpm-tile.activo .cpm-tile-ico { transform: none; border: 0; background: transparent; box-shadow: none; }
 .club-panel-modern .cpm-tile:hover, .club-panel-modern .cpm-tile.activo { transform: translateY(-2px); border-color: rgba(246, 214, 107, 0.9); background: rgba(38, 33, 19, 0.96); }
-.club-panel-modern .cpm-tile .ca-txt { color: #f1eee5; font-size: 10.5px; font-weight: 700; line-height: 1.18; }
+.club-panel-modern .cpm-tile .ca-txt { color: #f4f1e8; font-size: 13px; font-weight: 700; line-height: 1.2; }
 .club-panel-modern .cpm-banner .club-carru { margin: 0 0 13px; }
-.club-panel-modern .cpm-banner .ccl-slide { border-color: rgba(226, 177, 52, 0.68); border-radius: 12px; background: linear-gradient(135deg, #5a060a, #9f1d1d 54%, #5c0a0c); box-shadow: 0 7px 18px rgba(0, 0, 0, 0.36); }
-.club-panel-modern .cpm-banner .ccl-media { min-height: 102px; aspect-ratio: 3 / 1; background: radial-gradient(circle at 50% 4%, rgba(255, 229, 138, 0.28), transparent 21%), linear-gradient(135deg, #580609, #a51f22 57%, #601013); }
+/* Banner: marco 10:7 (imagen ideal 1000×700) y fondo TRANSPARENTE — el título/subtítulo
+   toman el color de fondo de la página en vez del vino. Solo queda el borde dorado. */
+.club-panel-modern .cpm-banner .ccl-slide { border-color: rgba(226, 177, 52, 0.68); border-radius: 14px; background: transparent; box-shadow: none; }
+.club-panel-modern .cpm-banner .ccl-media { aspect-ratio: 10 / 7; background: linear-gradient(160deg, #17140f, #0a0908); }
 .club-panel-modern .cpm-banner .ccl-media:not(.con-foto)::after { content: '🐱'; font-size: 37px; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.38)); }
 .club-panel-modern .cpm-banner .ccl-logo { display: none; }
-.club-panel-modern .cpm-banner .ccl-card { padding: 9px 12px 11px; background: rgba(36, 2, 4, 0.26); }
-.club-panel-modern .cpm-banner .ccl-tit { color: #ffe177; font-size: 20px; }
-.club-panel-modern .cpm-banner .ccl-txt { color: #fff3d7; font-size: 11.5px; }
+.club-panel-modern .cpm-banner .ccl-card { padding: 11px 10px 2px; background: transparent; }
+.club-panel-modern .cpm-banner .ccl-tit { color: #ffe177; font-size: 21px; }
+.club-panel-modern .cpm-banner .ccl-txt { color: #f0e4c8; font-size: 14px; }
 .club-panel-modern .cpm-banner .ccl-dots { margin-top: 7px; }
 .club-panel-modern .cpm-pedidos { margin: 0; padding: 9px; color: #f6f1e4; border: 1px solid rgba(213, 173, 57, 0.36); border-radius: 13px; background: linear-gradient(150deg, #16150f, #0d0e0d); box-shadow: inset 0 1px rgba(255, 247, 200, 0.06); }
 .club-panel-modern .cpm-puntos { min-height: auto; margin: 0 0 7px; padding: 7px 10px; color: #f8e08a; background: rgba(213, 173, 57, 0.1); border-color: rgba(213, 173, 57, 0.3); }
 .club-panel-modern .cpm-puntos .cs-txt, .club-panel-modern .cpm-puntos .cs-badge { color: #f8df7d; }
 .club-panel-modern .cpm-puntos .cs-badge { font-size: 17px; text-shadow: 0 1px 8px rgba(213, 173, 57, 0.28); }
 .club-panel-modern .cpm-pedidos-cab { min-height: 32px; margin: 0 0 7px; padding: 0 2px; color: #f5f0e5; background: transparent; border: 0; border-radius: 0; }
-.club-panel-modern .cpm-pedidos-cab .cs-ico { width: 27px; height: 27px; border: 1px solid rgba(213, 173, 57, 0.54); border-radius: 50%; color: #edcb59; font-size: 17px; }
-.club-panel-modern .cpm-pedidos-cab .cs-txt { color: #f5f1e7; font-size: 13px; }
-.cpm-ped-accion { padding: 5px 8px; border: 1px solid rgba(213, 173, 57, 0.55); border-radius: 999px; color: #f6d66b; font-size: 10px; font-weight: 800; }
+.club-panel-modern .cpm-pedidos-cab .cs-ico { width: 30px; height: 30px; border: 1px solid rgba(213, 173, 57, 0.54); border-radius: 50%; color: #edcb59; font-size: 19px; }
+.club-panel-modern .cpm-pedidos-cab .cs-txt { color: #f5f1e7; font-size: 15.5px; }
+.cpm-ped-accion { padding: 5px 11px; border: 1px solid rgba(213, 173, 57, 0.55); border-radius: 999px; color: #f6d66b; font-size: 12px; font-weight: 800; }
 .club-panel-modern .cs-chev { width: auto; height: auto; margin-left: 0; background: transparent; box-shadow: none; color: #e6c350; font-size: 23px; animation: none; }
 .club-panel-modern #cs-lista { margin: 0; }
 .club-panel-modern .cs-ped { margin-bottom: 5px; }
 .club-panel-modern .cs-ped-fila { min-height: 48px; gap: 9px; padding: 6px 8px; border: 1px solid rgba(213, 173, 57, 0.18); border-radius: 9px; background: #171714; }
 .club-panel-modern .cs-ped-fila:hover, .club-panel-modern .cs-ped-fila.abierto { border-color: rgba(213, 173, 57, 0.58); background: #211f16; }
 .club-panel-modern .cs-ped-ico { width: 30px; height: 30px; border-radius: 7px; background: linear-gradient(145deg, #4b3a0e, #201b0c); font-size: 15px; }
-.club-panel-modern .cs-ped-tit { flex: 1; color: #f2eee6; font-size: 11.5px; }
-.club-panel-modern .cs-ped-tit small { display: block; margin-top: 2px; color: #878171; font-size: 9px; font-weight: 500; }
-.club-panel-modern .cs-punto { width: auto; height: auto; padding: 5px 7px; border-radius: 999px; color: #d2b44a; background: rgba(213, 173, 57, 0.14); box-shadow: none; font-size: 9px; font-weight: 800; }
+.club-panel-modern .cs-ped-tit { flex: 1; color: #f2eee6; font-size: 14.5px; }
+.club-panel-modern .cs-ped-tit small { display: block; margin-top: 2px; color: #a29b8a; font-size: 11.5px; font-weight: 500; }
+.club-panel-modern .cs-punto { width: auto; height: auto; padding: 5px 9px; border-radius: 999px; color: #e0c257; background: rgba(213, 173, 57, 0.16); box-shadow: none; font-size: 11px; font-weight: 800; }
 .club-panel-modern .cs-punto.ok { color: #d8bd56; background: rgba(213, 173, 57, 0.17); box-shadow: none; }
 .cpm-ped-flecha { color: #ddbd4e; font-size: 25px; line-height: 1; }
 .club-panel-modern .cs-ped-det { margin: -2px 4px 5px; padding: 8px 10px 10px; border-color: rgba(213, 173, 57, 0.34); background: #100f0d; color: #ece5d6; }
-.club-panel-modern .cs-ped-item { color: #ded7c6; font-size: 12px; }
+.club-panel-modern .cs-ped-item { color: #ded7c6; font-size: 14.5px; }
 .club-panel-modern .cs-ped-total { color: #f5d66b; }
 .club-panel-modern .cpm-cerrar-sesion { display: block; width: 100%; margin: 18px 0 2px; padding: 10px 12px; border: 1px solid rgba(220, 111, 86, 0.48); border-radius: 10px; background: rgba(116, 33, 25, 0.2); color: #efb0a0; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .club-panel-modern .cpm-cerrar-sesion:hover { border-color: rgba(239, 176, 160, 0.78); background: rgba(116, 33, 25, 0.38); }
@@ -2399,13 +2402,15 @@ span.ch-foto-vacia {
 }
 .cpm-pts-ico { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; background: radial-gradient(circle at 38% 30%, #f6d66b, #b98f2b); font-size: 25px; box-shadow: 0 4px 12px rgba(213, 173, 57, 0.35); }
 .cpm-pts-body { display: flex; flex-direction: column; line-height: 1.05; }
-.cpm-pts-num { font-family: var(--tipo-titulos); font-size: 32px; font-weight: 800; color: #ffe487; text-shadow: 0 2px 14px rgba(213, 173, 57, 0.3); }
-.cpm-pts-lbl { margin-top: 2px; color: #e7d49a; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
-.cpm-pts-hint { flex-basis: 100%; margin-top: 3px; color: #b0a377; font-size: 11px; line-height: 1.35; }
-.cpm-nav { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 12px -14px -14px; padding: 9px 8px calc(9px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(213, 173, 57, 0.2); background: rgba(9, 10, 9, 0.96); backdrop-filter: blur(12px); }
-.cpm-nav a, .cpm-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 44px; padding: 0; border: 0; background: transparent; color: #b7b0a2; font: inherit; font-size: 9.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.cpm-pts-num { font-family: var(--tipo-titulos); font-size: 35px; font-weight: 800; color: #ffe487; text-shadow: 0 2px 14px rgba(213, 173, 57, 0.3); }
+.cpm-pts-lbl { margin-top: 2px; color: #ecd9a0; font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
+.cpm-pts-hint { flex-basis: 100%; margin-top: 4px; color: #bdb082; font-size: 13px; line-height: 1.4; }
+/* Barra inferior FIJA al pie de la pantalla (como una app móvil): siempre visible al hacer
+   scroll. Ocupa todo el ancho; en escritorio se oculta (ver @media 861px). */
+.cpm-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin: 0; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(213, 173, 57, 0.3); background: rgba(9, 10, 9, 0.98); backdrop-filter: blur(12px); box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.42); }
+.cpm-nav a, .cpm-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 50px; padding: 0; border: 0; background: transparent; color: #c6bfb0; font: inherit; font-size: 11.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
 .cpm-nav a:first-child { color: #f3ce4e; }
-.cpm-nav a span, .cpm-nav button span { font-size: 20px; line-height: 1; }
+.cpm-nav a span, .cpm-nav button span { font-size: 23px; line-height: 1; }
 .cpm-nav a:hover, .cpm-nav button:hover { color: #f6d66b; }
 @media (min-width: 861px) {
   /* Escritorio: aprovecha el ancho — dos columnas en vez de la columna de móvil.
@@ -2428,7 +2433,7 @@ span.ch-foto-vacia {
   .club-panel-modern .cpm-puntos-card .cpm-pts-num { font-size: 36px; }
   .club-panel-modern .cpm-tiles { grid-area: tiles; gap: 14px; margin: 0; }
   .club-panel-modern .cpm-banner { grid-area: banner; }
-  .club-panel-modern .cpm-banner .club-carru { margin: 0; }
+  .club-panel-modern .cpm-banner .club-carru { margin: 0; max-width: 440px; }
   .club-panel-modern .cpm-pedidos { grid-area: pedidos; align-self: start; }
   .cpm-nav { display: none; }
 }

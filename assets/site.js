@@ -3128,7 +3128,7 @@
       conCupones ? { id: 'cupones', ico: '🎫', txt: 'Cupones VIP' } : null,
       { id: 'preguntas', ico: '❓', txt: 'Mis Preguntas' },
       fnClub('sorteos') ? { id: 'sorteos', ico: '🎁', txt: 'Sorteos' } : null,
-      { id: 'dirs', ico: '📍', txt: 'Mis Direcciones de Entrega' },
+      { id: 'dirs', ico: '📍', txt: 'Direcciones' },
     ].filter(function (t) { return t; });
 
     // Panel mobile-first: marca y salida arriba, saludo y accesos grandes para tocar cómodo.
@@ -3282,11 +3282,15 @@
       '<button type="button" class="cs-fila cs-toca cpm-pedidos-cab" id="cs-ped-btn"><span class="cs-ico">◷</span><span class="cs-txt">Mis Últimos Pedidos</span><span class="cpm-ped-accion">Ocultar</span><span class="cs-chev" aria-hidden="true">›</span></button>' +
       '<div id="cs-lista">' + (filasPed || '<p class="cs-vacio">Aún no vemos pedidos con tu número 🛍️ Haz tu primer pedido y aparecerá aquí.</p>') + '</div>' +
     '</section>' +
+    // Barra inferior fija: Puntos ocupa el 2º lugar (no repetir Favoritos, que ya está arriba
+    // en los accesos). Toca "Mis Puntos" y sube hasta la tarjeta de puntos del saludo.
     '<nav class="cpm-nav" aria-label="Accesos rápidos de la cuenta">' +
       '<a href="/"><span aria-hidden="true">🏪</span>Tienda</a>' +
-      (fnClub('favoritos')
-        ? '<button type="button" data-cpm-accion="favs"><span aria-hidden="true">⭐</span>Favoritos</button>'
-        : '<button type="button" data-cpm-accion="preguntas"><span aria-hidden="true">❓</span>Preguntas</button>') +
+      (fnClub('puntos')
+        ? '<button type="button" data-cpm-accion="puntos"><span aria-hidden="true">🪙</span>Mis Puntos</button>'
+        : (fnClub('favoritos')
+            ? '<button type="button" data-cpm-accion="favs"><span aria-hidden="true">⭐</span>Favoritos</button>'
+            : '<button type="button" data-cpm-accion="preguntas"><span aria-hidden="true">❓</span>Preguntas</button>')) +
       '<button type="button" data-cpm-accion="pedidos"><span aria-hidden="true">🕑</span>Pedidos</button>' +
       '<button type="button" data-cpm-accion="datos"><span aria-hidden="true">👤</span>Mi cuenta</button>' +
     '</nav>' +
@@ -3354,6 +3358,7 @@
     for (var navI = 0; navI < navAcciones.length; navI++) navAcciones[navI].onclick = function () {
       var accion = this.getAttribute('data-cpm-accion');
       if (accion === 'pedidos') { if (pedLista.hidden) pedBtn.click(); pedBtn.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      else if (accion === 'puntos') { var pc = int.querySelector('.cpm-puntos-card'); if (pc) pc.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       else abrirSec(accion);
     };
     // Tocar un pedido → su detalle; "Repetir" → esos productos van al carrito
