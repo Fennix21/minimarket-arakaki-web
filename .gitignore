@@ -3,5 +3,5 @@ desktop.ini
 .claude/settings.local.json
 node_modules/
 respaldos/
-.env
-.env.local
+.env*
+!.env.ejemplo

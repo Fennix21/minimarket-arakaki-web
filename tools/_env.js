@@ -17,6 +17,9 @@ function cargarEnv(raiz) {
     if (i < 1) continue;
     const clave = t.slice(0, i).trim();
     let valor = t.slice(i + 1).trim();
+    // Upstash y Vercel dan la línea entera (CLAVE="valor"). Si se pega encima de una línea que
+    // ya tenía el nombre, queda CLAVE=CLAVE="valor": se limpia sola en vez de fallar con un 401.
+    if (valor.startsWith(clave + '=')) valor = valor.slice(clave.length + 1).trim();
     if ((valor[0] === '"' && valor.endsWith('"')) || (valor[0] === "'" && valor.endsWith("'"))) valor = valor.slice(1, -1);
     if (!(clave in process.env)) { process.env[clave] = valor; n++; }
   }
