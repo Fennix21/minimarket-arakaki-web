@@ -29,7 +29,7 @@ con **su propio usuario invitado**, no con las contraseñas del dueño.
 | 2 | **GitHub** | todo el código, fotos y catálogo | del desarrollador | colaborador (gratis) |
 | 3 | **Vercel** | hosting + variables de entorno | del desarrollador (Hobby) | miembro del equipo (requiere Pro) |
 | 4 | **Upstash Redis** | clientes del Club, PINs, pedidos, chats, config del panel, avisos push | del desarrollador | miembro del equipo |
-| 5 | **Meta Business / WhatsApp** | número 51977737199 y token del bot | por confirmar | admin invitado (gratis) |
+| 5 | **Meta Business / WhatsApp** | hoy **nada**: el bot nunca se conectó a la API (ver Fase 5) | el 51977737199 es la app WhatsApp Business de la tienda, ya del dueño | no aplica por ahora |
 | 6 | **Anthropic** | llave de la IA (bot y chat web) + facturación por uso | del desarrollador | miembro de la organización (gratis) |
 | 7 | **Resend** | correos del Club | sin configurar | miembro |
 | 8 | **Llaves VAPID** (avisos push) | viven como variables en Vercel | del desarrollador | se copian tal cual |
@@ -49,7 +49,8 @@ el desarrollador solo acompaña.
 - [ ] Upstash — upstash.com
 - [ ] Anthropic — console.anthropic.com (con tarjeta y **límite de gasto mensual**)
 - [ ] Resend — resend.com
-- [ ] Meta Business Suite — business.facebook.com (verificación de empresa con RUC)
+- [ ] ~~Meta Business Suite~~ — **no hace falta hoy**: el bot no está conectado a la API de
+      WhatsApp y el número de la tienda ya es del dueño (ver Fase 5)
 - [ ] En cada una: invitar al desarrollador con su propio correo
 
 ---
@@ -134,7 +135,23 @@ node tools/migrar-redis.js verificar --solo-config
 
 ---
 
-## 6. Fase 5 — WhatsApp (lo que más demora: empezar temprano)
+## 6. Fase 5 — WhatsApp (FUERA de la ruta crítica; solo si algún día se conecta el bot)
+
+> **Comprobado el 2026-08-04 contra la base real:** el CRM **no está conectado** a ningún número
+> por la API de Meta — no hay ni una sola conversación guardada. El **51977737199** es el
+> WhatsApp **Business (la app del celular)** de la tienda y ya es del dueño: el carrito solo abre
+> un enlace `wa.me` y el mensaje lo manda el propio cliente desde su teléfono. **No hay nada que
+> transferir**, así que esta fase deja de ser la primera (antes decía "empezar temprano").
+>
+> ⚠️ Dos cosas antes de conectar el bot algún día:
+> 1. Un número **no puede estar a la vez** en la app de WhatsApp Business y en la API de Meta.
+>    Al registrarlo en la API, el dueño **pierde la app** en ese número y todo pasa a atenderse
+>    por el sistema. Si se quiere el bot, conviene un número aparte.
+> 2. Desde el **1-oct-2026 Meta cobra por mensaje**, sin ventana gratis de 24h.
+>
+> Los avisos de pedidos al dueño ya no dependen de esto: van por **Web Push**, que es gratis.
+
+Los pasos de abajo quedan escritos para ese día; hoy no hay que hacer ninguno.
 
 - [ ] El dueño crea su Business Manager y lo verifica con los datos de la empresa (RUC).
 - [ ] Solicitud de transferencia del número 51977737199 desde el Business Manager actual al del

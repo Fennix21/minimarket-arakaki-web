@@ -47,9 +47,16 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
   puntos en la barra, banner 10:7 y layout responsive escritorio+móvil.
 
 ## Siguiente paso
-Arrancar la **Fase 1 del traspaso** (`TRASPASO.md`): el dueño crea el correo del negocio y sus
-8 cuentas con 2FA. **Empezar por Meta/WhatsApp**, que es lo que tarda días. Lo técnico de este
-lado ya está listo: hay respaldo, la mudanza es `copiar --solo-config` y el `.env` deja
+**Los avisos de pedidos al dueño están apagados de hecho**: hay 0 dueños suscritos a Web Push
+(`push:duenos` vacío) y el aviso por WhatsApp no existe porque el bot no está conectado a la API.
+Hoy el dueño solo se entera de un pedido porque el cliente le manda el `wa.me` desde su teléfono;
+si el cliente arma el carrito y no llega a enviarlo, el pedido queda en la base sin que nadie lo
+vea. Arreglo: que el dueño instale la web en su celular (Agregar a inicio) y active 🔔 los avisos.
+Son 2 minutos y enciende algo ya construido.
+
+Después, la **Fase 1 del traspaso** (`TRASPASO.md`): el dueño crea el correo del negocio y sus
+cuentas con 2FA, en el orden GitHub → Vercel → Upstash (Meta ya no va primero). Lo técnico de
+este lado está listo: hay respaldo, la mudanza es `copiar --solo-config` y el `.env` deja
 trabajar en local contra la base real.
 
 Repetir `node tools/migrar-redis.js respaldo` antes de cualquier cambio grande (y una vez al
@@ -60,8 +67,13 @@ mes cuando entren clientes de verdad): el respaldo de hoy es una foto de hoy.
   su propio usuario, no con contraseñas compartidas: el dueño puede revocarlo sin cambiar nada.
 - Clientes y pedidos de hoy son datos de **prueba**: la mudanza es solo configuración
   (`copiar --solo-config`). La base nueva arranca limpia, sin ventana de madrugada.
-- El **dominio se muda al final**, cuando la web ya funcione en el Vercel del dueño. **WhatsApp
-  se empieza primero**: transferir el número entre Business Managers toma días.
+- El **dominio se muda al final**, cuando la web ya funcione en el Vercel del dueño.
+- **Meta/WhatsApp NO va primero** (corregido el 2026-08-04, antes decía lo contrario): el bot
+  nunca se conectó a la API — 0 conversaciones en la base — y el 51977737199 es la app WhatsApp
+  Business de la tienda, que ya es del dueño. El carrito solo abre un `wa.me` y el mensaje lo
+  manda el cliente desde su propio teléfono. No hay nada que transferir: esa fase sale de la ruta
+  crítica (ver Fase 5 de `TRASPASO.md`, con la advertencia de que un número no puede estar a la
+  vez en la app y en la API).
 - Los respaldos van a `respaldos/`, fuera de git: llevan celulares, direcciones y hashes de PIN.
 - **No se migra a Supabase** (ni a otra "nube única"), decidido el 2026-08-04. De las 8 cuentas
   solo reemplazaría Upstash: GitHub, el hosting del sitio, WhatsApp, Anthropic y Resend seguirían
