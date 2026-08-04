@@ -8,7 +8,9 @@ Réplica del sitio de Systeme.io para poder optimizarlo. El dueño administra ca
 `/panel` sin tocar código ni esperar un deploy.
 
 ## Cómo se compila y se prueba
-Sin build. Preview local: `node tools/dev-server.js` → localhost:3210 (los `/api/*` responden stub).
+Sin build. Preview local: `node tools/dev-server.js` → localhost:3210. Sin `.env` los `/api/*`
+responden datos de muestra; con `.env` (copiar `.env.ejemplo` + llaves de Upstash) corren los
+handlers reales contra la base, en solo lectura si `ARAKAKI_REDIS_RO=1`.
 Antes de commit: `node --check` a cada .js tocado (y a los `<script>` inline de los HTML).
 Publicar: `git push` a main (Vercel redeploya solo). Producción: minimarket-arakaki-web.vercel.app
 
@@ -22,6 +24,12 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
   `TRASPASO-SIMPLE.md` = la misma hoja de ruta en cristiano, para mostrarle al dueño.
 
 ## Hecho (últimas entregas)
+- 2026-08-04 — `TRASPASO-SIMPLE.md`: la hoja de ruta del traspaso en cristiano para mostrarle al
+  dueño (la web como un local: dirección, planos, terreno, libreta; 6 pasos con quién hace qué;
+  costos; las 3 llaves que abren los datos de clientes). Y **corrección del plan**: Meta/WhatsApp
+  sale de la ruta crítica. Comprobado contra la base real (0 conversaciones guardadas) + el dato
+  de Martín: el número de la tienda es la app WhatsApp Business y ya es del dueño. Son 5 cuentas
+  nuevas, no 8.
 - 2026-08-04 — **Primer respaldo real de la base**: `respaldos/redis-20260804-0936.ndjson`
   (3.8 MB, 106 claves = las 106 anunciadas, ninguna vacía, los 5 tipos y los vencimientos
   conservados). Confirma que los clientes de hoy son de prueba: 1 solo cliente del Club y
@@ -35,17 +43,12 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
   corre los handlers de verdad contra Upstash y los recarga en cada pedido, así que ya no hace
   falta publicar para ver datos reales. Probado con un Upstash de mentira: 14 verificaciones
   (datos reales vs stub, clave del panel, freno de escritura, 404, y que sin `.env` todo sigue igual).
-- 2026-08-04 — Cierre de aprendizaje: las buenas prácticas del proyecto subidas al taller
-  (`skills/taller/referencias/web-negocio.md` nuevo + añadidos en `proceso.md` y `ui-whape.md`).
-  Ya extraído: no hace falta volver a recorrer el repo para "sacar lo aprendido".
 - 2026-08-04 — `tools/migrar-redis.js`: respaldo / copiar / restaurar / verificar de Upstash
   conservando tipo y vencimiento. Probado contra dos Upstash de mentira levantados en memoria:
   copia completa (14 claves, 5 tipos, TTL exactos), `--solo-config` (3 de 14, cero datos de
   clientes), restauración filtrada desde un respaldo completo y los tres frenos de seguridad.
-- 2026-08-04 — `TRASPASO.md`: checklist por fases de las 8 cuentas + mapa de datos delicados
+- 2026-08-04 — `TRASPASO.md`: checklist por fases de las cuentas + mapa de datos delicados
   (§11: qué clave guarda qué dato personal, las 3 llaves de acceso, dónde están físicamente).
-- 2026-07-28 — Mi cuenta: accesos con medallón, cerrar sesión visible, barra inferior fija,
-  puntos en la barra, banner 10:7 y layout responsive escritorio+móvil.
 
 ## Siguiente paso
 **Los avisos de pedidos al dueño están apagados de hecho**: hay 0 dueños suscritos a Web Push
@@ -64,8 +67,9 @@ Repetir `node tools/migrar-redis.js respaldo` antes de cualquier cambio grande (
 mes cuando entren clientes de verdad): el respaldo de hoy es una foto de hoy.
 
 ## Decisiones tomadas (no re-discutir)
-- Todo el ecosistema pasa a nombre del dueño (8 cuentas). Martín entra **invitado por rol** con
-  su propio usuario, no con contraseñas compartidas: el dueño puede revocarlo sin cambiar nada.
+- Todo el ecosistema pasa a nombre del dueño: **5 cuentas nuevas** (GitHub, Vercel, Upstash,
+  Anthropic, Resend) + el dominio, que ya es suyo. Martín entra **invitado por rol** con su
+  propio usuario, no con contraseñas compartidas: el dueño puede revocarlo sin cambiar nada.
 - Clientes y pedidos de hoy son datos de **prueba**: la mudanza es solo configuración
   (`copiar --solo-config`). La base nueva arranca limpia, sin ventana de madrugada.
 - El **dominio se muda al final**, cuando la web ya funcione en el Vercel del dueño.
@@ -88,6 +92,9 @@ mes cuando entren clientes de verdad): el respaldo de hoy es una foto de hoy.
   `.env.ejemplo`). Sin él, el dev-server responde datos de muestra, no la base. Dejar siempre
   `ARAKAKI_REDIS_RO=1` si apunta a producción, y **jamás** poner `WHATSAPP_TOKEN` en el `.env`
   local: cada prueba le mandaría un WhatsApp real al dueño.
+- Una credencial mal pegada **no da error visible**: la base responde 401 y los endpoints caen a
+  sus valores por defecto, así que el sitio local se ve *vacío* en vez de roto. Si en local todo
+  sale en blanco o con los defaults, probar la conexión antes de buscar el fallo en el código.
 - Tras un deploy, `/assets` tarda ~5-10 min en refrescar: sondear con curl (cada archivo por
   separado) antes de dar por buena una prueba en producción.
 - En Windows, `process.exit()` dentro de un flujo async con `fetch` revienta con una aserción de
