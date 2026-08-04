@@ -21,6 +21,12 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
 - `TRASPASO.md` = checklist del traspaso del ecosistema al dueño.
 
 ## Hecho (últimas entregas)
+- 2026-08-04 — **Primer respaldo real de la base**: `respaldos/redis-20260804-0936.ndjson`
+  (3.8 MB, 106 claves = las 106 anunciadas, ninguna vacía, los 5 tipos y los vencimientos
+  conservados). Confirma que los clientes de hoy son de prueba: 1 solo cliente del Club y
+  1 lista de pedidos, contra 25 claves de configuración del panel. Sostiene la decisión de
+  mudar solo configuración. ⚠️ El respaldo lleva datos personales y la carpeta del proyecto
+  vive dentro de OneDrive: se sincroniza solo a la nube personal del desarrollador.
 - 2026-08-04 — Desarrollo más fluido, dos cosas: (1) `api/_redis.js`, el ÚNICO lugar donde se
   habla con la base — el helper `redis()` estaba copiado en 13 archivos de `api/` y ahora todos
   lo piden de ahí, con freno `ARAKAKI_REDIS_RO=1` de solo lectura; (2) `tools/dev-server.js` con
@@ -41,10 +47,13 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
   puntos en la barra, banner 10:7 y layout responsive escritorio+móvil.
 
 ## Siguiente paso
-Sacar el **primer respaldo real** de la base: copiar `.env.ejemplo` a `.env`, pegar
-`UPSTASH_REDIS_REST_URL` y `_TOKEN` (las de Vercel) y correr `node tools/migrar-redis.js respaldo`
-(esa herramienta ya lee el `.env` sola). Hoy no existe ningún respaldo de Upstash, y eso corre
-con o sin traspaso. El mismo `.env` deja el dev-server con datos reales.
+Arrancar la **Fase 1 del traspaso** (`TRASPASO.md`): el dueño crea el correo del negocio y sus
+8 cuentas con 2FA. **Empezar por Meta/WhatsApp**, que es lo que tarda días. Lo técnico de este
+lado ya está listo: hay respaldo, la mudanza es `copiar --solo-config` y el `.env` deja
+trabajar en local contra la base real.
+
+Repetir `node tools/migrar-redis.js respaldo` antes de cualquier cambio grande (y una vez al
+mes cuando entren clientes de verdad): el respaldo de hoy es una foto de hoy.
 
 ## Decisiones tomadas (no re-discutir)
 - Todo el ecosistema pasa a nombre del dueño (8 cuentas). Martín entra **invitado por rol** con
