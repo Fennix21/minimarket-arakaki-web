@@ -21,6 +21,9 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
 - `TRASPASO.md` = checklist del traspaso del ecosistema al dueño.
 
 ## Hecho (últimas entregas)
+- 2026-08-04 — Cierre de aprendizaje: las buenas prácticas del proyecto subidas al taller
+  (`skills/taller/referencias/web-negocio.md` nuevo + añadidos en `proceso.md` y `ui-whape.md`).
+  Ya extraído: no hace falta volver a recorrer el repo para "sacar lo aprendido".
 - 2026-08-04 — `tools/migrar-redis.js`: respaldo / copiar / restaurar / verificar de Upstash
   conservando tipo y vencimiento. Probado contra dos Upstash de mentira levantados en memoria:
   copia completa (14 claves, 5 tipos, TTL exactos), `--solo-config` (3 de 14, cero datos de
