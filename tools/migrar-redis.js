@@ -14,10 +14,14 @@
 //   Destino: UPSTASH_DESTINO_REST_URL / UPSTASH_DESTINO_REST_TOKEN (la base nueva, la del dueño)
 //
 // Opciones:
-//   --patron <glob>   solo las claves que casen (por defecto *)
+//   --solo-config     SOLO lo que el dueño configuró en el panel: cero datos de clientes
+//   --patron a,b,c    solo las claves que casen con esos patrones (por defecto *)
 //   --sobrescribir    permite escribir aunque el destino ya tenga claves
 //   --sin-respaldo    en 'copiar', no dejar el archivo de respaldo
 //   --salida <ruta>   archivo del respaldo
+//
+// Si la base de clientes y pedidos arranca de cero en el destino (son datos de prueba),
+// la mudanza es:  node tools/migrar-redis.js copiar --solo-config
 //
 // Conserva el TIPO y el VENCIMIENTO (TTL) de cada clave: sin eso los clientes del Club
 // quedarían deslogueados (sess:*) y el sitio dejaría de reconocer sus dispositivos (uid:*).
@@ -28,6 +32,12 @@ const path = require('path');
 const LIMITE_BYTES = 700000; // tope por request de Upstash (1MB); dejamos aire
 const MAX_CMDS = 60;         // comandos por pipeline
 const LOTE_LECTURA = 20;     // claves leídas por vuelta
+
+// --solo-config: lo que el DUEÑO armó desde el panel, SIN un solo dato de cliente.
+// Textos, fondos, colores, precios, stock, promos, cupones, sorteos, cerebro de los bots,
+// + las fotos de productos subidos, los banners de avisos y los videos.
+// Es lo único que hay que mudar cuando la base de clientes y pedidos arranca de cero.
+const PRESET_CONFIG = ['config:*', 'prodimg:*', 'pushimg:*', 'pushimgs', 'vidext:*'];
 
 // ---------- cliente REST ----------
 function cliente(url, token, nombre) {
@@ -90,20 +100,32 @@ function abrirDestino() {
 function fallar(msg) { const e = new Error(msg); e.avisado = true; throw e; }
 
 // ---------- lectura ----------
-async function todasLasClaves(cli, patron) {
-  let cursor = '0', vueltas = 0;
+// Acepta uno o varios patrones (config:*, prodimg:*, …) y devuelve la unión, sin repetidos.
+async function todasLasClaves(cli, patrones) {
+  const lista = Array.isArray(patrones) ? patrones : [patrones];
   const claves = [];
-  do {
-    const out = await cli.redis(['SCAN', cursor, 'MATCH', patron, 'COUNT', 500]);
-    cursor = (out && out[0]) || '0';
-    for (const k of (out && out[1]) || []) claves.push(k);
-    vueltas++;
-    if (vueltas % 20 === 0) process.stdout.write('\r  leyendo índice… ' + claves.length + ' claves');
-  } while (cursor !== '0' && vueltas < 5000);
+  for (const patron of lista) {
+    let cursor = '0', vueltas = 0;
+    do {
+      const out = await cli.redis(['SCAN', cursor, 'MATCH', patron, 'COUNT', 500]);
+      cursor = (out && out[0]) || '0';
+      for (const k of (out && out[1]) || []) claves.push(k);
+      vueltas++;
+      if (vueltas % 20 === 0) process.stdout.write('\r  leyendo índice… ' + claves.length + ' claves');
+    } while (cursor !== '0' && vueltas < 5000);
+  }
   // SCAN puede repetir claves entre vueltas: dejamos una sola de cada una.
   const unicas = Array.from(new Set(claves));
   process.stdout.write('\r  índice: ' + unicas.length + ' claves' + ' '.repeat(20) + '\n');
   return unicas;
+}
+
+// Los mismos patrones, para filtrar un archivo de respaldo al restaurar.
+function comoRegex(p) {
+  return new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$');
+}
+function casaCon(patrones, k) {
+  return patrones.some((p) => p === '*' || comoRegex(p).test(k));
 }
 
 const LECTURA = {
@@ -222,15 +244,22 @@ function rutaRespaldo(salida) {
 }
 
 // ---------- modos ----------
+function mostrarFiltro(opts) {
+  if (opts.patrones.join(',') === '*') return;
+  const esPreset = opts.patrones.join(',') === PRESET_CONFIG.join(',');
+  console.log('  filtro : ' + opts.patrones.join('  ') + (esPreset ? '\n           (solo la configuración del panel: ni un dato de cliente ni un pedido)' : '') + '\n');
+}
+
 async function modoRespaldo(opts, cli, destinoTambien) {
-  const claves = await todasLasClaves(cli, opts.patron);
-  if (!claves.length) { console.log('  (la base está vacía)'); return { total: 0 }; }
+  mostrarFiltro(opts);
+  const claves = await todasLasClaves(cli, opts.patrones);
+  if (!claves.length) { console.log('  (no hay claves que casen con ' + opts.patrones.join(' ') + ')'); return { total: 0 }; }
 
   const archivo = opts.sinRespaldo ? null : rutaRespaldo(opts.salida);
   let fd = null;
   if (archivo) {
     fd = fs.openSync(archivo, 'w');
-    fs.writeSync(fd, JSON.stringify({ __meta: { fecha: new Date().toISOString(), origen: cli.base, claves: claves.length, patron: opts.patron } }) + '\n');
+    fs.writeSync(fd, JSON.stringify({ __meta: { fecha: new Date().toISOString(), origen: cli.base, claves: claves.length, patron: opts.patrones.join(',') } }) + '\n');
   }
 
   const cuenta = {}, porTipo = {};
@@ -274,6 +303,7 @@ async function modoRestaurar(opts, archivo) {
   if (!archivo || !fs.existsSync(archivo)) fallar('No encuentro el archivo de respaldo: ' + archivo);
   const destino = abrirDestino();
   console.log('  destino: ' + destino.base);
+  mostrarFiltro(opts);
 
   const yaHay = await todasLasClaves(destino, '*');
   if (yaHay.length && !opts.sobrescribir) {
@@ -282,11 +312,13 @@ async function modoRestaurar(opts, archivo) {
 
   const lineas = fs.readFileSync(archivo, 'utf8').split('\n');
   const cuenta = {};
-  let lote = [], total = 0;
+  let lote = [], total = 0, saltadas = 0;
   for (const linea of lineas) {
     if (!linea.trim()) continue;
     const reg = JSON.parse(linea);
     if (reg.__meta) { console.log('  respaldo del ' + reg.__meta.fecha + ' · ' + reg.__meta.claves + ' claves'); continue; }
+    // Permite tomar un respaldo COMPLETO y restaurar solo una parte (ej. --solo-config).
+    if (!casaCon(opts.patrones, reg.k)) { saltadas++; continue; }
     contar(cuenta, reg.k);
     lote.push(reg);
     if (lote.length >= LOTE_LECTURA) { total += await escribir(destino, lote); lote = []; process.stdout.write('\r  restaurando… ' + total); }
@@ -294,6 +326,7 @@ async function modoRestaurar(opts, archivo) {
   if (lote.length) total += await escribir(destino, lote);
   process.stdout.write('\n');
   tabla(cuenta, 'Claves restauradas por familia:');
+  if (saltadas) console.log('\n  (' + saltadas + ' claves del archivo quedaron fuera por el filtro ' + opts.patrones.join(' ') + ')');
   console.log('\n✓ Restauradas ' + total + ' claves. Ahora corre "verificar".');
 }
 
@@ -301,8 +334,9 @@ async function modoVerificar(opts) {
   const origen = abrirOrigen(), destino = abrirDestino();
   console.log('  origen : ' + origen.base);
   console.log('  destino: ' + destino.base + '\n');
-  const a = await todasLasClaves(origen, opts.patron);
-  const b = new Set(await todasLasClaves(destino, opts.patron));
+  mostrarFiltro(opts);
+  const a = await todasLasClaves(origen, opts.patrones);
+  const b = new Set(await todasLasClaves(destino, opts.patrones));
 
   const faltan = a.filter((k) => !b.has(k));
   const ca = {}, cb = {};
@@ -350,12 +384,14 @@ async function modoVerificar(opts) {
   const args = process.argv.slice(2);
   const modo = args[0];
   const opts = {
-    patron: '*',
+    patrones: ['*'],
     sobrescribir: args.includes('--sobrescribir'),
     sinRespaldo: args.includes('--sin-respaldo'),
     salida: '',
   };
-  const iP = args.indexOf('--patron'); if (iP >= 0) opts.patron = args[iP + 1] || '*';
+  const iP = args.indexOf('--patron');
+  if (iP >= 0) opts.patrones = String(args[iP + 1] || '*').split(',').map((s) => s.trim()).filter(Boolean);
+  if (args.includes('--solo-config')) opts.patrones = PRESET_CONFIG;
   const iS = args.indexOf('--salida'); if (iS >= 0) opts.salida = args[iS + 1] || '';
 
   if (modo === 'respaldo') {
@@ -380,11 +416,14 @@ async function modoVerificar(opts) {
       '',
       '  node tools/migrar-redis.js respaldo               guarda TODO en respaldos/',
       '  node tools/migrar-redis.js copiar                 origen -> destino (respalda de paso)',
+      '  node tools/migrar-redis.js copiar --solo-config   igual, pero SIN clientes ni pedidos',
       '  node tools/migrar-redis.js restaurar <archivo>    vuelca un respaldo en el destino',
       '  node tools/migrar-redis.js verificar              compara origen y destino',
       '',
       'Variables:  UPSTASH_REDIS_REST_URL/_TOKEN (origen)  ·  UPSTASH_DESTINO_REST_URL/_TOKEN (destino)',
-      'Opciones :  --patron <glob>  --sobrescribir  --sin-respaldo  --salida <ruta>',
+      'Opciones :  --solo-config  --patron a,b,c  --sobrescribir  --sin-respaldo  --salida <ruta>',
+      '',
+      '--solo-config = ' + PRESET_CONFIG.join('  '),
       '',
     ].join('\n'));
   }

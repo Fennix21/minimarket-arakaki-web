@@ -94,41 +94,43 @@ el desarrollador solo acompaña.
 
 ---
 
-## 5. Fase 4 — La base de datos (Upstash) ← la parte delicada
+## 5. Fase 4 — La base de datos (Upstash)
 
-Es lo único que **no** está en el código: clientes del Club con sus PINs y sesiones, pedidos,
-conversaciones de WhatsApp, toda la configuración del panel, las fotos de productos subidos,
-los videos y las suscripciones de avisos.
+Es lo único que **no** está en el código. Hoy contiene dos cosas muy distintas:
 
-Herramienta: `tools/migrar-redis.js` (conserva tipo y **vencimiento** de cada dato; sin eso
-los clientes quedarían deslogueados y la web dejaría de reconocer sus celulares).
+| | Qué es | ¿Se muda? |
+|---|---|---|
+| **Configuración del panel** | textos, fondos, colores, precios, stock, promos, cupones, sorteos, cerebro de los bots, fotos de productos subidos, banners y videos | **SÍ** — es trabajo real del dueño |
+| **Clientes y pedidos** | cuentas del Club, PINs, pedidos, conversaciones, estadísticas | **NO** — hoy son datos de prueba: la base nueva arranca limpia |
 
-- [ ] **Respaldo primero** (esto hay que hacerlo aunque no hubiera mudanza):
+Como los clientes arrancan de cero, no hace falta ventana de madrugada ni cuidar sesiones:
+la mudanza es un solo comando y se puede hacer en cualquier momento.
+
+- [ ] **Respaldo del estado actual, por si acaso** (guarda todo, incluso lo de prueba):
 
 ```bash
 node tools/migrar-redis.js respaldo
 ```
 
-- [ ] Guardar ese archivo fuera de la computadora. **Contiene datos de clientes**: no se sube a
-      GitHub (la carpeta `respaldos/` está excluida) ni se manda por chat.
-- [ ] Crear la base nueva en el Upstash del dueño (misma región: `us-east-1`).
-- [ ] Elegir una hora con la tienda cerrada (6 a.m.) para que no entren pedidos a mitad de copia.
-- [ ] Copiar, con las variables del origen y del destino en el entorno:
+- [ ] Ese archivo **no se sube a GitHub** (la carpeta `respaldos/` está excluida) ni se manda por
+      chat. El día que haya clientes de verdad, este respaldo pasa a ser rutina.
+- [ ] Crear la base nueva en el Upstash del dueño y **anotar la región elegida**.
+- [ ] Copiar SOLO la configuración, con las variables del origen y del destino en el entorno:
 
 ```bash
-node tools/migrar-redis.js copiar
+node tools/migrar-redis.js copiar --solo-config
 ```
 
 - [ ] Cotejar antes de cambiar nada:
 
 ```bash
-node tools/migrar-redis.js verificar
+node tools/migrar-redis.js verificar --solo-config
 ```
 
 - [ ] Recién cuando diga "Todo cuadra": cambiar `UPSTASH_REDIS_REST_URL` y `_TOKEN` en el
       Vercel del dueño y volver a desplegar.
-- [ ] Probar: entrar al panel, abrir un pedido viejo, y que un cliente del Club entre con su PIN
-      **sin** tener que volver a iniciar sesión.
+- [ ] Probar en el panel: que estén los textos, los precios, las promos, los productos subidos
+      con su foto y los videos. Y que Clientes y Pedidos aparezcan **vacíos** (es lo esperado).
 
 ---
 
@@ -191,7 +193,52 @@ node tools/migrar-redis.js verificar
 
 ---
 
-## 11. Pendiente de confirmar con el dueño
+## 11. Dónde viven los datos delicados de los clientes
+
+**En un solo lugar: la base Upstash Redis.** Ni GitHub ni Vercel guardan datos de clientes —
+el repositorio tiene código y fotos de productos, y Vercel guarda las *llaves de acceso*
+(variables de entorno), no los datos.
+
+Qué hay dentro de esa base, clave por clave:
+
+| Clave | Qué guarda de la persona |
+|---|---|
+| `cliente:<celular>` | nombre, celular, correo, dirección principal y hasta 5 más, foto de perfil, puntos, gasto total, qué compra y con qué frecuencia |
+| `clientes` | el índice con todos los celulares |
+| `lead:<celular>` | la conversación completa de WhatsApp (hasta 300 mensajes), nombre, notas y etiquetas del dueño |
+| `pedidos` | nombre, celular, dirección y **coordenadas GPS** del pedido, productos y total |
+| `sess:<token>` · `uid:<token>` | la sesión y el dispositivo, que apuntan al celular |
+| `preguntas` | celular, nombre y la pregunta que hizo |
+| `sorteo:<id>` | los celulares que participan |
+| `push:clientes` | la dirección de suscripción a avisos (identifica al dispositivo, no a la persona) |
+| `reccode:<celular>` · `pinrl:*` · `pregrl:*` | el celular va en el nombre de la clave |
+| `pres:<uid>` · `presencia` | qué página está viendo cada visitante en este momento |
+
+**Lo que ya está protegido:** la clave del Club nunca se guarda tal cual — se guarda un hash
+scrypt con sal, que no se puede revertir. Todo viaja cifrado (TLS). Y los registros de
+actividad de Vercel no imprimen datos de clientes, solo etiquetas de error.
+
+**Quién puede leer todo eso — son 3 llaves, y las 3 deben quedar en manos del dueño:**
+
+1. Quien entre a la **consola de Upstash**.
+2. Quien tenga el **token de la base** (vive en las variables de Vercel).
+3. Quien sepa la **contraseña del panel** (`ARAKAKI_ADMIN_PASS`): el CRM muestra nombres,
+   celulares y direcciones, y permite resetear PINs. Es, en la práctica, una llave más de la
+   base de datos: no se comparte por chat ni se reutiliza de otro servicio.
+
+**Dónde está físicamente:** Upstash corre sobre servidores de AWS y la región se elige al crear
+la base (hay que mirar en la consola cuál se eligió; para Perú lo habitual es Virginia,
+`us-east-1`). Los datos salen del país: si algún día se quiere anunciar una política de
+privacidad, eso es lo que hay que declarar.
+
+**Por dónde pasan los datos aunque no se guarden ahí:** el contenido de las conversaciones del
+chat y del bot pasa por la IA (Anthropic); los mensajes de WhatsApp, por Meta; los correos, por
+Resend; y todo el tráfico, por Vercel. Son proveedores, no dueños de los datos, pero conviene
+que el dueño sepa que existen.
+
+---
+
+## 12. Pendiente de confirmar con el dueño
 
 1. ¿En qué registrador está minimarketarakaki.com y tiene el usuario y la clave?
 2. ¿A nombre de quién está hoy el Business Manager de WhatsApp?
