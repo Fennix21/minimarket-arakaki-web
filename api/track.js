@@ -3,18 +3,7 @@
 //   POST { ev, p, r }  ev=evento, p=ruta de la página, r=referrer
 // No usa contraseña: solo INCREMENTA contadores (no expone datos).
 
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-
-async function redis(cmd) {
-  const r = await fetch(REDIS_URL, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'content-type': 'application/json' },
-    body: JSON.stringify(cmd),
-  });
-  const data = await r.json();
-  return data.result;
-}
+const { REDIS_URL, REDIS_TOKEN, redis } = require('./_redis');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();

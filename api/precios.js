@@ -10,18 +10,7 @@
 //                    config:vidsubidos), con caché inmutable y soporte de Range (iPhone lo exige)
 // Sin env vars de Redis devuelve { p:{}, s:{}, x:[], v:{}, c:{} }: el sitio funciona igual con el catálogo base.
 
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-
-async function redis(cmd) {
-  const r = await fetch(REDIS_URL, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'content-type': 'application/json' },
-    body: JSON.stringify(cmd),
-  });
-  const data = await r.json();
-  return data.result;
-}
+const { REDIS_URL, REDIS_TOKEN, redis } = require('./_redis');
 
 module.exports = async (req, res) => {
   // GET ?img=<id> → sirve la foto de un producto subido desde el panel (Redis prodimg:<id>)

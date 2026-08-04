@@ -21,6 +21,13 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
 - `TRASPASO.md` = checklist del traspaso del ecosistema al dueño.
 
 ## Hecho (últimas entregas)
+- 2026-08-04 — Desarrollo más fluido, dos cosas: (1) `api/_redis.js`, el ÚNICO lugar donde se
+  habla con la base — el helper `redis()` estaba copiado en 13 archivos de `api/` y ahora todos
+  lo piden de ahí, con freno `ARAKAKI_REDIS_RO=1` de solo lectura; (2) `tools/dev-server.js` con
+  **modo base real**: con un `.env` en la raíz (plantilla en `.env.ejemplo`, ignorado por git)
+  corre los handlers de verdad contra Upstash y los recarga en cada pedido, así que ya no hace
+  falta publicar para ver datos reales. Probado con un Upstash de mentira: 14 verificaciones
+  (datos reales vs stub, clave del panel, freno de escritura, 404, y que sin `.env` todo sigue igual).
 - 2026-08-04 — Cierre de aprendizaje: las buenas prácticas del proyecto subidas al taller
   (`skills/taller/referencias/web-negocio.md` nuevo + añadidos en `proceso.md` y `ui-whape.md`).
   Ya extraído: no hace falta volver a recorrer el repo para "sacar lo aprendido".
@@ -48,8 +55,10 @@ respaldo de Upstash, y eso corre con o sin traspaso.
 - Los respaldos van a `respaldos/`, fuera de git: llevan celulares, direcciones y hashes de PIN.
 
 ## Trampas de este proyecto
-- Las variables de Upstash **no están en local**: no se puede leer Redis desde el PC. Verificar
-  por el panel o por los endpoints públicos.
+- Para ver datos reales en local hace falta un `.env` con las llaves de Upstash (copiar
+  `.env.ejemplo`). Sin él, el dev-server responde datos de muestra, no la base. Dejar siempre
+  `ARAKAKI_REDIS_RO=1` si apunta a producción, y **jamás** poner `WHATSAPP_TOKEN` en el `.env`
+  local: cada prueba le mandaría un WhatsApp real al dueño.
 - Tras un deploy, `/assets` tarda ~5-10 min en refrescar: sondear con curl (cada archivo por
   separado) antes de dar por buena una prueba en producción.
 - En Windows, `process.exit()` dentro de un flujo async con `fetch` revienta con una aserción de

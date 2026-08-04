@@ -21,20 +21,7 @@ const { pushDuenos } = require('./_push.js');
 const CATEGORIAS = [];
 PRODUCTOS.forEach((pr) => { if (CATEGORIAS.indexOf(pr.c) < 0) CATEGORIAS.push(pr.c); });
 
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-const HAS_REDIS = !!(REDIS_URL && REDIS_TOKEN);
-
-async function redis(cmd) {
-  if (!HAS_REDIS) return null;
-  const r = await fetch(REDIS_URL, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'content-type': 'application/json' },
-    body: JSON.stringify(cmd),
-  });
-  const data = await r.json();
-  return data.result;
-}
+const { REDIS_URL, REDIS_TOKEN, HAS_REDIS, redis } = require('./_redis');
 
 function normalizar(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 

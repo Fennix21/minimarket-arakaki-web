@@ -1,6 +1,13 @@
 // Servidor local para previsualizar el sitio (imita el cleanUrls de Vercel).
 // Correr con: node tools/dev-server.js [puerto]  → http://localhost:3210
-// Las rutas /api/* responden un stub {ok:true} (el backend real corre en Vercel).
+//
+// Dos modos, según haya o no un archivo .env en la raíz (ver .env.ejemplo):
+//   • SIN base   → las rutas /api/* responden un stub de muestra (como siempre).
+//   • CON base   → corre los handlers DE VERDAD de api/*.js contra Upstash, igual que Vercel:
+//                  el panel, el Club y los precios muestran datos reales sin publicar nada.
+//                  Además recarga api/*.js en cada pedido: editas y recargas el navegador.
+// El .env está en .gitignore y NUNCA se sube. Con ARAKAKI_REDIS_RO=1 (recomendado) la base
+// se puede mirar pero no modificar: mira el freno en api/_redis.js.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -13,9 +20,97 @@ const MIME = {
   '.webp': 'image/webp', '.mp4': 'video/mp4', '.webmanifest': 'application/manifest+json',
 };
 
+// ---------- .env de la raíz (formato CLAVE=valor, # comenta la línea) ----------
+function cargarEnv() {
+  const ruta = path.join(RAIZ, '.env');
+  if (!fs.existsSync(ruta)) return 0;
+  let n = 0;
+  for (const linea of fs.readFileSync(ruta, 'utf8').split(/\r?\n/)) {
+    const t = linea.trim();
+    if (!t || t[0] === '#') continue;
+    const i = t.indexOf('=');
+    if (i < 1) continue;
+    const clave = t.slice(0, i).trim();
+    let valor = t.slice(i + 1).trim();
+    if ((valor[0] === '"' && valor.endsWith('"')) || (valor[0] === "'" && valor.endsWith("'"))) valor = valor.slice(1, -1);
+    if (!(clave in process.env)) { process.env[clave] = valor; n++; }
+  }
+  return n;
+}
+cargarEnv(); // OJO: antes de cualquier require de api/*, que leen process.env al cargarse
+
+const { HAS_REDIS, REDIS_URL, SOLO_LECTURA } = require('../api/_redis');
+
+// ---------- Puente para correr los handlers de Vercel sobre el http de Node ----------
+// Vercel les entrega req.query y req.body ya listos, y un res con status()/json()/send().
+function leerCuerpo(req) {
+  return new Promise((listo) => {
+    let d = '';
+    req.on('data', (c) => { d += c; });
+    req.on('end', () => listo(d));
+    req.on('error', () => listo(''));
+  });
+}
+
+function prepararReq(req, cuerpo) {
+  const query = {};
+  new URLSearchParams((req.url || '').split('?')[1] || '').forEach((v, k) => { query[k] = v; });
+  req.query = query;
+  const tipo = String(req.headers['content-type'] || '');
+  if (!cuerpo) req.body = undefined;
+  else if (tipo.indexOf('application/json') >= 0) { try { req.body = JSON.parse(cuerpo); } catch (e) { req.body = {}; } }
+  else if (tipo.indexOf('x-www-form-urlencoded') >= 0) {
+    const f = {}; new URLSearchParams(cuerpo).forEach((v, k) => { f[k] = v; }); req.body = f;
+  } else req.body = cuerpo;
+}
+
+function prepararRes(res) {
+  res.status = (n) => { res.statusCode = n; return res; };
+  res.json = (o) => {
+    if (!res.headersSent) res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(o));
+    return res;
+  };
+  res.send = (x) => {
+    if (Buffer.isBuffer(x)) { res.end(x); return res; }
+    if (x && typeof x === 'object') return res.json(x);
+    if (!res.headersSent && !res.getHeader('content-type')) res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.end(x == null ? '' : String(x));
+    return res;
+  };
+}
+
+// Olvida los módulos de api/ para que el próximo pedido lea el archivo del disco (sin reiniciar).
+function refrescarModulos() {
+  const dir = path.join(RAIZ, 'api') + path.sep;
+  for (const k of Object.keys(require.cache)) if (k.startsWith(dir)) delete require.cache[k];
+}
+
+async function correrApi(req, res, nombre) {
+  const archivo = path.join(RAIZ, 'api', nombre + '.js');
+  if (!/^[a-z0-9_-]+$/i.test(nombre) || !fs.existsSync(archivo)) {
+    res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
+    return res.end(JSON.stringify({ error: 'No existe api/' + nombre + '.js' }));
+  }
+  try {
+    refrescarModulos();
+    const handler = require(archivo);
+    prepararReq(req, req.method === 'GET' || req.method === 'HEAD' ? '' : await leerCuerpo(req));
+    prepararRes(res);
+    await handler(req, res);
+    if (!res.writableEnded) res.end();
+  } catch (e) {
+    console.error('[api/' + nombre + ']', e);
+    if (!res.headersSent) res.writeHead(500, { 'content-type': 'application/json; charset=utf-8' });
+    if (!res.writableEnded) res.end(JSON.stringify({ error: String((e && e.message) || e) }));
+  }
+}
+
 http.createServer((req, res) => {
   const url = decodeURIComponent((req.url || '/').split('?')[0]);
   if (url.startsWith('/api/')) {
+    // Con la base configurada (.env) corre el backend REAL; sin ella, los stubs de siempre.
+    if (HAS_REDIS) { correrApi(req, res, url.slice(5)); return; }
     // Stub de la baja de correos promocionales (página HTML, no JSON)
     if (url === '/api/correo') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -234,4 +329,16 @@ http.createServer((req, res) => {
   }
   res.writeHead(200, { 'content-type': MIME[path.extname(ruta)] || 'application/octet-stream' });
   fs.createReadStream(ruta).pipe(res);
-}).listen(PUERTO, () => console.log('Sitio en http://localhost:' + PUERTO));
+}).listen(PUERTO, () => {
+  console.log('Sitio en http://localhost:' + PUERTO);
+  if (!HAS_REDIS) {
+    console.log('Base:  sin conectar → /api/* responde datos de muestra (stubs).');
+    console.log('       Para ver los datos de verdad: copia .env.ejemplo a .env y pon las llaves de Upstash.');
+    return;
+  }
+  let host = REDIS_URL;
+  try { host = new URL(REDIS_URL).host; } catch (e) {}
+  console.log('Base:  CONECTADA a ' + host + ' → /api/* corre el backend real (api/*.js, se recarga solo).');
+  if (SOLO_LECTURA) console.log('       Modo SOLO LECTURA: puedes mirar todo, pero lo que guardes NO se graba.');
+  else console.log('       ⚠️  ESCRITURA ACTIVA: lo que cambies aquí se graba de verdad en esa base.');
+});
