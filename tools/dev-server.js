@@ -20,24 +20,8 @@ const MIME = {
   '.webp': 'image/webp', '.mp4': 'video/mp4', '.webmanifest': 'application/manifest+json',
 };
 
-// ---------- .env de la raíz (formato CLAVE=valor, # comenta la línea) ----------
-function cargarEnv() {
-  const ruta = path.join(RAIZ, '.env');
-  if (!fs.existsSync(ruta)) return 0;
-  let n = 0;
-  for (const linea of fs.readFileSync(ruta, 'utf8').split(/\r?\n/)) {
-    const t = linea.trim();
-    if (!t || t[0] === '#') continue;
-    const i = t.indexOf('=');
-    if (i < 1) continue;
-    const clave = t.slice(0, i).trim();
-    let valor = t.slice(i + 1).trim();
-    if ((valor[0] === '"' && valor.endsWith('"')) || (valor[0] === "'" && valor.endsWith("'"))) valor = valor.slice(1, -1);
-    if (!(clave in process.env)) { process.env[clave] = valor; n++; }
-  }
-  return n;
-}
-cargarEnv(); // OJO: antes de cualquier require de api/*, que leen process.env al cargarse
+// OJO: el .env va ANTES de cualquier require de api/*, que leen process.env al cargarse.
+require('./_env').cargarEnv(RAIZ);
 
 const { HAS_REDIS, REDIS_URL, SOLO_LECTURA } = require('../api/_redis');
 

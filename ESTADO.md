@@ -41,9 +41,10 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
   puntos en la barra, banner 10:7 y layout responsive escritorio+móvil.
 
 ## Siguiente paso
-Sacar el **primer respaldo real** de la base: poner `UPSTASH_REDIS_REST_URL` y `_TOKEN` (las de
-Vercel) en el entorno y correr `node tools/migrar-redis.js respaldo`. Hoy no existe ningún
-respaldo de Upstash, y eso corre con o sin traspaso.
+Sacar el **primer respaldo real** de la base: copiar `.env.ejemplo` a `.env`, pegar
+`UPSTASH_REDIS_REST_URL` y `_TOKEN` (las de Vercel) y correr `node tools/migrar-redis.js respaldo`
+(esa herramienta ya lee el `.env` sola). Hoy no existe ningún respaldo de Upstash, y eso corre
+con o sin traspaso. El mismo `.env` deja el dev-server con datos reales.
 
 ## Decisiones tomadas (no re-discutir)
 - Todo el ecosistema pasa a nombre del dueño (8 cuentas). Martín entra **invitado por rol** con
@@ -53,6 +54,12 @@ respaldo de Upstash, y eso corre con o sin traspaso.
 - El **dominio se muda al final**, cuando la web ya funcione en el Vercel del dueño. **WhatsApp
   se empieza primero**: transferir el número entre Business Managers toma días.
 - Los respaldos van a `respaldos/`, fuera de git: llevan celulares, direcciones y hashes de PIN.
+- **No se migra a Supabase** (ni a otra "nube única"), decidido el 2026-08-04. De las 8 cuentas
+  solo reemplazaría Upstash: GitHub, el hosting del sitio, WhatsApp, Anthropic y Resend seguirían
+  igual. A cambio habría que rediseñar el modelo de datos entero (todo son claves Redis con ZSET,
+  LIST y vencimientos, que Postgres no tiene) y reescribir los ~15 `api/*.js` (las Edge Functions
+  son Deno, no Node): semanas de trabajo para que la web haga exactamente lo mismo, y en plena
+  mudanza al dueño. Se revisaría solo si algún día hicieran falta reportes SQL o varias sucursales.
 
 ## Trampas de este proyecto
 - Para ver datos reales en local hace falta un `.env` con las llaves de Upstash (copiar

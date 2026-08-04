@@ -28,6 +28,7 @@
 // NO borra nada del origen. En el destino reemplaza clave por clave (DEL + escritura).
 const fs = require('fs');
 const path = require('path');
+require('./_env').cargarEnv(path.join(__dirname, '..')); // llaves del .env de la raíz (si existe)
 
 const LIMITE_BYTES = 700000; // tope por request de Upstash (1MB); dejamos aire
 const MAX_CMDS = 60;         // comandos por pipeline
