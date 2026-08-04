@@ -4,6 +4,10 @@ Objetivo: que **todo** (dominio, código, hosting, base de datos, WhatsApp, IA, 
 quede a nombre del dueño del Minimarket Arakaki, y que el desarrollador siga trabajando
 con **su propio usuario invitado**, no con las contraseñas del dueño.
 
+> 📄 **Para mostrarle al dueño: [`TRASPASO-SIMPLE.md`](TRASPASO-SIMPLE.md)** — lo mismo contado
+> sin tecnicismos (qué es cada llave, el camino en 6 pasos, costos y quién ve los datos).
+> Este archivo es la versión operativa, con los comandos y las variables.
+
 > **Regla de oro:** donde la plataforma permita *invitar a un colaborador*, se invita.
 > Compartir contraseña solo donde no exista invitación, y guardada en un gestor
 > (Bitwarden gratis o 1Password), nunca por WhatsApp ni por correo.

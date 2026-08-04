@@ -18,7 +18,8 @@ El mapa completo (tabla de archivos + claves de Redis + recetas) está en `CLAUD
 - `assets/site.js` y `site.css`: header, menú, footer, carrito, chat y Club. **Nada de eso está en los HTML.**
 - `api/*.js`: serverless CommonJS; toda la data en Upstash Redis.
 - `panel.html` = CRM del dueño · `mi-cuenta.html` = cuenta del cliente.
-- `TRASPASO.md` = checklist del traspaso del ecosistema al dueño.
+- `TRASPASO.md` = checklist del traspaso del ecosistema al dueño (operativa) ·
+  `TRASPASO-SIMPLE.md` = la misma hoja de ruta en cristiano, para mostrarle al dueño.
 
 ## Hecho (últimas entregas)
 - 2026-08-04 — **Primer respaldo real de la base**: `respaldos/redis-20260804-0936.ndjson`
